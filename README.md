@@ -3,6 +3,6 @@ Jupyter notebook to query and display yugipedia data
 
 ## Pages
 
-[Cards](Cards.html)
-[Sets](Sets.html)
-[Errata](Errata.html)
+* [Cards](Cards.html)
+* [Sets](Sets.html)
+* [Errata](Errata.html)
