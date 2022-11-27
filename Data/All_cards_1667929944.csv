@@ -43,7 +43,7 @@ Adamancipator Signs,72957245,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)
 Advance Draw,51630558,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,,Unlimited,Unlimited,Wed Apr 27 14:46:32 2022
 Advance Force,38589847,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,,Unlimited,Unlimited,Wed Apr 27 14:46:49 2022
 Advance Zone,76224717,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Wed Feb  3 18:16:11 2021
-Advanced Dark,12644061,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu Sep 29 15:33:30 2022
+Advanced Dark,12644061,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Mon Nov  7 22:13:34 2022
 Advanced Heraldry Art,61314842,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Lingering effect')","('Heraldry',)",,"('Name',)",Unlimited,Unlimited,Sun Mar 13 00:14:53 2022
 Advanced Ritual Art,46052429,Spell Card,Ritual Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Sun Aug 14 09:26:14 2022
 After the Storm,82263578,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Wed Apr 20 11:54:36 2022
@@ -156,7 +156,7 @@ Battle Fusion,43225434,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation 
 Battle Royal Mode - Joining,65433790,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Activation condition', 'Continuous-like Effect', 'Trigger Effect')",,,,,Unlimited,Sun Jul 24 03:53:41 2022
 Battle Tuned,05052212,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,,Unlimited,Unlimited,Thu Apr  1 13:30:41 2021
 Battle Waltz,15629801,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Lingering effect')",,,,Unlimited,Unlimited,Sun Nov 15 18:38:45 2020
-Battle of Sleeping Spirits,46570372,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,,Unlimited,Sat Sep 17 18:45:29 2022
+Battle of Sleeping Spirits,46570372,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:54:08 2022
 Battlefield Tragedy,42228966,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')",,,,,Unlimited,Mon Jul 18 09:43:55 2022
 Battlin' Boxing Spirits,36916401,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Cost', 'Effect')",,,,Unlimited,Unlimited,Mon Oct 25 06:00:43 2021
 Bayonet Punisher,36092504,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Mon Dec 27 19:31:50 2021
@@ -302,7 +302,7 @@ Chaos Form,21082832,Spell Card,Ritual Spell Card,,,,,,,,,,,"('Effect',)","('Chao
 Chaos Greed,97439308,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Chaos', 'Greed (series)')",,,Unlimited,Unlimited,Fri Mar 20 11:43:15 2020
 Chaos Scepter Blast,15256925,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation condition', 'Effect', 'Trigger Effect')","('Signature move',)",,,Unlimited,Unlimited,Tue Apr  7 04:34:15 2020
 Chaos Seed,76766706,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Mon Nov 16 04:41:44 2020
-Chaos Space,99266988,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Chaos',)",,,Unlimited,Unlimited,Mon Aug 22 13:13:10 2022
+Chaos Space,99266988,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Chaos',)",,,Unlimited,Unlimited,Mon Nov  7 22:37:06 2022
 Chaos Zone,94243005,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Ignition-like Effect', 'Trigger Effect')","('Chaos',)",,,Unlimited,Unlimited,Sun Jul 24 08:43:41 2022
 Charge Into a Dark World,85325774,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Dark World',)",,,Unlimited,Unlimited,Sat Aug  6 13:22:50 2022
 Charge of the Light Brigade,94886282,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,,Unlimited,Unlimited,Thu Sep 30 09:08:47 2021
@@ -326,7 +326,7 @@ The Claw of Hermos,46232525,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition'
 Clear New World,21570001,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Sat Oct 15 16:01:47 2022
 Clear World,33900648,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Maintenance cost', 'Trigger Effect')","('Clear',)",,,Unlimited,Unlimited,Sun Aug 14 07:33:18 2022
 Clock Tower Prison,75041269,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Jul  9 00:50:09 2022
-Clockwork Night,84797028,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,,,Unlimited,Sat Oct 15 07:03:58 2022
+Clockwork Night,84797028,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:48:27 2022
 Closed Forest,78082039,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Wed Dec 16 19:08:04 2020
 Cloudian Aerosol,88210105,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Cost', 'Effect', 'Ignition-like Effect')","('Cloudian',)",,,Unlimited,Unlimited,Wed Jan 22 05:33:55 2020
 Cloudian Squall,90135989,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Trigger Effect',)","('Cloudian',)",,,Unlimited,Unlimited,Wed Jan  6 03:52:53 2021
@@ -401,7 +401,7 @@ Cubic Karma,09659580,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Effect', 'Ign
 Cubic Wave,35058588,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Ignition-like Effect')","('Cubic',)",,,Unlimited,Unlimited,Sun Feb 28 09:28:47 2021
 Cunning of the Six Samurai,27178262,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Cost', 'Effect')","('Six Samurai',)",,,Unlimited,Unlimited,Fri Jul 29 08:37:12 2022
 Cup of Ace,37812118,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Sat Oct  1 13:09:03 2022
-Curse Reflection Doll,33391067,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:44:06 2022
+Curse Reflection Doll,33391067,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:19:11 2022
 Curse of Aramatir,34690953,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')","('Adventurer Token (series)',)",,,Unlimited,Unlimited,Sun Oct 23 19:44:18 2022
 Curse of Fiend,12470447,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Effect')",,,"('Type',)",Unlimited,Unlimited,Sun Nov  7 10:17:47 2021
 Curse of the Masked Beast,94377247,Spell Card,Ritual Spell Card,,,,,,,,,,,"('Effect',)","('Mask',)",,"('Type',)",Unlimited,Unlimited,Thu Sep  8 19:44:53 2022
@@ -516,7 +516,7 @@ Detonate,89086566,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)","('Si
 Diamond Core of Koa'ki Meiru,81994591,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Ignition-like Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Fri Mar 20 12:15:58 2020
 Diamond-Dust Cyclone,19980975,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Wed Jan  6 04:20:44 2021
 Dian Keto the Cure Master,84257639,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,"('Edited',)","('Type',)",Unlimited,Unlimited,Sun Apr 24 04:21:09 2022
-Dice Dungeon,11808215,Spell Card,Field Spell Card,,,,,,,,,,,"('Effect', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:45:59 2022
+Dice Dungeon,11808215,Spell Card,Field Spell Card,,,,,,,,,,,"('Effect', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:40:21 2022
 Diced Dice,93078761,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Thu Oct  7 08:24:47 2021
 Dicephoon,03493058,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Fri Mar 20 12:16:53 2020
 Different Dimension Capsule,11961740,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')",,,"('Type',)",Unlimited,Unlimited,Wed Apr 20 23:42:14 2022
@@ -524,7 +524,7 @@ Different Dimension Deepsea Trench,62437430,Spell Card,Continuous Spell Card,,,,
 Different Dimension Gate,56460688,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Activation condition', 'Effect', 'Trigger Effect')","('D.D.',)",,,Unlimited,Unlimited,Wed Apr 20 13:01:17 2022
 Diffusion Wave-Motion,87880531,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Cost', 'Effect')",,,"('Name', 'Type')",Unlimited,Unlimited,Sun Nov  7 13:03:18 2021
 Digit Jamming,49658464,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Fri Aug  5 22:20:18 2022
-Dimension Dice,47292920,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Cost', 'Effect')",,,,,Unlimited,Sat Sep 17 18:45:53 2022
+Dimension Dice,47292920,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Cost', 'Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:46:59 2022
 Dimension Distortion,95194279,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Sun Jul 24 08:43:53 2022
 Dimension Explosion,01896112,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,,Unlimited,Unlimited,Sun Jul 24 09:12:04 2022
 Dimension Fusion,23557835,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')","('Polymerization (archetype)',)",,,Forbidden,Forbidden,Sun Jul 24 09:12:21 2022
@@ -579,7 +579,7 @@ Dragged Down into the Grave,16435215,Spell Card,Normal Spell Card,,,,,,,,,,,"('E
 Dragon King's Myth,66156348,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')",,,,,Unlimited,Sat Jun  4 11:34:28 2022
 Dragon Laser,29228350,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)","('Konami Arcade Games',)",,,Unlimited,Unlimited,Thu Nov 19 00:54:27 2020
 Dragon Mastery,99659159,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Ignition-like Effect')",,,,Unlimited,Unlimited,Wed Apr 20 02:50:40 2022
-Dragon Nails,76076738,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:46:09 2022
+Dragon Nails,76076738,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:34:21 2022
 Dragon Ravine,62265044,Spell Card,Field Spell Card,,,,,,,,,,,"('Ignition-like Effect',)",,,,Unlimited,Unlimited,Sat Jul 16 17:34:41 2022
 Dragon Revival Rhapsody,71867500,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Effect', 'Lingering effect')",,,,Unlimited,Unlimited,Fri May 15 04:31:48 2020
 Dragon Shield,63300440,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect')",,,,Unlimited,Unlimited,Fri Oct 14 11:48:45 2022
@@ -624,7 +624,7 @@ Dust Barrier,31476755,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 
 Dwimmered Path,24721709,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Tue Apr 19 02:30:37 2022
 E - Emergency Call,00213326,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Thu Jul 21 23:39:34 2022
 EN - Engage Neo Space,80170678,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Neo Space (archetype)', 'Neos')",,,Unlimited,Unlimited,Fri Aug  5 22:18:21 2022
-EN Shuffle,10186633,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')",,,,,Unlimited,Sat Sep 17 18:45:34 2022
+EN Shuffle,10186633,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')",,,,Not yet released,Unlimited,Mon Nov  7 18:16:41 2022
 EN Wave,89058026,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Fri Aug  5 22:18:32 2022
 ESP Amplifier,84653834,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Mon Nov 23 03:14:17 2020
 Earth Chant,59820352,Spell Card,Ritual Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,"('Edited',)",,Unlimited,Unlimited,Thu Sep 15 15:13:57 2022
@@ -648,7 +648,7 @@ Elegant Egotist,90219263,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation co
 Elf's Light,39897277,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)","('Attribute Booster',)",,"('Type',)",Unlimited,Unlimited,Wed Apr 20 11:42:00 2022
 Emblem of Dragon Destroyer,06390406,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Name',)",Unlimited,Unlimited,Thu Aug 25 08:47:53 2022
 Emblem of the Awakening,09845733,Spell Card,Ritual Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Fri Mar 20 12:33:40 2020
-Emblem of the Plunder Patroll,80621422,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')","('Plunder Patroll',)",,,Unlimited,Unlimited,Sun Aug 14 11:14:32 2022
+Emblem of the Plunder Patroll,80621422,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')","('Plunder Patroll',)",,,Unlimited,Unlimited,Mon Nov  7 23:17:24 2022
 Emergency Assistance,24019261,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Wed Apr 20 11:33:08 2022
 Emergency Provisions,53046408,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,"('Type',)",Unlimited,Unlimited,Wed Jan 20 20:22:14 2021
 Emergency Teleport,67723438,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Semi-Limited,Sat Mar  5 02:32:19 2022
@@ -720,7 +720,7 @@ A Feather of the Phoenix,49140998,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost
 Fengsheng Mirror,37406863,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Tue Jun 22 08:30:51 2021
 Field Barrier,07153114,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Thu Apr 21 02:07:00 2022
 Fiend's Sanctuary,24874630,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Lingering effect', 'Maintenance cost')",,"('Edited',)","('Type',)",Unlimited,Unlimited,Sun Oct  2 22:10:36 2022
-Fifth Hope,55428811,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Utopic',)",,,Unlimited,Unlimited,Mon Oct 10 15:10:44 2022
+Fifth Hope,55428811,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Utopic',)",,,Unlimited,Unlimited,Tue Nov  8 12:03:10 2022
 Fighting Spirit,06178850,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,,Unlimited,Unlimited,Wed Sep 21 12:44:15 2022
 Final Countdown,95308449,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Lingering effect')","('Duel winner',)",,,Limited,Unlimited,Sun Apr 24 19:20:32 2022
 Final Destiny,18591904,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,"('Type',)",Unlimited,Unlimited,Thu Jul 21 13:21:16 2022
@@ -792,7 +792,7 @@ Fragrance Storm,69584564,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,
 Freezing Chains of the Ice Barrier,43582229,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')","('Ice Barrier',)",,,Unlimited,Unlimited,Sat Mar 27 01:28:33 2021
 Frightfur Factory,43698897,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')","('Frightfur',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 18:51:26 2022
 Frightfur Fusion,06077601,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Frightfur', 'Fusion (archetype)')",,,Unlimited,Unlimited,Sat Jul  9 01:17:13 2022
-Frightfur Patchwork,34773082,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Frightfur',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 18:46:04 2022
+Frightfur Patchwork,34773082,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Frightfur',)","('Edited',)",,Unlimited,Unlimited,Mon Nov  7 23:14:37 2022
 Frightfur Reborn,28039390,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect', 'Ignition-like Effect')","('Frightfur',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 18:53:35 2022
 Frightfur Repair,99049589,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Frightfur',)",,,Unlimited,Unlimited,Tue Sep  8 20:57:20 2020
 Frightfur Sanctuary,74839123,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Cost', 'Trigger Effect')","('Frightfur',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 18:54:39 2022
@@ -807,7 +807,7 @@ Fury of Fire,92345028,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Eff
 Fury of Kairyu-Shin,98804359,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Unclassified effect')","('Kairyu-Shin (archetype)',)",,,Unlimited,Unlimited,Thu Jun 16 17:28:10 2022
 Fusion Conscription,17194258,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Polymerization (archetype)',)",,,Unlimited,Unlimited,Wed Apr 20 02:49:42 2022
 Fusion Deployment,06498706,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Polymerization (archetype)',)",,,Unlimited,Unlimited,Thu May  5 18:01:09 2022
-Fusion Destiny,52947044,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Fusion (archetype)',)",,,Unlimited,Limited,Wed May 25 04:17:42 2022
+Fusion Destiny,52947044,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Fusion (archetype)',)",,,Unlimited,Limited,Mon Nov  7 23:16:21 2022
 Fusion Gate,33550694,Spell Card,Field Spell Card,,,,,,,,,,,"('Ignition-like Effect',)","('Fusion (archetype)',)",,"('Type',)",Unlimited,Unlimited,Sun Jul 24 04:47:21 2022
 Fusion Recovery,18511384,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Fusion (archetype)',)",,,Unlimited,Unlimited,Mon Mar 21 20:21:29 2022
 Fusion Recycling Plant,22829942,Spell Card,Field Spell Card,,,,,,,,,,,"('Ignition-like Effect', 'Trigger Effect')","('Polymerization (archetype)',)",,,Unlimited,Unlimited,Tue Apr 12 18:54:07 2022
@@ -821,7 +821,7 @@ Future Drive,12508268,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 
 Future Fusion,77565204,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Trigger Effect')","('Fusion (archetype)', 'Polymerization (archetype)')",,,Unlimited,Unlimited,Sun Apr 24 19:22:17 2022
 Future Glow,64107820,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Cost')",,,,Unlimited,Unlimited,Thu Nov 26 05:50:39 2020
 Future Visions,87902575,Spell Card,Field Spell Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Sun Dec 27 21:18:09 2020
-Gadget Box,08025950,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect', 'Lingering effect')","('Gadget', 'Morphtronic')",,,,Unlimited,Sat Sep 17 18:44:26 2022
+Gadget Box,08025950,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect', 'Lingering effect')","('Gadget', 'Morphtronic')",,,Not yet released,Unlimited,Mon Nov  7 17:10:41 2022
 Gagaga Academy Emergency Network,21715135,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Gagaga',)",,,Unlimited,Unlimited,Mon Oct 11 21:01:22 2021
 Gagagaback,82052602,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Effect')","('Gagaga',)",,,Unlimited,Unlimited,Fri Mar 20 12:59:32 2020
 Gagagabolt,17494901,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Gagaga',)",,,Unlimited,Unlimited,Thu Nov 26 05:53:13 2020
@@ -922,7 +922,7 @@ Gravekeeper's Servant,16762927,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Con
 Gravekeeper's Stele,99523325,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","(""Gravekeeper's"",)",,,Unlimited,Unlimited,Fri Mar 20 13:17:08 2020
 The Graveyard in the Fourth Dimension,88089103,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Thu Apr 21 16:07:29 2022
 Gravity Axe - Grarl,32022366,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,"('Name',)",Unlimited,Unlimited,Sun Mar  7 05:34:26 2021
-Gravity Balance,37930737,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Unclassified effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:41:31 2022
+Gravity Balance,37930737,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Unclassified effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 18:14:24 2022
 Gravity Blaster,35220244,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,,Unlimited,Unlimited,Wed Jan 20 17:47:59 2021
 Gravity Lash,69319869,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Sat Nov 30 20:50:26 2019
 Graydle Impact,02759860,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')","('Graydle',)",,,Unlimited,Unlimited,Thu Nov 26 06:42:21 2020
@@ -971,7 +971,7 @@ Hero Flash!!,00191749,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')
 Hero Heart,67951831,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Tue Nov  3 08:39:42 2020
 A Hero Lives,08949584,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Cost', 'Effect')",,,,Unlimited,Unlimited,Wed Nov  2 12:48:15 2022
 Hero Mask,75141056,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Mon Nov 22 00:27:19 2021
-Heroic Call,32175429,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Heroic',)",,,,Unlimited,Sat Sep 17 18:43:51 2022
+Heroic Call,32175429,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Heroic',)",,,Not yet released,Unlimited,Mon Nov  7 17:27:35 2022
 Heroic Chance,53466826,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Heroic',)",,,Unlimited,Unlimited,Sun Aug 14 05:36:26 2022
 Heroic Envoy,45337544,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Heroic',)",,,Unlimited,Unlimited,Thu May 19 23:17:39 2022
 Hexatellarknight,70422863,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Trigger Effect')","('tellarknight',)",,,Unlimited,Unlimited,Tue Mar 22 03:32:09 2022
@@ -1366,7 +1366,7 @@ Nightmare's Steelcage,58775978,Spell Card,Normal Spell Card,,,,,,,,,,,"('Conditi
 Ninjitsu Art Notebook,79324191,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Ignition-like Effect',)","('Ninjitsu Art',)",,,Unlimited,Unlimited,Mon Oct 10 14:41:16 2022
 Ninjitsu Art Notebook of Mystery,95545183,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Ninjitsu Art',)",,,Unlimited,Unlimited,Sun Oct 23 19:44:14 2022
 Ninjitsu Art Tool - Iron Digger,32939238,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect', 'Trigger Effect')","('Ninjitsu Art',)",,,Unlimited,Unlimited,Sun Oct 23 19:44:14 2022
-Ninjitsu Art of Mosquito Marching,68441986,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Ninjitsu Art',)",,,,Unlimited,Sat Sep 17 18:43:15 2022
+Ninjitsu Art of Mosquito Marching,68441986,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Ninjitsu Art',)",,,Not yet released,Unlimited,Mon Nov  7 17:32:06 2022
 Nitro Unit,23842445,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Trigger Effect')","('Nitro',)",,,Unlimited,Unlimited,Fri Mar 20 17:54:21 2020
 Noble Arms - Arfeudutyr,83438826,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect', 'Unclassified effect')","('Noble Arms',)",,,Unlimited,Unlimited,Wed Jan 20 18:24:17 2021
 Noble Arms - Caliburn,23562407,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect', 'Trigger Effect', 'Unclassified effect')","('Noble Arms',)",,,Unlimited,Unlimited,Wed Feb  3 21:44:25 2021
@@ -1586,7 +1586,7 @@ Raidraptor - Nest,08559793,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Conditi
 Raigeki,12580477,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Thu Apr 14 23:23:22 2022
 Raimei,56260110,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Thu Apr 21 19:37:50 2022
 Rain of Mercy,66719324,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Thu Apr 21 19:38:09 2022
-Rainbow Bridge,63945693,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Rainbow Bridge (archetype)',)",,,Unlimited,Unlimited,Thu Sep 29 15:33:41 2022
+Rainbow Bridge,63945693,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Rainbow Bridge (archetype)',)",,,Unlimited,Unlimited,Mon Nov  7 22:14:36 2022
 Rainbow Bridge of the Heart,10938846,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect', 'Trigger Effect')","('Rainbow Bridge (archetype)',)",,,Unlimited,Unlimited,Sat Oct  1 08:46:47 2022
 Rainbow Refraction,40854824,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Signature move',)",,,Unlimited,Unlimited,Thu Sep 29 15:33:34 2022
 Rainbow Veil,12735388,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,,Unlimited,Unlimited,Wed Apr 20 16:09:26 2022
@@ -1702,7 +1702,7 @@ Rose Bell of Revelation,80196387,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condi
 Rose Bud,25090294,Spell Card,Normal Spell Card,,,,,,,,,,,"('Cost', 'Effect')",,,,Unlimited,Unlimited,Tue Nov  3 08:50:39 2020
 Roulette Spider,36708764,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Sat Aug 13 13:46:21 2022
 Royal Penguins Garden,80893872,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Penguin',)",,,Unlimited,Unlimited,Thu Nov 11 16:03:25 2021
-Royal Straight,58415502,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,,Unlimited,Sat Sep 17 18:46:13 2022
+Royal Straight,58415502,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)",,,,Not yet released,Unlimited,Mon Nov  7 16:31:37 2022
 Royal Tribute,72405967,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,"('Type',)",Unlimited,Unlimited,Wed Apr 20 14:25:53 2022
 Ruins of the Divine Dragon Lords,69868555,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Ignition-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sun Aug 16 04:34:30 2020
 Runaway Karakuri,83831356,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)","('Karakuri',)",,,Unlimited,Unlimited,Fri Mar 20 20:16:46 2020
@@ -1735,7 +1735,7 @@ The Sacred Waters in the Sky,26684111,Spell Card,Normal Spell Card,,,,,,,,,,,"('
 Sage's Stone,13604200,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')",,"('Edited',)","('Type',)",Unlimited,Unlimited,Sun Mar  7 06:53:53 2021
 Salamandra,32268901,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect')",,,"('Type',)",Unlimited,Unlimited,Fri Apr 22 02:40:11 2022
 Salamangreat Burning Shell,28534130,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Ignition-like Effect')","('Salamangreat',)",,,Unlimited,Unlimited,Thu May  5 16:13:43 2022
-Salamangreat Circle,52155219,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Salamangreat',)",,,Unlimited,Unlimited,Thu Jan 27 20:05:44 2022
+Salamangreat Circle,52155219,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Salamangreat',)",,,Unlimited,Unlimited,Mon Nov  7 23:15:32 2022
 Salamangreat Claw,88540324,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Unclassified effect')","('Salamangreat',)",,,Unlimited,Unlimited,Mon Mar 22 16:59:55 2021
 Salamangreat Recureance,83554231,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Salamangreat',)",,,Unlimited,Unlimited,Wed May 19 16:56:39 2021
 Salamangreat Sanctuary,01295111,Spell Card,Field Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect')","('Salamangreat',)",,,Unlimited,Unlimited,Sat Jul 16 18:50:32 2022
@@ -1764,7 +1764,7 @@ Scrap Lube,22539270,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'C
 Scrap Sheen,74439492,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Scrap',)",,,Unlimited,Unlimited,Fri Mar 20 20:25:01 2020
 Scrapstorm,48445393,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)","('Scrap',)",,,Unlimited,Unlimited,Fri Mar 20 20:25:27 2020
 Scrapyard,01050684,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Scrap',)",,,Unlimited,Unlimited,Fri Mar 20 20:25:39 2020
-Scroll of Bewitchment,10352095,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,"('Type',)",Unlimited,Unlimited,Thu Oct  6 17:33:43 2022
+Scroll of Bewitchment,10352095,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,"('Type',)",Unlimited,Unlimited,Tue Nov  8 12:26:43 2022
 Sea Lord's Amulet,61258740,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect')",,,,Unlimited,Unlimited,Wed Feb  3 18:40:29 2021
 Sea Stealth II,58203736,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect', 'Unclassified effect')","('Sea Stealth',)",,,Unlimited,Unlimited,Sun Aug 14 11:28:05 2022
 The Seal of Orichalcos,48179391,Spell Card,Field Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')",,,,Unlimited,Unlimited,Fri Nov  4 13:53:55 2022
@@ -1849,7 +1849,7 @@ Sky Striker Mobilize - Engage!,63166095,Spell Card,Normal Spell Card,,,,,,,,,,,"
 Sky Striker Mobilize - Linkage!,09726840,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Effect',)","('Sky Striker',)",,,Unlimited,Unlimited,Fri Nov  4 07:07:48 2022
 Skydive Scorcher,40522482,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Signature move',)",,,Unlimited,Unlimited,Sat Jul 11 05:00:38 2020
 Skyscraper,63035430,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect',)","('Skyscraper (archetype)',)",,"('Name',)",Unlimited,Unlimited,Thu Jul 21 16:40:58 2022
-Skyscraper 2 - Hero City,47596607,Spell Card,Field Spell Card,,,,,,,,,,,"('Ignition-like Effect',)","('Skyscraper (archetype)',)",,,Unlimited,Unlimited,Thu Oct  6 18:08:16 2022
+Skyscraper 2 - Hero City,47596607,Spell Card,Field Spell Card,,,,,,,,,,,"('Ignition-like Effect',)","('Skyscraper (archetype)',)",,,Unlimited,Unlimited,Tue Nov  8 12:20:54 2022
 Slash Draw,71344451,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Cost', 'Effect')",,,,Limited,Unlimited,Tue Jan 28 04:35:59 2020
 Small World,89558743,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Wed Sep 14 11:32:41 2022
 Smashing Ground,97169186,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Sat Oct  1 13:08:00 2022
@@ -1970,7 +1970,7 @@ Steel Shell,02370081,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Ef
 Stellarknight Alpha,81810441,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect')","('Stellarknight', 'tellarknight')",,,Unlimited,Unlimited,Thu Nov 21 18:34:00 2019
 Stim-Pack,83225447,Spell Card,Equip Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,"('Edited',)","('Type',)",Unlimited,Unlimited,Fri Apr 22 02:57:13 2022
 Stoic Challenge,37364101,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Mon Sep 26 16:18:05 2022
-Stonehenge,70786111,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')",,,,,Unlimited,Sat Sep 17 18:44:01 2022
+Stonehenge,70786111,Spell Card,Equip Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:17:50 2022
 Stop Defense,63102017,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,"('Type',)",Unlimited,Unlimited,Fri Apr 22 02:57:47 2022
 Storm,13210191,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Sun Nov  7 16:52:52 2021
 Stray Lambs,60764581,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Fri Apr  8 18:06:54 2022
@@ -2099,10 +2099,10 @@ Token Sundae,52971673,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('To
 Token Thanksgiving,57182235,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Token Celebration',)",,,Unlimited,Unlimited,Fri Feb 12 19:14:18 2021
 Tokkosho of Ghost Destroying,82361206,Spell Card,Equip Spell Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Sat Mar 21 12:56:43 2020
 Toll,82003859,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Continuous-like Effect',)",,,"('Type',)",Unlimited,Unlimited,Sun Aug 14 06:49:30 2022
-Tool Box,70508653,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect')",,,,,Unlimited,Sat Sep 17 18:44:15 2022
-Toon Bookmark,91500017,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Unclassified effect')","('Toon',)",,,Unlimited,Unlimited,Fri Apr 15 13:44:45 2022
+Tool Box,70508653,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Ignition-like Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:13:33 2022
+Toon Bookmark,91500017,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Unclassified effect')","('Toon',)",,,Unlimited,Unlimited,Mon Nov  7 22:29:21 2022
 Toon Kingdom,43175858,Spell Card,Field Spell Card,,,,,,,,,,,"('Continuous-like Effect', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Fri Nov  4 13:53:38 2022
-Toon Page-Flip,27699122,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Sat May  8 23:10:24 2021
+Toon Page-Flip,27699122,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Mon Nov  7 22:30:27 2022
 Toon Rollback,70560957,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Toon',)",,,Unlimited,Unlimited,Fri Sep 11 12:19:31 2020
 Toon Table of Contents,89997728,Spell Card,Normal Spell Card,,,,,,,,,,,"('Effect',)","('Toon',)","('Edited',)","('Type',)",Unlimited,Unlimited,Sun Nov  7 16:08:45 2021
 Toon World,15259703,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Cost',)","('Toon',)","('Alternate',)","('Type',)",Unlimited,Unlimited,Sat Oct 29 14:53:07 2022
@@ -2290,7 +2290,7 @@ Winning Formula,,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition'
 Wiseman's Chalice,35262428,Spell Card,Normal Spell Card,,,,,,,,,,,"('Activation condition', 'Effect', 'Lingering effect')",,,,Unlimited,Unlimited,Sun Jul 24 06:23:25 2022
 Witchcrafter Bystreet,83289866,Spell Card,Continuous Spell Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Sep  1 18:15:01 2020
 Witchcrafter Collaboration,10805153,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:58 2022
-Witchcrafter Confusion Confession,35098357,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Fusion (archetype)', 'Witchcrafter')",,,Unlimited,Unlimited,Fri Nov  4 07:09:07 2022
+Witchcrafter Confusion Confession,35098357,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Fusion (archetype)', 'Witchcrafter')",,,Unlimited,Unlimited,Tue Nov  8 04:15:56 2022
 Witchcrafter Creation,57916305,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Mon Nov  7 04:41:30 2022
 Witchcrafter Draping,56894757,Spell Card,Quick-Play Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:53 2022
 Witchcrafter Holiday,83301414,Spell Card,Normal Spell Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:45 2022
@@ -2406,8 +2406,8 @@ Amaze Attraction Viking Vortex,97182396,Trap Card,Normal Trap Card,,,,,,,,,,,"('
 Amaze Attraction Wonder Wheel,93473606,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Attraction',)",,,Unlimited,Unlimited,Thu Jun 24 02:24:13 2021
 Amazement Family Faces,20989253,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Continuous-like Effect', 'Effect')","('Amazement',)",,,Unlimited,Unlimited,Fri Jun  4 09:00:22 2021
 Amazoness Archers,67987611,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Amazoness',)",,"('Name',)",Unlimited,Unlimited,Wed Apr 20 11:26:52 2022
-Amazoness Hall,25396150,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Amazoness',)",,,,Unlimited,Sat Sep 17 18:42:31 2022
-Amazoness Hot Spring,62480168,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Amazoness',)",,,,Unlimited,Sat Sep 17 18:42:26 2022
+Amazoness Hall,25396150,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Amazoness',)",,,Not yet released,Unlimited,Mon Nov  7 17:48:09 2022
+Amazoness Hot Spring,62480168,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Trigger Effect')","('Amazoness',)",,,Not yet released,Unlimited,Mon Nov  7 17:50:20 2022
 Amazoness Onslaught,83407038,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Quick-like Effect', 'Trigger Effect')","('Amazoness',)",,,Unlimited,Unlimited,Wed Apr 20 02:53:07 2022
 Amazoness Shamanism,06459419,Trap Card,Normal Trap Card,,,,,,,,,,,"('Effect',)","('Amazoness',)",,,Unlimited,Unlimited,Tue Nov  1 15:35:27 2022
 Amazoness Willpower,22082163,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Continuous-like Effect', 'Effect')","('Amazoness',)",,,Unlimited,Unlimited,Wed Apr 20 11:52:15 2022
@@ -2833,7 +2833,7 @@ Dogmatika Punishment,82956214,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition'
 Dogmatikaturgy,42158279,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Dogmatika',)",,,Unlimited,Unlimited,Sun Jul 24 10:12:56 2022
 Don Thousand/Trap A,,Trap Card,Counter Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,,Unlimited,Sat Jun 26 02:22:47 2021
 Don Thousand/Trap B,,Trap Card,Counter Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,,Unlimited,Sun Jan 31 16:36:43 2021
-Doodlebook - Uh uh uh!,94113093,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Doodlebook',)",,,,Unlimited,Sat Sep 17 18:42:52 2022
+Doodlebook - Uh uh uh!,94113093,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Doodlebook',)",,,Not yet released,Unlimited,Mon Nov  7 17:40:31 2022
 The Door of Destiny,27062594,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Activation condition', 'Effect', 'Trigger Effect')","('Trap Monster',)",,,Unlimited,Unlimited,Sun Jul 24 09:53:37 2022
 Doppelganger,66395299,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Thu Jul 22 07:16:02 2021
 Dora of Fate,67464807,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect', 'Lingering effect')",,,,Unlimited,Unlimited,Sat Feb  5 08:53:01 2022
@@ -3123,10 +3123,10 @@ Heraldry Change,17536995,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation cond
 Heraldry Record,37241623,Trap Card,Counter Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Heraldry',)",,,Unlimited,Unlimited,Mon Nov 22 00:26:29 2021
 Hero Barrier,44676200,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect')",,,,Unlimited,Unlimited,Sun Mar  7 05:38:21 2021
 Hero Blast,37412656,Trap Card,Normal Trap Card,,,,,,,,,,,"('Effect',)",,,,Unlimited,Unlimited,Mon Nov 22 00:26:59 2021
-Hero Counterattack,19024706,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Thu Oct  6 18:05:04 2022
+Hero Counterattack,19024706,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Tue Nov  8 12:22:03 2022
 A Hero Emerges,21597117,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Mon Mar 21 20:21:26 2022
 Hero Medal,10489311,Trap Card,Normal Trap Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Fri Mar 20 13:27:32 2020
-Hero Ring,26647858,Trap Card,Normal Trap Card,,,,,,,,,,,"('Continuous-like Effect', 'Effect')",,,,Unlimited,Unlimited,Thu Oct  6 18:05:51 2022
+Hero Ring,26647858,Trap Card,Normal Trap Card,,,,,,,,,,,"('Continuous-like Effect', 'Effect')",,,,Unlimited,Unlimited,Tue Nov  8 12:21:37 2022
 Hero Signal,22020907,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Thu Oct  6 18:06:07 2022
 Hero Spirit,81167171,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Fri Mar 20 13:27:57 2020
 Hero's Rule 2,85854214,Trap Card,Counter Trap Card,,,,,,,,,,,"('Effect',)","('Rose',)",,,Unlimited,Unlimited,Thu Jul  7 19:18:19 2022
@@ -3410,7 +3410,7 @@ Moon Dance Ritual,14005031,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Continuou
 Morphtransition,92890308,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Tue Mar 22 03:34:23 2022
 Morphtronic Bind,85101228,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Continuous-like Effect',)","('Morphtronic',)",,,Unlimited,Unlimited,Wed Nov 24 14:56:27 2021
 Morphtronic Forcefield,77229910,Trap Card,Counter Trap Card,,,,,,,,,,,"('Effect',)","('Morphtronic',)",,,Unlimited,Unlimited,Wed Nov 24 14:57:53 2021
-Morphtronic Impact Return,44413654,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Morphtronic',)",,,,Unlimited,Sat Sep 17 18:44:21 2022
+Morphtronic Impact Return,44413654,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect', 'Quick-like Effect')","('Morphtronic',)",,,Not yet released,Unlimited,Mon Nov  7 17:11:59 2022
 Morphtronic Mix-up,14613029,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Morphtronic',)",,,Unlimited,Unlimited,Wed Nov 24 14:58:52 2021
 Morphtronic Monitron,28284902,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Trigger Effect',)","('Morphtronic',)",,,Unlimited,Unlimited,Wed Nov 24 14:58:58 2021
 "Morphtronics, Scramble!",49833312,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Morphtronic',)",,,Unlimited,Unlimited,Wed Nov 24 15:05:48 2021
@@ -3971,7 +3971,7 @@ Toll Hike,44716890,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Continuous-like E
 Toon Briefcase,05832914,Trap Card,Normal Trap Card,,,,,,,,,,,"('Effect',)","('Toon',)",,,Unlimited,Unlimited,Fri Sep 11 12:42:58 2020
 Toon Defense,43509019,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Trigger Effect',)","('Toon',)",,,Unlimited,Unlimited,Sat Aug 13 13:53:09 2022
 Toon Mask,79447365,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Fri Sep 11 12:42:53 2020
-Toon Terror,53094821,Trap Card,Counter Trap Card,,,,,,,,,,,"('Condition', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Tue Jan 12 13:41:56 2021
+Toon Terror,53094821,Trap Card,Counter Trap Card,,,,,,,,,,,"('Condition', 'Effect')","('Toon',)",,,Unlimited,Unlimited,Mon Nov  7 22:31:23 2022
 Tornado Wall,18605135,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Activation condition', 'Continuous-like Effect')",,,,Unlimited,Unlimited,Wed Jul  7 11:27:55 2021
 Torrential Reborn,07092142,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Effect')",,,,Unlimited,Unlimited,Wed Mar  9 01:17:54 2022
 Torrential Tribute,53582587,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Effect')",,,,Unlimited,Unlimited,Thu Jun 16 17:27:59 2022
@@ -4115,7 +4115,7 @@ Witch's Strike,36458063,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condi
 Witchcrafter Masterpiece,55072170,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Condition', 'Effect', 'Quick-like Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:41 2022
 Witchcrafter Patronus,94553671,Trap Card,Continuous Trap Card,,,,,,,,,,,"('Condition', 'Quick-like Effect')","('Witchcrafter',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:40 2022
 Wolf in Sheep's Clothing,83546647,Trap Card,Normal Trap Card,,,,,,,,,,,"('Activation condition', 'Cost', 'Effect')",,,,Unlimited,Unlimited,Sat Mar 21 18:02:44 2020
-Wonder Garage,50684552,Trap Card,Normal Trap Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Thu Oct  6 17:44:39 2022
+Wonder Garage,50684552,Trap Card,Normal Trap Card,,,,,,,,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Tue Nov  8 12:11:23 2022
 Wonder Xyz,73860462,Trap Card,Normal Trap Card,,,,,,,,,,,"('Effect',)","('Xyz (archetype)',)",,,Unlimited,Unlimited,Sat Jun 26 02:05:36 2021
 World Legacy Awakens,12989604,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect')","('World Legacy',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:29 2022
 World Legacy Bestowal,59778096,Trap Card,Normal Trap Card,,,,,,,,,,,"('Condition', 'Effect')","('World Legacy',)",,,Unlimited,Unlimited,Tue Apr 19 23:08:28 2022
@@ -4187,7 +4187,7 @@ A/D Changer,96146814,Monster Card,,Effect Monster,,LIGHT,Warrior,1,100,100,,,,"(
 ABC-Dragon Buster,01561110,Monster Card,,Fusion Monster,,LIGHT,Machine,8,3000,2800,,,,"('Quick Effect', 'Summoning condition')","('A-to-Z',)",,,Unlimited,Semi-Limited,Sat Jul 10 13:42:21 2021
 Absorbing Kid from the Sky,49771608,Monster Card,,Effect Monster,,LIGHT,Fairy,4,1300,1000,,,,"('Trigger Effect',)",,"('Edited',)",,Unlimited,Unlimited,Wed Jan  6 17:27:20 2021
 The Accumulator,70410002,Monster Card,,Effect Monster,,LIGHT,Thunder,1,0,0,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Thu Mar 12 23:25:59 2020
-Advanced Crystal Beast Ruby Carbuncle,83575471,Monster Card,,Effect Monster,,LIGHT,Fairy,3,300,300,,,,"('Condition', 'Continuous Effect', 'Ignition-like Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:45:23 2022
+Advanced Crystal Beast Ruby Carbuncle,83575471,Monster Card,,Effect Monster,,LIGHT,Fairy,3,300,300,,,,"('Condition', 'Continuous Effect', 'Ignition-like Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 16:56:20 2022
 "Aether, the Empowering Dragon",56804361,Monster Card,,Effect Monster,,LIGHT,Dragon,6,2300,1600,,,,"('Condition', 'Trigger Effect')","('Aether', 'Empower')",,,Unlimited,Unlimited,Thu Mar 12 23:41:06 2020
 "Aggiba, the Malevolent Sh'nn S'yo",,Monster Card,,Effect Monster,,LIGHT,Fiend,10,3000,3000,,,,"('Condition', 'Summoning condition')","('Match winner',)",,,Illegal,Illegal,Sun Jun 27 10:28:53 2021
 Airknight Parshath,18036057,Monster Card,,Effect Monster,,LIGHT,Fairy,5,1900,1400,,,,"('Continuous Effect', 'Trigger Effect')","('Parshath',)",,,Unlimited,Unlimited,Sun Apr 24 04:03:35 2022
@@ -4255,7 +4255,7 @@ Aromaseraphy Jasmine,21200905,Monster Card,,Link Monster,,LIGHT,Plant,,1800,,,2,
 Aromaseraphy Rosemary,38148100,Monster Card,,Synchro Monster,,LIGHT,Plant,5,2000,900,,,,"('Continuous Effect', 'Trigger Effect')","('Aroma', 'Rose')",,,Unlimited,Unlimited,Wed Apr 20 03:10:51 2022
 Aromaseraphy Sweet Marjoram,79656239,Monster Card,,Synchro Monster,,LIGHT,Plant,6,2200,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Aroma',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 18:36:13 2022
 "Aron, the Ogdoadic King",34172284,Monster Card,,Effect Monster,,LIGHT,Reptile,8,2500,2800,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Ogdoadic',)",,,Unlimited,Unlimited,Sat May 14 16:02:19 2022
-"Artemis, the Magistus Moon Maiden",34755994,Monster Card,,Link Monster,,LIGHT,Spellcaster,,800,,,1,"('↑',)","('Condition', 'Ignition-like Effect', 'Trigger Effect')","('Magistus',)",,,Unlimited,Unlimited,Sun Oct  2 13:37:40 2022
+"Artemis, the Magistus Moon Maiden",34755994,Monster Card,,Link Monster,,LIGHT,Spellcaster,,800,,,1,"('↑',)","('Condition', 'Ignition-like Effect', 'Trigger Effect')","('Magistus',)",,,Unlimited,Unlimited,Mon Nov  7 23:23:36 2022
 Artifact Achilleshield,11475049,Monster Card,,Effect Monster,,LIGHT,Fairy,5,1500,2200,,,,"('Trigger Effect', 'Unclassified effect')","('Artifact',)",,,Unlimited,Unlimited,Sun Aug 14 08:43:01 2022
 Artifact Aegis,85080444,Monster Card,,Effect Monster,,LIGHT,Fairy,5,1200,2500,,,,"('Trigger Effect', 'Unclassified effect')","('Artifact',)",,,Unlimited,Unlimited,Sun Aug 14 10:14:26 2022
 Artifact Beagalltach,12697630,Monster Card,,Effect Monster,,LIGHT,Fairy,5,1400,2100,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Artifact',)",,,Unlimited,Unlimited,Sun Nov 15 06:04:49 2020
@@ -4400,7 +4400,7 @@ Chaos Command Magician,72630549,Monster Card,,Effect Monster,,LIGHT,Spellcaster,
 Chaos Goddess,31385077,Monster Card,,Synchro Monster,,LIGHT,Fairy,8,2500,1800,,,,"('Ignition Effect',)","('Chaos',)",,,Unlimited,Unlimited,Sat Oct  1 13:04:36 2022
 Chaos Grepher,18859369,Monster Card,,Effect Monster,,LIGHT,Warrior,4,1700,1600,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Chaos', 'Grepher')",,,Unlimited,Unlimited,Fri May  6 07:51:22 2022
 Chaos Mirage Dragon,66699781,Monster Card,,Effect Monster,Tuner monster,LIGHT,Wyrm,4,1600,600,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Chaos',)",,,,Unlimited,Sat Oct 15 08:19:13 2022
-Chaos Valkyria,53871273,Monster Card,,Effect Monster,,LIGHT,Fairy,4,1800,1050,,,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Fri Nov  4 00:47:34 2022
+Chaos Valkyria,53871273,Monster Card,,Effect Monster,,LIGHT,Fairy,4,1800,1050,,,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Mon Nov  7 22:36:08 2022
 Chaos-End Master,46609443,Monster Card,,Effect Monster,Tuner monster,LIGHT,Warrior,3,1500,1000,,,,"('Trigger Effect',)","('Chaos',)",,,Unlimited,Unlimited,Fri Apr  9 06:44:48 2021
 Charging Gaia the Fierce Knight,07841921,Monster Card,,Effect Monster,,LIGHT,Warrior,7,2300,2100,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Gaia The Fierce Knight (archetype)',)",,,Unlimited,Unlimited,Thu Mar 10 23:01:52 2022
 Charming Resort Staff,64753157,Monster Card,,Effect Monster,,LIGHT,Fairy,3,300,200,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Wed Apr 20 12:31:46 2022
@@ -4466,7 +4466,7 @@ Crusadia Maximus,81524756,Monster Card,,Effect Monster,,LIGHT,Psychic,4,1600,100
 Crusadia Regulex,09617996,Monster Card,,Link Monster,,LIGHT,Beast,,1000,,,2,"('↓', '↑')","('Condition', 'Continuous Effect', 'Trigger Effect')","('Crusadia',)",,,Unlimited,Unlimited,Sun Aug 14 07:26:29 2022
 Crusadia Spatha,39528955,Monster Card,,Link Monster,,LIGHT,Warrior,,500,,,2,"('↓', '←')","('Continuous Effect', 'Trigger Effect')","('Crusadia',)",,,Unlimited,Unlimited,Wed Apr 20 02:42:14 2022
 Crystal Beast Rainbow Dragon,36795102,Monster Card,,Effect Monster,,LIGHT,Dragon,8,3000,0,,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:33:14 2022
-Crystal Beast Ruby Carbuncle,32710364,Monster Card,,Effect Monster,,LIGHT,Fairy,3,300,300,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:14 2022
+Crystal Beast Ruby Carbuncle,32710364,Monster Card,,Effect Monster,,LIGHT,Fairy,3,300,300,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:00:58 2022
 Crystal Rose,79531196,Monster Card,,Effect Monster,,LIGHT,Rock,2,500,500,,,,"('Condition', 'Ignition Effect')","('Rose',)",,,Unlimited,Unlimited,Fri Mar 13 18:00:54 2020
 Cuben,17530001,Monster Card,,Effect Monster,,LIGHT,Thunder,4,600,1900,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Mon Nov 16 05:15:11 2020
 Cupid Dunk,69526976,Monster Card,,Effect Monster,,LIGHT,Fairy,4,1800,600,,,,"('Continuous Effect', 'Trigger Effect')","('Cupid',)",,,Unlimited,Unlimited,Wed Apr 20 02:36:10 2022
@@ -4498,7 +4498,7 @@ Cyber Eltanin,33093439,Monster Card,,Effect Monster,,LIGHT,Machine,10,?,?,,,,"('
 Cyber End Dragon,01546123,Monster Card,,Fusion Monster,,LIGHT,Machine,10,4000,2800,,,,"('Continuous Effect', 'Summoning condition')","('Cyber',)","('Alternate',)","('Name', 'Type')",Unlimited,Unlimited,Sat Oct 29 14:22:12 2022
 Cyber Eternity Dragon,82315403,Monster Card,,Fusion Monster,,LIGHT,Machine,10,2800,4000,,,,"('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Cyber',)",,,Unlimited,Unlimited,Sun Aug 14 10:21:52 2022
 Cyber Kirin,76986005,Monster Card,,Effect Monster,,LIGHT,Machine,3,300,800,,,,"('Ignition Effect',)","('Cyber',)",,,Unlimited,Unlimited,Mon Nov 16 05:30:05 2020
-Cyber Larva,35050257,Monster Card,,Effect Monster,,LIGHT,Machine,1,400,600,,,,"('Trigger Effect',)","('Cyber',)",,,Unlimited,Unlimited,Mon Nov  7 13:27:40 2022
+Cyber Larva,35050257,Monster Card,,Effect Monster,,LIGHT,Machine,1,400,600,,,,"('Trigger Effect',)","('Cyber',)",,,Unlimited,Unlimited,Tue Nov  8 15:51:31 2022
 Cyber Laser Dragon,04162088,Monster Card,,Effect Monster,,LIGHT,Machine,7,2400,1800,,,,"('Ignition Effect', 'Summoning condition')","('Cyber',)",,"('Name',)",Unlimited,Unlimited,Thu Aug 25 12:33:51 2022
 Cyber Petit Angel,76103404,Monster Card,,Effect Monster,,LIGHT,Fairy,2,300,200,,,,"('Condition', 'Trigger Effect')","('Cyber',)",,"('Name',)",Unlimited,Unlimited,Tue Aug 30 12:38:48 2022
 Cyber Pharos,29719112,Monster Card,,Effect Monster,,LIGHT,Machine,1,0,2100,,,,"('Condition', 'Ignition Effect', 'Trigger Effect', 'Unclassified effect')","('Cyber',)",,,Unlimited,Unlimited,Mon Apr 18 12:55:45 2022
@@ -4624,7 +4624,7 @@ Elemental HERO Brave Neos,64655485,Monster Card,,Fusion Monster,,LIGHT,Warrior,7
 Elemental HERO Captain Gold,80908502,Monster Card,,Effect Monster,,LIGHT,Warrior,4,2100,800,,,,"('Continuous Effect', 'Ignition Effect')","('Elemental HERO', 'Field Searcher', 'HERO')",,"('Name',)",Unlimited,Unlimited,Wed Jun 29 04:22:05 2022
 Elemental HERO Cosmo Neos,90050480,Monster Card,,Fusion Monster,,LIGHT,Warrior,11,3500,3000,,,,"('Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'Neos')",,,Unlimited,Unlimited,Mon Aug  9 18:23:22 2021
 Elemental HERO Divine Neos,31111109,Monster Card,,Fusion Monster,,LIGHT,Warrior,12,2500,2500,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO', 'Neos')",,"('Name',)",Unlimited,Unlimited,Tue Apr  5 16:05:13 2022
-Elemental HERO Electrum,29343734,Monster Card,,Fusion Monster,,LIGHT,Warrior,10,2900,2600,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 18:01:45 2022
+Elemental HERO Electrum,29343734,Monster Card,,Fusion Monster,,LIGHT,Warrior,10,2900,2600,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:22:57 2022
 Elemental HERO Flash,69572169,Monster Card,,Effect Monster,,LIGHT,Warrior,4,1100,1600,,,,"('Trigger Effect',)","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Mon Nov 23 03:30:04 2020
 Elemental HERO Glow Neos,85507811,Monster Card,,Fusion Monster,,LIGHT,Warrior,7,2500,2000,,,,"('Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'Neos')",,"('Name',)",Unlimited,Unlimited,Thu Nov 18 15:16:44 2021
 Elemental HERO Grandmerge,36841733,Monster Card,,Fusion Monster,,LIGHT,Warrior,6,0,0,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Sat Aug 13 13:04:50 2022
@@ -4660,7 +4660,7 @@ Eva,40177746,Monster Card,,Effect Monster,,LIGHT,Fairy,1,500,200,,,,"('Condition
 Evil HERO Adusted Gold,13650422,Monster Card,,Effect Monster,,LIGHT,Fiend,4,2100,800,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Evil HERO', 'HERO')",,,Unlimited,Unlimited,Fri Jul 22 00:21:16 2022
 Evil HERO Lightning Golem,21947653,Monster Card,,Fusion Monster,,LIGHT,Fiend,6,2400,1500,,,,"('Ignition Effect', 'Summoning condition')","('Evil HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Fri Jul 22 00:21:14 2022
 Evilswarm Exciton Knight,46772449,Monster Card,,Xyz Monster,,LIGHT,Fiend,4,1900,0,,,,"('Quick Effect',)","('lswarm',)",,"('Type',)",Unlimited,Unlimited,Sun May 16 16:21:47 2021
-Evil★Twin Ki-sikil,09205573,Monster Card,,Link Monster,,LIGHT,Fiend,,1100,,,2,"('↓', '→')","('Condition', 'Quick Effect', 'Trigger Effect')","('Evil★Twin', 'Ki-sikil')","('Alternate',)",,Unlimited,Unlimited,Sat Nov  5 15:44:10 2022
+Evil★Twin Ki-sikil,09205573,Monster Card,,Link Monster,,LIGHT,Fiend,,1100,,,2,"('↓', '→')","('Condition', 'Quick Effect', 'Trigger Effect')","('Evil★Twin', 'Ki-sikil')","('Alternate',)",,Unlimited,Unlimited,Mon Nov  7 23:24:29 2022
 Evil★Twin's Trouble Sunny,93672138,Monster Card,,Link Monster,,LIGHT,Fiend,,3300,,,4,"('↓', '←', '→', '↑')","('Condition', 'Ignition Effect', 'Quick Effect')","('Evil★Twin',)",,,Unlimited,Unlimited,Thu Oct 13 07:47:37 2022
 Exosister Asophiel,41524885,Monster Card,,Xyz Monster,,LIGHT,Warrior,4,2100,1800,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Exosister',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 19:32:53 2022
 Exosister Elis,16474916,Monster Card,,Effect Monster,,LIGHT,Spellcaster,4,500,800,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Exosister',)","('Edited',)",,Unlimited,Unlimited,Tue Oct 11 19:33:56 2022
@@ -4839,7 +4839,7 @@ Hieratic Dragon of Su,03300267,Monster Card,,Effect Monster,,LIGHT,Dragon,6,2200
 Hieratic Dragon of Sutekh,66789970,Monster Card,,Effect Monster,,LIGHT,Dragon,8,2800,2000,,,,"('Ignition Effect', 'Summoning condition')","('Hieratic',)",,,Unlimited,Unlimited,Sat Jul 10 13:24:43 2021
 Hieratic Dragon of Tefnuit,77901552,Monster Card,,Effect Monster,,LIGHT,Dragon,6,2100,1400,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Hieratic',)",,,Unlimited,Unlimited,Tue Oct 25 17:38:12 2022
 Hieratic Seal of the Dragon King,64514622,Monster Card,,Effect Monster,Gemini monster,LIGHT,Dragon,6,0,0,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Hieratic',)",,,Unlimited,Unlimited,Thu Jun 10 19:42:40 2021
-Hieratic Seal of the Heavenly Spheres,24361622,Monster Card,,Link Monster,,LIGHT,Dragon,,0,,,2,"('↙', '↘')","('Condition', 'Quick Effect', 'Trigger Effect')","('Hieratic',)",,,Unlimited,Unlimited,Sun Nov  6 14:47:06 2022
+Hieratic Seal of the Heavenly Spheres,24361622,Monster Card,,Link Monster,,LIGHT,Dragon,,0,,,2,"('↙', '↘')","('Condition', 'Quick Effect', 'Trigger Effect')","('Hieratic',)",,,Unlimited,Unlimited,Mon Nov  7 23:19:09 2022
 Hieratic Seal of the Sun Dragon Overlord,13140300,Monster Card,,Normal Monster,,LIGHT,Dragon,8,0,0,,,,,"('Hieratic',)",,,Unlimited,Unlimited,Mon Oct 24 15:58:08 2022
 Hieratic Sky Dragon Overlord of Heliopolis,03292267,Monster Card,,Xyz Monster,,LIGHT,Dragon,8,3000,2400,,,,"('Quick Effect',)","('Hieratic',)",,,Unlimited,Unlimited,Wed Sep 15 16:45:34 2021
 Hieratic Sun Dragon Overlord of Heliopolis,64332231,Monster Card,,Xyz Monster,,LIGHT,Dragon,8,3000,2400,,,,"('Ignition Effect',)","('Hieratic',)",,,Unlimited,Unlimited,Fri Oct 28 17:23:19 2022
@@ -5167,7 +5167,7 @@ Number 93: Utopia Kaiser,23187256,Monster Card,,Xyz Monster,,LIGHT,Warrior,12,25
 Number 99: Utopia Dragonar,95134948,Monster Card,,Xyz Monster,,LIGHT,Warrior,12,3000,3000,,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Number', 'Number (Spell/Trap archetype)', 'Utopia (archetype)', 'Utopic')",,,Unlimited,Unlimited,Sun Aug 14 05:29:40 2022
 Number 99: Utopic Dragon,51543904,Monster Card,,Xyz Monster,,LIGHT,Dragon,10,4000,2000,,,,"('Ignition Effect', 'Quick Effect', 'Summoning condition')","('Number', 'Number (Spell/Trap archetype)', 'Utopic')",,,Unlimited,Unlimited,Mon Oct 11 20:58:50 2021
 Number S0: Utopic ZEXAL,52653092,Monster Card,,Xyz Monster,,LIGHT,Warrior,0,?,?,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Summoning condition', 'Unclassified effect')","('Evolving Numbers', 'Number', 'Number (Spell/Trap archetype)', 'Number S', 'Utopic', 'Zexal')",,,Forbidden,Forbidden,Fri Jun 25 15:16:55 2021
-Number 100: Numeron Dragon,57314798,Monster Card,,Xyz Monster,,LIGHT,Dragon,1,0,0,,,,"('Ignition Effect', 'Trigger Effect')","('Number', 'Number (Spell/Trap archetype)', 'Numeron')",,,Unlimited,Unlimited,Sun Jun 26 15:20:51 2022
+Number 100: Numeron Dragon,57314798,Monster Card,,Xyz Monster,,LIGHT,Dragon,1,0,0,,,,"('Ignition Effect', 'Trigger Effect')","('Number', 'Number (Spell/Trap archetype)', 'Numeron')",,,Unlimited,Unlimited,Mon Nov  7 23:12:23 2022
 Number 102: Star Seraph Sentry,49678559,Monster Card,,Xyz Monster,,LIGHT,Fairy,4,2500,2000,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Number', 'Number (Spell/Trap archetype)', 'Number 10X', 'Star Seraph')",,,Unlimited,Unlimited,Thu Jun 24 10:53:55 2021
 Number 104: Masquerade,02061963,Monster Card,,Xyz Monster,,LIGHT,Spellcaster,4,2700,1200,,,,"('Ignition Effect', 'Quick Effect')","('Number', 'Number (Spell/Trap archetype)', 'Number 10X')",,,Unlimited,Unlimited,Thu Jun 24 10:54:19 2021
 Number 107: Galaxy-Eyes Tachyon Dragon,88177324,Monster Card,,Xyz Monster,,LIGHT,Dragon,8,3000,2500,,,,"('Trigger Effect',)","('-Eyes Dragon', 'Galaxy', 'Galaxy-Eyes', 'Galaxy-Eyes Tachyon Dragon', 'Number', 'Number (Spell/Trap archetype)', 'Number 10X')",,,Unlimited,Unlimited,Thu May  5 18:17:11 2022
@@ -5183,7 +5183,7 @@ Number C69: Heraldry Crest of Horror,11522979,Monster Card,,Xyz Monster,,LIGHT,P
 Number C102: Archfiend Seraph,67173574,Monster Card,,Xyz Monster,,LIGHT,Fairy,5,2900,2400,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Archfiend', 'Chaos', 'Number', 'Number (Spell/Trap archetype)', 'Number 10X', 'Number C', 'Number C10X')",,,Unlimited,Unlimited,Thu Jun 24 10:59:29 2021
 Number C107: Neo Galaxy-Eyes Tachyon Dragon,68396121,Monster Card,,Xyz Monster,,LIGHT,Dragon,9,4500,3000,,,,"('Condition', 'Ignition Effect')","('-Eyes Dragon', 'Chaos', 'Galaxy', 'Galaxy-Eyes', 'Galaxy-Eyes Tachyon Dragon', 'Number', 'Number (Spell/Trap archetype)', 'Number 10X', 'Number C', 'Number C10X')",,,Unlimited,Unlimited,Thu May  5 18:17:45 2022
 Number C1000: Numerounius,89477759,Monster Card,,Xyz Monster,,LIGHT,Fiend,12,?,?,,,,"('Quick Effect', 'Trigger Effect')","('Chaos', 'Number', 'Number (Spell/Trap archetype)', 'Number C', 'Numerounius')",,,Unlimited,Unlimited,Sun Jul 24 08:20:50 2022
-Number F0: Utopic Draco Future,26973555,Monster Card,,Xyz Monster,,LIGHT,Warrior,0,3000,2000,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Summoning condition')","('Number', 'Number (Spell/Trap archetype)', 'Number F', 'Utopic', 'Utopic Future')",,,Unlimited,Unlimited,Sat Jun  4 11:34:24 2022
+Number F0: Utopic Draco Future,26973555,Monster Card,,Xyz Monster,,LIGHT,Warrior,0,3000,2000,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Summoning condition')","('Number', 'Number (Spell/Trap archetype)', 'Number F', 'Utopic', 'Utopic Future')",,,Unlimited,Unlimited,Mon Nov  7 23:13:19 2022
 Number F0: Utopic Future,65305468,Monster Card,,Xyz Monster,,LIGHT,Warrior,0,0,0,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Number', 'Number (Spell/Trap archetype)', 'Number F', 'Utopic', 'Utopic Future')",,,Unlimited,Unlimited,Wed Jul  7 19:18:31 2021
 Number F0: Utopic Future Slash,43490025,Monster Card,,Xyz Monster,,LIGHT,Warrior,0,0,0,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Summoning condition')","('Number', 'Number (Spell/Trap archetype)', 'Number F', 'Signature move', 'Utopic', 'Utopic Future')",,,Unlimited,Unlimited,Tue Jun 29 22:55:14 2021
 Number iC1000: Numerounius Numerounia,15862758,Monster Card,,Xyz Monster,,LIGHT,Fiend,13,?,?,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Chaos', 'Duel winner', 'Number', 'Number (Spell/Trap archetype)', 'Numerounius')",,,Unlimited,Unlimited,Sat Aug 13 13:11:38 2022
@@ -5340,7 +5340,7 @@ Rai Rider,31173519,Monster Card,,Effect Monster,,LIGHT,Thunder,3,1200,1400,,,,"(
 Rai-Jin,37829468,Monster Card,,Effect Monster,,LIGHT,Thunder,4,?,1000,,,,"('Continuous Effect', 'Trigger Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Mon Jul  6 04:06:39 2020
 Rai-Mei,63223467,Monster Card,,Effect Monster,,LIGHT,Thunder,3,1400,1200,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Wed Apr 20 16:03:47 2022
 "Raiden, Hand of the Lightsworn",77558536,Monster Card,,Effect Monster,Tuner monster,LIGHT,Warrior,4,1700,1000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Lightsworn',)",,"('Type',)",Unlimited,Unlimited,Sat Jun 11 17:41:54 2022
-Raijin the Breakbolt Star,99991455,Monster Card,,Fusion Monster,,LIGHT,Warrior,10,3000,2200,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Star (series)',)",,,,Unlimited,Sat Sep 17 18:42:36 2022
+Raijin the Breakbolt Star,99991455,Monster Card,,Fusion Monster,,LIGHT,Warrior,10,3000,2200,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Star (series)',)",,,Not yet released,Unlimited,Mon Nov  7 17:44:45 2022
 Rain Bozu,95568112,Monster Card,,Effect Monster,,LIGHT,Fairy,7,0,0,8,,,"('Continuous Effect', 'Ignition-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu Nov 18 15:19:46 2021
 Rainbow Dragon,79856792,Monster Card,,Effect Monster,,LIGHT,Dragon,10,4000,0,,,,"('Condition', 'Ignition Effect', 'Quick Effect', 'Summoning condition')","('Crystal', 'Ultimate Crystal')",,,Unlimited,Unlimited,Tue Sep 27 21:33:17 2022
 Rainbow Kuriboh,02830693,Monster Card,,Effect Monster,,LIGHT,Fiend,1,100,100,,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect')","('Kuriboh (archetype)',)",,"('Type',)",Unlimited,Unlimited,Mon Oct 11 21:02:50 2021
@@ -5369,7 +5369,7 @@ Rogue Doll,91939608,Monster Card,,Normal Monster,,LIGHT,Spellcaster,4,1600,1000,
 Roulette Barrel,46303688,Monster Card,,Effect Monster,,LIGHT,Machine,4,1000,2000,,,,"('Ignition Effect',)",,"('Edited',)",,Unlimited,Unlimited,Fri Apr 22 02:39:14 2022
 Royal Knight,68280530,Monster Card,,Effect Monster,,LIGHT,Fairy,3,1300,800,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Mon Oct 18 03:10:44 2021
 Royal Magical Library,70791313,Monster Card,,Effect Monster,,LIGHT,Spellcaster,4,0,2000,,,,"('Continuous Effect', 'Ignition Effect')",,,"('Type',)",Unlimited,Unlimited,Thu Feb  3 16:26:28 2022
-Royal Straight Slasher,11020863,Monster Card,,Effect Monster,,LIGHT,Warrior,6,2400,1350,,,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:46:19 2022
+Royal Straight Slasher,11020863,Monster Card,,Effect Monster,,LIGHT,Warrior,6,2400,1350,,,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:30:26 2022
 Ruddy Rose Witch,29107423,Monster Card,,Effect Monster,Tuner monster,LIGHT,Plant,1,800,1700,,,,"('Condition', 'Ignition Effect')","('Rose',)",,,Unlimited,Unlimited,Wed Sep 14 13:31:10 2022
 "Ruin, Angel of Oblivion",50139096,Monster Card,,Ritual Monster,,LIGHT,Fairy,4,1700,1000,,,,"('Summoning condition', 'Trigger Effect', 'Unclassified effect')","('Ruin & Demise',)",,,Unlimited,Unlimited,Wed Apr 20 14:59:22 2022
 "Ruin, Queen of Oblivion",46427957,Monster Card,,Ritual Monster,,LIGHT,Fairy,8,2300,2000,,,,"('Summoning condition', 'Trigger Effect')","('Ruin & Demise',)",,,Unlimited,Unlimited,Wed Apr 20 15:28:54 2022
@@ -5424,9 +5424,9 @@ Security Dragon,99111753,Monster Card,,Link Monster,,LIGHT,Cyberse,,1100,,,2,"('
 Segmental Dragon,15066114,Monster Card,,Effect Monster,,LIGHT,Cyberse,7,2600,2400,,,,"('Quick Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Mon Mar 16 13:52:17 2020
 Seiyaryu,06740720,Monster Card,,Normal Monster,,LIGHT,Dragon,7,2500,2300,,,,,,,,Unlimited,Unlimited,Fri Apr 16 16:28:49 2021
 Seleglare the Luminous Lunar Dragon,29303524,Monster Card,,Effect Monster,,LIGHT,Dragon,6,2400,1000,,,,"('Condition', 'Quick Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Thu Oct  7 08:19:15 2021
-"Selene, Queen of the Master Magicians",45819647,Monster Card,,Link Monster,,LIGHT,Spellcaster,,1850,,,3,"('↓', '↙', '↘')","('Continuous Effect', 'Quick Effect', 'Trigger Effect')",,"('Edited',)",,Unlimited,Unlimited,Sat Aug 13 12:47:49 2022
+"Selene, Queen of the Master Magicians",45819647,Monster Card,,Link Monster,,LIGHT,Spellcaster,,1850,,,3,"('↓', '↙', '↘')","('Continuous Effect', 'Quick Effect', 'Trigger Effect')",,"('Edited',)",,Unlimited,Unlimited,Mon Nov  7 23:21:11 2022
 Senju of the Thousand Hands,23401839,Monster Card,,Effect Monster,,LIGHT,Fairy,4,1400,1000,,,,"('Trigger Effect',)",,"('Edited',)",,Unlimited,Unlimited,Fri Apr 29 13:04:54 2022
-Senko the Skybolt Star,62503746,Monster Card,,Effect Monster,,LIGHT,Warrior,7,2400,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Star (series)',)",,,,Unlimited,Sat Sep 17 18:42:42 2022
+Senko the Skybolt Star,62503746,Monster Card,,Effect Monster,,LIGHT,Warrior,7,2400,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Star (series)',)",,,Not yet released,Unlimited,Mon Nov  7 17:43:04 2022
 "Sephylon, the Ultimate Timelord",08967776,Monster Card,,Effect Monster,,LIGHT,Fairy,10,4000,4000,,,,"('Ignition Effect', 'Summoning condition')","('Timelord',)",,"('Name',)",Unlimited,Unlimited,Thu Jul  1 09:56:59 2021
 Serenade the Melodious Diva,42029847,Monster Card,,Effect Monster,,LIGHT,Fairy,4,400,1900,,,,"('Unclassified effect',)","('Melodious',)",,,Unlimited,Unlimited,Wed Apr 20 15:23:00 2022
 Servant of Catabolism,02792265,Monster Card,,Effect Monster,,LIGHT,Aqua,3,700,500,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Thu Dec  9 23:47:10 2021
@@ -5632,7 +5632,7 @@ Tyr of the Nordic Champions,02333365,Monster Card,,Effect Monster,,LIGHT,Warrior
 "Tyr, the Vanquishing Warlord",,Monster Card,,Effect Monster,,LIGHT,Fairy,10,3000,3000,,,,"('Condition', 'Summoning condition')","('Match winner',)",,,Illegal,Illegal,Tue Jun 22 19:50:55 2021
 Tyrant Burst Dragon,58293343,Monster Card,,Fusion Monster,,LIGHT,Dragon,8,2900,2500,,,,"('Continuous Effect', 'Continuous-like Effect', 'Ignition Effect', 'Summoning condition')",,,,Unlimited,Unlimited,Sun Oct 10 16:18:23 2021
 UFOroid,07602840,Monster Card,,Effect Monster,,LIGHT,Machine,6,1200,1200,,,,"('Trigger Effect',)","('roid',)",,,Unlimited,Unlimited,Thu Oct  6 17:55:07 2022
-UFOroid Fighter,32752319,Monster Card,,Fusion Monster,,LIGHT,Machine,10,?,?,,,,"('Continuous Effect', 'Summoning condition')","('roid',)",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 17:05:23 2022
+UFOroid Fighter,32752319,Monster Card,,Fusion Monster,,LIGHT,Machine,10,?,?,,,,"('Continuous Effect', 'Summoning condition')","('roid',)",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:24:44 2022
 Ultimate Axon Kicker,40101111,Monster Card,,Fusion Monster,,LIGHT,Psychic,10,2900,1700,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Apr  4 02:46:22 2020
 Ultimate Conductor Tyranno,18940556,Monster Card,,Effect Monster,,LIGHT,Dinosaur,10,3500,3200,,,,"('Continuous Effect', 'Quick Effect', 'Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Sep 17 18:41:24 2022
 Ultimate Crystal Rainbow Dragon Overdrive,84544192,Monster Card,,Fusion Monster,,LIGHT,Dragon,12,4000,0,,,,"('Continuous Effect', 'Quick Effect', 'Summoning condition')","('Crystal', 'Signature move', 'Ultimate Crystal')",,,Unlimited,Unlimited,Sat Oct  1 08:46:51 2022
@@ -5820,7 +5820,7 @@ Abyss Actor - Trendy Understudy,39024589,Monster Card,,Effect Monster,,DARK,Fien
 Abyss Actor - Twinkle Little Star,07279373,Monster Card,,Effect Monster,,DARK,Fiend,4,1000,1000,9,,,"('Condition', 'Continuous Effect', 'Continuous-like Effect', 'Ignition-like Effect')","('Abyss Actor',)",,,Unlimited,Unlimited,Wed Apr 20 02:36:21 2022
 Abyss Actor - Wild Hope,51391183,Monster Card,,Effect Monster,,DARK,Fiend,4,1600,1200,2,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Abyss Actor', 'Utopic')",,,Unlimited,Unlimited,Fri Apr  1 12:56:34 2022
 Accel Synchron,37675907,Monster Card,,Synchro Monster,Tuner monster,DARK,Machine,5,500,2100,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Synchron',)",,,Unlimited,Unlimited,Thu Jul 21 16:34:07 2022
-Accesscode Talker,86066372,Monster Card,,Link Monster,,DARK,Cyberse,,2300,,,4,"('↓', '←', '→', '↑')","('Condition', 'Ignition Effect', 'Trigger Effect')","('Code Talker (archetype)',)",,,Unlimited,Unlimited,Sat Aug 20 03:02:04 2022
+Accesscode Talker,86066372,Monster Card,,Link Monster,,DARK,Cyberse,,2300,,,4,"('↓', '←', '→', '↑')","('Condition', 'Ignition Effect', 'Trigger Effect')","('Code Talker (archetype)',)",,,Unlimited,Unlimited,Mon Nov  7 23:21:57 2022
 Acrobatic Magician,33656832,Monster Card,,Effect Monster,,DARK,Spellcaster,5,800,2300,2,,,"('Condition', 'Trigger Effect')","('Magician',)",,,Unlimited,Unlimited,Sun Nov  7 04:32:35 2021
 Ad Libitum of Despia,81555617,Monster Card,,Effect Monster,,DARK,Fairy,8,1500,2000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Despia',)",,,Unlimited,Unlimited,Fri Nov  4 01:22:15 2022
 "Adreus, Keeper of Armageddon",94119480,Monster Card,,Xyz Monster,,DARK,Fiend,5,2600,1700,,,,"('Ignition Effect',)","('Keeper',)",,,Unlimited,Unlimited,Sat Nov  6 16:01:56 2021
@@ -5944,7 +5944,7 @@ Assault Synchron,,Monster Card,,Effect Monster,Tuner monster,DARK,Machine,2,700,
 Astrograph Sorcerer,76794549,Monster Card,,Effect Monster,,DARK,Spellcaster,7,2500,2000,1,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')",,,,Limited,Limited,Thu Aug 25 17:26:17 2022
 Aswan Apparition,88236094,Monster Card,,Effect Monster,,DARK,Fiend,3,500,500,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Fri Apr 16 14:50:32 2021
 Autorokket Dragon,80250185,Monster Card,,Effect Monster,,DARK,Dragon,3,1600,1000,,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Rokket',)",,,Unlimited,Unlimited,Wed Sep 15 16:21:30 2021
-Avendread Savior,91420202,Monster Card,,Link Monster,,DARK,Zombie,,1600,,,2,"('↙', '↘')","('Condition', 'Continuous Effect', 'Ignition Effect', 'Quick Effect')","('Majestic', 'Vendread')",,,Unlimited,Unlimited,Sat Mar 14 12:11:07 2020
+Avendread Savior,91420202,Monster Card,,Link Monster,,DARK,Zombie,,1600,,,2,"('↙', '↘')","('Condition', 'Continuous Effect', 'Ignition Effect', 'Quick Effect')","('Majestic', 'Vendread')",,,Unlimited,Unlimited,Mon Nov  7 23:20:05 2022
 Axe Dragonute,84914462,Monster Card,,Effect Monster,,DARK,Dragon,4,2000,1200,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Thu Nov 18 15:27:04 2021
 B.E.S. Big Core,14148099,Monster Card,,Effect Monster,,DARK,Machine,6,2300,1100,,,,"('Continuous Effect', 'Trigger Effect')","('B.E.S.',)",,"('Name',)",Unlimited,Unlimited,Thu Apr 14 23:20:53 2022
 BM-4 Blast Spider,40634253,Monster Card,,Effect Monster,,DARK,Machine,4,1400,2200,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Apr 10 08:41:13 2021
@@ -6005,11 +6005,11 @@ Blackfeather Darkrage Dragon,60992105,Monster Card,,Synchro Monster,,DARK,Dragon
 Blackland Fire Dragon,87564352,Monster Card,,Normal Monster,,DARK,Dragon,4,1500,800,,,,,,,,Unlimited,Unlimited,Sat Jun 18 05:23:39 2022
 Blackwing - Abrolhos the Megaquake,31053337,Monster Card,,Effect Monster,,DARK,Winged Beast,7,2600,1800,,,,"('Continuous Effect', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sat Jan  2 23:06:09 2021
 Blackwing - Auster the South Wind,17465972,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,4,1300,0,,,,"('Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Mon May 16 01:02:04 2022
-Blackwing - Blizzard the Far North,22835145,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,2,1300,0,,,,"('Summoning condition', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sun Jun 20 15:23:28 2021
-Blackwing - Bora the Spear,49003716,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1700,800,,,,"('Continuous Effect', 'Unclassified effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sun Jun 20 15:11:40 2021
+Blackwing - Blizzard the Far North,22835145,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,2,1300,0,,,,"('Summoning condition', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Mon Nov  7 22:19:35 2022
+Blackwing - Bora the Spear,49003716,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1700,800,,,,"('Continuous Effect', 'Unclassified effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Mon Nov  7 22:17:33 2022
 Blackwing - Boreas the Sharp,16516630,Monster Card,,Effect Monster,,DARK,Winged Beast,5,1300,900,,,,"('Ignition Effect',)","('Blackwing',)",,,Unlimited,Unlimited,Sat Jan  2 23:08:30 2021
 Blackwing - Boreastorm the Wicked Wind,10602628,Monster Card,,Synchro Monster,Tuner monster,DARK,Winged Beast,6,2400,1200,,,,"('Condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 19:53:47 2022
-Blackwing - Breeze the Zephyr,89258906,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,3,1100,300,,,,"('Condition', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Wed Apr 20 12:20:15 2022
+Blackwing - Breeze the Zephyr,89258906,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,3,1100,300,,,,"('Condition', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Mon Nov  7 22:21:44 2022
 Blackwing - Brisote the Tailwind,52900379,Monster Card,,Effect Monster,,DARK,Winged Beast,5,1200,1800,,,,"('Trigger Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Wed Apr 20 11:53:51 2022
 Blackwing - Calima the Haze,88305978,Monster Card,,Effect Monster,,DARK,Winged Beast,4,600,1800,,,,"('Quick Effect',)","('Blackwing',)",,,Unlimited,Unlimited,Sat Jan  2 23:08:17 2021
 Blackwing - Chinook the Snow Blast,34976176,Monster Card,,Effect Monster,,DARK,Winged Beast,2,100,700,,,,"('Condition', 'Ignition Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 20:18:58 2022
@@ -6018,11 +6018,11 @@ Blackwing - Decay the Ill Wind,19462747,Monster Card,,Effect Monster,Tuner monst
 Blackwing - Elphin the Raven,11613567,Monster Card,,Effect Monster,,DARK,Winged Beast,6,2200,1200,,,,"('Trigger Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Thu Jan 14 13:26:44 2021
 Blackwing - Etesian of Two Swords,78564023,Monster Card,,Effect Monster,,DARK,Winged Beast,3,400,1600,,,,"('Trigger Effect',)","('Blackwing',)",,,Unlimited,Unlimited,Sat Jan  2 23:07:32 2021
 Blackwing - Fane the Steel Chain,09109991,Monster Card,,Effect Monster,,DARK,Winged Beast,2,500,800,,,,"('Continuous Effect', 'Trigger Effect')","('Blackwing',)",,"('Name',)",Unlimited,Unlimited,Sat Jan  2 23:00:48 2021
-Blackwing - Gale the Whirlwind,02009101,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,3,1300,400,,,,"('Ignition Effect', 'Unclassified effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sun Jun 20 15:11:01 2021
+Blackwing - Gale the Whirlwind,02009101,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,3,1300,400,,,,"('Ignition Effect', 'Unclassified effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Mon Nov  7 22:16:28 2022
 Blackwing - Ghibli the Searing Wind,26775203,Monster Card,,Effect Monster,,DARK,Winged Beast,3,0,1600,,,,"('Ignition Effect', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sat Jan  2 23:08:00 2021
 Blackwing - Gladius the Midnight Sun,28190303,Monster Card,,Effect Monster,,DARK,Winged Beast,3,800,1500,,,,"('Continuous Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Thu Sep 30 13:34:48 2021
 Blackwing - Gofu the Vague Shadow,09929398,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,5,0,0,,,,"('Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Blackwing',)",,,Forbidden,Forbidden,Sat Jan  2 23:06:54 2021
-Blackwing - Gram the Shining Star,17377751,Monster Card,,Synchro Monster,,DARK,Winged Beast,5,2200,1500,,,,"('Summoning condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Wed Jul 21 07:42:09 2021
+Blackwing - Gram the Shining Star,17377751,Monster Card,,Synchro Monster,,DARK,Winged Beast,5,2200,1500,,,,"('Summoning condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Mon Nov  7 22:49:14 2022
 Blackwing - Gust the Backblast,52869807,Monster Card,,Effect Monster,,DARK,Winged Beast,2,900,1400,,,,"('Trigger Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Thu Jan 21 13:17:56 2021
 Blackwing - Harmattan the Dust,77152542,Monster Card,,Effect Monster,,DARK,Winged Beast,2,800,800,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Sat Jul 16 12:25:42 2022
 Blackwing - Hillen the Tengu-wind,03072808,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,5,0,2300,,,,"('Condition', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Thu Oct 20 13:58:04 2022
@@ -6040,18 +6040,18 @@ Blackwing - Pinaki the Waxing Moon,55610595,Monster Card,,Effect Monster,Tuner m
 Blackwing - Shamal the Sandstorm,08571567,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,4,1600,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 20:18:59 2022
 Blackwing - Shura the Blue Flame,58820853,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1800,1200,,,,"('Trigger Effect',)","('Blackwing',)",,,Unlimited,Unlimited,Sun Jun 20 15:37:08 2021
 Blackwing - Silverwind the Ascendant,33236860,Monster Card,,Synchro Monster,,DARK,Winged Beast,8,2800,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sat Jan  2 23:04:42 2021
-Blackwing - Simoon the Poison Wind,81470373,Monster Card,,Effect Monster,,DARK,Winged Beast,6,1600,2000,,,,"('Condition', 'Ignition Effect', 'Lingering effect')","('Blackwing',)",,,Unlimited,Unlimited,Fri Jul  1 11:02:23 2022
-Blackwing - Sirocco the Dawn,75498415,Monster Card,,Effect Monster,,DARK,Winged Beast,5,2000,900,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Jun 20 15:44:27 2021
+Blackwing - Simoon the Poison Wind,81470373,Monster Card,,Effect Monster,,DARK,Winged Beast,6,1600,2000,,,,"('Condition', 'Ignition Effect', 'Lingering effect')","('Blackwing',)",,,Unlimited,Unlimited,Mon Nov  7 22:22:49 2022
+Blackwing - Sirocco the Dawn,75498415,Monster Card,,Effect Monster,,DARK,Winged Beast,5,2000,900,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Mon Nov  7 22:18:32 2022
 Blackwing - Steam the Cloak,09047460,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,3,800,1200,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Limited,Forbidden,Sat Jan  2 23:04:27 2021
 Blackwing - Sudri the Phantom Glimmer,70465810,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1400,1400,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 20:18:52 2022
 Blackwing - Tornado the Reverse Wind,73534250,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1000,1200,,,,"('Trigger Effect',)","('Blackwing',)",,,Unlimited,Unlimited,Tue Nov  1 15:38:52 2022
 Blackwing - Vata the Emblem of Wandering,71187462,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,2,800,0,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 20:19:01 2022
-Blackwing - Vayu the Emblem of Honor,72714392,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,1,800,0,,,,"('Continuous Effect', 'Ignition Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sun Jun 20 15:44:49 2021
+Blackwing - Vayu the Emblem of Honor,72714392,Monster Card,,Effect Monster,Tuner monster,DARK,Winged Beast,1,800,0,,,,"('Continuous Effect', 'Ignition Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Mon Nov  7 22:20:39 2022
 Blackwing - Zephyros the Elite,14785765,Monster Card,,Effect Monster,,DARK,Winged Beast,4,1600,1000,,,,"('Condition', 'Ignition Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Sun Jun 20 15:45:10 2021
 Blackwing - Zonda the Dusk,07459919,Monster Card,,Effect Monster,,DARK,Winged Beast,6,2300,900,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sun Oct 23 20:18:47 2022
 Blackwing Armed Wing,76913983,Monster Card,,Synchro Monster,,DARK,Winged Beast,6,2300,1000,,,,"('Continuous Effect',)","('Blackwing',)",,"('Name', 'Type')",Unlimited,Unlimited,Tue Nov  1 15:30:48 2022
 Blackwing Armor Master,69031175,Monster Card,,Synchro Monster,,DARK,Winged Beast,7,2500,1500,,,,"('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,"('Type',)",Unlimited,Unlimited,Fri May 13 03:50:52 2022
-Blackwing Full Armor Master,54082269,Monster Card,,Synchro Monster,,DARK,Winged Beast,10,3000,3000,,,,"('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Tue Feb 15 19:50:26 2022
+Blackwing Full Armor Master,54082269,Monster Card,,Synchro Monster,,DARK,Winged Beast,10,3000,3000,,,,"('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Blackwing',)",,,Unlimited,Unlimited,Mon Nov  7 22:24:58 2022
 Blackwing Tamer - Obsidian Hawk Joe,81983656,Monster Card,,Synchro Monster,,DARK,Warrior,7,2600,2000,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Blackwing',)",,,Unlimited,Unlimited,Sat Aug 13 11:06:42 2022
 Blast Sphere,26302522,Monster Card,,Effect Monster,,DARK,Machine,4,1400,1400,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Sat Mar  6 21:13:29 2021
 Blocker,34743446,Monster Card,,Normal Monster,,DARK,Machine,4,850,1800,,,,,,,,Unlimited,Unlimited,Sun Nov  7 09:33:47 2021
@@ -6074,7 +6074,7 @@ Borrelguard Dragon,68987122,Monster Card,,Link Monster,,DARK,Dragon,,3000,,,4,"(
 Borreload Dragon,31833038,Monster Card,,Link Monster,,DARK,Dragon,,3000,,,4,"('↙', '↘', '←', '→')","('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Borrel',)","('Alternate',)",,Unlimited,Unlimited,Sat Oct 29 14:37:37 2022
 Borreload Furious Dragon,92892239,Monster Card,,Fusion Monster,,DARK,Dragon,8,3000,2500,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Borrel',)",,,Unlimited,Unlimited,Mon Dec 27 19:20:34 2021
 Borreload Riot Dragon,07987191,Monster Card,,Ritual Monster,,DARK,Dragon,8,3000,2500,,,,"('Condition', 'Ignition Effect', 'Quick Effect', 'Summoning condition')","('Borrel',)",,,Unlimited,Unlimited,Thu Nov 11 16:09:33 2021
-Borreload Savage Dragon,27548199,Monster Card,,Synchro Monster,,DARK,Dragon,8,3000,2500,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Borrel',)",,,Unlimited,Unlimited,Mon Dec 27 16:41:01 2021
+Borreload Savage Dragon,27548199,Monster Card,,Synchro Monster,,DARK,Dragon,8,3000,2500,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Borrel',)",,,Unlimited,Unlimited,Mon Nov  7 23:11:31 2022
 Borreload eXcharge Dragon,06247535,Monster Card,,Xyz Monster,,DARK,Dragon,4,3000,2500,,,,"('Continuous Effect', 'Ignition Effect')","('Borrel',)",,,Unlimited,Unlimited,Sun Aug 14 05:24:41 2022
 Borrelsword Dragon,85289965,Monster Card,,Link Monster,,DARK,Dragon,,3000,,,4,"('↓', '↙', '←', '↑')","('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Borrel',)","('Alternate',)",,Unlimited,Unlimited,Fri Nov  4 14:33:51 2022
 Bowganian,52090844,Monster Card,,Effect Monster,,DARK,Machine,3,1300,1000,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Fri Apr 29 11:30:10 2022
@@ -6123,8 +6123,8 @@ Chaos Archfiend,13076804,Monster Card,,Synchro Monster,,DARK,Fiend,8,2500,1800,,
 Chaos Beast,49565413,Monster Card,,Synchro Monster,,DARK,Fiend,6,2000,1800,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Chaos',)",,,,Unlimited,Sat Oct 15 09:13:32 2022
 Chaos Betrayer,34966096,Monster Card,,Effect Monster,,DARK,Fiend,6,2000,2000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Chaos',)",,,Unlimited,Unlimited,Tue Sep  1 19:06:05 2020
 Chaos Core,54040484,Monster Card,,Effect Monster,,DARK,Fiend,3,0,0,,,,"('Condition', 'Continuous Effect', 'Quick Effect')","('Chaos',)",,,Unlimited,Unlimited,Wed Sep 15 16:31:33 2021
-The Chaos Creator,90488465,Monster Card,,Effect Monster,,DARK,Thunder,8,2300,3000,,,,"('Condition', 'Ignition Effect', 'Summoning condition')","('Chaos', 'Creator')",,,Unlimited,Unlimited,Mon Aug 22 13:18:07 2022
-Chaos Daedalus,26873574,Monster Card,,Effect Monster,,DARK,Sea Serpent,7,2600,1500,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Summoning condition')","('Chaos', 'Daedalus')",,,Unlimited,Unlimited,Sun Aug 14 10:20:53 2022
+The Chaos Creator,90488465,Monster Card,,Effect Monster,,DARK,Thunder,8,2300,3000,,,,"('Condition', 'Ignition Effect', 'Summoning condition')","('Chaos', 'Creator')",,,Unlimited,Unlimited,Mon Nov  7 22:33:00 2022
+Chaos Daedalus,26873574,Monster Card,,Effect Monster,,DARK,Sea Serpent,7,2600,1500,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Summoning condition')","('Chaos', 'Daedalus')",,,Unlimited,Unlimited,Mon Nov  7 22:34:45 2022
 Chaos Dragon Levianeer,55878038,Monster Card,,Effect Monster,,DARK,Dragon,8,3000,0,,,,"('Condition', 'Summoning condition', 'Trigger Effect')",,"('Alternate',)",,Unlimited,Unlimited,Sat Oct 29 14:04:08 2022
 Chaos Emperor Dragon - Envoy of the End,82301904,Monster Card,,Effect Monster,,DARK,Dragon,8,3000,2500,,,,"('Condition', 'Ignition Effect', 'Summoning condition')","('Chaos',)",,"('Name', 'Type')",Unlimited,Unlimited,Sat Jun 11 17:22:01 2022
 "Chaos Emperor, the Dragon of Armageddon",04538826,Monster Card,,Effect Monster,,DARK,Dragon,8,3000,2500,1,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Summoning condition', 'Unclassified effect')","('Chaos',)",,,Unlimited,Unlimited,Sat Jul 10 13:32:17 2021
@@ -6221,7 +6221,7 @@ Cyberse Witch,11674673,Monster Card,,Link Monster,,DARK,Cyberse,,800,,,2,"('↓'
 D Cubed,99357565,Monster Card,,Effect Monster,,DARK,Machine,1,0,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Tue Apr  6 16:50:55 2021
 D-Boyz,79279397,Monster Card,,Effect Monster,Flip monster,DARK,Fiend,1,100,1000,,,,"('Flip effect',)",,,,Unlimited,Unlimited,Sat Feb  5 08:11:14 2022
 D.D. Assault Carrier,56790702,Monster Card,,Effect Monster,,DARK,Machine,8,2500,2500,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('D.D.',)",,,Unlimited,Unlimited,Fri Sep 23 03:36:05 2022
-D.D. Crow,24508238,Monster Card,,Effect Monster,,DARK,Winged Beast,1,100,100,,,,"('Quick Effect',)","('D.D.',)",,"('Name',)",Unlimited,Unlimited,Tue Jun 28 02:11:50 2022
+D.D. Crow,24508238,Monster Card,,Effect Monster,,DARK,Winged Beast,1,100,100,,,,"('Quick Effect',)","('D.D.',)",,"('Name',)",Unlimited,Unlimited,Mon Nov  7 23:00:18 2022
 D.D. Guide,52702748,Monster Card,,Effect Monster,,DARK,Warrior,4,1400,1000,,,,"('Trigger Effect',)","('D.D.',)",,"('Name',)",Unlimited,Unlimited,Tue Nov 17 05:06:11 2020
 D.D. Patrol Plane,75991479,Monster Card,,Effect Monster,,DARK,Machine,3,1200,800,,,,"('Condition', 'Trigger Effect')","('D.D.',)",,,Unlimited,Unlimited,Sat Mar 14 15:40:33 2020
 D.D. Scout Plane,03773196,Monster Card,,Effect Monster,,DARK,Machine,2,800,1200,,,,"('Trigger Effect',)","('D.D.',)",,"('Name',)",Unlimited,Unlimited,Tue Nov 17 05:06:54 2020
@@ -6531,7 +6531,7 @@ Eater of Millions,63845230,Monster Card,,Effect Monster,,DARK,Fiend,1,?,?,,,,"('
 Ebon High Magician,85551711,Monster Card,,Xyz Monster,,DARK,Spellcaster,7,2300,2800,,,,"('Continuous Effect', 'Trigger Effect')","('Prophecy',)",,,Unlimited,Unlimited,Thu Jul 21 23:40:09 2022
 Ebon Illusion Magician,96471335,Monster Card,,Xyz Monster,,DARK,Spellcaster,7,2500,2100,,,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Prophecy',)",,"('Type',)",Unlimited,Unlimited,Thu Jul 21 23:40:13 2022
 Ebon Magician Curran,46128076,Monster Card,,Effect Monster,,DARK,Spellcaster,2,1200,0,,,,"('Trigger Effect',)","('Prophecy',)",,,Unlimited,Unlimited,Wed Apr 20 12:22:44 2022
-Edge Imp Chain,61173621,Monster Card,,Effect Monster,,DARK,Fiend,4,1200,1800,,,,"('Condition', 'Trigger Effect')","('Edge Imp',)",,,Unlimited,Unlimited,Mon Apr 25 15:48:35 2022
+Edge Imp Chain,61173621,Monster Card,,Effect Monster,,DARK,Fiend,4,1200,1800,,,,"('Condition', 'Trigger Effect')","('Edge Imp',)",,,Unlimited,Unlimited,Mon Nov  7 23:02:19 2022
 Edge Imp Cotton Eater,73240432,Monster Card,,Effect Monster,,DARK,Fiend,7,2400,1600,1,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect')","('Edge Imp',)",,,Unlimited,Unlimited,Sat Jul  9 01:06:52 2022
 Edge Imp Frightfuloid,34566435,Monster Card,,Effect Monster,,DARK,Fiend,4,1300,1300,,,,"('Condition', 'Ignition Effect')","('Edge Imp', 'Frightfur')",,,Unlimited,Unlimited,Wed Aug 24 14:27:10 2022
 Edge Imp Sabres,30068120,Monster Card,,Effect Monster,,DARK,Fiend,3,1200,800,,,,"('Condition', 'Ignition Effect')","('Edge Imp',)","('Edited',)",,Unlimited,Unlimited,Wed Aug 24 14:27:00 2022
@@ -6548,7 +6548,7 @@ Elemental HERO Chaos Neos,17032740,Monster Card,,Fusion Monster,,DARK,Warrior,9,
 Elemental HERO Dark Neos,28677304,Monster Card,,Fusion Monster,,DARK,Warrior,7,2500,2000,,,,"('Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'Neos')",,"('Name',)",Unlimited,Unlimited,Sun Apr 24 19:15:33 2022
 Elemental HERO Darkbright,41517968,Monster Card,,Fusion Monster,,DARK,Warrior,6,2000,1000,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Sun Jun 26 04:31:03 2022
 Elemental HERO Escuridao,33574806,Monster Card,,Fusion Monster,,DARK,Warrior,8,2500,2000,,,,"('Continuous Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Thu Jul 14 12:53:32 2022
-Elemental HERO Necroid Shaman,81003500,Monster Card,,Fusion Monster,,DARK,Warrior,6,1900,1800,,,,"('Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'roid')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 17:02:41 2022
+Elemental HERO Necroid Shaman,81003500,Monster Card,,Fusion Monster,,DARK,Warrior,6,1900,1800,,,,"('Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'roid')",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:03:52 2022
 Elemental HERO Necroshade,89252153,Monster Card,,Effect Monster,,DARK,Warrior,5,1600,1800,,,,"('Unclassified effect',)","('Elemental HERO', 'HERO')",,"('Name', 'Type')",Unlimited,Unlimited,Mon Mar 21 20:21:41 2022
 Elemental HERO Shadow Mist,50720316,Monster Card,,Effect Monster,,DARK,Warrior,4,1000,1500,,,,"('Condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Tue Jun 21 04:13:40 2022
 Elementsaber Molehu,45702014,Monster Card,,Effect Monster,,DARK,Warrior,4,1900,0,,,,"('Ignition Effect', 'Quick Effect')","('Elementsaber', 'Saber')",,,Unlimited,Unlimited,Sat Mar 14 17:14:55 2020
@@ -6590,7 +6590,7 @@ Evilswarm Salamandra,04058065,Monster Card,,Effect Monster,,DARK,Dinosaur,4,1850
 Evilswarm Thanatos,65884091,Monster Card,,Xyz Monster,,DARK,Fiend,4,2350,1350,,,,"('Quick Effect',)","('lswarm',)",,,Unlimited,Unlimited,Fri Feb 25 11:16:05 2022
 Evilswarm Thunderbird,78663366,Monster Card,,Effect Monster,,DARK,Thunder,4,1650,1050,,,,"('Condition', 'Quick Effect')","('lswarm',)",,,Unlimited,Unlimited,Sun Nov  7 13:42:21 2021
 Evilswarm Zahak,03536537,Monster Card,,Effect Monster,,DARK,Dragon,4,1850,850,,,,"('Trigger Effect',)","('lswarm',)",,,Unlimited,Unlimited,Tue Apr  6 16:50:21 2021
-Evil★Twin Lil-la,36609518,Monster Card,,Link Monster,,DARK,Fiend,,1100,,,2,"('↓', '←')","('Condition', 'Quick Effect', 'Trigger Effect')","('Evil★Twin', 'Lil-la')","('Alternate', 'Edited')",,Unlimited,Unlimited,Sun Nov  6 14:13:32 2022
+Evil★Twin Lil-la,36609518,Monster Card,,Link Monster,,DARK,Fiend,,1100,,,2,"('↓', '←')","('Condition', 'Quick Effect', 'Trigger Effect')","('Evil★Twin', 'Lil-la')","('Alternate', 'Edited')",,Unlimited,Unlimited,Mon Nov  7 23:25:14 2022
 Evil★Twins Ki-sikil & Lil-la,62098216,Monster Card,,Effect Monster,,DARK,Fiend,8,2200,2200,,,,"('Condition', 'Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Evil★Twin', 'Ki-sikil', 'Lil-la')","('Edited',)",,Unlimited,Unlimited,Sun Nov  6 14:13:58 2022
 Exarion Universe,63749102,Monster Card,,Effect Monster,,DARK,Beast-Warrior,4,1800,1900,,,,"('Condition', 'Trigger Effect')",,,"('Type',)",Unlimited,Unlimited,Sun Mar  7 05:22:47 2021
 The Executor of the Underworld - Pluto,37706769,Monster Card,,Synchro Monster,Tuner monster,DARK,Fairy,5,2300,0,,,,"('Condition', 'Ignition Effect')","('The Agent',)",,,Unlimited,Unlimited,Fri May  6 07:37:53 2022
@@ -7305,11 +7305,11 @@ Odd-Eyes Arc Pendulum Dragon,14105623,Monster Card,,Normal Monster,,DARK,Dragon,
 Odd-Eyes Dragon,53025096,Monster Card,,Effect Monster,,DARK,Dragon,7,2500,2000,,,,"('Trigger Effect',)","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Sun Jul 31 05:24:40 2022
 Odd-Eyes Mirage Dragon,67754901,Monster Card,,Effect Monster,,DARK,Dragon,3,1200,600,8,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Sun Jul 31 05:17:07 2022
 Odd-Eyes Pendulum Dragon,16178681,Monster Card,,Effect Monster,,DARK,Dragon,7,2500,2000,4,,,"('Condition', 'Continuous Effect', 'Continuous-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Four Dimensional Dragons', 'Odd-Eyes', 'Pendulum (archetype)', 'Pendulum Dragon')","('Alternate',)",,Unlimited,Unlimited,Sat Oct 29 14:20:22 2022
-Odd-Eyes Persona Dragon,21250202,Monster Card,,Effect Monster,,DARK,Dragon,5,1200,2400,1,,,"('Quick Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Sun Jul 31 05:24:04 2022
-Odd-Eyes Phantasma Dragon,21770839,Monster Card,,Effect Monster,,DARK,Dragon,8,3000,2500,0,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Sun Jul 31 05:18:18 2022
+Odd-Eyes Persona Dragon,21250202,Monster Card,,Effect Monster,,DARK,Dragon,5,1200,2400,1,,,"('Quick Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Mon Nov  7 22:53:53 2022
+Odd-Eyes Phantasma Dragon,21770839,Monster Card,,Effect Monster,,DARK,Dragon,8,3000,2500,0,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Mon Nov  7 22:56:41 2022
 Odd-Eyes Phantom Dragon,93149655,Monster Card,,Effect Monster,,DARK,Dragon,7,2500,2000,4,,,"('Condition', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Phantom Knights')",,,Unlimited,Unlimited,Sun Jul 31 05:13:23 2022
 Odd-Eyes Raging Dragon,86238081,Monster Card,,Xyz Monster,,DARK,Dragon,7,3000,2500,1,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Supreme King')",,,Unlimited,Unlimited,Sun Jul 31 05:15:08 2022
-Odd-Eyes Rebellion Dragon,45627618,Monster Card,,Xyz Monster,,DARK,Dragon,7,3000,2500,4,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Rebellion (archetype)', 'Supreme King')",,,Unlimited,Unlimited,Sun Jul 31 05:09:43 2022
+Odd-Eyes Rebellion Dragon,45627618,Monster Card,,Xyz Monster,,DARK,Dragon,7,3000,2500,4,,,"('Condition', 'Ignition-like Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Rebellion (archetype)', 'Supreme King')",,,Unlimited,Unlimited,Mon Nov  7 22:59:20 2022
 Odd-Eyes Rebellion Dragon Overlord,98452268,Monster Card,,Xyz Monster,,DARK,Dragon,7,3000,2500,4,,,"('Condition', 'Continuous Effect', 'Ignition-like Effect', 'Summoning condition', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Rebellion (archetype)', 'Signature move', 'Supreme King')",,,Unlimited,Unlimited,Sun Jul 31 05:15:45 2022
 Odd-Eyes Venom Dragon,45014450,Monster Card,,Fusion Monster,,DARK,Dragon,10,3300,2500,1,,,"('Ignition Effect', 'Ignition-like Effect', 'Summoning condition', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Supreme King', 'Venom')",,,Unlimited,Unlimited,Sun Jul 31 05:11:01 2022
 Odd-Eyes Wing Dragon,58074177,Monster Card,,Synchro Monster,,DARK,Dragon,8,3000,2500,10,,,"('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes', 'Supreme King')",,,Unlimited,Unlimited,Sun Jul 31 05:14:18 2022
@@ -7361,7 +7361,7 @@ Performapal Odd-Eyes Butler,56677752,Monster Card,,Effect Monster,,DARK,Spellcas
 Performapal Odd-Eyes Dissolver,46136942,Monster Card,,Effect Monster,,DARK,Spellcaster,8,2000,2600,4,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Odd-Eyes', 'Performapal')",,,Unlimited,Unlimited,Fri Sep 23 06:11:09 2022
 Performapal Odd-Eyes Metal Claw,65029288,Monster Card,,Fusion Monster,,DARK,Dragon,8,3000,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Odd-Eyes', 'Performapal')",,,Unlimited,Unlimited,Sun Jul 31 05:17:29 2022
 Performapal Odd-Eyes Minitaurus,10731333,Monster Card,,Effect Monster,,DARK,Beast-Warrior,4,1200,1600,6,,,"('Continuous-like Effect', 'Trigger Effect')","('Odd-Eyes', 'Performapal')",,,Unlimited,Unlimited,Mon Mar 16 00:49:40 2020
-Performapal Odd-Eyes Seer,04836680,Monster Card,,Effect Monster,,DARK,Spellcaster,6,100,1800,1,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect')","('Odd-Eyes', 'Performapal')",,,,Unlimited,Sat Sep 17 18:43:09 2022
+Performapal Odd-Eyes Seer,04836680,Monster Card,,Effect Monster,,DARK,Spellcaster,6,100,1800,1,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect')","('Odd-Eyes', 'Performapal')",,,Not yet released,Unlimited,Mon Nov  7 17:34:43 2022
 Performapal Odd-Eyes Synchron,82224646,Monster Card,,Effect Monster,Tuner monster,DARK,Spellcaster,2,200,600,6,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Odd-Eyes', 'Performapal', 'Synchron')",,,Unlimited,Unlimited,Sun May 23 01:33:10 2021
 Performapal Silver Claw,26270847,Monster Card,,Effect Monster,,DARK,Beast,4,1800,700,5,,,"('Continuous-like Effect', 'Trigger Effect')","('Performapal',)",,,Unlimited,Unlimited,Tue Jan 26 16:56:01 2021
 Performapal Skullcrobat Joker,40318957,Monster Card,,Effect Monster,,DARK,Spellcaster,4,1800,100,8,,,"('Condition', 'Continuous-like Effect', 'Trigger Effect')","('Performapal',)",,,Unlimited,Unlimited,Sat Jun 11 15:05:53 2022
@@ -7550,7 +7550,7 @@ Return Zombie,03072077,Monster Card,,Effect Monster,,DARK,Zombie,4,1000,1600,,,,
 Revendread Executor,34093683,Monster Card,,Ritual Monster,,DARK,Zombie,8,3000,0,,,,"('Condition', 'Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Vendread',)",,,Unlimited,Unlimited,Sun Aug 14 10:51:54 2022
 Revendread Slayer,04388680,Monster Card,,Ritual Monster,,DARK,Zombie,6,2400,0,,,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Vendread',)",,,Unlimited,Unlimited,Mon Mar 16 19:43:56 2020
 Revival Rose,12469386,Monster Card,,Effect Monster,,DARK,Plant,4,1300,1300,,,,"('Trigger Effect',)","('Rose',)",,,Unlimited,Unlimited,Thu Jan 21 18:02:44 2021
-Revived King Ha Des,05309481,Monster Card,,Synchro Monster,,DARK,Zombie,6,2450,0,,,,"('Continuous Effect',)","('Zombie counterpart',)",,,Unlimited,Unlimited,Mon Mar 16 19:44:37 2020
+Revived King Ha Des,05309481,Monster Card,,Synchro Monster,,DARK,Zombie,6,2450,0,,,,"('Continuous Effect',)","('Zombie counterpart',)",,,Unlimited,Unlimited,Mon Nov  7 23:09:44 2022
 Right Arm of the Forbidden One,70903634,Monster Card,,Normal Monster,,DARK,Spellcaster,1,200,300,,,,,"('Forbidden One',)","('Edited',)","('Name',)",Limited,Limited,Sat Sep 10 01:42:09 2022
 Right Leg of the Forbidden One,08124921,Monster Card,,Normal Monster,,DARK,Spellcaster,1,200,300,,,,,"('Forbidden One',)","('Edited',)","('Name',)",Limited,Limited,Sat Sep 10 01:44:12 2022
 Ritual Raven,34334692,Monster Card,,Effect Monster,,DARK,Fiend,1,300,300,,,,"('Unclassified effect',)",,,,Unlimited,Unlimited,Sun Jan 31 17:44:34 2021
@@ -7566,7 +7566,7 @@ Rune-Eyes Pendulum Dragon,01516510,Monster Card,,Fusion Monster,,DARK,Dragon,8,3
 "Ryko, Twilightsworn Fighter",83550869,Monster Card,,Effect Monster,,DARK,Beast,2,200,100,,,,"('Trigger Effect',)","('Dark counterpart', 'Lightsworn', 'Twilightsworn')",,,Unlimited,Unlimited,Mon Mar 16 22:39:13 2020
 Ryu Kokki,57281778,Monster Card,,Effect Monster,,DARK,Zombie,6,2400,2000,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Thu Jan  7 20:13:33 2021
 Ryu-Kishin,15303296,Monster Card,,Normal Monster,,DARK,Fiend,3,1000,500,,,,,"('Ryu-Kishin (series)',)",,,Unlimited,Unlimited,Tue Apr 12 16:19:28 2022
-Ryu-Kishin Clown,42647539,Monster Card,,Effect Monster,,DARK,Fiend,2,800,500,,,,"('Trigger Effect',)","('Ryu-Kishin (series)',)",,,Unlimited,Unlimited,Sat Oct  8 08:56:13 2022
+Ryu-Kishin Clown,42647539,Monster Card,,Effect Monster,,DARK,Fiend,2,800,500,,,,"('Trigger Effect',)","('Ryu-Kishin (series)',)",,,Unlimited,Unlimited,Tue Nov  8 12:06:40 2022
 Ryu-Kishin Powered,24611934,Monster Card,,Normal Monster,,DARK,Fiend,4,1600,1200,,,,,"('Ryu-Kishin (series)',)",,,Unlimited,Unlimited,Mon Apr 25 02:45:02 2022
 S-Force Edge Razor,91864689,Monster Card,,Effect Monster,,DARK,Cyberse,4,1500,1300,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('S-Force',)",,,Unlimited,Unlimited,Sun Jun 27 11:50:42 2021
 S-Force Pla-Tina,58363151,Monster Card,,Effect Monster,,DARK,Spellcaster,6,2200,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('S-Force',)","('Edited',)",,Unlimited,Unlimited,Mon Aug 15 04:23:54 2022
@@ -7775,7 +7775,7 @@ Thousand-Eyes Idol,27125110,Monster Card,,Normal Monster,,DARK,Spellcaster,1,0,0
 Thousand-Eyes Restrict,63519819,Monster Card,,Fusion Monster,,DARK,Spellcaster,1,0,0,,,,"('Continuous Effect', 'Ignition Effect')","('Eyes Restrict', 'Relinquished (archetype)')",,"('Type',)",Unlimited,Unlimited,Sun Aug 14 06:49:01 2022
 Three-Headed Geedo,78423643,Monster Card,,Normal Monster,,DARK,Fiend,4,1200,1400,,,,,,,,Unlimited,Unlimited,Sun Nov  7 16:09:52 2021
 Three-Legged Zombies,33734439,Monster Card,,Normal Monster,,DARK,Zombie,3,1100,800,,,,,,,,Unlimited,Unlimited,Tue Mar 17 13:27:52 2020
-Thunder Ball,84813516,Monster Card,,Effect Monster,,DARK,Fiend,3,450,400,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:46:04 2022
+Thunder Ball,84813516,Monster Card,,Effect Monster,,DARK,Fiend,3,450,400,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 16:37:05 2022
 Thunder Dragon Colossus,15291624,Monster Card,,Fusion Monster,,DARK,Thunder,8,2600,2400,,,,"('Continuous Effect', 'Summoning condition')","('Thunder Dragon (archetype)',)",,,Forbidden,Limited,Sat May 14 12:49:43 2022
 Thunder Dragondark,56713174,Monster Card,,Effect Monster,,DARK,Thunder,5,1600,1500,,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Thunder Dragon (archetype)',)",,,Unlimited,Unlimited,Fri Nov  4 01:01:18 2022
 Thunder Dragonduo,55591586,Monster Card,,Effect Monster,,DARK,Thunder,8,2800,0,,,,"('Summoning condition', 'Trigger Effect')","('Thunder Dragon (archetype)',)",,,Unlimited,Unlimited,Thu Sep  9 02:04:47 2021
@@ -8023,7 +8023,7 @@ Abyssal Kingshark,44223284,Monster Card,,Effect Monster,,WATER,Fish,4,1700,600,,
 Adamancipator Crystal - Dragite,10286023,Monster Card,,Effect Monster,,WATER,Rock,4,0,2200,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Thu Oct  7 07:57:14 2021
 Adamancipator Risen - Dragite,09464441,Monster Card,,Synchro Monster,,WATER,Rock,8,3000,2200,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Thu Oct  7 07:36:18 2021
 Adularia of the Moonlit Water,15464375,Monster Card,,Effect Monster,,WATER,Spellcaster,5,1000,1000,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Unclassified effect')",,,,,Unlimited,Tue Jun 21 09:02:16 2022
-Advanced Crystal Beast Emerald Tortoise,46358784,Monster Card,,Effect Monster,,WATER,Aqua,3,600,2000,,,,"('Continuous Effect', 'Quick Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:45:12 2022
+Advanced Crystal Beast Emerald Tortoise,46358784,Monster Card,,Effect Monster,,WATER,Aqua,3,600,2000,,,,"('Continuous Effect', 'Quick Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 17:01:37 2022
 Aegaion the Sea Castrum,10678778,Monster Card,,Xyz Monster,,WATER,Machine,8,?,3000,,,,"('Condition', 'Quick Effect')",,,,Unlimited,Unlimited,Mon Mar  8 05:12:46 2021
 Akihiron,36904469,Monster Card,,Normal Monster,,WATER,Aqua,5,1700,1400,,,,,,,,,Unlimited,Sat Nov  6 15:27:02 2021
 Alien Hunter,62315111,Monster Card,,Effect Monster,,WATER,Reptile,4,1600,800,,,,"('Trigger Effect',)","('Alien',)",,,Unlimited,Unlimited,Sat Nov  6 16:06:47 2021
@@ -8082,7 +8082,7 @@ Big Jaws,51254277,Monster Card,,Effect Monster,,WATER,Fish,3,1800,300,,,,"('Trig
 Big Whale,18322364,Monster Card,,Effect Monster,,WATER,Fish,9,1000,3000,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Sun May 23 13:10:03 2021
 Bitelon,44702857,Monster Card,,Effect Monster,,WATER,Reptile,6,2400,1000,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Fri Mar 13 14:16:39 2020
 "Bixi, Water of the Yang Zing",02095764,Monster Card,,Effect Monster,,WATER,Wyrm,2,0,2000,,,,"('Condition', 'Quick Effect', 'Trigger Effect', 'Unclassified effect')","('Yang Zing',)",,,Unlimited,Unlimited,Sat Jul  9 02:18:18 2022
-"Blackbeard, the Plunder Patroll Captain",67647362,Monster Card,,Link Monster,,WATER,Fiend,,1600,,,2,"('↙', '↘')","('Condition', 'Quick Effect')","('Plunder Patroll',)",,,Unlimited,Unlimited,Sun Dec 26 12:43:13 2021
+"Blackbeard, the Plunder Patroll Captain",67647362,Monster Card,,Link Monster,,WATER,Fiend,,1600,,,2,"('↙', '↘')","('Condition', 'Quick Effect')","('Plunder Patroll',)",,,Unlimited,Unlimited,Mon Nov  7 23:22:54 2022
 "Blackeyes, the Plunder Patroll Seaguide",91642007,Monster Card,,Effect Monster,,WATER,Fiend,4,1000,1000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Plunder Patroll',)",,,Unlimited,Unlimited,Sat Sep 17 13:11:28 2022
 Blizzard Dragon,61802346,Monster Card,,Effect Monster,,WATER,Dragon,4,1800,1000,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Sat Mar 14 13:14:39 2020
 Blizzard Falcon,43694481,Monster Card,,Effect Monster,,WATER,Winged Beast,4,1500,1500,,,,"('Condition', 'Ignition Effect')",,,,Unlimited,Unlimited,Wed Feb  3 22:10:36 2021
@@ -8138,11 +8138,11 @@ Creeping Doom Manta,52571838,Monster Card,,Effect Monster,,WATER,Fish,3,1300,120
 Crowned by the World Chalice,95511642,Monster Card,,Normal Monster,,WATER,Spellcaster,2,0,2100,,,,,"('World Chalice',)",,,Unlimited,Unlimited,Wed Apr 20 12:22:48 2022
 Crusadia Arboria,91646304,Monster Card,,Effect Monster,Tuner monster,WATER,Warrior,3,800,1800,,,,"('Condition', 'Unclassified effect')","('Crusadia',)",,,Unlimited,Unlimited,Fri Jun 10 00:04:19 2022
 Cryomancer of the Ice Barrier,23950192,Monster Card,,Effect Monster,Tuner monster,WATER,Aqua,2,1300,0,,,,"('Continuous Effect',)","('Ice Barrier',)",,"('Type',)",Unlimited,Unlimited,Sun Aug 14 07:34:26 2022
-Crystal Beast Emerald Tortoise,68215963,Monster Card,,Effect Monster,,WATER,Aqua,3,600,2000,,,,"('Ignition Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:11 2022
+Crystal Beast Emerald Tortoise,68215963,Monster Card,,Effect Monster,,WATER,Aqua,3,600,2000,,,,"('Ignition Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:03:01 2022
 Crystal Girl,93169863,Monster Card,,Effect Monster,,WATER,Spellcaster,1,200,100,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Wed Apr 20 02:48:04 2022
 Crystal Seer,82099401,Monster Card,,Effect Monster,Flip monster,WATER,Spellcaster,1,100,100,,,,"('Flip effect',)",,,"('Type',)",Unlimited,Unlimited,Mon Mar 21 19:21:55 2022
 Crystal Shark,98881700,Monster Card,,Effect Monster,,WATER,Fish,5,1100,800,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Shark (series)',)",,,Unlimited,Unlimited,Thu Jun 16 17:42:50 2022
-Crystal Skull,07903368,Monster Card,,Effect Monster,,WATER,Rock,1,0,0,,,,"('Condition', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:44:10 2022
+Crystal Skull,07903368,Monster Card,,Effect Monster,,WATER,Rock,1,0,0,,,,"('Condition', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:15:21 2022
 Crystron Ametrix,76359406,Monster Card,,Synchro Monster,,WATER,Machine,5,2500,1500,,,,"('Trigger Effect',)","('Crystron',)",,,Unlimited,Unlimited,Wed Apr 20 12:29:28 2022
 Crystron Citree,20050865,Monster Card,,Effect Monster,Tuner monster,WATER,Machine,2,500,500,,,,"('Condition', 'Quick Effect')","('Crystron',)",,,Unlimited,Unlimited,Wed Apr 20 02:29:28 2022
 Crystron Halqifibrax,50588353,Monster Card,,Link Monster,,WATER,Machine,,1500,,,2,"('↙', '↘')","('Condition', 'Quick Effect', 'Trigger Effect')","('Crystron',)",,,Forbidden,Forbidden,Thu May  5 13:19:59 2022
@@ -8205,7 +8205,7 @@ The Dragon Dwelling in the Deep,04404099,Monster Card,,Effect Monster,,WATER,Sea
 Dragon Ice,64262809,Monster Card,,Effect Monster,,WATER,Dragon,5,1800,2200,,,,"('Trigger Effect', 'Unclassified effect')","('Fan-Made Cards',)",,,Unlimited,Unlimited,Wed Feb  3 18:37:45 2021
 Dragonmaid Nudyarl,49575521,Monster Card,,Effect Monster,,WATER,Dragon,7,2600,1600,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Dragonmaid',)",,,Unlimited,Unlimited,Thu Oct 13 07:27:04 2022
 Dragonpit Magician,51531505,Monster Card,,Normal Monster,,WATER,Spellcaster,7,900,2700,8,,,"('Ignition-like Effect',)","('Magician',)",,,Unlimited,Unlimited,Sun Nov  7 04:21:06 2021
-Dream Shark,06180710,Monster Card,,Effect Monster,,WATER,Fish,5,0,2600,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Quick Effect')","('Shark (series)',)",,,,Unlimited,Sat Sep 17 18:43:56 2022
+Dream Shark,06180710,Monster Card,,Effect Monster,,WATER,Fish,5,0,2600,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Quick Effect')","('Shark (series)',)",,,Not yet released,Unlimited,Mon Nov  7 17:23:18 2022
 Drill Barnacle,24137081,Monster Card,,Effect Monster,,WATER,Aqua,3,300,0,,,,"('Continuous Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Fri Nov 20 17:24:36 2020
 Duck Dummy,43803845,Monster Card,,Effect Monster,Gemini monster,WATER,Winged Beast,1,0,0,,,,"('Condition', 'Continuous Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Sat Aug 13 11:27:36 2022
 Duoterion,43017476,Monster Card,,Effect Monster,,WATER,Dinosaur,5,2000,1400,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu Oct  6 17:34:26 2022
@@ -8222,7 +8222,7 @@ Elemental HERO Bubbleman,79979666,Monster Card,,Effect Monster,,WATER,Warrior,4,
 Elemental HERO Ice Edge,41077745,Monster Card,,Effect Monster,,WATER,Warrior,3,800,900,,,,"('Ignition Effect', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Jun 29 10:16:37 2021
 Elemental HERO Liquid Soldier,59392529,Monster Card,,Effect Monster,,WATER,Warrior,4,1400,1300,,,,"('Condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Fri Jul 22 00:26:39 2022
 Elemental HERO Marine Neos,05128859,Monster Card,,Fusion Monster,,WATER,Warrior,8,2800,2300,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO', 'Neos')",,"('Name',)",Unlimited,Unlimited,Sun Jun 27 09:35:14 2021
-Elemental HERO Mariner,14225239,Monster Card,,Fusion Monster,,WATER,Warrior,5,1400,1000,,,,"('Continuous Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 17:59:32 2022
+Elemental HERO Mariner,14225239,Monster Card,,Fusion Monster,,WATER,Warrior,5,1400,1000,,,,"('Continuous Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:24:04 2022
 Elemental HERO Neo Bubbleman,05285665,Monster Card,,Effect Monster,,WATER,Warrior,4,800,1200,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Jun 29 10:21:21 2021
 Elemental HERO Ocean,37195861,Monster Card,,Effect Monster,,WATER,Warrior,4,1500,1200,,,,"('Trigger Effect',)","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Jul  5 04:08:52 2022
 Elemental HERO Steam Healer,81197327,Monster Card,,Fusion Monster,,WATER,Warrior,5,1800,1000,,,,"('Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Wed Jun 15 07:40:31 2022
@@ -8278,7 +8278,7 @@ Frozen Fitzgerald,94515289,Monster Card,,Synchro Monster,,WATER,Fiend,5,2500,250
 Full Armored Black Ray Lancer,25853045,Monster Card,,Xyz Monster,,WATER,Beast-Warrior,4,2100,600,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu Jun 16 17:38:27 2022
 Full Armored Crystalzero Lancer,99469936,Monster Card,,Xyz Monster,,WATER,Warrior,6,2200,1600,,,,"('Continuous Effect', 'Ignition Effect', 'Summoning condition')",,,,Unlimited,Unlimited,Mon Aug 22 17:00:27 2022
 The Furious Sea King,18710707,Monster Card,,Normal Monster,,WATER,Aqua,3,800,700,,,,,,,,Unlimited,Unlimited,Sat Mar  5 03:14:07 2022
-G Golem Crystal Heart,61668670,Monster Card,,Link Monster,,WATER,Cyberse,,0,,,2,"('↓', '←')","('Condition', 'Continuous Effect', 'Ignition Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:41:55 2022
+G Golem Crystal Heart,61668670,Monster Card,,Link Monster,,WATER,Cyberse,,0,,,2,"('↓', '←')","('Condition', 'Continuous Effect', 'Ignition Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 18:05:23 2022
 "Gabrion, the Timelord",06616912,Monster Card,,Effect Monster,,WATER,Fairy,10,0,0,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect', 'Unclassified effect')","('Timelord',)",,,Unlimited,Unlimited,Sat Mar 14 18:00:56 2020
 Gadget Arms,47985614,Monster Card,,Effect Monster,Flip monster,WATER,Machine,2,200,400,,,,"('Flip effect',)","('Gadget',)",,,Unlimited,Unlimited,Thu Nov 26 05:51:26 2020
 Gagagigo,49003308,Monster Card,,Normal Monster,,WATER,Reptile,4,1850,1000,,,,,"('Gigo',)",,,Unlimited,Unlimited,Sun Mar  7 05:28:05 2021
@@ -8856,9 +8856,9 @@ Acrobat Monkey,47372349,Monster Card,,Normal Monster,,EARTH,Machine,3,1000,1800,
 Adamancipator Analyzer,11302671,Monster Card,,Effect Monster,Tuner monster,EARTH,Rock,4,1500,700,,,,"('Condition', 'Ignition Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Thu Oct  7 07:57:40 2021
 Adamancipator Researcher,85914562,Monster Card,,Effect Monster,Tuner monster,EARTH,Rock,2,100,2100,,,,"('Condition', 'Ignition Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Wed Apr 20 02:41:50 2022
 Adamancipator Seeker,48519867,Monster Card,,Effect Monster,Tuner monster,EARTH,Rock,2,1200,1000,,,,"('Condition', 'Ignition Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Thu Oct  7 07:58:01 2021
-Advanced Crystal Beast Amber Mammoth,18847598,Monster Card,,Effect Monster,,EARTH,Beast,4,1700,1600,,,,"('Continuous Effect', 'Quick Effect', 'Trigger Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:45:04 2022
-Advanced Crystal Beast Amethyst Cat,19963185,Monster Card,,Effect Monster,,EARTH,Beast,3,1200,400,,,,"('Continuous Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:45:18 2022
-Advanced Crystal Beast Topaz Tiger,72843899,Monster Card,,Effect Monster,,EARTH,Beast,4,1600,1000,,,,"('Continuous Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:45:08 2022
+Advanced Crystal Beast Amber Mammoth,18847598,Monster Card,,Effect Monster,,EARTH,Beast,4,1700,1600,,,,"('Continuous Effect', 'Quick Effect', 'Trigger Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 17:02:59 2022
+Advanced Crystal Beast Amethyst Cat,19963185,Monster Card,,Effect Monster,,EARTH,Beast,3,1200,400,,,,"('Continuous Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 17:04:08 2022
+Advanced Crystal Beast Topaz Tiger,72843899,Monster Card,,Effect Monster,,EARTH,Beast,4,1600,1000,,,,"('Continuous Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 16:58:58 2022
 Agave Dragon,02411269,Monster Card,,Link Monster,,EARTH,Wyrm,,3000,,,4,"('↙', '↘', '←', '→')","('Condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu Mar 12 23:42:41 2020
 Agido,16135253,Monster Card,,Effect Monster,,EARTH,Fairy,4,1500,1300,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Wed Apr 13 12:40:39 2022
 Agido the Ancient Sentinel,62320425,Monster Card,,Effect Monster,,EARTH,Fairy,4,1500,1300,,,,"('Condition', 'Trigger Effect')","('Exchange of the Spirit (series)',)",,,Unlimited,Limited,Fri Nov  4 07:10:04 2022
@@ -8899,7 +8899,7 @@ Amazoness Swords Woman,94004268,Monster Card,,Effect Monster,,EARTH,Warrior,4,15
 Amazoness Tiger,10979723,Monster Card,,Effect Monster,,EARTH,Beast,4,1100,1500,,,,"('Continuous Effect', 'Unclassified effect')","('Amazoness',)",,,Unlimited,Unlimited,Tue Sep 13 08:20:31 2022
 Amazoness Trainee,89567993,Monster Card,,Effect Monster,,EARTH,Warrior,4,1500,1300,,,,"('Continuous Effect', 'Trigger Effect')","('Amazoness',)",,,Unlimited,Unlimited,Wed Apr 20 12:43:13 2022
 Amazoness War Chief,50486289,Monster Card,,Effect Monster,,EARTH,Warrior,5,1900,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Amazoness',)",,,Unlimited,Unlimited,Sat Oct 22 05:57:48 2022
-Ambulanceroid,36378213,Monster Card,,Effect Monster,,EARTH,Machine,3,300,1200,,,,"('Trigger Effect',)","('roid',)",,,Unlimited,Unlimited,Thu Oct  6 17:53:26 2022
+Ambulanceroid,36378213,Monster Card,,Effect Monster,,EARTH,Machine,3,300,1200,,,,"('Trigger Effect',)","('roid',)",,,Unlimited,Unlimited,Tue Nov  8 12:15:40 2022
 Amores of Prophecy,40213117,Monster Card,,Effect Monster,,EARTH,Spellcaster,3,600,2000,,,,"('Ignition Effect',)","('Prophecy',)",,,Unlimited,Unlimited,Sat Nov  6 16:21:43 2021
 "Amorphactor Pain, the Imagination Dracoverlord",98287529,Monster Card,,Ritual Monster,,EARTH,Dragon,8,2950,2500,,,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Dracoverlord',)",,,Unlimited,Unlimited,Sat Feb  5 00:25:00 2022
 Amorphage Envy,33300669,Monster Card,,Effect Monster,,EARTH,Dragon,4,0,2050,5,,,"('Continuous Effect', 'Continuous-like Effect', 'Maintenance cost')","('Amorphage',)",,,Unlimited,Unlimited,Sun Nov 15 05:03:23 2020
@@ -9090,7 +9090,7 @@ Chain Dog,96930127,Monster Card,,Effect Monster,,EARTH,Beast,4,1600,1100,,,,"('C
 Chainsaw Insect,77252217,Monster Card,,Effect Monster,,EARTH,Insect,4,2400,0,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Mon Nov 16 04:39:22 2020
 Chamberlain of the Six Samurai,44430454,Monster Card,,Normal Monster,,EARTH,Warrior,3,200,2000,,,,,"('Six Samurai',)",,,Unlimited,Unlimited,Fri Jul 29 08:36:56 2022
 Charm of Shabti,50412166,Monster Card,,Effect Monster,,EARTH,Rock,1,100,100,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Wed Aug  3 11:31:17 2022
-Chewbone,07392745,Monster Card,,Effect Monster,Flip monster,EARTH,Zombie,3,300,300,,,,"('Flip effect',)",,,"('Type',)",Unlimited,Unlimited,Wed Feb  3 18:16:42 2021
+Chewbone,07392745,Monster Card,,Effect Monster,Flip monster,EARTH,Zombie,3,300,300,,,,"('Flip effect',)",,,"('Type',)",Unlimited,Unlimited,Tue Nov  8 17:07:47 2022
 Chiron the Mage,16956455,Monster Card,,Effect Monster,,EARTH,Beast-Warrior,4,1800,1000,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Mon Mar 21 19:56:01 2022
 "Chirubimé, Princess of Autumn Leaves",87294988,Monster Card,,Effect Monster,,EARTH,Plant,8,1800,2800,,,,"('Continuous Effect', 'Trigger Effect')","('Plant Princess',)",,,Unlimited,Unlimited,Sat Aug 13 11:10:16 2022
 Chow Chow Chan,99902789,Monster Card,,Effect Monster,,EARTH,Beast,2,800,800,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Mon Oct 25 05:49:36 2021
@@ -9137,9 +9137,9 @@ Criosphinx,18654201,Monster Card,,Effect Monster,,EARTH,Rock,6,1200,2400,,,,"('T
 Cross-Sheep,50277355,Monster Card,,Link Monster,,EARTH,Beast,,700,,,2,"('↙', '↘')","('Condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Mon Feb 21 01:53:07 2022
 Crow Tengu,64806765,Monster Card,,Effect Monster,,EARTH,Zombie,4,1400,1200,,,,"('Condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Thu May 19 23:25:46 2022
 Crusadia Leonis,28031913,Monster Card,,Effect Monster,,EARTH,Beast,3,1200,1600,,,,"('Condition', 'Ignition Effect', 'Unclassified effect')","('Crusadia',)",,,Unlimited,Unlimited,Thu Sep  9 01:02:54 2021
-Crystal Beast Amber Mammoth,69937550,Monster Card,,Effect Monster,,EARTH,Beast,4,1700,1600,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:05 2022
-Crystal Beast Amethyst Cat,32933942,Monster Card,,Effect Monster,,EARTH,Beast,3,1200,400,,,,"('Continuous Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:12 2022
-Crystal Beast Topaz Tiger,95600067,Monster Card,,Effect Monster,,EARTH,Beast,4,1600,1000,,,,"('Continuous Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:06 2022
+Crystal Beast Amber Mammoth,69937550,Monster Card,,Effect Monster,,EARTH,Beast,4,1700,1600,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:08:22 2022
+Crystal Beast Amethyst Cat,32933942,Monster Card,,Effect Monster,,EARTH,Beast,3,1200,400,,,,"('Continuous Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:01:55 2022
+Crystal Beast Topaz Tiger,95600067,Monster Card,,Effect Monster,,EARTH,Beast,4,1600,1000,,,,"('Continuous Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:07:13 2022
 Cyber Blader,10248389,Monster Card,,Fusion Monster,,EARTH,Warrior,7,2100,800,,,,"('Condition', 'Continuous Effect', 'Summoning condition')","('Cyber', 'Cyber Girl')","('Edited',)","('Type',)",Unlimited,Unlimited,Wed Apr 20 13:15:46 2022
 Cyber Gymnast,76763417,Monster Card,,Effect Monster,,EARTH,Warrior,4,800,1800,,,,"('Ignition Effect',)","('Cyber', 'Cyber Girl')",,,Unlimited,Unlimited,Wed Apr 20 02:31:21 2022
 Cyber Ogre,64268668,Monster Card,,Effect Monster,,EARTH,Machine,5,1900,1200,,,,"('Quick Effect',)","('Cyber',)",,,Unlimited,Unlimited,Sat Feb  5 08:03:46 2022
@@ -9149,7 +9149,7 @@ Cyber Tutu,49375719,Monster Card,,Effect Monster,,EARTH,Warrior,3,1000,800,,,,"(
 Cyber Tutubon,42600274,Monster Card,,Effect Monster,,EARTH,Warrior,5,1800,1600,,,,"('Trigger Effect', 'Unclassified effect')","('Cyber', 'Cyber Girl')",,,Unlimited,Unlimited,Tue Sep 27 16:45:45 2022
 Cybernetic Cyclopean,96428622,Monster Card,,Effect Monster,,EARTH,Beast-Warrior,4,1400,200,,,,"('Continuous Effect',)","('Cybernetic',)",,"('Name', 'Type')",Unlimited,Unlimited,Sun Mar  7 04:07:19 2021
 Cyborg Doctor,51020079,Monster Card,,Effect Monster,,EARTH,Spellcaster,4,1500,1700,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Sat Feb  5 08:07:01 2022
-Cycroid,45945685,Monster Card,,Normal Monster,,EARTH,Machine,3,800,1000,,,,,"('roid',)",,"('Name', 'Type')",Unlimited,Unlimited,Thu Oct  6 17:56:43 2022
+Cycroid,45945685,Monster Card,,Normal Monster,,EARTH,Machine,3,800,1000,,,,,"('roid',)",,"('Name', 'Type')",Unlimited,Unlimited,Tue Nov  8 12:16:11 2022
 D. Human,81057959,Monster Card,,Normal Monster,,EARTH,Warrior,4,1300,1100,,,,,,,,Unlimited,Unlimited,Sun Nov  7 13:15:52 2021
 D.D. Assailant,70074904,Monster Card,,Effect Monster,,EARTH,Warrior,4,1700,1600,,,,"('Trigger Effect',)","('D.D.',)",,"('Name',)",Unlimited,Unlimited,Wed Apr 20 11:22:05 2022
 D.D. Crazy Beast,48148828,Monster Card,,Effect Monster,,EARTH,Beast,3,1400,1400,,,,"('Trigger Effect',)","('D.D.',)",,,Unlimited,Unlimited,Thu Apr  7 16:47:02 2022
@@ -9235,8 +9235,8 @@ Dogu,95816395,Monster Card,,Effect Monster,,EARTH,Rock,4,1900,0,,,,"('Condition'
 Doitsu,57062206,Monster Card,,Effect Monster,Union monster,EARTH,Fairy,4,100,200,,,,"('Condition', 'Continuous-like Effect', 'Ignition Effect', 'Ignition-like Effect')","('itsu',)","('Edited',)",,Unlimited,Unlimited,Sun Jul 24 09:36:49 2022
 Doki Doki,42143067,Monster Card,,Effect Monster,,EARTH,Rock,2,500,500,,,,"('Condition', 'Ignition Effect')",,,,Unlimited,Unlimited,Sun May 16 15:52:45 2021
 "Donner, Dagger Fur Hire",08728498,Monster Card,,Link Monster,,EARTH,Beast-Warrior,,1600,,,2,"('↓', '↘')","('Condition', 'Ignition Effect')","('Fur Hire',)",,,Unlimited,Unlimited,Sun Oct 23 19:53:37 2022
-Doodle Beast - Stego,31230289,Monster Card,,Effect Monster,,EARTH,Dinosaur,5,1200,1800,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Doodle Beast',)",,,,Unlimited,Sat Sep 17 18:43:03 2022
-Doodle Beast - Tyranno,67725394,Monster Card,,Effect Monster,,EARTH,Dinosaur,8,2400,1200,,,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Doodle Beast',)",,,,Unlimited,Sat Sep 17 18:42:57 2022
+Doodle Beast - Stego,31230289,Monster Card,,Effect Monster,,EARTH,Dinosaur,5,1200,1800,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Doodle Beast',)",,,Not yet released,Unlimited,Mon Nov  7 17:37:55 2022
+Doodle Beast - Tyranno,67725394,Monster Card,,Effect Monster,,EARTH,Dinosaur,8,2400,1200,,,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Doodle Beast',)",,,Not yet released,Unlimited,Mon Nov  7 17:36:44 2022
 Doom Dozer,76039636,Monster Card,,Effect Monster,,EARTH,Insect,8,2800,2600,,,,"('Summoning condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Fri Nov  4 14:46:59 2022
 Doombearer Psychopompos,83116692,Monster Card,,Effect Monster,Tuner monster,EARTH,Zombie,2,0,0,,,,"('Condition', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Aug 14 10:44:41 2021
 Doriado,84916669,Monster Card,,Normal Monster,,EARTH,Spellcaster,4,1200,1400,,,,,"('Doriado (series)',)",,,,Unlimited,Wed Apr 20 12:52:54 2022
@@ -9266,9 +9266,9 @@ Dungeon Worm,51228280,Monster Card,,Normal Monster,,EARTH,Insect,5,1800,1500,,,,
 Dust Knight,35195612,Monster Card,,Effect Monster,,EARTH,Warrior,4,1400,1200,,,,"('Trigger Effect',)","('Attribute Knight',)",,,Unlimited,Unlimited,Wed Feb  3 17:42:10 2021
 Dverg of the Nordic Alfar,13455953,Monster Card,,Effect Monster,,EARTH,Warrior,1,100,1000,,,,"('Trigger Effect', 'Unclassified effect')","('Nordic', 'Nordic Alfar')",,,Unlimited,Unlimited,Wed Mar  9 23:32:48 2022
 Dweller in the Depths,46508640,Monster Card,,Effect Monster,,EARTH,Dragon,3,1500,700,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Fri May  1 10:52:37 2020
-Dyna Base,39396763,Monster Card,,Effect Monster,,EARTH,Machine,4,0,2100,,,,"('Condition', 'Ignition Effect')",,,,,Unlimited,Fri Sep 23 06:06:55 2022
+Dyna Base,39396763,Monster Card,,Effect Monster,,EARTH,Machine,4,0,2100,,,,"('Condition', 'Ignition Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:05:25 2022
 Dyna Mond,73898890,Monster Card,,Link Monster,,EARTH,Cyberse,,2200,,,2,"('↓', '↑')","('Condition', 'Quick Effect', 'Trigger Effect')",,,,,Unlimited,Sat Oct 15 09:36:26 2022
-Dyna Tank,75780818,Monster Card,,Fusion Monster,,EARTH,Machine,7,?,2100,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:44:31 2022
+Dyna Tank,75780818,Monster Card,,Fusion Monster,,EARTH,Machine,7,?,2100,,,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:08:35 2022
 "Dyna, Hero Fur Hire",25123713,Monster Card,,Effect Monster,,EARTH,Beast-Warrior,6,2500,1400,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Fur Hire',)",,,Unlimited,Unlimited,Sat Aug 13 11:29:52 2022
 The Earth - Hex-Sealed Fusion,88696724,Monster Card,,Effect Monster,,EARTH,Rock,3,1000,1600,,,,"('Ignition Effect', 'Unclassified effect')","('Hex-Sealed Fusion', 'Polymerization (archetype)')",,,Unlimited,Unlimited,Sat Apr  9 17:11:15 2022
 Earth Armor Ninja,22812068,Monster Card,,Effect Monster,,EARTH,Warrior,5,1600,1200,,,,"('Unclassified effect',)","('Armor Ninja', 'Ninja')",,,Unlimited,Unlimited,Fri Mar 13 23:11:03 2020
@@ -9295,7 +9295,7 @@ Elemental HERO Poison Rose,51085303,Monster Card,,Effect Monster,,EARTH,Plant,6,
 Elemental HERO Rampart Blaster,47737087,Monster Card,,Fusion Monster,,EARTH,Warrior,6,2000,2500,,,,"('Continuous Effect', 'Summoning condition')","('Elemental HERO', 'HERO')","('Edited',)","('Name',)",Unlimited,Unlimited,Wed Apr 20 13:12:28 2022
 Elemental HERO Solid Soldier,45195443,Monster Card,,Effect Monster,,EARTH,Warrior,4,1300,1100,,,,"('Condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,,Unlimited,Unlimited,Thu Jul 14 12:48:56 2022
 Elemental HERO Terra Firma,74711057,Monster Card,,Fusion Monster,,EARTH,Warrior,8,2500,2000,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO', 'Legendary Planet')",,"('Name',)",Unlimited,Unlimited,Tue Jul 12 04:13:39 2022
-Elemental HERO Wild Wingman,55615891,Monster Card,,Fusion Monster,,EARTH,Warrior,8,1900,2300,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO', 'Wingman')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 18:00:08 2022
+Elemental HERO Wild Wingman,55615891,Monster Card,,Fusion Monster,,EARTH,Warrior,8,1900,2300,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO', 'Wingman')",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:23:30 2022
 Elemental HERO Wildedge,10526791,Monster Card,,Fusion Monster,,EARTH,Warrior,8,2600,2300,,,,"('Continuous Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Fri Jul  1 04:32:01 2022
 Elemental HERO Wildheart,86188410,Monster Card,,Effect Monster,,EARTH,Warrior,4,1500,1600,,,,"('Continuous Effect',)","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 18:10:25 2022
 Elemental HERO Woodsman,75434695,Monster Card,,Effect Monster,,EARTH,Warrior,4,1000,2000,,,,"('Trigger Effect',)","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Wed Jul  6 19:20:48 2022
@@ -9371,11 +9371,11 @@ Frenzied Panda,98818516,Monster Card,,Normal Monster,,EARTH,Beast,4,1200,1000,,,
 Frontier Wiseman,38742075,Monster Card,,Effect Monster,,EARTH,Spellcaster,3,1600,800,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Thu Nov 26 05:44:44 2020
 Frontline Observer,12451640,Monster Card,,Effect Monster,,EARTH,Machine,4,1000,1500,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Sun Dec 20 18:18:25 2020
 Fusionist,01641882,Monster Card,,Fusion Monster,,EARTH,Beast,3,900,700,,,,,,,,Unlimited,Unlimited,Thu Nov 26 05:50:19 2020
-G Golem Dignified Trilithon,50546029,Monster Card,,Link Monster,,EARTH,Cyberse,,3200,,,4,"('↓', '←', '→', '↑')","('Condition', 'Continuous Effect', 'Quick Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:41:38 2022
-G Golem Invalid Dolmen,24151924,Monster Card,,Link Monster,,EARTH,Cyberse,,2800,,,3,"('←', '→', '↑')","('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:41:44 2022
-G Golem Pebble Dog,25273572,Monster Card,,Effect Monster,,EARTH,Cyberse,2,300,1000,,,,"('Condition', 'Trigger Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:42:01 2022
-G Golem Rock Hammer,98875863,Monster Card,,Effect Monster,,EARTH,Cyberse,6,1800,2400,,,,"('Condition', 'Ignition Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:42:07 2022
-G Golem Stubborn Menhir,97053215,Monster Card,,Link Monster,,EARTH,Cyberse,,1500,,,2,"('↓', '↑')","('Condition', 'Trigger Effect')","('G Golem',)",,,,Unlimited,Sat Sep 17 18:41:50 2022
+G Golem Dignified Trilithon,50546029,Monster Card,,Link Monster,,EARTH,Cyberse,,3200,,,4,"('↓', '←', '→', '↑')","('Condition', 'Continuous Effect', 'Quick Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 18:12:36 2022
+G Golem Invalid Dolmen,24151924,Monster Card,,Link Monster,,EARTH,Cyberse,,2800,,,3,"('←', '→', '↑')","('Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 18:10:39 2022
+G Golem Pebble Dog,25273572,Monster Card,,Effect Monster,,EARTH,Cyberse,2,300,1000,,,,"('Condition', 'Trigger Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 17:55:22 2022
+G Golem Rock Hammer,98875863,Monster Card,,Effect Monster,,EARTH,Cyberse,6,1800,2400,,,,"('Condition', 'Ignition Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 17:53:40 2022
+G Golem Stubborn Menhir,97053215,Monster Card,,Link Monster,,EARTH,Cyberse,,1500,,,2,"('↓', '↑')","('Condition', 'Trigger Effect')","('G Golem',)",,,Not yet released,Unlimited,Mon Nov  7 18:07:31 2022
 G Golem Token,,Monster Card,,Normal Monster,,EARTH,Cyberse,1,0,0,,,,,"('G Golem',)",,,Legal,Legal,Fri Nov  4 14:24:11 2022
 G.B. Hunter,04130270,Monster Card,,Effect Monster,,EARTH,Warrior,4,1200,2000,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Wed Apr 20 14:18:34 2022
 Gachi Gachi Gantetsu,10002346,Monster Card,,Xyz Monster,,EARTH,Rock,2,500,1800,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Fri Sep  9 15:46:08 2022
@@ -9749,7 +9749,7 @@ Koa'ki Meiru Powerhand,19642889,Monster Card,,Effect Monster,,EARTH,Machine,4,21
 Koa'ki Meiru Prototype,00176392,Monster Card,,Effect Monster,,EARTH,Rock,4,1800,1800,,,,"('Continuous Effect', 'Trigger Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:30:06 2021
 Koa'ki Meiru Rooklord,10060427,Monster Card,,Effect Monster,,EARTH,Warrior,7,2800,2200,,,,"('Maintenance cost', 'Summoning condition', 'Trigger Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:30:19 2021
 Koa'ki Meiru Sandman,49680980,Monster Card,,Effect Monster,,EARTH,Rock,4,1900,1200,,,,"('Maintenance cost', 'Quick Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:30:28 2021
-Koa'ki Meiru Supplier,80839052,Monster Card,,Effect Monster,,EARTH,Rock,4,1400,1600,,,,"('Condition', 'Trigger Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Fri Apr 15 13:40:41 2022
+Koa'ki Meiru Supplier,80839052,Monster Card,,Effect Monster,,EARTH,Rock,4,1400,1600,,,,"('Condition', 'Trigger Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov  7 23:05:42 2022
 Koa'ki Meiru Urnight,30936186,Monster Card,,Effect Monster,,EARTH,Beast-Warrior,4,2000,1500,,,,"('Ignition Effect', 'Maintenance cost')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:31:28 2021
 Koa'ki Meiru Wall,66816282,Monster Card,,Effect Monster,,EARTH,Rock,4,1900,1200,,,,"('Maintenance cost', 'Quick Effect')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:31:47 2021
 Koa'ki Meiru War Arms,95090813,Monster Card,,Effect Monster,,EARTH,Warrior,4,1400,1200,,,,"('Continuous Effect', 'Ignition Effect', 'Maintenance cost')","(""Koa'ki Meiru"",)",,,Unlimited,Unlimited,Mon Nov 22 13:31:58 2021
@@ -10257,7 +10257,7 @@ SPYRAL Quik-Fix,78080961,Monster Card,,Effect Monster,,EARTH,Machine,1,500,400,,
 SPYRAL Super Agent,41091257,Monster Card,,Effect Monster,,EARTH,Warrior,4,1900,1200,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('SPYRAL',)",,,Unlimited,Unlimited,Sat Jan  2 17:00:18 2021
 Saber Beetle,49645921,Monster Card,,Effect Monster,,EARTH,Insect,6,2400,600,,,,"('Continuous Effect',)","('Saber',)",,,Unlimited,Unlimited,Mon Mar 16 22:41:18 2020
 Sabersaurus,37265642,Monster Card,,Normal Monster,,EARTH,Dinosaur,4,1900,500,,,,,"('Saber',)",,"('Name',)",Unlimited,Unlimited,Thu Jan  7 19:40:42 2021
-"Sacred Sheep Tree, Baromet",,Monster Card,,Xyz Monster,,EARTH,Plant,4,1900,2000,,,,,,,,,Not yet released,Tue Oct 18 20:59:52 2022
+"Sacred Sheep Tree, Baromet",,Monster Card,,Xyz Monster,,EARTH,Plant,4,1900,2000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,,Not yet released,Tue Nov  8 11:18:20 2022
 "Sacred Tree Beast, Hyperyton",09349094,Monster Card,,Xyz Monster,,EARTH,Plant,9,2600,1900,,,,"('Condition', 'Quick Effect')",,,,Unlimited,Unlimited,Tue Oct 18 20:59:32 2022
 Samsara Kaiser,72237166,Monster Card,,Effect Monster,,EARTH,Warrior,2,200,100,,,,"('Trigger Effect',)","('Relinquished (archetype)',)",,,Unlimited,Unlimited,Thu Nov 12 01:29:46 2020
 Samurai Cavalry of Reptier,93124273,Monster Card,,Effect Monster,,EARTH,Dinosaur,4,1800,1200,3,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Mon Apr 20 09:50:41 2020
@@ -10353,7 +10353,7 @@ Spirit of the Six Samurai,65685470,Monster Card,,Effect Monster,Union monster,EA
 Spyder Spider,80637190,Monster Card,,Effect Monster,,EARTH,Insect,4,1500,1000,,,,"('Trigger Effect',)","('Spider',)",,,Unlimited,Unlimited,Tue Mar 17 00:03:47 2020
 Star Drawing,24610207,Monster Card,,Effect Monster,,EARTH,Spellcaster,4,1600,1000,,,,"('Trigger Effect', 'Unclassified effect')",,,,Unlimited,Unlimited,Wed Apr 20 15:18:00 2022
 The Statue of Easter Island,10262698,Monster Card,,Normal Monster,,EARTH,Rock,4,1100,1400,,,,,,,,Unlimited,Unlimited,Sun Nov  7 16:48:43 2021
-Steam Gyroid,05368615,Monster Card,,Fusion Monster,,EARTH,Machine,6,2200,1600,,,,,"('roid',)",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 17:43:31 2022
+Steam Gyroid,05368615,Monster Card,,Fusion Monster,,EARTH,Machine,6,2200,1600,,,,,"('roid',)",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:14:10 2022
 Steamroid,44729197,Monster Card,,Effect Monster,,EARTH,Machine,4,1800,1800,,,,"('Continuous Effect',)","('roid',)",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 17:56:04 2022
 Steel Cavalry of Dinon,02396042,Monster Card,,Effect Monster,,EARTH,Dinosaur,4,1600,2600,5,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Tue Mar 17 04:50:28 2020
 Steel Ogre Grotto #1,29172562,Monster Card,,Normal Monster,,EARTH,Machine,5,1400,1800,,,,,,,"('Name',)",Unlimited,Unlimited,Sun Nov  7 16:49:31 2021
@@ -10406,7 +10406,7 @@ Super Roboyarou,01412158,Monster Card,,Fusion Monster,,EARTH,Machine,6,1200,500,
 Super Soldier Soul,79234734,Monster Card,,Effect Monster,,EARTH,Warrior,1,0,0,,,,"('Condition', 'Ignition Effect')",,,,Unlimited,Unlimited,Tue Mar 17 11:11:05 2020
 Super Vehicroid - Mobile Base,17745969,Monster Card,,Fusion Monster,,EARTH,Machine,10,0,5000,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Vehicroid', 'roid')",,,Unlimited,Unlimited,Sun Aug 30 04:36:46 2020
 Super Vehicroid - Stealth Union,03897065,Monster Card,,Fusion Monster,,EARTH,Machine,9,3600,3000,,,,"('Continuous Effect', 'Ignition Effect')","('Vehicroid', 'roid')",,,Unlimited,Unlimited,Thu Oct  6 17:41:14 2022
-Super Vehicroid Jumbo Drill,36256625,Monster Card,,Fusion Monster,,EARTH,Machine,8,3000,2000,,,,"('Continuous Effect', 'Summoning condition')","('Vehicroid', 'roid')",,,Unlimited,Unlimited,Thu Oct  6 17:43:14 2022
+Super Vehicroid Jumbo Drill,36256625,Monster Card,,Fusion Monster,,EARTH,Machine,8,3000,2000,,,,"('Continuous Effect', 'Summoning condition')","('Vehicroid', 'roid')",,,Unlimited,Unlimited,Tue Nov  8 12:10:26 2022
 Super War-Lion,33951077,Monster Card,,Ritual Monster,,EARTH,Beast,7,2300,2100,,,,,,,,Unlimited,Unlimited,Fri May  1 17:36:31 2020
 Super War-Lion,,Monster Card,,Normal Monster,,EARTH,Beast,7,2300,2100,,,,,,,,,Unlimited,Sun Apr 17 01:31:34 2022
 Super-Ancient Dinobeast,06849042,Monster Card,,Effect Monster,,EARTH,Dinosaur,8,2700,1400,,,,"('Summoning condition', 'Trigger Effect')",,,"('Type',)",Unlimited,Unlimited,Tue Mar 17 00:56:06 2020
@@ -10514,13 +10514,13 @@ Tilting Entrainment,77855162,Monster Card,,Synchro Monster,,EARTH,Machine,8,2800
 Time Escaper,73625877,Monster Card,,Effect Monster,,EARTH,Psychic,2,500,100,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Sat Oct 31 05:01:22 2020
 Tin Archduke,66506689,Monster Card,,Xyz Monster,,EARTH,Machine,4,2200,1200,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Sun Nov  7 16:03:58 2021
 Tobari the Sky Ninja,31887806,Monster Card,,Effect Monster,,EARTH,Winged Beast,1,0,0,,,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Quick Effect')","('Ninja',)",,,Unlimited,Unlimited,Sun Oct 23 20:18:36 2022
-Todoroki the Earthbolt Star,30118701,Monster Card,,Effect Monster,,EARTH,Warrior,6,2100,0,,,,"('Condition', 'Quick Effect', 'Unclassified effect')","('Star (series)',)",,,,Unlimited,Sat Sep 17 18:42:47 2022
+Todoroki the Earthbolt Star,30118701,Monster Card,,Effect Monster,,EARTH,Warrior,6,2100,0,,,,"('Condition', 'Quick Effect', 'Unclassified effect')","('Star (series)',)",,,Not yet released,Unlimited,Mon Nov  7 17:41:50 2022
 Togex,33878931,Monster Card,,Normal Monster,,EARTH,Beast,5,1600,1800,,,,,,,,,Unlimited,Sun Nov  7 16:04:41 2021
-Token Collector,43534808,Monster Card,,Effect Monster,,EARTH,Fiend,4,0,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sat Aug  6 13:03:52 2022
+Token Collector,43534808,Monster Card,,Effect Monster,,EARTH,Fiend,4,0,2000,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Mon Nov  7 23:04:03 2022
 Tomohiro the Mountain Warrior,,Monster Card,,Effect Monster,,EARTH,Beast-Warrior,3,600,1000,,,,"('Ignition Effect',)",,,,,Illegal,Sun Oct 31 23:14:36 2021
 Tomozaurus,46457856,Monster Card,,Normal Monster,,EARTH,Dinosaur,2,500,400,,,,,,"('Edited',)",,Unlimited,Unlimited,Sat Mar  5 09:22:55 2022
 Toon Ancient Gear Golem,07171149,Monster Card,,Effect Monster,Toon monster,EARTH,Machine,8,3000,3000,,,,"('Continuous Effect',)","('Ancient Gear', 'Ancient Gear Golem (archetype)', 'Toon')",,,Unlimited,Unlimited,Sat Mar 19 21:15:51 2022
-Toon Black Luster Soldier,28711704,Monster Card,,Effect Monster,Toon monster,EARTH,Warrior,8,3000,2500,,,,"('Continuous Effect', 'Ignition Effect', 'Summoning condition')","('Black Luster Soldier (archetype)', 'Chaos', 'Toon')",,,Unlimited,Unlimited,Mon Apr 18 12:36:04 2022
+Toon Black Luster Soldier,28711704,Monster Card,,Effect Monster,Toon monster,EARTH,Warrior,8,3000,2500,,,,"('Continuous Effect', 'Ignition Effect', 'Summoning condition')","('Black Luster Soldier (archetype)', 'Chaos', 'Toon')",,,Unlimited,Unlimited,Mon Nov  7 22:27:01 2022
 Toon Buster Blader,61190918,Monster Card,,Effect Monster,Toon monster,EARTH,Warrior,7,2600,2300,,,,"('Continuous Effect',)","('Buster Blader (archetype)', 'Toon')",,,Unlimited,Unlimited,Thu Jul  2 13:52:04 2020
 Toon Gemini Elf,42386471,Monster Card,,Effect Monster,Toon monster,EARTH,Spellcaster,4,1900,900,,,,"('Continuous Effect', 'Trigger Effect')","('Toon',)","('Edited',)","('Type',)",Unlimited,Unlimited,Wed Apr 20 15:04:26 2022
 Toon Goblin Attack Force,15270885,Monster Card,,Effect Monster,Toon monster,EARTH,Warrior,4,2300,0,,,,"('Continuous Effect',)","('Goblin', 'Toon')",,,Unlimited,Unlimited,Thu Nov 18 15:20:11 2021
@@ -10729,7 +10729,7 @@ Aitsu,48202661,Monster Card,,Normal Monster,,FIRE,Fairy,5,100,100,,,,,"('itsu',)
 Alien Mars,99532708,Monster Card,,Effect Monster,,FIRE,Reptile,3,1000,1000,,,,"('Continuous Effect',)","('Alien',)",,,Unlimited,Unlimited,Sat Nov  6 16:08:12 2021
 Alien Telepath,91070115,Monster Card,,Effect Monster,,FIRE,Reptile,4,1600,1000,,,,"('Continuous Effect', 'Ignition Effect')","('Alien',)",,,Unlimited,Unlimited,Sat Nov  6 16:10:29 2021
 Altergeist Hexstia,01508649,Monster Card,,Link Monster,,FIRE,Spellcaster,,1500,,,2,"('↓', '→')","('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Altergeist',)",,,Unlimited,Unlimited,Tue Aug  9 03:14:10 2022
-Ambulance Rescueroid,98927491,Monster Card,,Fusion Monster,,FIRE,Machine,6,2300,1800,,,,"('Summoning condition', 'Trigger Effect')","('roid',)",,,Unlimited,Unlimited,Thu Oct  6 17:42:13 2022
+Ambulance Rescueroid,98927491,Monster Card,,Fusion Monster,,FIRE,Machine,6,2300,1800,,,,"('Summoning condition', 'Trigger Effect')","('roid',)",,,Unlimited,Unlimited,Tue Nov  8 12:09:32 2022
 Amphibious Swarmship Amblowhale,20665527,Monster Card,,Link Monster,,FIRE,Machine,,2600,,,4,"('↓', '↘', '←', '→')","('Condition', 'Continuous Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sun Jul 24 08:01:03 2022
 Ancient Flamvell Deity,26304459,Monster Card,,Synchro Monster,,FIRE,Pyro,7,2500,200,,,,"('Trigger Effect',)","('Flamvell',)",,,Unlimited,Unlimited,Fri Mar 11 20:28:07 2022
 Ancient Warriors - Ambitious Cao De,33545259,Monster Card,,Effect Monster,,FIRE,Beast-Warrior,8,3000,2500,,,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Ancient Warriors',)",,,Unlimited,Unlimited,Sun Jul 24 08:15:58 2022
@@ -10846,7 +10846,7 @@ Destruction Dragon,44373896,Monster Card,,Fusion Monster,,FIRE,Dragon,8,2000,300
 Dicelops,62893810,Monster Card,,Effect Monster,,FIRE,Machine,4,1800,200,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Fri Mar 13 20:33:44 2020
 "Dogoran, the Mad Flame Kaiju",93332803,Monster Card,,Effect Monster,,FIRE,Dinosaur,8,3000,1200,,,,"('Ignition Effect', 'Unclassified effect')","('Kaiju',)",,,Unlimited,Unlimited,Thu Oct  6 17:35:19 2022
 Dokuroyaiba,30325729,Monster Card,,Normal Monster,,FIRE,Fiend,3,1000,400,,,,,,,"('Type',)",Unlimited,Unlimited,Sun Nov  7 13:07:08 2021
-Doomkaiser Dragon,06021033,Monster Card,,Synchro Monster,,FIRE,Zombie,6,2400,1500,,,,"('Trigger Effect',)","('Zombie counterpart',)",,,Unlimited,Unlimited,Sun Jul 24 06:15:48 2022
+Doomkaiser Dragon,06021033,Monster Card,,Synchro Monster,,FIRE,Zombie,6,2400,1500,,,,"('Trigger Effect',)","('Zombie counterpart',)",,,Unlimited,Unlimited,Mon Nov  7 23:08:25 2022
 Doomkaiser Dragon/Assault Mode,01764972,Monster Card,,Effect Monster,,FIRE,Zombie,8,2900,2000,,,,"('Summoning condition', 'Trigger Effect')","('/Assault Mode',)",,,Unlimited,Unlimited,Sun Jul 24 06:17:39 2022
 Double Resonator,60832978,Monster Card,,Effect Monster,Tuner monster,FIRE,Fiend,1,0,0,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Resonator',)",,,Unlimited,Unlimited,Sat Mar 14 16:41:36 2020
 Dracoon Lamp,42596828,Monster Card,,Effect Monster,,FIRE,Wyrm,4,500,2000,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Thu Oct  7 08:28:38 2021
@@ -11058,7 +11058,7 @@ Jurrac Gallim,43332022,Monster Card,,Effect Monster,Tuner monster,FIRE,Dinosaur,
 Jurrac Giganoto,80032567,Monster Card,,Synchro Monster,,FIRE,Dinosaur,7,2100,1800,,,,"('Continuous Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Thu Apr 14 23:11:50 2022
 Jurrac Guaiba,11012887,Monster Card,,Effect Monster,,FIRE,Dinosaur,4,1700,400,,,,"('Trigger Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Thu Apr 21 16:47:25 2022
 Jurrac Herra,16111820,Monster Card,,Effect Monster,,FIRE,Dinosaur,6,2300,1500,,,,"('Trigger Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Fri Sep 16 21:54:09 2022
-Jurrac Iguanon,71106375,Monster Card,,Effect Monster,,FIRE,Dinosaur,4,1700,700,,,,"('Trigger Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Thu Oct  6 17:36:39 2022
+Jurrac Iguanon,71106375,Monster Card,,Effect Monster,,FIRE,Dinosaur,4,1700,700,,,,"('Trigger Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Tue Nov  8 12:02:01 2022
 Jurrac Meteor,17548456,Monster Card,,Synchro Monster,,FIRE,Dinosaur,10,2800,2000,,,,"('Trigger Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Mon Nov 22 12:03:23 2021
 Jurrac Monoloph,36717258,Monster Card,,Effect Monster,Tuner monster,FIRE,Dinosaur,3,1500,1200,,,,"('Continuous Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Mon Nov 22 12:03:31 2021
 Jurrac Protops,23927545,Monster Card,,Effect Monster,,FIRE,Dinosaur,4,1700,1200,,,,"('Continuous Effect',)","('Jurrac',)",,,Unlimited,Unlimited,Thu Oct  6 17:37:05 2022
@@ -11390,8 +11390,8 @@ Accel Synchro Stardust Dragon,30983281,Monster Card,,Synchro Monster,,WIND,Drago
 Adamancipator Crystal - Raptite,74891384,Monster Card,,Effect Monster,,WIND,Rock,4,0,2200,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Thu Oct  7 07:57:19 2021
 Adamancipator Risen - Raptite,73079836,Monster Card,,Synchro Monster,,WIND,Rock,6,2200,2800,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Adamancipator',)",,,Unlimited,Unlimited,Wed Apr 20 02:31:43 2022
 Adhesive Explosive,53828396,Monster Card,,Effect Monster,,WIND,Machine,3,1000,1000,,,,"('Continuous-like Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sun Nov 15 04:46:04 2020
-Advanced Crystal Beast Cobalt Eagle,45236142,Monster Card,,Effect Monster,,WIND,Winged Beast,4,1400,800,,,,"('Continuous Effect', 'Ignition Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast', 'Field Searcher')",,,,Unlimited,Sat Sep 17 18:44:58 2022
-Advanced Crystal Beast Sapphire Pegasus,71620241,Monster Card,,Effect Monster,,WIND,Beast,4,1800,1200,,,,"('Continuous Effect', 'Trigger Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,,Unlimited,Sat Sep 17 18:44:54 2022
+Advanced Crystal Beast Cobalt Eagle,45236142,Monster Card,,Effect Monster,,WIND,Winged Beast,4,1400,800,,,,"('Continuous Effect', 'Ignition Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast', 'Field Searcher')",,,Not yet released,Unlimited,Mon Nov  7 17:00:23 2022
+Advanced Crystal Beast Sapphire Pegasus,71620241,Monster Card,,Effect Monster,,WIND,Beast,4,1800,1200,,,,"('Continuous Effect', 'Trigger Effect', 'Unclassified effect')","('Advanced Crystal Beast', 'Crystal', 'Crystal Beast')",,,Not yet released,Unlimited,Mon Nov  7 16:57:41 2022
 Aeropixthree,83094004,Monster Card,,Effect Monster,Tuner monster,WIND,Fairy,1,200,200,,,,"('Continuous Effect', 'Quick Effect')",,,,Unlimited,Unlimited,Thu Sep 15 23:26:38 2022
 Aileron,96084564,Monster Card,,Effect Monster,,WIND,Machine,1,0,0,,,,"('Condition', 'Continuous-like Effect', 'Quick Effect', 'Trigger Effect')","('Sky Striker',)",,,Unlimited,Unlimited,Fri Nov  4 07:06:26 2022
 Air Armor Ninja,69023354,Monster Card,,Effect Monster,,WIND,Warrior,4,1400,1400,,,,"('Trigger Effect',)","('Armor Ninja', 'Ninja')",,,Unlimited,Unlimited,Sun Nov 15 04:48:20 2020
@@ -11462,7 +11462,7 @@ Bombardment Beetle,57409948,Monster Card,,Effect Monster,Flip monster,WIND,Insec
 Bururu @Ignister,42429678,Monster Card,,Effect Monster,Tuner monster,WIND,Cyberse,3,600,1000,,,,"('Condition', 'Trigger Effect')","('@Ignister',)",,,Unlimited,Unlimited,Fri Nov  4 14:46:46 2022
 CXyz Skypalace Babylon,49202331,Monster Card,,Xyz Monster,,WIND,Machine,11,3800,4000,,,,"('Condition', 'Trigger Effect')","('CXyz', 'Chaos', 'Supercolossal', 'Xyz (archetype)')",,,Unlimited,Unlimited,Sun Nov  7 10:19:58 2021
 "Caam, Serenity of Gusto",91449144,Monster Card,,Effect Monster,,WIND,Psychic,4,1700,1100,,,,"('Ignition Effect',)","('Gusto',)",,,Unlimited,Unlimited,Wed Apr 20 02:48:42 2022
-"Castel, the Skyblaster Musketeer",82633039,Monster Card,,Xyz Monster,,WIND,Winged Beast,4,2000,1500,,,,"('Condition', 'Ignition Effect')","('Skyblaster',)",,"('Type',)",Unlimited,Unlimited,Sat Feb 26 11:45:30 2022
+"Castel, the Skyblaster Musketeer",82633039,Monster Card,,Xyz Monster,,WIND,Winged Beast,4,2000,1500,,,,"('Condition', 'Ignition Effect')","('Skyblaster',)",,"('Type',)",Unlimited,Unlimited,Tue Nov  8 17:01:09 2022
 Cataclysmic Cryonic Coldo,19420830,Monster Card,,Effect Monster,,WIND,Fairy,8,2600,200,,,,"('Condition', 'Trigger Effect')","('Cataclysmic',)",,,Unlimited,Unlimited,Fri Apr 16 15:09:49 2021
 Cave Dragon,93220472,Monster Card,,Effect Monster,,WIND,Dragon,4,2000,100,,,,"('Continuous Effect', 'Summoning condition')",,,,Unlimited,Unlimited,Sun Nov  7 10:00:53 2021
 Chachaka Archer,83021423,Monster Card,,Effect Monster,,WIND,Warrior,6,1200,1800,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Mon Jul 25 23:38:21 2022
@@ -11493,8 +11493,8 @@ Creation Resonator,05780210,Monster Card,,Effect Monster,Tuner monster,WIND,Fien
 Cross-Sword Beetle,74976215,Monster Card,,Effect Monster,,WIND,Insect,4,1800,1200,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Mon Nov 16 05:10:59 2020
 Crow Goblin,77998771,Monster Card,,Normal Monster,,WIND,Winged Beast,5,1850,1600,,,,,,,,,Unlimited,Sat Nov  6 12:25:06 2021
 Crusadia Draco,54525057,Monster Card,,Effect Monster,,WIND,Dragon,4,600,2000,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Crusadia',)",,,Unlimited,Unlimited,Thu Sep  9 01:04:24 2021
-Crystal Beast Cobalt Eagle,21698716,Monster Card,,Effect Monster,,WIND,Winged Beast,4,1400,800,,,,"('Ignition Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:05 2022
-Crystal Beast Sapphire Pegasus,07093411,Monster Card,,Effect Monster,,WIND,Beast,4,1800,1200,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Thu Sep 29 15:34:01 2022
+Crystal Beast Cobalt Eagle,21698716,Monster Card,,Effect Monster,,WIND,Winged Beast,4,1400,800,,,,"('Ignition Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:10:45 2022
+Crystal Beast Sapphire Pegasus,07093411,Monster Card,,Effect Monster,,WIND,Beast,4,1800,1200,,,,"('Trigger Effect', 'Unclassified effect')","('Crystal', 'Crystal Beast')",,,Unlimited,Unlimited,Mon Nov  7 22:12:29 2022
 Crystal Clear Wing Synchro Dragon,59765225,Monster Card,,Synchro Monster,,WIND,Dragon,10,3000,2500,,,,"('Quick Effect', 'Trigger Effect')","('Clear Wing', 'Synchro (series)', 'Synchro Dragon')",,,Unlimited,Unlimited,Sun Jul 31 05:15:15 2022
 Crystal Wing Synchro Dragon,50954680,Monster Card,,Synchro Monster,,WIND,Dragon,8,3000,2500,,,,"('Quick Effect', 'Trigger Effect')","('Synchro (series)', 'Synchro Dragon')",,,Unlimited,Unlimited,Sun Jul 31 05:14:12 2022
 Cyber Falcon,30655537,Monster Card,,Normal Monster,,WIND,Machine,4,1400,1200,,,,,,,,Unlimited,Unlimited,Sun Nov  7 10:19:43 2021
@@ -11571,7 +11571,7 @@ Dragunity Remus,26577155,Monster Card,,Effect Monster,Tuner monster,WIND,Dragon,
 Dragunity Senatus,92868896,Monster Card,,Effect Monster,,WIND,Winged Beast,4,1800,600,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Dragunity',)",,,Unlimited,Unlimited,Thu Sep  9 01:11:31 2021
 Dragunity Tribus,81962318,Monster Card,,Effect Monster,,WIND,Winged Beast,1,500,300,,,,"('Trigger Effect',)","('Dragunity',)",,,Unlimited,Unlimited,Fri Mar 11 19:01:12 2022
 Dreadscythe Harvester,66973070,Monster Card,,Effect Monster,,WIND,Insect,8,2300,1600,,,,"('Ignition Effect',)",,,,Unlimited,Unlimited,Sat Feb  5 09:01:23 2022
-Dream Cicada,05068132,Monster Card,,Effect Monster,,WIND,Insect,3,300,1300,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')",,,,,Unlimited,Sat Sep 17 18:43:24 2022
+Dream Cicada,05068132,Monster Card,,Effect Monster,,WIND,Insect,3,300,1300,,,,"('Condition', 'Trigger Effect', 'Unclassified effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:30:00 2022
 Droll & Lock Bird,94145021,Monster Card,,Effect Monster,,WIND,Spellcaster,1,0,0,,,,"('Quick Effect',)",,"('Alternate',)",,Unlimited,Unlimited,Sat Oct 29 14:05:00 2022
 Droll Bird,97973387,Monster Card,,Normal Monster,,WIND,Winged Beast,2,600,500,,,,,,,,Unlimited,Unlimited,Mon Mar 21 19:58:56 2022
 Duck Fighter,54813225,Monster Card,,Effect Monster,,WIND,Machine,3,1300,1400,,,,"('Condition', 'Ignition Effect')",,,,Unlimited,Unlimited,Wed Feb  3 22:58:10 2021
@@ -11585,7 +11585,7 @@ Elemental HERO Flame Wingman,35809262,Monster Card,,Fusion Monster,,WIND,Warrior
 Elemental HERO Great Tornado,03642509,Monster Card,,Fusion Monster,,WIND,Warrior,8,2800,2200,,,,"('Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO')",,"('Type',)",Unlimited,Unlimited,Wed Jul 13 04:10:31 2022
 Elemental HERO Storm Neos,49352945,Monster Card,,Fusion Monster,,WIND,Warrior,9,3000,2500,,,,"('Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Elemental HERO', 'HERO', 'Neos')",,"('Name',)",Unlimited,Unlimited,Mon Aug  9 18:23:07 2021
 Elemental HERO Stratos,40044918,Monster Card,,Effect Monster,,WIND,Warrior,4,1800,300,,,,"('Trigger Effect',)","('Elemental HERO', 'HERO')","('Alternate',)","('Name',)",Unlimited,Unlimited,Sat Oct 29 14:06:12 2022
-Elemental HERO Tempest,83121692,Monster Card,,Fusion Monster,,WIND,Warrior,8,2800,2800,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Thu Oct  6 18:03:10 2022
+Elemental HERO Tempest,83121692,Monster Card,,Fusion Monster,,WIND,Warrior,8,2800,2800,,,,"('Ignition Effect', 'Summoning condition')","('Elemental HERO', 'HERO')",,"('Name',)",Unlimited,Unlimited,Tue Nov  8 12:22:28 2022
 Elementsaber Makani,19036557,Monster Card,,Effect Monster,,WIND,Warrior,2,1300,1200,,,,"('Ignition Effect',)","('Elementsaber', 'Saber')",,,Unlimited,Unlimited,Wed Apr 20 03:02:43 2022
 Elphase,60292055,Monster Card,,Link Monster,,WIND,Cyberse,,2000,,,2,"('→', '↑')","('Condition', 'Continuous Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sun May 23 01:08:50 2021
 Empress Mantis,58818411,Monster Card,,Normal Monster,,WIND,Insect,6,2200,1400,,,,,,,"('Type',)",Unlimited,Unlimited,Wed Apr 20 11:56:22 2022
@@ -11838,13 +11838,13 @@ Nightmell the Dark Bonder,66569334,Monster Card,,Effect Monster,,WIND,Psychic,4,
 Nin-Ken Dog,11987744,Monster Card,,Normal Monster,,WIND,Beast-Warrior,4,1800,1000,,,,,,,,Unlimited,Unlimited,Sun Nov  7 14:43:30 2021
 Nomadic Force,92887027,Monster Card,,Effect Monster,,WIND,Warrior,4,1700,1000,,,,"('Trigger Effect',)","('Force',)","('Edited',)",,Unlimited,Unlimited,Mon Feb 14 22:01:54 2022
 Nowru Aries the Vernal Dragon,25607552,Monster Card,,Effect Monster,,WIND,Dragon,7,2000,2500,,,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,,Unlimited,Unlimited,Sun Nov  6 22:54:47 2022
-Number 2: Ninja Shadow Mosquito,32453837,Monster Card,,Xyz Monster,,WIND,Insect,2,0,0,,,,"('Continuous Effect', 'Trigger Effect')","('Barian Number', 'Ninja', 'Number', 'Number (Spell/Trap archetype)')",,,,Unlimited,Sat Sep 17 18:43:20 2022
+Number 2: Ninja Shadow Mosquito,32453837,Monster Card,,Xyz Monster,,WIND,Insect,2,0,0,,,,"('Continuous Effect', 'Trigger Effect')","('Barian Number', 'Ninja', 'Number', 'Number (Spell/Trap archetype)')",,,Not yet released,Unlimited,Mon Nov  7 18:22:51 2022
 Number 3: Cicada King,04997565,Monster Card,,Xyz Monster,,WIND,Insect,3,1200,2500,,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Barian Number', 'Number', 'Number (Spell/Trap archetype)')",,,Unlimited,Unlimited,Thu Jun 24 10:39:14 2021
 Number 42: Galaxy Tomahawk,10389142,Monster Card,,Xyz Monster,,WIND,Machine,7,0,3000,,,,"('Ignition Effect',)","('Galaxy', 'Number', 'Number (Spell/Trap archetype)')",,,Forbidden,Unlimited,Wed Jun 22 01:51:54 2022
 Number 75: Bamboozling Gossip Shadow,71166481,Monster Card,,Xyz Monster,,WIND,Spellcaster,3,1000,2600,,,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Number', 'Number (Spell/Trap archetype)')",,,Unlimited,Unlimited,Tue Jun 14 14:06:14 2022
 Oafdragon Magician,14920218,Monster Card,,Effect Monster,,WIND,Spellcaster,6,2100,1400,2,,,"('Condition', 'Ignition Effect', 'Ignition-like Effect')","('Magician',)",,,Unlimited,Unlimited,Sun Nov  7 04:21:39 2021
 Odd-Eyes Vortex Dragon,53262004,Monster Card,,Fusion Monster,,WIND,Dragon,7,2500,3000,,,,"('Condition', 'Quick Effect', 'Trigger Effect')","('-Eyes Dragon', 'Odd-Eyes')",,,Unlimited,Unlimited,Sun Jul 31 05:14:10 2022
-Oily Cicada,79663524,Monster Card,,Effect Monster,,WIND,Insect,3,1000,1000,,,,"('Condition', 'Trigger Effect')",,,,,Unlimited,Sat Sep 17 18:43:30 2022
+Oily Cicada,79663524,Monster Card,,Effect Monster,,WIND,Insect,3,1000,1000,,,,"('Condition', 'Trigger Effect')",,,,Not yet released,Unlimited,Mon Nov  7 17:29:07 2022
 Old Entity Hastorr,70913714,Monster Card,,Synchro Monster,,WIND,Reptile,4,2300,1000,,,,"('Continuous-like Effect', 'Trigger Effect')","('Entity', 'Old Entity')",,,Unlimited,Unlimited,Sat Aug 15 03:50:13 2020
 One-Eyed Shield Dragon,33064647,Monster Card,,Normal Monster,,WIND,Dragon,3,700,1300,,,,,,,"('Name',)",Unlimited,Unlimited,Sat May 28 20:26:25 2022
 Orient Dragon,68124775,Monster Card,,Synchro Monster,,WIND,Dragon,6,2300,1000,,,,"('Trigger Effect',)",,,,Unlimited,Unlimited,Wed Feb  3 00:43:29 2021
@@ -12053,7 +12053,7 @@ Tenyi Spirit - Nahata,97036149,Monster Card,,Effect Monster,,WIND,Wyrm,4,800,100
 "Therion ""Lily"" Borea",83610035,Monster Card,,Effect Monster,,WIND,Plant,8,2400,2500,,,,"('Condition', 'Continuous-like Effect', 'Ignition Effect')","('Therion',)",,,Unlimited,Unlimited,Thu May 19 23:02:03 2022
 Thousand Dragon,41462083,Monster Card,,Fusion Monster,,WIND,Dragon,7,2400,2000,,,,,"('Aged counterpart',)","('Alternate',)","('Type',)",Unlimited,Unlimited,Sat Oct 29 14:28:35 2022
 Thunder Kid,15510988,Monster Card,,Normal Monster,,WIND,Thunder,2,700,600,,,,,,,,Unlimited,Unlimited,Sun Nov  7 16:09:00 2021
-Toon Harpie Lady,64116319,Monster Card,,Effect Monster,Toon monster,WIND,Winged Beast,4,1300,1400,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Harpie', 'Toon')","('Edited',)",,Unlimited,Unlimited,Wed Apr 20 16:10:18 2022
+Toon Harpie Lady,64116319,Monster Card,,Effect Monster,Toon monster,WIND,Winged Beast,4,1300,1400,,,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Harpie', 'Toon')","('Edited',)",,Unlimited,Unlimited,Mon Nov  7 22:28:08 2022
 Top Runner,53623827,Monster Card,,Effect Monster,Tuner monster,WIND,Machine,4,1100,800,,,,"('Continuous Effect',)",,,,Unlimited,Unlimited,Thu Jul 15 13:49:38 2021
 Tornado Bird,71283180,Monster Card,,Effect Monster,Flip monster,WIND,Winged Beast,4,1100,1000,,,,"('Flip effect',)",,,,Unlimited,Unlimited,Sun Nov  7 16:01:37 2021
 Tornado Dragon,06983839,Monster Card,,Xyz Monster,,WIND,Wyrm,4,2100,2000,,,,"('Quick Effect',)",,,,Unlimited,Unlimited,Sat Oct 30 02:25:21 2021
