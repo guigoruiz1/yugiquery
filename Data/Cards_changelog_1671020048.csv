@@ -1,0 +1,8 @@
+Effect type,Modification date,Version
+"('Condition', 'Continuous-like Effect', 'Ignition-like Effect', 'Trigger Effect')",Tue Dec 13 19:33:24 2022,New
+"('Condition', 'Continuous Effect', 'Trigger Effect')",Tue Dec 13 11:34:38 2022,New
+"('Condition', 'Ignition Effect', 'Trigger Effect')",Tue Dec 13 11:21:16 2022,New
+"('Effect', 'Lingering effect', 'Trigger Effect', 'Unclassified effect')",Tue Dec 13 11:28:39 2022,New
+"('Condition', 'Effect')",Tue Dec 13 11:48:01 2022,New
+"('Activation condition', 'Condition', 'Trigger Effect')",Tue Dec 13 17:23:18 2022,New
+"('Condition', 'Trigger Effect')",Thu Oct 20 14:02:56 2022,Old

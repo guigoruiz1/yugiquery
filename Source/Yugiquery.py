@@ -3,10 +3,13 @@
 import ipynbname
 import glob
 import os
+import string
+import calendar
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import urllib.parse as up
+import wikitextparser as wtp
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib_venn import venn2
@@ -17,7 +20,7 @@ from IPython.display import Markdown
 # API variables
 
 api_url = 'https://yugipedia.com/api.php'
-sets_query_url = '?action=ask&query=[[Category:Set%20Card%20Lists]]|limit%3D5000|order%3Dasc&format=json'
+sets_query_url = '?action=ask&query=[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]|limit%3D5000|order%3Dasc&format=json'
 lists_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
 
 # Lists
@@ -147,3 +150,214 @@ def header(name=None):
     header = header.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
     header = header.replace('@NOTEBOOK@', name)
     return Markdown(header)
+
+## API call functions
+def card_query(_password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _category = True, _tcg = True, _ocg = True, _date = True, _page_name = True):
+    search_string = f'|?English%20name=Name'
+    if _password:
+        search_string += '|?Password'
+    if _card_type:
+        search_string += '|?Card%20type'
+    if _property:    
+        search_string += '|?Property'
+    if _primary:
+        search_string += '|?Primary%20type'
+    if _secondary:
+        search_string += '|?Secondary%20type'
+    if _attribute:
+        search_string += '|?Attribute'
+    if _monster_type:
+        search_string += '|?Type=Monster%20type'
+    if _stars:
+        search_string += '|?Stars%20string=Level%2FRank%20'
+    if _atk:
+        search_string += '|?ATK%20string=ATK'
+    if _def:
+        search_string += '|?DEF%20string=DEF'
+    if _scale:
+        search_string += '|?Pendulum%20Scale'
+    if _link:
+        search_string += '|?Link%20Rating=Link'
+    if _arrows:
+        search_string += '|?Link%20Arrows'
+    if _effect_type:
+        search_string += '|?Effect%20type'
+    if _archseries:
+        search_string += '|?Archseries'
+    if _category:
+        search_string += '|?category'
+    if _tcg:
+        search_string += '|?TCG%20status'
+    if _ocg:
+        search_string += '|?OCG%20status'
+    if _date:
+        search_string += '|?Modification%20date'
+    if _page_name:
+        search_string += '|?Page%20name'
+    
+    return search_string
+
+def fetch_spell(spell_query, step = 5000, limit = 5000):
+    print('Downloading Spells')
+    spell_df = pd.DataFrame()
+    for i in range(int(limit/step)):
+        df = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20Spell%20Cards]]{spell_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
+        df = extract_results(df)
+        print(f'Iteration {i+1}: {len(df.index)} results')
+        spell_df = pd.concat([spell_df, df], ignore_index=True, axis=0)
+        if len(df.index)<step:
+            break
+                
+    print(f'- Total\n{len(spell_df.index)} results\n')
+    
+    return spell_df
+
+def fetch_trap(trap_query, step = 5000, limit = 5000):
+    print('Downloading Traps')
+    trap_df = pd.DataFrame()
+    for i in range(int(limit/step)):    
+        df = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20Trap%20Cards]]{trap_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
+        df = extract_results(df)
+        print(f'Iteration {i+1}: {len(df.index)} results')
+        trap_df = pd.concat([trap_df, df], ignore_index=True, axis=0)
+        if len(df.index)<step:
+            break
+                
+    print(f'- Total\n{len(trap_df.index)} results\n')
+    
+    return trap_df
+
+def fetch_monster(monster_query, step = 5000, limit = 5000):
+    print('Downloading Monsters')
+    monster_df = pd.DataFrame()
+    for att in attributes:
+        print(f"- {att}")
+        for i in range(int(limit/step)):
+            df = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20monsters]][[Attribute::{att}]]{monster_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
+            df = extract_results(df)
+            print(f'Iteration {i+1}: {len(df.index)} results')
+            monster_df = pd.concat([monster_df, df], ignore_index=True, axis=0)
+            if len(df.index)<step:
+                break
+        
+    print(f'- Total\n{len(monster_df.index)} results\n')
+    
+    return monster_df
+
+def fetch_name_errata(limit = 1000):
+    print('Downloading name errata')
+    name_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:Cards%20with%20name%20errata]]|limit={limit}|order%3Dasc&format=json')
+    name_keys = list(name_query_df['query']['results'].keys())
+    name_df = pd.DataFrame(True, index = [i.split(':')[1].strip() for i in name_keys if 'Card Errata:' in i], columns = ['Name errata'])
+    
+    print(f'- Total\n{len(name_df.index)} results\n')
+    
+    return name_df
+
+def fetch_type_errata(limit = 1000):
+    print('Downloading type errata')
+    type_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:Cards%20with%20card%20type%20errata]]|limit={limit}|order%3Dasc&format=json')
+    type_keys = list(type_query_df['query']['results'].keys())
+    type_df = pd.DataFrame(True, index = [i.split(':')[1].strip() for i in type_keys if 'Card Errata:' in i], columns = ['Type errata'])
+    
+    print(f'- Total\n{len(type_df.index)} results\n')
+    
+    return type_df
+
+## Cards formatting functions
+def extract_results(df):
+    df = pd.DataFrame(df['query']['results']).transpose()
+    df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
+    return df
+
+def extract_artwork(row):
+    result = tuple()
+    if 'Category:OCG/TCG cards with alternate artworks' in row:
+        result += ('Alternate',)
+    if 'Category:OCG/TCG cards with edited artworks' in row:
+        result += ('Edited',)
+    if result == tuple():
+        return np.nan
+    else:
+        return result
+
+def concat_errata(row):
+    result = tuple()
+    if row['Name errata']:
+        result += ('Name',)
+    if row['Type errata']:
+        result += ('Type',)
+    if result == tuple():
+        return np.nan
+    else:
+        return result 
+    
+def format_df(input_df, input_errata_df=None):
+    df = pd.DataFrame()
+    if 'Name' in input_df.columns:
+        df['Name'] = input_df['Name'].dropna().apply(lambda x: x[0].strip('\u200e'))
+    if 'Password' in input_df.columns:
+        df['Password'] = input_df['Password'].dropna().apply(lambda x: x[0] if len(x)>0 else np.nan)
+    if 'Card type' in input_df.columns:
+        df['Card type'] = input_df['Card type'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'Property' in input_df.columns:
+        df['Property'] = input_df['Property'].dropna().apply(lambda x: x[0] if len(x)>0 else np.nan)
+    if 'Primary type' in input_df.columns:
+        df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Pendulum Monster', y)) if len(y)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Effect Monster', y))[0] if len(y)>1 else (y[0] if len(y)>0 else np.nan))
+    if 'Secondary type' in input_df.columns:
+        df['Secondary type'] = input_df['Secondary type'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'Attribute' in input_df.columns:
+        df['Attribute'] = input_df['Attribute'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'Monster type' in input_df.columns:
+        df['Monster type'] = input_df['Monster type'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'Level/Rank' in input_df.columns:
+        df['Level/Rank'] = input_df['Level/Rank'].dropna().apply(lambda x: x[0] if len(x)>0 else np.nan)
+    if 'ATK' in input_df.columns:
+        df['ATK'] = input_df['ATK'].dropna().apply(lambda x: x[0] if len(x)>0 else np.nan)
+    if 'DEF' in input_df.columns:
+        df['DEF'] = input_df['DEF'].dropna().apply(lambda x: x[0] if len(x)>0 else np.nan)
+    if 'Pendulum Scale' in input_df.columns:
+        df['Pendulum Scale'] = input_df['Pendulum Scale'].dropna().apply(lambda x: str(x[0]) if len(x)>0 else np.nan)
+    if 'Link' in input_df.columns:
+        df['Link'] = input_df['Link'].dropna().apply(lambda x: str(x[0]) if len(x)>0 else np.nan)
+    if 'Link Arrows' in input_df.columns:
+        df['Link Arrows'] = input_df['Link Arrows'].dropna().apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
+    if 'Effect type' in input_df.columns:
+        df['Effect type'] = input_df['Effect type'].dropna().apply(lambda x: tuple(sorted([i['fulltext'] for i in x])) if len(x)>0 else np.nan)
+    if 'Archseries' in input_df.columns:
+        df['Archseries'] = input_df['Archseries'].dropna().apply(lambda x: tuple(sorted(x)) if len(x)>0 else np.nan)
+    if 'Category' in input_df.columns:
+        df['Artwork'] = input_df['Category'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else np.nan).apply(extract_artwork)
+    # Erratas column
+    if input_errata_df is not None and 'Page name' in input_df.columns:
+        df['Errata'] = input_errata_df.merge(input_df['Page name'].dropna().apply(lambda x: x[0]).rename('Name'), right_on = 'Name', left_index = True).apply(concat_errata,axis = 1)
+    #################
+    if 'TCG status' in input_df.columns:
+        df['TCG status'] = input_df['TCG status'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'OCG status' in input_df.columns:
+        df['OCG status'] = input_df['OCG status'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
+    if 'Modification date' in input_df.columns:
+        df['Modification date'] = input_df['Modification date'].dropna().apply(lambda x: pd.Timestamp(int(x[0]['timestamp']), unit='s').ctime() if len(x)>0 else np.nan)
+    
+    return df
+
+## Changelog
+def generate_changelog(previous_df, current_df, col):
+    changelog = previous_df.merge(current_df,indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
+    changelog['_merge'].replace(['left_only','right_only'],['Old', 'New'], inplace = True)
+    changelog.rename(columns={"_merge": "Version"}, inplace = True)
+    nunique = changelog.groupby(col).nunique(dropna=False)
+    cols_to_drop = nunique[nunique < 2].dropna(axis=1).columns
+    changelog.drop(cols_to_drop, axis=1, inplace = True)
+    changelog = changelog.set_index(col)
+    
+    if all(col in changelog.columns for col in ['Modification date', 'Version']):
+        true_changes = changelog.drop(['Modification date', 'Version'], axis = 1)[nunique>1].dropna(axis=0, how='all').index
+        new_entries = changelog['Version'][nunique['Version'] == 1].dropna(axis=0, how='all').index
+        rows_to_keep = true_changes.union(new_entries).unique()
+        changelog = changelog.loc[rows_to_keep]
+    
+    if changelog.empty:
+        print('No changes')
+        
+    return changelog
