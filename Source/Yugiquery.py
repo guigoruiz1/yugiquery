@@ -5,6 +5,7 @@ import glob
 import os
 import string
 import calendar
+import warnings
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -12,6 +13,9 @@ import urllib.parse as up
 import wikitextparser as wtp
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import AutoMinorLocator, MaxNLocator, IndexLocator, FixedLocator
+import matplotlib.dates as mdates
 from matplotlib_venn import venn2
 from datetime import datetime, timezone
 from ast import literal_eval
@@ -361,3 +365,81 @@ def generate_changelog(previous_df, current_df, col):
         print('No changes')
         
     return changelog
+
+## Plotting functions
+def align_yaxis(ax1, v1, ax2, v2):
+    """adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1"""
+    _, y1 = ax1.transData.transform((0, v1))
+    _, y2 = ax2.transData.transform((0, v2))
+    adjust_yaxis(ax2,(y1-y2)/2,v2)
+    adjust_yaxis(ax1,(y2-y1)/2,v1)
+
+def adjust_yaxis(ax,ydif,v):
+    """shift axis ax by ydiff, maintaining point v at the same location"""
+    inv = ax.transData.inverted()
+    _, dy = inv.transform((0, 0)) - inv.transform((0, ydif))
+    miny, maxy = ax.get_ylim()
+    miny, maxy = miny - v, maxy - v
+    if -miny>maxy or (-miny==maxy and dy > 0):
+        nminy = miny
+        nmaxy = miny*(maxy+dy)/(miny+dy)
+    else:
+        nmaxy = maxy
+        nminy = maxy*(miny+dy)/(maxy+dy)
+    ax.set_ylim(nminy+v, nmaxy+v)
+
+def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0):
+    
+    warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+    
+    y = dy.fillna(0).cumsum()
+    fig, ax_top = plt.subplots(nrows=1, ncols=1, figsize=(16,8), sharey=True, sharex=True)
+    divider = make_axes_locatable(ax_top)
+    ax_bottom = divider.append_axes("bottom", size=size, pad=pad)
+    ax_top.figure.add_axes(ax_bottom)
+    
+    axes = [ax_top, ax_bottom]
+    if len(dy.columns)==1:
+        ax_bottom_2 = ax_bottom.twinx()
+        
+        ax_top.plot(y, label = "Cummulative")
+        ax_bottom.plot(dy.resample('M').sum(), color = plt.rcParams['axes.prop_cycle'].by_key()['color'][1], label = "Monthly rate")
+        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate")
+        
+        ax_bottom_2.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
+        
+        ax_top.legend(loc='upper left')
+        ax_bottom.legend(loc='upper left')
+        ax_bottom_2.legend(loc='upper right')
+    else:
+        dy = dy.resample('Y').sum()
+        ax_top.stackplot(y.index, y.values.T, labels = y.columns)
+        ax_bottom.stackplot(dy.index, dy.values.T)
+        ax_top.legend(loc='upper left')
+    
+    fig.suptitle(f'{", ".join(dy.columns) if (title is None) else title} {dy.index.name.lower()}s{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
+        
+    ax_top.set_ylabel(f'Cumulative {dy.index.name.lower()}s')
+    ax_bottom.set_ylabel(f'Monthly {dy.index.name.lower()} rate')
+    ax_top.set_xticklabels([])
+    ax_bottom.set_xlabel(xlabel)
+    
+    for ax in axes:
+        ax.set_xlim([y.index.min()-pd.Timedelta(weeks=13),y.index.max()+pd.Timedelta(weeks=52)])
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+        ax.xaxis.set_major_locator(mdates.YearLocator())
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.grid()
+    
+    if len(dy.columns)==1:
+        align_yaxis(ax_bottom, 0, ax_bottom_2, 0)
+        l = ax_bottom.get_ylim()
+        l2 = ax_bottom_2.get_ylim()
+        f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
+        ticks = f(ax_bottom.get_yticks())
+        ax_bottom_2.yaxis.set_major_locator(FixedLocator(ticks))
+        ax_bottom_2.yaxis.set_minor_locator(AutoMinorLocator())
+          
+    plt.tight_layout()        
+    plt.show()
