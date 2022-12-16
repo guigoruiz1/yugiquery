@@ -14,7 +14,7 @@ import wikitextparser as wtp
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib.ticker import AutoMinorLocator, MaxNLocator, IndexLocator, FixedLocator
+from matplotlib.ticker import AutoMinorLocator, MaxNLocator, FixedLocator
 import matplotlib.dates as mdates
 from matplotlib_venn import venn2
 from datetime import datetime, timezone
@@ -388,12 +388,12 @@ def adjust_yaxis(ax,ydif,v):
         nminy = maxy*(miny+dy)/(maxy+dy)
     ax.set_ylim(nminy+v, nmaxy+v)
 
-def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0):
+def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0, figsize = (16,8)):
     
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
     y = dy.fillna(0).cumsum()
-    fig, ax_top = plt.subplots(nrows=1, ncols=1, figsize=(16,8), sharey=True, sharex=True)
+    fig, ax_top = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     divider = make_axes_locatable(ax_top)
     ax_bottom = divider.append_axes("bottom", size=size, pad=pad)
     ax_top.figure.add_axes(ax_bottom)
@@ -403,8 +403,8 @@ def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0):
         ax_bottom_2 = ax_bottom.twinx()
         
         ax_top.plot(y, label = "Cummulative")
-        ax_bottom.plot(dy.resample('M').sum(), color = plt.rcParams['axes.prop_cycle'].by_key()['color'][1], label = "Monthly rate")
-        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate")
+        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate", style='--')
+        ax_bottom.plot(dy.resample('M').sum(), label = "Monthly rate")
         
         ax_bottom_2.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
         
@@ -442,4 +442,49 @@ def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0):
         ax_bottom_2.yaxis.set_minor_locator(AutoMinorLocator())
           
     plt.tight_layout()        
+    plt.show()
+    
+def rate_subplots(df, title=None, xlabel='Date', figsize = (16,80)):
+    fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
+    axes[0].set_title(f'{", ".join(df.columns) if (title is None) else title} {df.index.name.lower()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}')
+    axes[-1].set_xlabel('Date')
+
+    twinx = []
+    by_month = df.resample('M').sum()
+    by_year = df.resample('Y').sum()
+    # test.index = test.index+pd.Timedelta(days=1) # Bug fix
+    cmap = plt.cm.tab20
+    c=0
+    for i, col in enumerate(df.columns):
+        temp_ax = axes[i].twinx()
+
+        axes[i].plot(by_month[col], color=cmap(2*c), label = 'Monthly')
+        axes[i].yaxis.set_major_locator(MaxNLocator(4, integer=True))
+        axes[i].yaxis.set_minor_locator(AutoMinorLocator())
+        axes[i].xaxis.set_minor_locator(AutoMinorLocator())
+        axes[i].set_ylabel(col)
+        axes[i].legend(loc='upper left')
+        axes[i].grid()
+
+        temp_ax.plot(by_year[col], color = cmap(2*c+1), ls='--', label='Yearly')
+        temp_ax.legend(loc='upper right')
+        temp_ax.grid() 
+        twinx.append(temp_ax)
+
+        c+=1
+        if c==int(len(cmap.colors)/2):
+            c=0
+
+    for ax_left, ax_right in zip(axes,twinx):
+        ax_right.set_ylim(bottom=0.)
+        align_yaxis(ax_left, 0, ax_right, 0)
+        l = ax_left.get_ylim()
+        l2 = ax_right.get_ylim()
+        f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
+        ticks = f(ax_left.get_yticks())
+        ax_right.yaxis.set_major_locator(FixedLocator(ticks))
+        ax_right.yaxis.set_minor_locator(AutoMinorLocator())
+
+
+    plt.tight_layout()
     plt.show()
