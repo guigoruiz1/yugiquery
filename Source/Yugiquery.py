@@ -20,6 +20,7 @@ from matplotlib_venn import venn2
 from datetime import datetime, timezone
 from ast import literal_eval
 from IPython.display import Markdown
+from textwrap import wrap
 
 # API variables
 
@@ -357,7 +358,7 @@ def generate_changelog(previous_df, current_df, col):
     
     if all(col in changelog.columns for col in ['Modification date', 'Version']):
         true_changes = changelog.drop(['Modification date', 'Version'], axis = 1)[nunique>1].dropna(axis=0, how='all').index
-        new_entries = changelog['Version'][nunique['Version'] == 1].dropna(axis=0, how='all').index
+        new_entries = changelog[nunique['Version'] == 1].dropna(axis=0, how='all').index
         rows_to_keep = true_changes.union(new_entries).unique()
         changelog = changelog.loc[rows_to_keep]
     
@@ -403,7 +404,7 @@ def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0, figsize = (16,
         ax_bottom_2 = ax_bottom.twinx()
         
         ax_top.plot(y, label = "Cummulative")
-        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate", style='--')
+        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate", ls='--')
         ax_bottom.plot(dy.resample('M').sum(), label = "Monthly rate")
         
         ax_bottom_2.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
@@ -462,7 +463,7 @@ def rate_subplots(df, title=None, xlabel='Date', figsize = (16,80)):
         axes[i].yaxis.set_major_locator(MaxNLocator(4, integer=True))
         axes[i].yaxis.set_minor_locator(AutoMinorLocator())
         axes[i].xaxis.set_minor_locator(AutoMinorLocator())
-        axes[i].set_ylabel(col)
+        axes[i].set_ylabel('\n'.join(wrap(col, 30)))
         axes[i].legend(loc='upper left')
         axes[i].grid()
 
