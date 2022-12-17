@@ -358,7 +358,7 @@ def generate_changelog(previous_df, current_df, col):
     
     if all(col in changelog.columns for col in ['Modification date', 'Version']):
         true_changes = changelog.drop(['Modification date', 'Version'], axis = 1)[nunique>1].dropna(axis=0, how='all').index
-        new_entries = changelog[nunique['Version'] == 1].dropna(axis=0, how='all').index
+        new_entries = nunique[nunique['Version'] == 1].dropna(axis=0, how='all').index
         rows_to_keep = true_changes.union(new_entries).unique()
         changelog = changelog.loc[rows_to_keep]
     
