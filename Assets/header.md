@@ -1,6 +1,7 @@
 <div align='center'>
     <br>
-    <pre>
+    <!-- Pre Style needed to fix HTML formatting -->
+    <pre style="line-height: var(--jp-code-line-height); font-family: var(--jp-code-font-family)">
     ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ 
      ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  
       ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   

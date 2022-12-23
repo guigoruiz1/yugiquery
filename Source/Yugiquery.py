@@ -6,13 +6,15 @@ import os
 import string
 import calendar
 import warnings
+import colorsys
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import urllib.parse as up
 import wikitextparser as wtp
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm, Normalize
+import matplotlib.colors as mc
+# LogNorm, Normalize, ListedColormap, cnames, to_rgb
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.ticker import AutoMinorLocator, MaxNLocator, FixedLocator
 import matplotlib.dates as mdates
@@ -368,6 +370,14 @@ def generate_changelog(previous_df, current_df, col):
     return changelog
 
 ## Plotting functions
+def adjust_lightness(color, amount=0.5):
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
+
 def align_yaxis(ax1, v1, ax2, v2):
     """adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1"""
     _, y1 = ax1.transData.transform((0, v1))
@@ -389,103 +399,119 @@ def adjust_yaxis(ax,ydif,v):
         nminy = maxy*(miny+dy)/(maxy+dy)
     ax.set_ylim(nminy+v, nmaxy+v)
 
-def rate_plot(dy, xlabel = 'Date', title=None, size="50%", pad=0, figsize = (16,8)):
+def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None, cumsum=True): 
+    
+    if colors is None:
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        
+    if cumsum: 
+        cumsum_ax = ax
+        divider = make_axes_locatable(cumsum_ax)
+        yearly_ax = divider.append_axes("bottom", size=size, pad=pad)
+        cumsum_ax.figure.add_axes(yearly_ax)   
+        cumsum_ax.set_xticklabels([])
+        axes = [cumsum_ax, yearly_ax]   
+        
+        # dy = dy.resample('Y').sum()
+        y = dy.fillna(0).cumsum()
+        
+        if len(dy.columns)==1:
+            cumsum_ax.plot(y, label = "Cummulative", c=colors[0])
+            cumsum_ax.set_ylabel(f'{y.columns[0]}s')
+        else:
+            cumsum_ax.stackplot(y.index, y.values.T, labels = y.columns, colors=colors)
+            cumsum_ax.set_ylabel(f'Cumulative {y.index.name.lower()}')
+        
+        yearly_ax.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
+        cumsum_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
+        
+    else:
+        yearly_ax = ax
+        axes = [yearly_ax] 
+        
+        if len(dy.columns)==1:
+            yearly_ax.set_ylabel(f'{dy.columns[0]}\nYearly {dy.index.name.lower()} rate')
+        else:
+            yearly_ax.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
+    
+    if len(dy.columns)==1:
+        monthly_ax = yearly_ax.twinx()
+        
+        yearly_ax.plot(dy.resample('Y').sum(), label = "Yearly rate", ls='--', c=colors[1])
+        yearly_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
+        monthly_ax.plot(dy.resample('M').sum(), label = "Monthly rate", c=colors[2])
+        monthly_ax.set_ylabel(f'Monthly {dy.index.name.lower()} rate')
+        monthly_ax.legend(loc='upper right')
+        
+    else:
+        dy2=dy.resample('Y').sum()
+        yearly_ax.stackplot(dy2.index, dy2.values.T, labels = dy2.columns, colors=colors)
+        if not cumsum:
+            yearly_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
+               
+    if xlabel is not None:
+        yearly_ax.set_xlabel(xlabel)
+    else:
+        yearly_ax.set_xticklabels([])
+    
+    for temp_ax in axes:
+        temp_ax.set_xlim([dy.index.min()-pd.Timedelta(weeks=13),dy.index.max()+pd.Timedelta(weeks=52)])
+        temp_ax.xaxis.set_minor_locator(AutoMinorLocator())
+        temp_ax.yaxis.set_minor_locator(AutoMinorLocator())
+        temp_ax.xaxis.set_major_locator(mdates.YearLocator())
+        temp_ax.yaxis.set_major_locator(MaxNLocator(5, integer=True))
+        temp_ax.grid()
+    
+    if len(dy.columns)==1:
+        align_yaxis(yearly_ax, 0, monthly_ax, 0)
+        l = yearly_ax.get_ylim()
+        l2 = monthly_ax.get_ylim()
+        f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
+        ticks = f(yearly_ax.get_yticks())
+        monthly_ax.yaxis.set_major_locator(FixedLocator(ticks))
+        monthly_ax.yaxis.set_minor_locator(AutoMinorLocator())
+        axes.append(monthly_ax)
+
+    return axes
+    
+def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cumsum=True):
+    if figsize is None:
+        figsize = (16, len(df.columns)*2*(1+cumsum))
+        
+    fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
+    fig.suptitle(f'{title} {df.index.name.capitalize()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}')
+
+    if colors is None:
+        cmap = plt.cm.tab20
+    else:
+        if len(colors) == len(df.columns):
+            cmap = mc.ListedColormap([adjust_lightness(c, i*0.4+0.8) for c in colors for i in (0, 1)])
+        else:
+            cmap = mc.ListedColormap(colors)
+    
+    c=0
+    for i, col in enumerate(df.columns):
+        generate_rate_grid(df[col].to_frame(), ax=axes[i], colors = [cmap(2*c),cmap(2*c),cmap(2*c+1)], size='100%', xlabel='Date' if (i+1)==len(df.columns) else None, cumsum=cumsum)
+        c+=1
+        if 2*c+1>=cmap.N:
+            c=0
+
+    warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+            
+    plt.tight_layout()
+    plt.show()
+    
+    warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+    
+def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True):
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
+    fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
+    generate_rate_grid(dy, ax, size='100%', colors = colors, cumsum=cumsum)
     
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
-    y = dy.fillna(0).cumsum()
-    fig, ax_top = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
-    divider = make_axes_locatable(ax_top)
-    ax_bottom = divider.append_axes("bottom", size=size, pad=pad)
-    ax_top.figure.add_axes(ax_bottom)
-    
-    axes = [ax_top, ax_bottom]
-    if len(dy.columns)==1:
-        ax_bottom_2 = ax_bottom.twinx()
-        
-        ax_top.plot(y, label = "Cummulative")
-        ax_bottom_2.plot(dy.resample('Y').sum(), label = "Yearly rate", ls='--')
-        ax_bottom.plot(dy.resample('M').sum(), label = "Monthly rate")
-        
-        ax_bottom_2.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
-        
-        ax_top.legend(loc='upper left')
-        ax_bottom.legend(loc='upper left')
-        ax_bottom_2.legend(loc='upper right')
-    else:
-        dy = dy.resample('Y').sum()
-        ax_top.stackplot(y.index, y.values.T, labels = y.columns)
-        ax_bottom.stackplot(dy.index, dy.values.T)
-        ax_top.legend(loc='upper left')
-    
-    fig.suptitle(f'{", ".join(dy.columns) if (title is None) else title} {dy.index.name.lower()}s{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
-        
-    ax_top.set_ylabel(f'Cumulative {dy.index.name.lower()}s')
-    ax_bottom.set_ylabel(f'Monthly {dy.index.name.lower()} rate')
-    ax_top.set_xticklabels([])
-    ax_bottom.set_xlabel(xlabel)
-    
-    for ax in axes:
-        ax.set_xlim([y.index.min()-pd.Timedelta(weeks=13),y.index.max()+pd.Timedelta(weeks=52)])
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
-        ax.yaxis.set_minor_locator(AutoMinorLocator())
-        ax.xaxis.set_major_locator(mdates.YearLocator())
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.grid()
-    
-    if len(dy.columns)==1:
-        align_yaxis(ax_bottom, 0, ax_bottom_2, 0)
-        l = ax_bottom.get_ylim()
-        l2 = ax_bottom_2.get_ylim()
-        f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
-        ticks = f(ax_bottom.get_yticks())
-        ax_bottom_2.yaxis.set_major_locator(FixedLocator(ticks))
-        ax_bottom_2.yaxis.set_minor_locator(AutoMinorLocator())
-          
-    plt.tight_layout()        
-    plt.show()
-    
-def rate_subplots(df, title=None, xlabel='Date', figsize = (16,80)):
-    fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
-    axes[0].set_title(f'{", ".join(df.columns) if (title is None) else title} {df.index.name.lower()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}')
-    axes[-1].set_xlabel('Date')
-
-    twinx = []
-    by_month = df.resample('M').sum()
-    by_year = df.resample('Y').sum()
-    # test.index = test.index+pd.Timedelta(days=1) # Bug fix
-    cmap = plt.cm.tab20
-    c=0
-    for i, col in enumerate(df.columns):
-        temp_ax = axes[i].twinx()
-
-        axes[i].plot(by_month[col], color=cmap(2*c), label = 'Monthly')
-        axes[i].yaxis.set_major_locator(MaxNLocator(4, integer=True))
-        axes[i].yaxis.set_minor_locator(AutoMinorLocator())
-        axes[i].xaxis.set_minor_locator(AutoMinorLocator())
-        axes[i].set_ylabel('\n'.join(wrap(col, 30)))
-        axes[i].legend(loc='upper left')
-        axes[i].grid()
-
-        temp_ax.plot(by_year[col], color = cmap(2*c+1), ls='--', label='Yearly')
-        temp_ax.legend(loc='upper right')
-        temp_ax.grid() 
-        twinx.append(temp_ax)
-
-        c+=1
-        if c==int(len(cmap.colors)/2):
-            c=0
-
-    for ax_left, ax_right in zip(axes,twinx):
-        ax_right.set_ylim(bottom=0.)
-        align_yaxis(ax_left, 0, ax_right, 0)
-        l = ax_left.get_ylim()
-        l2 = ax_right.get_ylim()
-        f = lambda x : l2[0]+(x-l[0])/(l[1]-l[0])*(l2[1]-l2[0])
-        ticks = f(ax_left.get_yticks())
-        ax_right.yaxis.set_major_locator(FixedLocator(ticks))
-        ax_right.yaxis.set_minor_locator(AutoMinorLocator())
-
-
     plt.tight_layout()
     plt.show()
+        
+    warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+    
