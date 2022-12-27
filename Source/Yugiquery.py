@@ -417,7 +417,7 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         
         if len(dy.columns)==1:
             cumsum_ax.plot(y, label = "Cummulative", c=colors[0])
-            cumsum_ax.set_ylabel(f'{y.columns[0]}s')
+            cumsum_ax.set_ylabel(f'{y.columns[0]}')
         else:
             cumsum_ax.stackplot(y.index, y.values.T, labels = y.columns, colors=colors)
             cumsum_ax.set_ylabel(f'Cumulative {y.index.name.lower()}')
@@ -479,7 +479,7 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
         figsize = (16, len(df.columns)*2*(1+cumsum))
         
     fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
-    fig.suptitle(f'{title} {df.index.name.capitalize()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}')
+    fig.suptitle(f'{title} {df.index.name.capitalize()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}', y=1)
 
     if colors is None:
         cmap = plt.cm.tab20
@@ -498,7 +498,7 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
 
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
             
-    plt.tight_layout()
+    fig.tight_layout()
     plt.show()
     
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
@@ -510,7 +510,7 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
     
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
-    plt.tight_layout()
+    fig.tight_layout()
     plt.show()
         
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
