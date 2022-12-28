@@ -5,3 +5,5 @@ Jupyter notebook to query and display yugipedia data
 
 * [Cards](Cards.html)
 * [Sets](Sets.html)
+
+* [Timeline](Timeline.html)

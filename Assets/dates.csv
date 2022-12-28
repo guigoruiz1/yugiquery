@@ -1,14 +1,14 @@
 type,name,begin,end
-anime,ZEXAL,11/04/2011,23/03/2014
-anime,5D's,02/04/2008,30/03/2011
-anime,ARC-V,06/04/2014,26/03/2017
-anime,Capsule Monsters,09/11/2006,25/11/2006
-anime,GO RUSH!!,03/04/2022,
-anime,GX,06/10/2004,26/03/2008
-anime,SEVENS,04/04/2020,27/03/2022
-anime,VRAINS,10/03/2017,05/11/2019
-anime,Duel Monsters,18/04/2000,29/09/2004
-anime,First Series,04/04/1998,10/10/1998
+series,ZEXAL,11/04/2011,23/03/2014
+series,5D's,02/04/2008,30/03/2011
+series,ARC-V,06/04/2014,26/03/2017
+spinoff,Capsule Monsters,09/11/2006,25/11/2006
+series,GO RUSH!!,03/04/2022,
+series,GX,06/10/2004,26/03/2008
+series,SEVENS,04/04/2020,27/03/2022
+series,VRAINS,10/03/2017,05/11/2019
+series,Duel Monsters,18/04/2000,29/09/2004
+series,First Series,04/04/1998,10/10/1998
 rules,Master Rule 1,15/03/2008,18/03/2011
 rules,Master Rule 2,19/03/2011,20/03/2014
 rules,Master Rule 3,21/03/2014,24/03/2017

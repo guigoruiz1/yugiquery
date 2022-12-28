@@ -412,7 +412,6 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         cumsum_ax.set_xticklabels([])
         axes = [cumsum_ax, yearly_ax]   
         
-        # dy = dy.resample('Y').sum()
         y = dy.fillna(0).cumsum()
         
         if len(dy.columns)==1:
@@ -503,10 +502,22 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
     
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
-def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True):
+def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True, bg = None):
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
-    generate_rate_grid(dy, ax, size='100%', colors = colors, cumsum=cumsum)
+    
+    axes = generate_rate_grid(dy, ax, size='100%', colors = colors, cumsum=cumsum)
+
+    if bg is not None and all(col in bg.columns for col in ['begin','end','name']):
+        cmap = plt.cm.tab10
+        bg['end'] = bg['end'].fillna(dy.index.max())
+        for ix, row in bg.iterrows():
+            if row['end']>pd.to_datetime(ax.get_xlim()[0], unit='d'):
+                for i, ax in enumerate(axes):
+                    filled_poly = ax.axvspan(row['begin'], row['end'], alpha=.2, color=cmap(ix), zorder = -1)
+                    if (i==len(axes)-1 and len(dy.columns)>1) or (i==0 and len(dy.columns)==1):
+                        (x0, y0), (x1, y1) = filled_poly.get_path().get_extents().get_points()
+                        ax.text((x0+x1)/2, y1*(0.5 if i==0 else 0.95), row['name'], ha='center', va='center', color='crimson', rotation = (90 if i==0 else 0), alpha=.4, transform=ax.get_xaxis_transform())
     
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
