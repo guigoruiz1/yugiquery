@@ -1,16 +1,19 @@
-type,name,begin,end
-series,ZEXAL,11/04/2011,23/03/2014
-series,5D's,02/04/2008,30/03/2011
-series,ARC-V,06/04/2014,26/03/2017
-spinoff,Capsule Monsters,09/11/2006,25/11/2006
-series,GO RUSH!!,03/04/2022,
-series,GX,06/10/2004,26/03/2008
-series,SEVENS,04/04/2020,27/03/2022
-series,VRAINS,10/03/2017,05/11/2019
-series,Duel Monsters,18/04/2000,29/09/2004
-series,First Series,04/04/1998,10/10/1998
-rules,Master Rule 1,15/03/2008,18/03/2011
-rules,Master Rule 2,19/03/2011,20/03/2014
-rules,Master Rule 3,21/03/2014,24/03/2017
-rules,Master Rule 4,25/03/2017,31/03/2020
-rules,Master Rule 5,01/04/2020,
+name,type,begin,end
+ZEXAL,series,11/04/2011,23/03/2014
+5D's,series,02/04/2008,30/03/2011
+ARC-V,series,06/04/2014,26/03/2017
+Capsule Monsters,spinoff,09/11/2006,25/11/2006
+GO RUSH!!,series,03/04/2022,
+GX,series,06/10/2004,26/03/2008
+SEVENS,series,04/04/2020,27/03/2022
+VRAINS,series,10/03/2017,05/11/2019
+Duel Monsters,series,18/04/2000,29/09/2004
+First Series,series,04/04/1998,10/10/1998
+Official Rules,rules,23/01/1999,01/03/2000
+Expert Rules,rules,05/05/1999,01/03/2000
+New Expert Rules,rules,02/03/2000,14/03/2008
+Master Rules 1,rules,15/03/2008,18/03/2011
+Master Rules 2,rules,19/03/2011,20/03/2014
+Master Rules 3,rules,21/03/2014,24/03/2017
+Master Rules 4,rules,25/03/2017,31/03/2020
+Master Rules 5,rules,01/04/2020,

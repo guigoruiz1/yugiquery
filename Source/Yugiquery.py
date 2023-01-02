@@ -120,7 +120,7 @@ arrows_dict = {
     'Bottom-Right': '\u2198'
 }
 
-card_colors = {
+colors_dict = {
     'Effect Monster': '#FF8B53', 
     'Normal Monster': '#FDE68A', 
     'Ritual Monster': '#9DB5CC', 
@@ -140,7 +140,16 @@ card_colors = {
     'DARK': '#745ea5', 
     'LIGHT': '#9d8047', 
     'DIVINE': '#7e6537', 
-    'Level': '#f1a41f'
+    'Level': '#f1a41f',
+    'First Series': '#FDE68A',
+    'Duel Monsters': '#FF8B53',
+    'GX': '#A086B7',
+    '5D\'s': '#CCCCCC',
+    'ZEXAL': '#000000',
+    'ARC-V': 'r',
+    'VRAINS': '#00008B',
+    'SEVENS': '#1D9E74',
+    'GO RUSH!!': '#BC5A84'
 }
 
 # Functions
@@ -416,13 +425,14 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         
         if len(dy.columns)==1:
             cumsum_ax.plot(y, label = "Cummulative", c=colors[0])
+            # cumsum_ax.fill_between(y.index, y.values.T[0], color=colors[0], alpha=0.9)
             cumsum_ax.set_ylabel(f'{y.columns[0]}')
         else:
             cumsum_ax.stackplot(y.index, y.values.T, labels = y.columns, colors=colors)
             cumsum_ax.set_ylabel(f'Cumulative {y.index.name.lower()}')
         
         yearly_ax.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
-        cumsum_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
+        cumsum_ax.legend(loc='upper left', ncols=int(len(dy.columns)/5+1)) # Test
         
     else:
         yearly_ax = ax
@@ -473,12 +483,12 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
 
     return axes
     
-def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cumsum=True):
+def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cumsum=True, bg = None, vlines = None):
     if figsize is None:
         figsize = (16, len(df.columns)*2*(1+cumsum))
         
     fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
-    fig.suptitle(f'{title} {df.index.name.capitalize()}s{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}', y=1)
+    fig.suptitle(f'{title if title is not None else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}', y=1)
 
     if colors is None:
         cmap = plt.cm.tab20
@@ -490,7 +500,27 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
     
     c=0
     for i, col in enumerate(df.columns):
-        generate_rate_grid(df[col].to_frame(), ax=axes[i], colors = [cmap(2*c),cmap(2*c),cmap(2*c+1)], size='100%', xlabel='Date' if (i+1)==len(df.columns) else None, cumsum=cumsum)
+        sub_axes = generate_rate_grid(df[col].to_frame(), ax=axes[i], colors = [cmap(2*c),cmap(2*c),cmap(2*c+1)], size='100%', xlabel='Date' if (i+1)==len(df.columns) else None, cumsum=cumsum)
+        
+        for ix, ax in enumerate(sub_axes[:2]):
+            if bg is not None and all(col in bg.columns for col in ['begin','end']):
+                bg = bg.copy()
+                bg['end'].fillna( df.index.max(), inplace=True)
+                for idx, row in bg.iterrows():
+                    if row['end']>pd.to_datetime(ax.get_xlim()[0], unit='d'):
+                        filled_poly = ax.axvspan(row['begin'], row['end'], alpha=.1, color=colors_dict[idx], zorder = -1)
+                        if i==0 and ix==0:
+                            (x0, y0), (x1, y1) = filled_poly.get_path().get_extents().get_points()
+                            ax.text((x0+x1)/2, y1, idx, ha='center', va='bottom', transform=ax.get_xaxis_transform())
+    
+            if vlines is not None:
+                for idx, row in vlines.items():
+                    if row>pd.to_datetime(ax.get_xlim()[0], unit='d'):
+                        line = ax.axvline(row, ls='-.', c='k', lw=1)
+                        if ix==0:
+                            (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
+                            ax.text((x0+x1)/2 + 25, (0.02 if cumsum else 0.98), idx, c='k', ha='left', va=('bottom' if cumsum else 'top'), rotation = 90, transform=ax.get_xaxis_transform())
+        
         c+=1
         if 2*c+1>=cmap.N:
             c=0
@@ -502,22 +532,29 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
     
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
-def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True, bg = None):
+def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True, bg = None, vlines = None):
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
     
     axes = generate_rate_grid(dy, ax, size='100%', colors = colors, cumsum=cumsum)
-
-    if bg is not None and all(col in bg.columns for col in ['begin','end','name']):
-        cmap = plt.cm.tab10
-        bg['end'] = bg['end'].fillna(dy.index.max())
-        for ix, row in bg.iterrows():
-            if row['end']>pd.to_datetime(ax.get_xlim()[0], unit='d'):
-                for i, ax in enumerate(axes):
-                    filled_poly = ax.axvspan(row['begin'], row['end'], alpha=.2, color=cmap(ix), zorder = -1)
-                    if (i==len(axes)-1 and len(dy.columns)>1) or (i==0 and len(dy.columns)==1):
+    for i, ax in enumerate(axes[:2]):
+        if bg is not None and all(col in bg.columns for col in ['begin','end']):
+            bg = bg.copy()
+            bg['end'].fillna( dy.index.max(), inplace=True)
+            for idx, row in bg.iterrows():
+                if row['end']>pd.to_datetime(ax.get_xlim()[0], unit='d'):
+                    filled_poly = ax.axvspan(row['begin'], row['end'], alpha=.1, color=colors_dict[idx], zorder = -1)
+                    if i==0:
                         (x0, y0), (x1, y1) = filled_poly.get_path().get_extents().get_points()
-                        ax.text((x0+x1)/2, y1*(0.5 if i==0 else 0.95), row['name'], ha='center', va='center', color='crimson', rotation = (90 if i==0 else 0), alpha=.4, transform=ax.get_xaxis_transform())
+                        ax.text((x0+x1)/2, y1, idx, ha='center', va='bottom', transform=ax.get_xaxis_transform())
+    
+        if vlines is not None:
+            for idx, row in vlines.items():
+                if row>pd.to_datetime(ax.get_xlim()[0], unit='d'):
+                    line = ax.axvline(row, ls='-.', c='navy', lw=1)
+                    if i==0:
+                        (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
+                        ax.text((x0+x1)/2 + 25, (0.02 if cumsum or len(dy.columns)>1 else 0.98), idx, c='navy', ha='left', va=('bottom' if cumsum or len(dy.columns)>1 else 'top'), rotation = 90, transform=ax.get_xaxis_transform())
     
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
     
