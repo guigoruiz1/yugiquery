@@ -1,4 +1,5 @@
 # Imports
+loop = 0
 while True:
     try:
         import subprocess
@@ -31,6 +32,11 @@ while True:
         break
 
     except ImportError:
+        if loop>1:
+            print("Failed to install required packages. Aborting...")
+            quit()
+        
+        loop+=1   
         import subprocess
         print("Missing required packages. Trying to install now...")
         subprocess.call(['sh', './install.sh'])
@@ -44,7 +50,7 @@ def run_all():
         tqdm.write(f'Generating {report[:-6]} report')
         pm.execute_notebook(report,report);
         
-# Helpers
+## Helpers
 def clear_notebooks():
     reports = sorted(glob.glob('*.ipynb'))
     subprocess.call(['nbstripout']+reports)

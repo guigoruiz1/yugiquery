@@ -7,3 +7,5 @@ Jupyter notebook to query and display yugipedia data
 * [Sets](Sets.html)
 
 * [Timeline](Timeline.html)
+
+Last modified: @DATE@
