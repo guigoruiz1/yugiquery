@@ -8,5 +8,5 @@ Jupyter notebook to query and display yugipedia data
 
 * [Timeline](Timeline.html)
 
-Last modified: 13/01/2023 01:02 UTC
+Last modified: 13/01/2023 14:38 UTC
 
