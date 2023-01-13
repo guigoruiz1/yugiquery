@@ -5,21 +5,29 @@ Effect type,Artwork,Modification date,Version
 "('Continuous Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:21:18,New
 "('Condition', 'Effect', 'Trigger Effect')",,2022-11-18 12:20:24,Old
 "('Condition', 'Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:14:32,New
-"('Quick-like Effect', 'Trigger Effect')",,2022-04-20 02:53:07,Old
 "('Quick-like Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:17:06,New
-"('Continuous Effect',)",,2022-09-13 08:20:45,Old
+"('Quick-like Effect', 'Trigger Effect')",,2022-04-20 02:53:07,Old
 "('Continuous Effect',)","('Edited',)",2023-01-12 11:17:55,New
-"('Quick Effect',)",,2022-08-14 10:11:28,Old
+"('Continuous Effect',)",,2022-09-13 08:20:45,Old
 "('Quick Effect',)","('Edited',)",2023-01-12 11:19:30,New
+"('Quick Effect',)",,2022-08-14 10:11:28,Old
 "('Condition', 'Effect', 'Ignition-like Effect')",,2022-10-22 05:57:22,Old
 "('Condition', 'Effect', 'Ignition-like Effect')","('Edited',)",2023-01-12 11:25:38,New
 "('Condition', 'Ignition Effect', 'Trigger Effect')",,2022-10-22 05:57:44,Old
 "('Condition', 'Ignition Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:21:54,New
-"('Condition', 'Ignition Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:22:31,New
 "('Condition', 'Ignition Effect', 'Trigger Effect')",,2022-09-13 08:20:18,Old
+"('Condition', 'Ignition Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:22:31,New
 "('Condition', 'Ignition Effect', 'Trigger Effect')","('Edited',)",2023-01-12 11:23:10,New
 "('Condition', 'Ignition Effect', 'Trigger Effect')",,2022-10-22 05:57:48,Old
-"('Quick-like Effect', 'Trigger Effect', 'Unclassified effect')",,2023-01-12 11:21:37,New
+"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')",,2023-01-13 11:07:01,New
+"('Condition', 'Ignition-like Effect', 'Trigger Effect')",,2023-01-13 13:23:07,New
 "('Quick-like Effect', 'Unclassified effect')",,2022-05-04 17:13:44,Old
-"('Activation condition', 'Effect')","('Edited',)",2023-01-12 11:27:59,New
+"('Quick-like Effect', 'Trigger Effect', 'Unclassified effect')",,2023-01-12 11:21:37,New
+"('Condition', 'Ignition Effect', 'Ignition-like Effect')",,2023-01-13 13:26:15,New
 "('Activation condition', 'Effect')",,2022-04-20 15:20:35,Old
+"('Activation condition', 'Effect')","('Edited',)",2023-01-12 11:27:59,New
+"('Condition', 'Ignition Effect')",,2023-01-13 13:25:11,New
+"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')",,2023-01-13 11:26:04,New
+"('Condition', 'Effect', 'Ignition-like Effect')",,2023-01-13 13:28:45,New
+"('Condition', 'Trigger Effect')",,2023-01-13 13:28:04,New
+"('Condition', 'Continuous Effect', 'Ignition Effect')",,2023-01-13 13:24:07,New
