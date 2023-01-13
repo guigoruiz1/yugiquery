@@ -74,8 +74,12 @@ def clear_notebooks():
 def update_index():
     readme = open(f'../Assets/index.md').read()
     readme = readme.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-    with open(f'README.md', 'w') as f:
+    with open(f'../README.md', 'w') as f:
         print(readme, file=f)
+        import git
+        repo = git.Repo(os.getcwd())
+        repo.git.add(f)
+        repo.git.commit('-m', 'test commit')
         
 # def cleanup_data():
 #     file_list = sorted(glob.glob('../Data/*'),key=os.path.getctime)
