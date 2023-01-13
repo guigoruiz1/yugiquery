@@ -29,10 +29,6 @@ Icon
 # Thumbnails
 ._*
 
-
-# Secrets
-**/[Ss]ecrets*
-
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
@@ -209,3 +205,5 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/osx,python,jupyternotebooks
+
+**/secrets*

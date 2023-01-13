@@ -52,8 +52,10 @@ def run_all():
         secrets={}
         with open(secrets_file) as f:
             for line in f:
-                name, value = line.split("=")
-                secrets[name.strip()] = value.strip()
+                line=line.strip()
+                if not line.startswith('#'):
+                    name, value = line.split("=")
+                    secrets[name.strip()] = value.strip()
                 
         if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
             try:
