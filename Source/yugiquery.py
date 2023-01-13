@@ -43,7 +43,7 @@ while True:
         subprocess.call(['sh', './install.sh'])
 
 # CLI usage
-def run_all():
+def run_all():    
     reports = sorted(glob.glob('*.ipynb'))
     iterator = tqdm(reports, desc="Completion", unit='report')
     
@@ -72,33 +72,66 @@ def run_all():
 ## Helpers
 def clear_notebooks():
     reports = sorted(glob.glob('*.ipynb'))
-    subprocess.call(['nbstripout']+reports)
+    if len(reports)>0:
+        subprocess.call(['nbstripout']+reports)
     
-def update_index():
+def update_index(): # Paths
+    index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
-    readme = open(f'../Assets/index.md').read()
-    readme = readme.replace('@DATE@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-    with open(f'../README.md', 'w') as f:
-        print(readme, file=f)
-    
-    repo = git.Repo(f'../')
-    repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'README.md')
-        
-# def cleanup_data():
-#     file_list = sorted(glob.glob('../Data/*'),key=os.path.getctime)
-#     for file in file_list:
-#         if file
-#         if os.path.getctime(file)
-#             os.remove()
+    try:
+        readme = open(f'../Assets/index.md').read()
 
+        reports = sorted(glob.glob('*.ipynb'))
+        for report in reports:
+            readme = readme.replace(f'@{report[:-6].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
+
+        readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+        with open(f'../{index_file_name}', 'w') as f:
+            print(readme, file=f)
+
+        repo = git.Repo(f'../')
+        repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+        
+    except:
+        print('No "index.md" file in "Assets". Aborting...')
+        
+def cleanup_data(dry_run=False):
+    file_list = glob.glob('../Data/*')
+    df = pd.DataFrame(file_list, columns=['file'])
+    df['timestamp'] = df['file'].apply(os.path.getctime).apply(pd.to_datetime, unit='s')
+    df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
+    df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
+    # Monthly
+    keep_monthly = df.copy()
+    keep_monthly['Y+m'] = keep_monthly['timestamp'].dt.strftime('%Y%m')
+    keep_monthly.drop_duplicates(['Y+m','group'], keep="first", inplace = True)
+    # Weekly
+    keep_weekly = keep_monthly.where(keep_monthly['Y+m']==keep_monthly['Y+m'].min())
+    keep_weekly['W'] = keep_monthly['timestamp'].dt.strftime('%W')
+    keep_weekly.drop_duplicates(['W','group'], keep="first", inplace = True)
+
+    drop_index = keep_monthly.index.join(keep_weekly.index)
+    for file in df.loc[~df.index.isin(drop_index),'file']:
+        if dry_run:
+            print(file)
+        else:
+            os.remove(file)
+
+## If executed from the CLI
 if __name__ == "__main__":
+    # Change working directory to script location
+    path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(path)
+    # Execute all notebooks in the source directory
     run_all()
+    # Update page index to reflect last execution timestamp
     update_index()
+    # Clear notebooks after HTML reports have been created
     clear_notebooks()
+    # Exit python
     quit()
 
 # API variables
-
 api_url = 'https://yugipedia.com/api.php'
 sets_query_url = '?action=ask&query=[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
 lists_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
@@ -236,7 +269,7 @@ def header(name=None):
             name = ''
 
     header = open('../Assets/header.md').read()
-    header = header.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+    header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
     header = header.replace('@NOTEBOOK@', name)
     return Markdown(header)
 

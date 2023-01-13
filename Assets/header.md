@@ -11,6 +11,6 @@
     </pre>
 </div>
 <div align='right'>
-    @NOTEBOOK@ - Last modified: @DATE@ <br>
+    @NOTEBOOK@ - Last modified: @TIMESTAMP@ <br>
     By <b>Guilherme Ruiz</b>
 </div>
