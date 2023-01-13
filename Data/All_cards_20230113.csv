@@ -1450,7 +1450,7 @@ Bye Bye Damage,20735371,Trap Card,Normal Trap Card,"('Condition', 'Effect')",,,U
 Byroad Sacrifice,36935434,Trap Card,Normal Trap Card,"('Activation condition', 'Effect')","('Relinquished (archetype)',)",,Unlimited,Unlimited,2022-04-20 12:26:17,,,,,,,,,,,
 Byser Shock,17597059,Monster Card,,"('Trigger Effect',)",,,Unlimited,Unlimited,2021-11-07 09:43:43,,Effect Monster,,DARK,Fiend,5,800,600,,,
 Bystial Baldrake,72656408,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Bystial',)",,,Unlimited,2023-01-11 17:51:48,,Effect Monster,,DARK,Dragon,6,2500,2000,,,
-Bystial Dis Pater,,Monster Card,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Bystial',)",,,Not yet released,2022-12-28 12:56:51,,Synchro Monster,,DARK,Dragon,10,3500,3500,,,
+Bystial Dis Pater,,Monster Card,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Bystial',)",,,Not yet released,2023-01-13 14:32:59,,Synchro Monster,,DARK,Dragon,10,3500,3500,,,
 Bystial Druiswurm,06637331,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Bystial',)",,Unlimited,Unlimited,2022-10-23 20:18:49,,Effect Monster,,DARK,Dragon,6,2500,2000,,,
 Bystial Magnamhut,33854624,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Bystial',)",,Unlimited,Limited,2022-10-23 20:18:52,,Effect Monster,,DARK,Dragon,6,2500,2000,,,
 Bystial Saronir,60242223,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Bystial',)",,Unlimited,Unlimited,2022-10-23 20:18:51,,Effect Monster,,DARK,Dragon,6,2500,2000,,,
@@ -3719,7 +3719,7 @@ Fallen Angel of Roses,49674183,Monster Card,,"('Unclassified effect',)","('Rose'
 Fallen Paradise,13301895,Spell Card,Field Spell Card,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,Unlimited,Unlimited,2022-08-14 11:16:48,,,,,,,,,,,
 Fallen Sanctuary,90312154,Trap Card,Continuous Trap Card,"('Condition', 'Effect', 'Quick-like Effect', 'Unclassified effect')","('The Sanctuary in the Sky (series)',)",,Unlimited,Unlimited,2022-09-17 14:44:27,,,,,,,,,,,
 Fallen of Albaz,68468459,Monster Card,,"('Condition', 'Trigger Effect')",,,Unlimited,Unlimited,2022-12-30 03:23:17,,Effect Monster,,DARK,Dragon,4,1800,0,,,
-Fallen of Argyros,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Unclassified effect')",,,,Not yet released,2023-01-09 11:38:06,,Effect Monster,,DARK,Thunder,2,700,700,,,
+Fallen of Argyros,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Unclassified effect')",,,,Not yet released,2023-01-13 16:07:27,,Effect Monster,,DARK,Thunder,2,700,700,,,
 Falling Current,26099457,Spell Card,Normal Spell Card,"('Effect',)",,,Unlimited,Unlimited,2023-01-03 18:12:21,,,,,,,,,,,
 Falling Down,32919136,Spell Card,Equip Spell Card,"('Continuous-like Effect', 'Effect', 'Trigger Effect')",,,Unlimited,Unlimited,2021-03-07 05:24:12,,,,,,,,,,,
 Familiar Knight,89731911,Monster Card,,"('Trigger Effect',)",,,Unlimited,Unlimited,2023-01-03 18:51:18,"('Type',)",Effect Monster,,DARK,Warrior,3,1200,1400,,,
@@ -3840,7 +3840,7 @@ Firestorm Prominence,13846680,Monster Card,,"('Trigger Effect',)","('Attribute R
 Firewall,94804055,Trap Card,Continuous Trap Card,"('Maintenance cost', 'Trigger Effect')",,,Unlimited,Unlimited,2022-11-15 13:28:59,,,,,,,,,,,
 Firewall Defenser,,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Firewall (archetype)',)",,,Not yet released,2023-01-13 13:01:28,,Effect Monster,,DARK,Cyberse,4,1200,1500,,,
 Firewall Dragon,05043010,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Firewall (archetype)',)","('Alternate',)",Unlimited,Unlimited,2022-11-15 03:39:57,,Link Monster,,LIGHT,Cyberse,,2500,,,4,"('↓', '←', '→', '↑')"
-Firewall Dragon Darkfluid,68934651,Monster Card,,"('Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Firewall (archetype)',)",,Unlimited,Unlimited,2022-11-15 03:41:12,,Link Monster,,DARK,Cyberse,,3000,,,5,"('↙', '↘', '←', '→', '↑')"
+Firewall Dragon Darkfluid,68934651,Monster Card,,"('Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Firewall (archetype)',)",,Unlimited,Unlimited,2023-01-13 14:21:45,,Link Monster,,DARK,Cyberse,,3000,,,5,"('↙', '↘', '←', '→', '↑')"
 Firewall Dragon Darkfluid - Neo Tempest Terahertz,64211118,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect')","('Firewall (archetype)', 'Signature move')",,Not yet released,Unlimited,2022-11-22 18:36:17,,Link Monster,,DARK,Cyberse,,3000,,,5,"('↙', '↘', '←', '→', '↑')"
 Firewall Dragon Singularity,,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Firewall (archetype)',)",,,Not yet released,2022-11-15 20:16:14,,Link Monster,,DARK,Cyberse,,3500,,,6,"('↓', '←', '→', '↑', '↖', '↗')"
 Firewall Guardian,86605184,Monster Card,,"('Condition', 'Trigger Effect')","('Firewall (archetype)', 'Guardian')",,Unlimited,Unlimited,2022-11-15 03:41:20,,Effect Monster,,DARK,Cyberse,4,100,2000,,,
@@ -4749,7 +4749,7 @@ Gradius,10992251,Monster Card,,,"('Konami Arcade Games',)",,Unlimited,Unlimited,
 Gradius' Option,14291024,Monster Card,,"('Continuous Effect', 'Summoning condition')","('Konami Arcade Games',)",,Unlimited,Unlimited,2023-01-03 18:06:00,"('Name',)",Effect Monster,,LIGHT,Machine,1,?,?,,,
 "Graff, Malebranche of the Burning Abyss",20758643,Monster Card,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Burning Abyss',)",,Unlimited,Unlimited,2022-07-09 04:12:04,,Effect Monster,,DARK,Fiend,3,1000,1500,,,
 "Gragonith, Lightsworn Dragon",21785144,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Lightsworn',)",,Unlimited,Unlimited,2021-02-03 15:22:34,,Effect Monster,,LIGHT,Dragon,6,2000,1600,,,
-GranSolfachord Coolia,,Monster Card,,"('Continuous Effect', 'Quick Effect')","('GranSolfachord', 'Solfachord')",,,Not yet released,2022-12-19 17:41:06,,Link Monster,,LIGHT,Fairy,,2700,,,3,"('↓', '↙', '↘')"
+GranSolfachord Coolia,,Monster Card,,"('Continuous Effect', 'Quick Effect')","('GranSolfachord', 'Solfachord')",,,Not yet released,2023-01-13 14:39:24,,Link Monster,,LIGHT,Fairy,,2700,,,3,"('↓', '↙', '↘')"
 GranSolfachord Musecia,37972500,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('GranSolfachord', 'Solfachord')",,Unlimited,Unlimited,2022-12-17 17:34:27,,Link Monster,,LIGHT,Fairy,,1900,,,2,"('↙', '↘')"
 Granadora,13944422,Monster Card,,"('Trigger Effect',)",,,Unlimited,Unlimited,2020-03-14 21:24:30,,Effect Monster,,WATER,Reptile,4,1900,700,,,
 Grand Convergence,38430673,Spell Card,Quick-Play Spell Card,"('Activation condition', 'Effect')",,,Unlimited,Unlimited,2021-07-05 10:27:47,,,,,,,,,,,
@@ -4918,7 +4918,7 @@ Guardragon Shield,50186558,Spell Card,Field Spell Card,"('Condition', 'Continuou
 Guerilla Kite,54629413,Monster Card,,"('Condition', 'Trigger Effect')",,,Unlimited,Unlimited,2020-11-26 06:48:50,,Effect Monster,Tuner monster,FIRE,Fiend,4,1600,200,,,
 Guiding Ariadne,98301564,Monster Card,,"('Continuous-like Effect', 'Trigger Effect')","('Counter Fairy',)",,Unlimited,Unlimited,2022-04-20 13:34:04,,Effect Monster,,LIGHT,Fairy,4,1700,800,3,,
 Guiding Light,69865139,Monster Card,,"('Trigger Effect',)",,,Unlimited,Unlimited,2022-12-05 15:15:21,,Effect Monster,,LIGHT,Fairy,1,0,0,,,
-"Guiding Quem, the Virtuous",,Monster Card,,"('Condition', 'Trigger Effect')","('Despia', 'Dogmatika')",,,Not yet released,2023-01-09 11:52:01,,Effect Monster,Tuner monster,LIGHT,Spellcaster,4,1500,1500,,,
+"Guiding Quem, the Virtuous",,Monster Card,,"('Condition', 'Trigger Effect')","('Despia', 'Dogmatika')",,,Not yet released,2023-01-13 14:29:03,,Effect Monster,Tuner monster,LIGHT,Spellcaster,4,1500,1500,,,
 Guitar Gurnards Duonigis,79724755,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,Unlimited,Unlimited,2023-01-04 17:04:48,,Effect Monster,,WATER,Sea Serpent,3,1500,700,,,
 Guldfaxe of the Nordic Beasts,41788781,Monster Card,,"('Unclassified effect',)","('Nordic', 'Nordic Beast')",,Unlimited,Unlimited,2021-09-13 04:22:26,"('Type',)",Effect Monster,Tuner monster,LIGHT,Beast,4,1600,1000,,,
 Gullveig of the Nordic Ascendant,90207654,Monster Card,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Nordic', 'Nordic Ascendant')",,Unlimited,Unlimited,2022-12-25 09:16:16,,Link Monster,,LIGHT,Fairy,,800,,,1,"('↙',)"
@@ -5299,7 +5299,7 @@ Ice Water,20848593,Monster Card,,,,,,Unlimited,2022-04-20 14:17:32,,Normal Monst
 Icejade Acti,82777208,Monster Card,,"('Condition', 'Trigger Effect')","('Icejade',)",,Unlimited,Unlimited,2022-09-14 11:52:30,,Effect Monster,,WATER,Aqua,4,1000,1000,,,
 Icejade Aegirine,39354437,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Icejade',)",,Unlimited,Unlimited,2022-02-11 11:50:17,,Effect Monster,,WATER,Aqua,3,1000,2000,,,
 Icejade Aegirine Gymir,86682165,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Icejade',)",,,Unlimited,2023-01-11 17:13:49,,Synchro Monster,,WATER,Aqua,10,3000,1500,,,
-Icejade Aegirine Rahn,,Monster Card,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Lingering effect')","('Icejade',)",,,Not yet released,2023-01-09 11:42:15,,Effect Monster,Tuner monster,WATER,Aqua,7,1500,2500,,,
+Icejade Aegirine Rahn,,Monster Card,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Lingering effect')","('Icejade',)",,,Not yet released,2023-01-13 14:27:50,,Effect Monster,Tuner monster,WATER,Aqua,7,1500,2500,,,
 Icejade Cenote Enion Cradle,07142724,Spell Card,Field Spell Card,"('Condition', 'Effect', 'Trigger Effect')","('Icejade',)",,Unlimited,Unlimited,2022-02-11 11:41:27,,,,,,,,,,,
 Icejade Cradle,55343303,Spell Card,Normal Spell Card,"('Effect',)","('Icejade',)",,Unlimited,Unlimited,2022-09-14 11:38:01,,,,,,,,,,,
 Icejade Creation Aegirocassis,01295442,Monster Card,,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect', 'Quick Effect')","('Icejade',)",,Unlimited,Unlimited,2022-08-05 22:21:21,,Effect Monster,Tuner monster,WATER,Aqua,7,2000,2000,,,
@@ -6564,9 +6564,9 @@ Manadome Breakheart,,Trap Card,Normal Trap Card,"('Condition', 'Effect', 'Unclas
 Manadome Hearless,,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Manadome',)",,,Not yet released,2022-12-13 05:26:44,,Effect Monster,Tuner monster,EARTH,Fairy,2,0,2000,,,
 Manadome Imagining,,Spell Card,Normal Spell Card,"('Condition', 'Effect', 'Ignition-like Effect')","('Manadome',)",,,Not yet released,2022-12-12 14:36:12,,,,,,,,,,,
 Manadome Meek,,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Manadome',)",,,Not yet released,2022-12-13 05:26:16,,Effect Monster,Tuner monster,WATER,Fairy,2,0,1800,,,
-Manadome Prime-Heart,,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Manadome',)",,,Not yet released,2023-01-06 15:08:54,,Synchro Monster,,LIGHT,Fairy,10,3000,3000,,,
+Manadome Prime-Heart,,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Manadome',)",,,Not yet released,2023-01-13 14:34:02,,Synchro Monster,,LIGHT,Fairy,10,3000,3000,,,
 Manadome Reframing,,Trap Card,Counter Trap Card,"('Condition', 'Effect', 'Quick-like Effect')","('Manadome',)",,,Not yet released,2022-12-12 14:56:19,,,,,,,,,,,
-Manadome Riumheart,,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Heart', 'Manadome')",,,Not yet released,2022-12-12 13:59:39,,Effect Monster,,LIGHT,Warrior,4,1500,2100,,,
+Manadome Riumheart,,Monster Card,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Heart', 'Manadome')",,,Not yet released,2023-01-13 14:30:08,,Effect Monster,,LIGHT,Warrior,4,1500,2100,,,
 Mandragon,19474136,Monster Card,,,,,Unlimited,Unlimited,2021-11-23 03:19:43,,Normal Monster,,EARTH,Plant,5,2500,1000,2,,
 Manga Ryu-Ran,38369349,Monster Card,,"('Condition', 'Continuous Effect', 'Summoning condition')","('Toon',)",,Unlimited,Unlimited,2023-01-03 17:01:41,,Effect Monster,Toon monster,FIRE,Dragon,7,2200,2600,,,
 Maniacal Servant,33455338,Monster Card,,"('Trigger Effect',)",,,Unlimited,Unlimited,2021-11-23 03:20:08,,Effect Monster,,DARK,Spellcaster,3,600,1000,,,
@@ -8393,7 +8393,7 @@ Proof of Powerlessness,11373345,Trap Card,Normal Trap Card,"('Activation conditi
 Proof of Pruflas,85847157,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,Unlimited,Unlimited,2022-09-17 12:58:40,,Effect Monster,,DARK,Fiend,3,100,100,,,
 Propa Gandake,61681816,Monster Card,,"('Continuous Effect', 'Ignition Effect')",,,Unlimited,Unlimited,2022-08-14 10:50:40,,Effect Monster,,EARTH,Psychic,3,500,2000,,,
 Prophecy Destroyer,56174248,Monster Card,,"('Ignition Effect',)","('Prophecy',)",,Unlimited,Unlimited,2021-02-03 18:12:33,"('Name',)",Effect Monster,,DARK,Spellcaster,6,2500,1200,,,
-Protectcode Talker,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect')","('Code Talker (archetype)',)",,,Not yet released,2022-11-15 20:18:30,,Link Monster,,DARK,Cyberse,,2300,,,3,"('←', '→', '↑')"
+Protectcode Talker,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect')","('Code Talker (archetype)',)",,,Not yet released,2023-01-13 14:37:34,,Link Monster,,DARK,Cyberse,,2300,,,3,"('←', '→', '↑')"
 Protecting Spirit Loagaeth,84339249,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,Unlimited,Unlimited,2022-04-20 14:10:30,,Effect Monster,,LIGHT,Fairy,7,2400,2100,,,
 Protection of the Elements,66367984,Trap Card,Counter Trap Card,"('Condition', 'Effect', 'Quick-like Effect')",,,,Unlimited,2022-12-18 19:30:06,,,,,,,,,,,
 Protective Soul Ailin,11678191,Monster Card,,"('Condition', 'Continuous-like Effect', 'Ignition Effect', 'Ignition-like Effect')",,"('Edited',)",Unlimited,Unlimited,2023-01-05 14:52:55,,Effect Monster,Union monster,LIGHT,Fairy,1,0,0,,,
@@ -10273,17 +10273,17 @@ Superheavy Samurai Fist,71386411,Monster Card,,"('Condition', 'Quick Effect', 'T
 Superheavy Samurai Flutist,27978707,Monster Card,,"('Condition', 'Ignition Effect', 'Quick Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2021-09-15 16:31:22,,Effect Monster,,EARTH,Machine,3,500,1000,,,
 Superheavy Samurai General Coral,78274190,Monster Card,,"('Condition', 'Continuous-like Effect', 'Ignition Effect', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2020-03-17 01:01:36,,Effect Monster,,EARTH,Machine,1,300,500,8,,
 Superheavy Samurai General Jade,42880485,Monster Card,,"('Condition', 'Continuous Effect', 'Continuous-like Effect', 'Ignition-like Effect', 'Summoning condition', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2021-11-18 15:37:03,,Effect Monster,,EARTH,Machine,8,1800,2800,1,,
-Superheavy Samurai General Shanao,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2022-12-28 13:17:18,,Synchro Monster,,DARK,Machine,8,2000,2500,1,,
+Superheavy Samurai General Shanao,,Monster Card,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2023-01-13 14:32:05,,Synchro Monster,,DARK,Machine,8,2000,2500,1,,
 Superheavy Samurai Gigagloves,62017867,Monster Card,,"('Trigger Effect',)","('Superheavy Samurai',)",,Unlimited,Unlimited,2020-11-19 03:25:01,,Effect Monster,,EARTH,Machine,3,100,1000,,,
 Superheavy Samurai Helper,44891812,Monster Card,,"('Quick Effect', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2020-03-17 01:02:37,,Effect Monster,,EARTH,Machine,1,0,0,,,
 Superheavy Samurai Kabuto,41307269,Monster Card,,"('Trigger Effect',)","('Superheavy Samurai',)",,Unlimited,Unlimited,2020-03-17 01:03:14,,Effect Monster,,EARTH,Machine,4,1000,2000,,,
 Superheavy Samurai Magnet,89091772,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2022-08-13 12:57:04,,Effect Monster,,EARTH,Machine,4,900,1900,,,
-Superheavy Samurai Monk Warrior Big Benkei,,Monster Card,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2022-12-20 02:28:32,,Effect Monster,,EARTH,Machine,8,1000,3500,1,,
+Superheavy Samurai Monk Warrior Big Benkei,,Monster Card,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2023-01-13 15:40:22,,Effect Monster,,EARTH,Machine,8,1000,3500,1,,
 Superheavy Samurai Ninja Sarutobi,76471944,Monster Card,,"('Continuous Effect', 'Quick Effect')","('Ninja', 'Superheavy Samurai')",,Unlimited,Unlimited,2020-03-17 01:04:42,,Synchro Monster,,EARTH,Machine,8,2000,2800,,,
 Superheavy Samurai Ogre Shutendoji,36953371,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2021-12-02 08:23:03,,Synchro Monster,,EARTH,Machine,6,500,2500,,,
 Superheavy Samurai Overlord Masurao,,Monster Card,,"('Continuous Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2022-12-09 15:14:48,,Synchro Monster,,EARTH,Machine,12,2100,4000,,,
 Superheavy Samurai Prepped Defense,15495787,Monster Card,,"('Summoning condition', 'Trigger Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2020-03-17 01:05:33,,Effect Monster,,EARTH,Machine,3,100,2100,,,
-Superheavy Samurai Prodigy Wakaushi,,Monster Card,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2022-12-28 13:17:01,,Effect Monster,Tuner monster,DARK,Machine,4,1000,1500,8,,
+Superheavy Samurai Prodigy Wakaushi,,Monster Card,,"('Condition', 'Ignition Effect', 'Ignition-like Effect', 'Trigger Effect')","('Superheavy Samurai',)",,,Not yet released,2023-01-13 15:34:11,,Effect Monster,Tuner monster,DARK,Machine,4,1000,1500,8,,
 Superheavy Samurai Scales,78391364,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2023-01-01 03:37:31,,Effect Monster,,EARTH,Machine,4,800,1800,,,
 Superheavy Samurai Scarecrow,33918636,Monster Card,,"('Condition', 'Continuous Effect', 'Ignition Effect')","('Superheavy Samurai',)",,Unlimited,Unlimited,2021-10-07 08:18:29,,Link Monster,,EARTH,Machine,,0,,,1,"('↙',)"
 Superheavy Samurai Soulbang Cannon,03064425,Monster Card,,"('Continuous-like Effect', 'Ignition Effect', 'Quick Effect')","('Superheavy Samurai', 'Superheavy Samurai Soul')",,Unlimited,Unlimited,2020-03-17 01:06:24,,Effect Monster,,EARTH,Machine,3,1000,1000,,,
@@ -10539,7 +10539,7 @@ Telepathic Power,23323812,Trap Card,Normal Trap Card,"('Activation condition', '
 Teleport,06795211,Spell Card,Continuous Spell Card,"('Ignition-like Effect',)",,,Unlimited,Unlimited,2021-11-07 16:18:12,,,,,,,,,,,
 Tellarknight Altea,,Monster Card,,"('Condition', 'Trigger Effect')","('Constellar', 'tellarknight')",,,Not yet released,2022-12-19 15:08:13,,Effect Monster,,LIGHT,Warrior,4,1700,1300,,,
 Tellarknight Constellar,,Spell Card,Continuous Spell Card,"('Condition', 'Effect', 'Ignition-like Effect')","('Constellar', 'tellarknight')",,,Not yet released,2022-12-19 15:26:31,,,,,,,,,,,
-Tellarknight Constellar Caduceus,,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Constellar', 'tellarknight')",,,Not yet released,2022-12-21 18:37:13,,Xyz Monster,,LIGHT,Spellcaster,4,2500,1650,,,
+Tellarknight Constellar Caduceus,,Monster Card,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Constellar', 'tellarknight')",,,Not yet released,2023-01-13 14:36:23,,Xyz Monster,,LIGHT,Spellcaster,4,2500,1650,,,
 Tellarknight Genesis,65236257,Spell Card,Quick-Play Spell Card,"('Effect',)","('tellarknight',)",,Unlimited,Unlimited,2022-04-20 15:26:21,,,,,,,,,,,
 Tellarknight Lyra,,Monster Card,,"('Condition', 'Trigger Effect')","('Constellar', 'tellarknight')",,,Not yet released,2022-12-19 15:04:54,,Effect Monster,,LIGHT,Warrior,4,1200,1600,,,
 Tellarknight Ptolemaeus,18326736,Monster Card,,"('Ignition Effect', 'Quick Effect', 'Trigger Effect')","('tellarknight',)",,Unlimited,Limited,2022-11-22 00:36:31,,Xyz Monster,,LIGHT,Warrior,4,550,2600,,,
@@ -10625,7 +10625,7 @@ The Book of the Law,00458748,Spell Card,Quick-Play Spell Card,"('Condition', 'Co
 The Boundless Open Land,,Spell Card,Field Spell Card,"('Trigger Effect',)",,,,Not yet released,2023-01-11 12:37:56,,,,,,,,,,,
 The Breaking Ruin God,85182315,Spell Card,Quick-Play Spell Card,"('Condition', 'Effect', 'Trigger Effect')",,,Unlimited,Unlimited,2023-01-01 19:08:02,,,,,,,,,,,
 The Bystial Alba Los,69120785,Monster Card,,"('Continuous Effect', 'Summoning condition', 'Trigger Effect')","('Bystial',)",,Unlimited,Unlimited,2022-10-23 20:18:44,,Effect Monster,,LIGHT,Dragon,12,3500,3500,,,
-The Bystial Aluber,,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Bystial',)",,,Not yet released,2023-01-09 11:32:00,,Effect Monster,Tuner monster,DARK,Dragon,4,1800,0,,,
+The Bystial Aluber,,Monster Card,,"('Condition', 'Trigger Effect', 'Unclassified effect')","('Bystial',)",,,Not yet released,2023-01-13 15:44:30,,Effect Monster,Tuner monster,DARK,Dragon,4,1800,0,,,
 The Bystial Lubellion,32731036,Monster Card,,"('Condition', 'Ignition Effect', 'Summoning condition')","('Bystial',)",,Unlimited,Unlimited,2022-10-23 20:18:46,,Effect Monster,,LIGHT,Dragon,8,2500,3000,,,
 The Calculator,51196174,Monster Card,,"('Continuous Effect',)",,,Unlimited,Unlimited,2022-02-05 06:34:55,,Effect Monster,,LIGHT,Thunder,2,?,0,,,
 The Calibrator,54706054,Monster Card,,"('Continuous Effect',)",,,Unlimited,Unlimited,2021-01-26 17:50:23,,Effect Monster,,LIGHT,Thunder,4,1500,1500,,,
