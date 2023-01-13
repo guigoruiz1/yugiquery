@@ -33,7 +33,7 @@ while True:
 
     except ImportError:
         if loop>1:
-            print("Failed to install required packages. Aborting...")
+            print("Failed to install required packages twice. Aborting...")
             quit()
         
         loop+=1   
@@ -45,6 +45,22 @@ while True:
 def run_all():
     reports = sorted(glob.glob('*.ipynb'))
     iterator = tqdm(reports, desc="Completion", unit='report')
+    
+    secrets_file = '../Assets/secrets.txt'
+    if os.path.isfile(secrets_file):
+        secrets={}
+        with open(secrets_file) as f:
+            for line in f:
+                name, value = line.split("=")
+                secrets[name.strip()] = value.strip()
+                
+        if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
+            try:
+                from tqdm.contrib.discord import tqdm as discord_tqdm
+                iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+            except:
+                pass
+    
     for report in iterator:
         iterator.set_postfix(report=report)
         tqdm.write(f'Generating {report[:-6]} report')
@@ -54,6 +70,12 @@ def run_all():
 def clear_notebooks():
     reports = sorted(glob.glob('*.ipynb'))
     subprocess.call(['nbstripout']+reports)
+    
+def update_index():
+    readme = open(f'../Assets/index.md').read()
+    readme = readme.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+    with open(f'README.md', 'w') as f:
+        print(readme, file=f)
         
 # def cleanup_data():
 #     file_list = sorted(glob.glob('../Data/*'),key=os.path.getctime)
@@ -64,13 +86,14 @@ def clear_notebooks():
 
 if __name__ == "__main__":
     run_all()
+    update_index()
     clear_notebooks()
     quit()
 
 # API variables
 
 api_url = 'https://yugipedia.com/api.php'
-sets_query_url = '?action=ask&query=[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]|limit%3D5000|order%3Dasc&format=json'
+sets_query_url = '?action=ask&query=[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
 lists_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
 
 # Lists
@@ -205,7 +228,7 @@ def header(name=None):
         except:
             name = ''
 
-    header = (open('../Assets/header.md').read())
+    header = open('../Assets/header.md').read()
     header = header.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
     header = header.replace('@NOTEBOOK@', name)
     return Markdown(header)
@@ -258,59 +281,30 @@ def card_query(_password = True, _card_type = True, _property = True, _primary =
     
     return search_string
 
-def fetch_spell(spell_query, step = 5000, limit = 5000, debug=False):
-    print('Downloading spells')
-    spell_df = pd.DataFrame()
-    i = 0
-    complete = False
-    while not complete:
-        response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20Spell%20Cards]]{spell_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
-        df = extract_results(response)
-        formatted_df = format_df(df)
-       
-        if debug:
-            print(f'Iteration {i+1}: {len(formatted_df.index)} results')
-      
-        spell_df = pd.concat([spell_df, formatted_df], ignore_index=True, axis=0)
-        if len(formatted_df.index)<step or i*step>=limit:
-            complete = True
-        else:
-            i+=1
+def fetch_st(st_query, st, cg='CG', step = 5000, limit = 5000, debug=False):
+    st = st.capitalize()
+    valid_st = {'Spell', 'Trap'}
+    if st not in valid_st:
+        raise ValueError("results: st must be one of %r." % valid_st)
     
-    if debug:
-        print('- Total')
+    cg = cg.upper()
+    valid_cg = {'CG', 'TCG', 'OCG', 'BOTH'}
+    if cg not in valid_cg:
+        raise ValueError("results: CG must be one of %r." % valid_st) 
+    elif cg=='BOTH':
+        cg='CG'
         
-    print(f'{len(spell_df.index)} results\n')
-    
-    return spell_df
-
-def fetch_trap(trap_query, step = 5000, limit = 5000, debug=False):
-    print('Downloading traps')
-    trap_df = pd.DataFrame()
-    i = 0
-    complete = False
-    while not complete:    
-        response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20Trap%20Cards]]{trap_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
-        df = extract_results(response)
-        formatted_df = format_df(df)
-        
-        if debug:
-            print(f'Iteration {i+1}: {len(formatted_df.index)} results')
-        
-        trap_df = pd.concat([trap_df, formatted_df], ignore_index=True, axis=0)
-        if len(formatted_df.index)<step or i*step>=limit:
-            complete = True
-        else:
-            i+=1
+    print(f'Downloading {st}s')
+    st_df = fetch_card(st_query, f'{cg}%20{st}%20Cards', step=step, limit=limit, debug=debug)
             
     if debug:
         print('- Total')
               
-    print(f'{len(trap_df.index)} results\n')
+    print(f'{len(st_df.index)} results\n')
     
-    return trap_df
+    return st_df
 
-def fetch_monster(monster_query, step = 5000, limit = 5000, debug=False):
+def fetch_monster(monster_query, cg='CG', step = 5000, limit = 5000, debug=False):
     print('Downloading monsters')
     monster_df = pd.DataFrame()
     iterator = tqdm(attributes, leave = False, unit='attribute')
@@ -319,22 +313,8 @@ def fetch_monster(monster_query, step = 5000, limit = 5000, debug=False):
         if debug:
             tqdm.write(f"- {att}")
         
-        i = 0
-        complete = False
-        while not complete:
-            iterator.set_postfix(it=i+1)
-            response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:CG%20monsters]][[Attribute::{att}]]{monster_query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
-            df = extract_results(response)
-            formatted_df = format_df(df)
-            
-            if debug:
-                tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
-                
-            monster_df = pd.concat([monster_df, formatted_df], ignore_index=True, axis=0)
-            if len(formatted_df.index)<step or i*step>=limit:
-                complete = True
-            else:
-                i+=1
+        temp_df = fetch_card(monster_query, f'{cg}%20monsters', step=step, limit=limit, extra_filter=f'[[Attribute::{att}]]', iterator=iterator, debug=debug)
+        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0) 
     
     if debug:
         print('- Total')
@@ -343,29 +323,47 @@ def fetch_monster(monster_query, step = 5000, limit = 5000, debug=False):
     
     return monster_df
 
-def fetch_name_errata(limit = 1000):
-    print('Downloading name errata')
-    name_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:Cards%20with%20name%20errata]]|limit={limit}|order%3Dasc&format=json')
-    name_keys = list(name_query_df['query']['results'].keys())
-    name_df = pd.DataFrame(True, index = [i.split(':')[1].strip() for i in name_keys if 'Card Errata:' in i], columns = ['Name errata'])
-    
-    print(f'{len(name_df.index)} results\n')
-    
-    return name_df
+def fetch_card(query, concept, step=5000, limit=5000, extra_filter='', iterator=None, debug=False):
+    df=pd.DataFrame()
+    i = 0
+    complete = False
+    while not complete:
+        if iterator is not None:
+            iterator.set_postfix(it=i+1)
+            
+        response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:{concept}]]{extra_filter}{query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
+        result = extract_printouts(response)
+        formatted_df = format_df(result)
+        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)           
 
-def fetch_type_errata(limit = 1000):
-    print('Downloading type errata')
-    type_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:Cards%20with%20card%20type%20errata]]|limit={limit}|order%3Dasc&format=json')
-    type_keys = list(type_query_df['query']['results'].keys())
-    type_df = pd.DataFrame(True, index = [i.split(':')[1].strip() for i in type_keys if 'Card Errata:' in i], columns = ['Type errata'])
+        if debug:
+            tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
+
+        if len(formatted_df.index)<step or i*step>=limit:
+            complete = True
+        else:
+            i+=1
+            
+    return df
+
+def fetch_errata(errata, limit = 1000):
+    errata = errata.lower()
+    valid = {'name', 'type'}
+    if errata not in valid:
+        raise ValueError("results: errata must be one of %r." % valid)
+        
+    print(f'Downloading {errata} errata')
+    errata_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:Cards%20with%20{"card%20"+errata if errata == "type" else errata}%20errata]]|limit={limit}|order%3Dasc&format=json')
+    errata_keys = list(errata_query_df['query']['results'].keys())
+    errata_df = pd.DataFrame(True, index = [i.split(':')[1].strip() for i in errata_keys if 'Card Errata:' in i], columns = [f'{errata.capitalize()} errata'])
     
-    print(f'{len(type_df.index)} results\n')
+    print(f'{len(errata_df.index)} results\n')
     
-    return type_df
+    return errata_df
 
 ### Sets
-def get_set_titles():
-    df = pd.read_json(f'{api_url}{sets_query_url}')
+def get_set_titles(limit=5000):
+    df = pd.read_json(f'{api_url}{sets_query_url}|limit%3D{limit}|order%3Dasc&format=json')
     keys = list(df['query']['results'].keys())
     return keys
 
@@ -501,7 +499,7 @@ def fetch_set_info(sets, step=15, debug=False):
         last = (i+1)*step
         titles = up.quote(']]OR[['.join(sets[first:last]))
         response = pd.read_json(f'{api_url}?action=askargs&conditions={titles}&printouts={ask}&format=json')
-        formatted_response = extract_results(response)
+        formatted_response = extract_printouts(response)
         formatted_df = format_df(formatted_response)
         if debug:
             tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
@@ -517,7 +515,7 @@ def fetch_set_info(sets, step=15, debug=False):
     return set_info_df
 
 ## Formating functions
-def extract_results(df):
+def extract_printouts(df):
     df = pd.DataFrame(df['query']['results']).transpose()
     df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
     return df
@@ -559,7 +557,7 @@ def format_df(input_df, input_errata_df=None):
     if 'Archseries' in input_df.columns:
         df['Archseries'] = input_df['Archseries'].dropna().apply(lambda x: tuple(sorted(x)) if len(x)>0 else np.nan)
     if 'Category' in input_df.columns:
-        df['Artwork'] = input_df['Category'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else np.nan).apply(extract_artwork)
+        df['Artwork'] = input_df['Category'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else np.nan).apply(format_artwork)
     if 'TCG status' in input_df.columns:
         df['TCG status'] = input_df['TCG status'].dropna().apply(lambda x: x[0]['fulltext'] if len(x)>0 else np.nan)
     if 'OCG status' in input_df.columns:
@@ -579,7 +577,7 @@ def format_df(input_df, input_errata_df=None):
     return df
 
 ### Cards
-def extract_artwork(row):
+def format_artwork(row):
     result = tuple()
     if 'Category:OCG/TCG cards with alternate artworks' in row:
         result += ('Alternate',)
