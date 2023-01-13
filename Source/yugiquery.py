@@ -2,6 +2,7 @@
 loop = 0
 while True:
     try:
+        import git
         import subprocess
         import ipynbname
         import glob
@@ -72,14 +73,14 @@ def clear_notebooks():
     subprocess.call(['nbstripout']+reports)
     
 def update_index():
+    timestamp = datetime.now().astimezone(timezone.utc)
     readme = open(f'../Assets/index.md').read()
-    readme = readme.replace('@DATE@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+    readme = readme.replace('@DATE@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
     with open(f'../README.md', 'w') as f:
         print(readme, file=f)
-        import git
-        repo = git.Repo(os.getcwd())
-        repo.git.add(f)
-        repo.git.commit('-m', 'test commit')
+    
+    repo = git.Repo(f'../')
+    repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'README.md')
         
 # def cleanup_data():
 #     file_list = sorted(glob.glob('../Data/*'),key=os.path.getctime)
