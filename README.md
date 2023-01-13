@@ -8,5 +8,5 @@ Jupyter notebook to query and display yugipedia data
 
 * [Timeline](Timeline.html) \[Last modified: 13/01/2023 14:38 \]
 
-Last modified: @DATE@
+Last modified: 13/01/2023 21:56 UTC
 
