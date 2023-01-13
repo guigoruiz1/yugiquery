@@ -3,10 +3,10 @@ Jupyter notebook to query and display yugipedia data
 
 ## Pages
 
-* [Cards](Cards.html)
-* [Sets](Sets.html)
+* [Cards](Cards.html) \[Last modified: 13/01/2023 14:38 \]
+* [Sets](Sets.html) \[Last modified: 13/01/2023 14:38 \]
 
-* [Timeline](Timeline.html)
+* [Timeline](Timeline.html) \[Last modified: 13/01/2023 14:38 \]
 
-Last modified: 13/01/2023 14:38 UTC
+Last modified: @DATE@
 
