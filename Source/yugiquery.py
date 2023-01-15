@@ -56,7 +56,7 @@ def run_all():
                 if not line.startswith('#'):
                     name, value = line.split("=")
                     secrets[name.strip()] = value.strip()
-                
+            
         if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
             try:
                 from tqdm.contrib.discord import tqdm as discord_tqdm
@@ -79,15 +79,16 @@ def update_index(): # Paths
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
-        readme = open(f'../Assets/index.md').read()
+        with open(f'../Assets/index.md') as f:
+            readme = f.read()
 
-        reports = sorted(glob.glob('*.ipynb'))
-        for report in reports:
-            readme = readme.replace(f'@{report[:-6].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
+            reports = sorted(glob.glob('../*.html'))
+            for report in reports:
+                readme = readme.replace(f'@{report[:-6].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
 
-        readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-        with open(f'../{index_file_name}', 'w') as f:
-            print(readme, file=f)
+            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+            with open(f'../{index_file_name}', 'w') as o:
+                print(readme, file=o)
 
         repo = git.Repo(f'../')
         repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
@@ -267,12 +268,19 @@ def header(name=None):
             name = ipynbname.name()
         except:
             name = ''
+            
+    with open('../Assets/header.md') as f:
+        header = f.read()
+        header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        header = header.replace('@NOTEBOOK@', name)
+        return Markdown(header)
 
-    header = open('../Assets/header.md').read()
-    header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-    header = header.replace('@NOTEBOOK@', name)
-    return Markdown(header)
-
+def footer():
+    with open('../Assets/footer.md') as f:
+        footer = f.read()
+        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        return Markdown(footer)
+    
 ## API call functions
 
 ### Cards

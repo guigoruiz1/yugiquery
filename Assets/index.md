@@ -1,11 +1,13 @@
-# yugiquery
+# Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-## Pages
+    Last execution: @TIMESTAMP@
 
-* [Cards](Cards.html) \[Last modified: @CARDS_TIMESTAMP@\]
-* [Sets](Sets.html) \[Last modified: @SETS_TIMESTAMP@\]
+## Reports
 
-* [Timeline](Timeline.html) \[Last modified: @TIMELINE_TIMESTAMP@\]
+* [Cards](Cards.html) \[Last execution: @CARDS_TIMESTAMP@\]
+* [Sets](Sets.html) \[Last execution: @SETS_TIMESTAMP@\]
 
-Last modified: @TIMESTAMP@
+* [Timeline](Timeline.html) \[Last execution: @TIMELINE_TIMESTAMP@\]
+
+# Readme

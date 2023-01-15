@@ -11,6 +11,6 @@
     </pre>
 </div>
 <div align='right'>
-    @NOTEBOOK@ - Last modified: @TIMESTAMP@ <br>
+    @NOTEBOOK@ - Execution started @TIMESTAMP@ <br>
     By <b>Guilherme Ruiz</b>
 </div>
