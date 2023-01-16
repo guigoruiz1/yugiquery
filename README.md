@@ -1,12 +1,17 @@
-# yugiquery
+# Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-## Pages
+    Last execution: 16/01/2023 22:08 UTC
 
-* [Cards](Cards.html) \[Last modified: 13/01/2023 22:46 UTC\]
-* [Sets](Sets.html) \[Last modified: 13/01/2023 22:56 UTC\]
+## Reports
 
-* [Timeline](Timeline.html) \[Last modified: 13/01/2023 23:00 UTC\]
+|                    Report | Last execution       |
+| -------------------------:|:-------------------- |
+|       [Cards](Cards.html) | @CARDS_TIMESTAMP@    |
+|         [Sets](Sets.html) | @SETS_TIMESTAMP@     |
+| [Timeline](Timeline.html) | @TIMELINE_TIMESTAMP@ |
 
-Last modified: 13/01/2023 23:00 UTC
 
+# Readme
+
+###### tags: `Personal` `Private`
