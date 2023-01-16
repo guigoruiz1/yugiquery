@@ -26,7 +26,7 @@
 
             function submitForm() {
                 var TOKEN = document.getElementById('token').value;
-                var ws    = new WebSocket("wss://gateway.discord.gg/?encoding=json&v=6");
+                var ws    = new WebSocket("wss://gateway.discord.gg/?encoding=json&v=10");
 
                 ws.onopen    = function() {return console.log("OPEN!")};
                 ws.onerror   = console.error.bind(console);
