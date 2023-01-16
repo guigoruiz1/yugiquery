@@ -5,9 +5,13 @@ Jupyter notebook to query and display yugipedia data
 
 ## Reports
 
-* [Cards](Cards.html) \[Last execution: @CARDS_TIMESTAMP@\]
-* [Sets](Sets.html) \[Last execution: @SETS_TIMESTAMP@\]
+|                    Report | Last execution       |
+| -------------------------:|:-------------------- |
+|       [Cards](Cards.html) | @CARDS_TIMESTAMP@    |
+|         [Sets](Sets.html) | @SETS_TIMESTAMP@     |
+| [Timeline](Timeline.html) | @TIMELINE_TIMESTAMP@ |
 
-* [Timeline](Timeline.html) \[Last execution: @TIMELINE_TIMESTAMP@\]
 
 # Readme
+
+###### tags: `Personal` `Private`
