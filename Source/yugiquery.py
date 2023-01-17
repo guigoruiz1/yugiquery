@@ -99,11 +99,10 @@ def update_index(): # Handle paths properly
     try:
         with open(f'../Assets/index.md') as f:
             readme = f.read()
-
             reports = sorted(glob.glob('../*.html'))
             for report in reports:
-                readme = readme.replace(f'@{report[:-6].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
-
+                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
+            
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
             with open(f'../{index_file_name}', 'w') as o:
                 print(readme, file=o)
@@ -140,7 +139,7 @@ def run_all():
     reports = sorted(glob.glob('*.ipynb'))
     iterator = tqdm(reports, desc="Completion", unit='report')
     
-    secrets_file = '../Assets/secrets.txt'
+    secrets_file = '../Assets/secrets.env'
     if os.path.isfile(secrets_file):
         secrets=dotenv_values("../Assets/secrets.env")
         if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
@@ -599,6 +598,7 @@ def fetch_set_info(sets, step=15, debug=False):
         titles = up.quote(']]OR[['.join(sets[first:last]))
         response = pd.read_json(f'{api_url}?action=askargs&conditions={titles}&printouts={ask}&format=json')
         formatted_response = extract_results(response)
+        formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(formatted_response)
         if debug:
             tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
@@ -618,7 +618,7 @@ def extract_results(response):
     df = pd.DataFrame(response['query']['results']).transpose()
     df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
     page_url=pd.DataFrame(response['query']['results']).transpose()['fullurl'].rename('Page URL')
-    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name')
+    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
     df = pd.concat([df,page_name,page_url],axis=1)
     return df
 
