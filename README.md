@@ -1,7 +1,7 @@
 # Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 17/01/2023 14:55 UTC
+    Last execution: 17/01/2023 16:27 UTC
 
 ## Reports
 
