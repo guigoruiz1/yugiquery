@@ -5,18 +5,20 @@ import random
 from discord.ext import commands
  
 secrets_file = '../Assets/secrets.txt'
-if os.path.isfile(secrets_file):
-    secrets={}
-    with open(secrets_file) as f:
-        for line in f:
-            line=line.strip()
-            if not line.startswith('#'):
-                name, value = line.split("=")
-                secrets[name.strip()] = value.strip()
+if not os.path.isfile(secrets_file):
+    exit()
+    
+secrets=dotenv_values("../Assets/secrets.env")
+if not all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
+    exit()
+
+if not (secrets['DISCORD_CHANNEL_ID'] and secrets['DISCORD_TOKEN']):
+    exit()
+    
     
 intents = discord.Intents(messages=True)
-client = discord.Client(command_prefix='!', intents=intents)
-bot = commands.Bot(command_prefix='!', intents=intents)
+# client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
 
 @bot.command(name='run', help='Run full Yugiquery workflow')
 async def nine_nine(ctx):
@@ -31,20 +33,21 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     ]
     await ctx.send(', '.join(dice))
     
-@client.event
+@bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
-
-    for guild in client.guilds:
+    print('We have logged in as {0.user}'.format(bot))
+    await bot.tree.sync()
+    
+    for guild in bot.guilds: 
         print(
-            f'{client.user} is connected to the following guilds:\n'
+            f'{bot.user} is connected to the following guilds:\n'
             f'{guild.name}(id: {guild.id})'
         )
     
     members = '\n - '.join([member.name for member in guild.members])
     print(f'Guild Members:\n - {members}')
  
-@client.event
+@bot.event
 async def on_message(message):
     print("message-->", message)
     print("message content-->", message.content)
@@ -60,9 +63,10 @@ async def on_message(message):
         #     with open(file_name, "wb") as f:
         #         f.write(d_url.content)
  
-    if message.author == client.user:
+    if message.author == bot.user:
         return
- 
+     
+    await bot.process_commands(message)
     if message.content.lower().startswith('hi'):
         await message.channel.send(f'Hello, {message.author.name}!')
  
@@ -78,4 +82,4 @@ async def on_message(message):
 #     if message.content.startswith('file'):
 #         await message.channel.send(file=discord.File('sample.pdf'))
  
-client.run(secrets['DISCORD_TOKEN'])
+bot.run(secrets['DISCORD_TOKEN'])

@@ -29,6 +29,7 @@ while True:
         from textwrap import wrap
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
+        from dotenv import dotenv_values
 
         break
 
@@ -141,20 +142,14 @@ def run_all():
     
     secrets_file = '../Assets/secrets.txt'
     if os.path.isfile(secrets_file):
-        secrets={}
-        with open(secrets_file) as f:
-            for line in f:
-                line=line.strip()
-                if not line.startswith('#'):
-                    name, value = line.split("=")
-                    secrets[name.strip()] = value.strip()
-            
+        secrets=dotenv_values("../Assets/secrets.env")
         if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
-            try:
-                from tqdm.contrib.discord import tqdm as discord_tqdm
-                iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
-            except:
-                pass
+            if (secrets['DISCORD_CHANNEL_ID'] and secrets['DISCORD_TOKEN']):
+                try:
+                    from tqdm.contrib.discord import tqdm as discord_tqdm
+                    iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+                except:
+                    pass
     
     for report in iterator:
         iterator.set_postfix(report=report)
@@ -352,8 +347,6 @@ def card_query(_password = True, _card_type = True, _property = True, _primary =
         search_string += '|?OCG%20status'
     if _date:
         search_string += '|?Modification%20date'
-    if _page_name:
-        search_string += '|?Page%20name'
     if _category: # Deprecated - Use for debuging
         search_string += '|?category' 
     
@@ -367,12 +360,13 @@ def fetch_cards(query, concept, step=5000, limit=5000, extra_filter='', iterator
     while not complete:
         if iterator is not None:
             iterator.set_postfix(it=i+1)
-
+        
         response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:{concept}]]{extra_filter}{query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
-        result = extract_printouts(response)
-        formatted_df = format_df(result)
-        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)           
 
+        result = extract_results(response)
+        formatted_df = format_df(result)
+        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
+        
         if debug:
             tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
 
@@ -384,14 +378,14 @@ def fetch_cards(query, concept, step=5000, limit=5000, extra_filter='', iterator
     return df
 
 ### Fetch spell or trap cards
-def fetch_st(st_query, st, cg='CG', step = 1000, limit = 5000, debug=False):
+def fetch_st(st_query, st='both', cg='CG', step = 1000, limit = 5000, debug=False):
     valid_cg = validate_cg(cg)
     st = st.capitalize()
-    valid_st = {'Spell', 'Trap', 'Both'}
+    valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
-    elif st=='Both':
-        concept=f'{valid_cg}%20Spell%20Cards]]OR[[{cg}%20Trap%20Cards'
+    elif st=='Both' or st=='All':
+        concept=f'{valid_cg}%20Spell%20Cards]]OR[[Concept:{valid_cg}%20Trap%20Cards'
         st='Spells and Trap'
     else:
         concept=f'{valid_cg}%20{st}%20Cards'
@@ -481,7 +475,7 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
     success = 0
     error = 0
 
-    df = pd.read_json(f'{api_url}{lists_query_url}{titles}')
+    df = pd.read_json(f'{api_url}{revisions_query_url}{titles}')
     contents = df['query']['pages'].values()
     for content in contents:
         if 'revisions' in  content.keys():
@@ -604,7 +598,7 @@ def fetch_set_info(sets, step=15, debug=False):
         last = (i+1)*step
         titles = up.quote(']]OR[['.join(sets[first:last]))
         response = pd.read_json(f'{api_url}?action=askargs&conditions={titles}&printouts={ask}&format=json')
-        formatted_response = extract_printouts(response)
+        formatted_response = extract_results(response)
         formatted_df = format_df(formatted_response)
         if debug:
             tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
@@ -620,9 +614,12 @@ def fetch_set_info(sets, step=15, debug=False):
     return set_info_df
 
 # Data formating functions
-def extract_printouts(df):
-    df = pd.DataFrame(df['query']['results']).transpose()
+def extract_results(response):
+    df = pd.DataFrame(response['query']['results']).transpose()
     df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
+    page_url=pd.DataFrame(response['query']['results']).transpose()['fullurl'].rename('Page URL')
+    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name')
+    df = pd.concat([df,page_name,page_url],axis=1)
     return df
 
 def extract_fulltext(x):
@@ -640,7 +637,7 @@ def format_df(input_df):
     df = pd.DataFrame(index=input_df.index)
     # Cards
     if 'Name' in input_df.columns:
-        df['Name'] = input_df['Name'].dropna().apply(lambda x: x[0])
+        df['Name'] = input_df['Name'].dropna().apply(extract_fulltext)
     if 'Password' in input_df.columns:
         df['Password'] = input_df['Password'].dropna().apply(extract_fulltext)
     if 'Card type' in input_df.columns:
@@ -675,8 +672,6 @@ def format_df(input_df):
         df['TCG status'] = input_df['TCG status'].dropna().apply(extract_fulltext)
     if 'OCG status' in input_df.columns:
         df['OCG status'] = input_df['OCG status'].dropna().apply(extract_fulltext)
-    if 'Page name' in input_df.columns:
-        df['Page name'] = input_df['Page name'].dropna().apply(extract_fulltext)
     # Sets
     if 'Series' in input_df.columns:
         df['Series'] = input_df['Series'].apply(extract_fulltext)
@@ -687,6 +682,9 @@ def format_df(input_df):
     # Artworks columns
     if len(input_df.filter(like=' artwork').columns)>0:
         df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
+    # Page columns
+    if len(input_df.filter(like='Page ').columns)>0:
+        df = df.join(input_df.filter(like='Page'))
     # Date columns    
     if len(input_df.filter(like=' date').columns)>0:
         df = df.join(input_df.filter(like=' date').applymap(lambda x: pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
