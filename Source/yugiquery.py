@@ -135,10 +135,13 @@ def footer():
         return Markdown(footer)
 
 # CLI usage
-def run_all():    
+def run_all(progress_handler=None):    
     reports = sorted(glob.glob('*.ipynb'))
     iterator = tqdm(reports, desc="Completion", unit='report')
-    
+    external_pbar=None
+    if progress_handler:
+        external_pbar = progress_handler(reports, desc="Completion", unit='report')
+        
     secrets_file = '../Assets/secrets.env'
     if os.path.isfile(secrets_file):
         secrets=dotenv_values("../Assets/secrets.env")
@@ -151,9 +154,15 @@ def run_all():
                     pass
     
     for report in iterator:
+        if external_pbar:
+            external_pbar.set_postfix(report=report)
+            
         iterator.set_postfix(report=report)
         tqdm.write(f'Generating {report[:-6]} report')
         pm.execute_notebook(report,report);
+        
+        if external_pbar:
+            external_pbar.update(1)
 
 ## If execution flow from the CLI
 if __name__ == "__main__":

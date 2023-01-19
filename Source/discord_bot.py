@@ -1,85 +1,115 @@
-import discord
-import requests
 import os
 import random
+import subprocess
+import discord
+import asyncio
+import yugiquery as yq
+import multiprocessing as mp
 from discord.ext import commands
- 
-secrets_file = '../Assets/secrets.txt'
-if not os.path.isfile(secrets_file):
-    exit()
+from dotenv import dotenv_values
+from tqdm.contrib.discord import tqdm as discord_tqdm
+
+def init_secrets(secrets_file):
+    required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID','DISCORD_ADMIN']
+    if os.path.isfile(secrets_file):
+        secrets=dotenv_values(secrets_file)
+        if all(key in secrets.keys() for key in required_secrets):
+            if all(secrets[key] for key in required_secrets):
+                return secrets
     
-secrets=dotenv_values("../Assets/secrets.env")
-if not all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
+    print('Secrets not found. Exiting...')
     exit()
 
-if not (secrets['DISCORD_CHANNEL_ID'] and secrets['DISCORD_TOKEN']):
-    exit()
-    
-    
-intents = discord.Intents(messages=True)
-# client = discord.Client(intents=intents)
+secrets = init_secrets('../Assets/secrets.env')
+intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
+loop = None
+task = None
+process = None
+    
+async def check_owner(ctx):
+    return await bot.is_owner(ctx.message.author)
 
-@bot.command(name='run', help='Run full Yugiquery workflow')
-async def nine_nine(ctx):
-    response = 'Under construction. Try again later'
-    await ctx.send(response)
+@bot.tree.command(name='shutdown', description='Shutdown bot')
+@commands.is_owner()
+async def shutdown(ctx):
+    await ctx.response.send_message(content='Shutting down...')
+    await bot.close()
 
-@bot.command(name='roll_dice', help='Simulates rolling dice.')
-async def roll(ctx, number_of_dice: int, number_of_sides: int):
-    dice = [
-        str(random.choice(range(1, number_of_sides + 1)))
-        for _ in range(number_of_dice)
-    ]
-    await ctx.send(', '.join(dice))
+@bot.tree.command(name='run', description='Run full Yugiquery workflow')
+@commands.is_owner()
+async def run(ctx):
+    await ctx.response.send_message(content='Initializing...')
+    
+    if ctx.channel.id != int(secrets['DISCORD_CHANNEL_ID']):
+        def progress_handler(iterator, desc, unit):
+            return discord_tqdm(iterator, desc=desc, unit=unit, leave=False, token = secrets['DISCORD_TOKEN'], channel_id=ctx.channel.id)
+    else:
+        progress_handler = None
+    
+    try: 
+        global process
+        process = mp.Process(target=yq.run_all, args=[progress_handler])
+        process.start()
+        await ctx.edit_original_response(content='Running...')
+    except:
+        await ctx.edit_original_response(content='Initialization failed!')
+    
+    async def await_result():
+        while process.is_alive():
+            await asyncio.sleep(1)
+        return process.exitcode
+    
+    exitcode = await await_result()
+    print(exitcode)
+    process.close()
+    
+    if exitcode is None:
+        await ctx.edit_original_response(content='Failed!') 
+    elif exitcode==0:
+        await ctx.edit_original_response(content='Completed!')
+    elif exitcode==-15:
+        await ctx.edit_original_response(content='Aborted!')
+    else:
+        await ctx.edit_original_response(content='Unknown!')
+    
+        
+@bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
+@commands.is_owner()
+async def abort(ctx):
+
+    await ctx.response.send_message('Aborting...')
+    
+    try:
+        process.terminate()
+        await ctx.edit_original_response(content='Aborted')
+        await asyncio.sleep(5)
+        await ctx.delete_original_response()
+    except:
+        await ctx.edit_original_response(content='Abort failed')
     
 @bot.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(bot))
+    print('You are logged as {0.user}'.format(bot))
     await bot.tree.sync()
     
+    print(f'{bot.user} is connected to the following guilds:')
     for guild in bot.guilds: 
-        print(
-            f'{bot.user} is connected to the following guilds:\n'
-            f'{guild.name}(id: {guild.id})'
-        )
-    
-    members = '\n - '.join([member.name for member in guild.members])
-    print(f'Guild Members:\n - {members}')
- 
+        print(f'{guild.name}(id: {guild.id})')
+        members = '\n - '.join([member.name for member in guild.members])
+        print(f'Guild Members:\n - {members}')
+
 @bot.event
 async def on_message(message):
     print("message-->", message)
-    print("message content-->", message.content)
-    print("message attachments-->", message.attachments)
-    print("message id", message.author.id)
-    a_id = message.author.id
-    # if a_id != secrets['DISCORD_TOKEN']:
-   
-        # for x in message.attachments:
-        #     print("attachment-->",x.url)
-        #     d_url = requests.get(x.url)
-        #     file_name = x.url.split('/')[-1]
-        #     with open(file_name, "wb") as f:
-        #         f.write(d_url.content)
- 
+    
     if message.author == bot.user:
         return
      
     await bot.process_commands(message)
     if message.content.lower().startswith('hi'):
         await message.channel.send(f'Hello, {message.author.name}!')
- 
-#     if message.content.startswith('image'):
-#         await message.channel.send(file=discord.File('download.jpg'))
- 
-#     if message.content.startswith('video'):
-#         await message.channel.send(file=discord.File('sample-mp4-file-small.mp4'))
- 
-#     if message.content.startswith('audio'):
-#         await message.channel.send(file=discord.File('file_example_MP3_700KB.mp3'))
- 
-#     if message.content.startswith('file'):
-#         await message.channel.send(file=discord.File('sample.pdf'))
- 
+
+
+
 bot.run(secrets['DISCORD_TOKEN'])
