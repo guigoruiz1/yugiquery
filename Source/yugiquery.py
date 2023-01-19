@@ -45,6 +45,25 @@ while True:
 
         
 # Helpers
+## Secrets
+def load_secrets(secrets_file, requested_secrets=[], required=False):
+    if os.path.isfile(secrets_file):
+        secrets = dotenv_values(secrets_file)
+        if not requested_secrets:
+            return secrets
+        
+        found_secrets = {key: secrets[key] for key in requested_secrets if key in secrets.keys() and secrets[key]}
+        if required:
+            for i, key in enumerate(requested_secrets):
+                check = required if isinstance(required, bool) else required[i]
+                if check and key not in found_secrets.keys():
+                    raise KeyError(f'Secret \"{requested_secrets[i]}\" not found')
+                
+        return found_secrets   
+    
+    else:
+        raise FileNotFoundError(f'No such file or directory: {secrets_file}')
+    
 ## Validators
 def validate_cg(cg):
     cg = cg.upper()
@@ -145,16 +164,14 @@ def run_all(progress_handler=None):
     if progress_handler:
         external_pbar = progress_handler(reports, desc="Completion", unit='report')
         
-    secrets_file = '../Assets/secrets.env'
-    if os.path.isfile(secrets_file):
-        secrets=dotenv_values("../Assets/secrets.env")
-        if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
-            if (secrets['DISCORD_CHANNEL_ID'] and secrets['DISCORD_TOKEN']):
-                try:
-                    from tqdm.contrib.discord import tqdm as discord_tqdm
-                    iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
-                except:
-                    pass
+    try:
+        required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID','DISCORD_ADMIN']
+        secrets_file = '../Assets/secrets.env'
+        secrets = load_secrets(secrets_file, required_secrets, required=True)
+        from tqdm.contrib.discord import tqdm as discord_tqdm
+        iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+    except:
+        pass
     
     for report in iterator:
         if external_pbar:

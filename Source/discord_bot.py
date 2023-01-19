@@ -9,18 +9,17 @@ from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_tqdm
 
-def init_secrets(secrets_file):
-    required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID','DISCORD_ADMIN']
+def load_secrets(secrets_file):
+    required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
     if os.path.isfile(secrets_file):
         secrets=dotenv_values(secrets_file)
-        if all(key in secrets.keys() for key in required_secrets):
-            if all(secrets[key] for key in required_secrets):
-                return secrets
+        if all(key in secrets.keys() for key in required_secrets) and all(secrets[key] for key in required_secrets):
+            return secrets
     
     print('Secrets not found. Exiting...')
     exit()
 
-secrets = init_secrets('../Assets/secrets.env')
+secrets = load_secrets('../Assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
 loop = None
@@ -38,6 +37,7 @@ async def shutdown(ctx):
 
 @bot.tree.command(name='run', description='Run full Yugiquery workflow')
 @commands.is_owner()
+@commands.cooldown(1, 12*60*60)
 async def run(ctx):
     await ctx.response.send_message(content='Initializing...')
     
@@ -61,7 +61,6 @@ async def run(ctx):
         return process.exitcode
     
     exitcode = await await_result()
-    print(exitcode)
     process.close()
     
     if exitcode is None:
@@ -71,7 +70,7 @@ async def run(ctx):
     elif exitcode==-15:
         await ctx.edit_original_response(content='Aborted!')
     else:
-        await ctx.edit_original_response(content='Unknown!')
+        await ctx.edit_original_response(content=f'Unknown exit code: {exitcode}')
     
         
 @bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
@@ -101,15 +100,11 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print("message-->", message)
-    
     if message.author == bot.user:
         return
      
     await bot.process_commands(message)
     if message.content.lower().startswith('hi'):
         await message.channel.send(f'Hello, {message.author.name}!')
-
-
 
 bot.run(secrets['DISCORD_TOKEN'])

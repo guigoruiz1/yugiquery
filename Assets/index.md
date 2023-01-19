@@ -14,4 +14,4 @@ Jupyter notebook to query and display yugipedia data
 
 # Readme
 
-###### tags: `Personal` `Private`
+###### tags: `Personal` `Public`
