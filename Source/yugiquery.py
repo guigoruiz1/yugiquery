@@ -106,9 +106,12 @@ def update_index(): # Handle paths properly
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
             with open(f'../{index_file_name}', 'w') as o:
                 print(readme, file=o)
-
-        repo = git.Repo(f'../')
-        repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+                
+        try:
+            repo = git.Repo(f'../')
+            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+        except:
+            print('Failed to commit to git')
         
     except:
         print('No "index.md" file in "Assets". Aborting...')
