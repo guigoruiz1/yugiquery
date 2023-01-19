@@ -106,9 +106,12 @@ def update_index(): # Handle paths properly
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
             with open(f'../{index_file_name}', 'w') as o:
                 print(readme, file=o)
-
-        repo = git.Repo(f'../')
-        repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+                
+        try:
+            repo = git.Repo(f'../')
+            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+        except:
+            print('Failed to commit to git')
         
     except:
         print('No "index.md" file in "Assets". Aborting...')
@@ -135,10 +138,13 @@ def footer():
         return Markdown(footer)
 
 # CLI usage
-def run_all():    
+def run_all(progress_handler=None):    
     reports = sorted(glob.glob('*.ipynb'))
     iterator = tqdm(reports, desc="Completion", unit='report')
-    
+    external_pbar=None
+    if progress_handler:
+        external_pbar = progress_handler(reports, desc="Completion", unit='report')
+        
     secrets_file = '../Assets/secrets.env'
     if os.path.isfile(secrets_file):
         secrets=dotenv_values("../Assets/secrets.env")
@@ -151,9 +157,15 @@ def run_all():
                     pass
     
     for report in iterator:
+        if external_pbar:
+            external_pbar.set_postfix(report=report)
+            
         iterator.set_postfix(report=report)
         tqdm.write(f'Generating {report[:-6]} report')
         pm.execute_notebook(report,report);
+        
+        if external_pbar:
+            external_pbar.update(1)
 
 ## If execution flow from the CLI
 if __name__ == "__main__":
