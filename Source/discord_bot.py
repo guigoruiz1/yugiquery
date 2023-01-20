@@ -7,7 +7,7 @@ import yugiquery as yq
 import multiprocessing as mp
 from discord.ext import commands
 from dotenv import dotenv_values
-from tqdm.contrib.discord import tqdm as discord_tqdm
+from tqdm.contrib.discord import tqdm as discord_pbar
 
 def load_secrets(secrets_file):
     required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
@@ -36,14 +36,14 @@ async def shutdown(ctx):
     await bot.close()
 
 @bot.tree.command(name='run', description='Run full Yugiquery workflow')
-@commands.is_owner()
 @commands.cooldown(1, 12*60*60)
+@commands.is_owner()
 async def run(ctx):
     await ctx.response.send_message(content='Initializing...')
     
     if ctx.channel.id != int(secrets['DISCORD_CHANNEL_ID']):
-        def progress_handler(iterator, desc, unit):
-            return discord_tqdm(iterator, desc=desc, unit=unit, leave=False, token = secrets['DISCORD_TOKEN'], channel_id=ctx.channel.id)
+        def progress_handler(iterator, **kwargs):
+            return discord_pbar(iterator, token = secrets['DISCORD_TOKEN'], channel_id=ctx.channel.id, **kwargs)
     else:
         progress_handler = None
     

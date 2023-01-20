@@ -11,6 +11,9 @@ while True:
         import calendar
         import warnings
         import colorsys
+        import logging
+        import io
+        import nbformat
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -158,31 +161,76 @@ def footer():
 
 # CLI usage
 def run_all(progress_handler=None):    
+    # Get reports
     reports = sorted(glob.glob('*.ipynb'))
-    iterator = tqdm(reports, desc="Completion", unit='report')
-    external_pbar=None
+    
     if progress_handler:
-        external_pbar = progress_handler(reports, desc="Completion", unit='report')
-        
+        external_pbar = progress_handler(reports, desc="Completion", unit='report', unit_scale=True)
+    
+    # Initialize iterators
     try:
-        required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID','DISCORD_ADMIN']
+        required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
         secrets_file = '../Assets/secrets.env'
         secrets = load_secrets(secrets_file, required_secrets, required=True)
         from tqdm.contrib.discord import tqdm as discord_tqdm
-        iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+        iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
     except:
-        pass
+        iterator = tqdm(reports, desc="Completion", unit='report')
     
-    for report in iterator:
-        if external_pbar:
+    # Create a custom logger
+    logger = logging.getLogger("papermill")
+    logger.setLevel(logging.INFO)
+
+    # Create a StreamHandler and attach it to the logger
+    stream_handler = logging.StreamHandler(io.StringIO())
+    stream_handler.setFormatter(logging.Formatter("%(message)s"))
+    stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
+    logger.addHandler(stream_handler)
+    
+    # Define a function to update the output variable
+    def update_pbar():
+        iterator.update((1/cells))
+        if progress_handler:
+            external_pbar.update((1/cells))
+            
+    for i, report in enumerate(iterator):
+        iterator.n = i
+        iterator.last_print_n = i
+        iterator.refresh()
+        
+        with open(report) as f:
+            nb = nbformat.read(f,nbformat.NO_CONVERT)
+            cells = len(nb.cells)
+            # print(f'Number of Cells: {cells}')
+
+        # Attach the update_pbar function to the stream_handler
+        stream_handler.flush = update_pbar
+        
+        # Update postfix
+        tqdm.write(f'Generating {report[:-6]} report')
+        iterator.set_postfix(report=report)
+        if progress_handler:
             external_pbar.set_postfix(report=report)
             
-        iterator.set_postfix(report=report)
-        tqdm.write(f'Generating {report[:-6]} report')
-        pm.execute_notebook(report,report);
+        # execute the notebook with papermill
+        pm.execute_notebook(
+            report,
+            report,
+            log_output=True,
+            progress_bar=True,
+        );
         
-        if external_pbar:
-            external_pbar.update(1)
+    # Clsoe the iterator
+    iterator.close()
+    if progress_handler:
+        external_pbar.close()
+        
+    # Close the stream_handler
+    stream_handler.close()
+    # Clear custom handler
+    logger.handlers.clear()
+    
+
 
 ## If execution flow from the CLI
 if __name__ == "__main__":
@@ -203,7 +251,6 @@ api_url = 'https://yugipedia.com/api.php'
 revisions_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
 
 # Lists - must be manually updated
-
 ## Attributes list to split monsters query
 attributes = [
     'DIVINE', 
