@@ -20,7 +20,7 @@ def load_secrets(secrets_file):
     print('Secrets not found. Exiting...')
     exit()
 
-secrets = load_secrets('../Assets/secrets.env')
+secrets = load_secrets('../assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
 loop = None

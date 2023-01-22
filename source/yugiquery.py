@@ -14,6 +14,9 @@ while True:
         import logging
         import io
         import nbformat
+        import hashlib
+        import asyncio
+        import aiohttp
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -47,6 +50,9 @@ while True:
         subprocess.call(['sh', './install.sh'])
 
         
+# Defaults overrides
+pd.set_option('display.max_columns', 40)
+        
 # Helpers
 ## Secrets
 def load_secrets(secrets_file, requested_secrets=[], required=False):
@@ -77,6 +83,11 @@ def validate_cg(cg):
         return 'CG'
     else:
         return cg
+    
+def md5(file_name):
+    hash_md5 = hashlib.md5()
+    hash_md5.update(file_name.encode())
+    return hash_md5.hexdigest()
 
 ## Frontend shortcuts
 def save_notebook():
@@ -94,7 +105,7 @@ def clear_notebooks():
 def cleanup_data(dry_run=False):
     file_list = glob.glob('../data/*')
     df = pd.DataFrame(file_list, columns=['file'])
-    df['timestamp'] = df['file'].apply(os.path.getctime).apply(pd.to_datetime, unit='s')
+    df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
     df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
     df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
     # Monthly
@@ -229,8 +240,6 @@ def run_all(progress_handler=None):
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
-    
-
 
 ## If execution flow from the CLI
 if __name__ == "__main__":
@@ -248,6 +257,7 @@ if __name__ == "__main__":
 
 # API variables
 api_url = 'https://yugipedia.com/api.php'
+media_url='https://ws.yugipedia.com/'
 revisions_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
 
 # Lists - must be manually updated
@@ -310,7 +320,7 @@ rarity_dict = {
 
 ## Region abreviations dictionary
 regions_dict = {
-    'EN':'English', 
+    'EN': 'English', 
     'NA': 'North American English',
     'EU':'European English', 
     'AU': 'Oceanic English', 
@@ -320,6 +330,7 @@ regions_dict = {
     'FR': 'French', 
     'IT': 'Italian', 
     'SP': 'Spanish', 
+    'ES': 'Spanish', # Bug fix
     'JP': 'Japanese', 
     'JA': 'Japanese-Asian', 
     'AE': 'Asian-English', 
@@ -372,8 +383,39 @@ colors_dict = {
     'SEVENS': '#1D9E74',
     'GO RUSH!!': '#BC5A84'
 }
- 
+
 # API call functions
+## Images
+async def download_images(urls, save_folder:str = "../images/", validate:bool = True, max_tasks:int = 10):
+    async def download_image(session, url, save_folder, semaphore, pbar):
+        async with semaphore:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    raise ValueError(f"URL {url} returned status code {response.status}")
+                total_size = int(response.headers.get("Content-Length", 0))
+                progress = tqdm(unit="B", total=total_size, unit_scale=True, unit_divisor=1024, desc=url.split("/")[-1], leave=False)
+                if os.path.isfile(f'{save_folder}/{url.split("/")[-1]}'):
+                    os.remove(f'{save_folder}/{url.split("/")[-1]}')
+                while True:
+                    chunk = await response.content.read(1024)
+                    if not chunk:
+                        break
+                    progress.update(len(chunk))
+                    with open(f'{save_folder}/{url.split("/")[-1]}', 'ab') as f:
+                        f.write(chunk)
+                progress.close()
+                return url.split("/")[-1]
+            
+    semaphore = asyncio.Semaphore(max_tasks)
+    async with aiohttp.ClientSession() as session:
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder)
+        with tqdm(total=len(urls), unit_scale=True, unit="file") as pbar:
+            tasks = [download_image(session, url, save_folder, semaphore, pbar) for url in urls]
+            for task in asyncio.as_completed(tasks):
+                pbar.update()
+                await task
+
 ## Cards
 ### Query arguments shortcut
 def card_query(_password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _name_errata = True, _type_errata = True, _alternate_artwork = True, _edited_artwork = True, _tcg = True, _ocg = True, _date = True, _page_name = True, _category = False, _image_URL=False):
@@ -422,11 +464,11 @@ def card_query(_password = True, _card_type = True, _property = True, _primary =
         search_string += '|?OCG%20status'
     if _date:
         search_string += '|?Modification%20date'
+    if _image_URL:
+        search_string += '|?Card%20image' 
     if _category: # Deprecated - Use for debuging
         search_string += '|?category' 
-    if _image_URL: # Deprecated - Use for debuging
-        search_string += '|?Card%20image' 
-    
+        
     return search_string
 
 ### Fetch cards from query and concept - should be called from parent functions
@@ -447,7 +489,7 @@ def fetch_cards(query, concept, step=5000, limit=5000, extra_filter='', iterator
         if debug:
             tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
 
-        if len(formatted_df.index)<step or i*step>=limit:
+        if len(formatted_df.index)<step or (i+1)*step>=limit:
             complete = True
         else:
             i+=1
@@ -710,9 +752,10 @@ def extract_fulltext(x):
             return x[0].strip('\u200e')
     else:
         return np.nan
-
-def format_df(input_df):
+    
+def format_df(input_df, include_all=False):
     df = pd.DataFrame(index=input_df.index)
+    
     # Cards
     if 'Name' in input_df.columns:
         df['Name'] = input_df['Name'].dropna().apply(extract_fulltext)
@@ -750,6 +793,9 @@ def format_df(input_df):
         df['TCG status'] = input_df['TCG status'].dropna().apply(extract_fulltext)
     if 'OCG status' in input_df.columns:
         df['OCG status'] = input_df['OCG status'].dropna().apply(extract_fulltext)
+    if 'Card image' in input_df.columns:
+        df['Card image'] = input_df['Card image'].apply(extract_fulltext)
+    
     # Sets
     if 'Series' in input_df.columns:
         df['Series'] = input_df['Series'].apply(extract_fulltext)
@@ -757,16 +803,27 @@ def format_df(input_df):
         df['Set type'] = input_df['Set type'].apply(extract_fulltext)
     if 'Cover card' in input_df.columns:
         df['Cover card'] = input_df['Cover card'].apply(lambda x: tuple(sorted([y['fulltext'] for y in x])) if len(x)>0 else np.nan)
+        
+    # Category
+    if 'Category'in input_df.columns:
+        df['Category'] = input_df['Category'].dropna().apply(lambda x: tuple(sorted([y['fulltext'] for y in x])) if len(x)>0 else np.nan)
+
     # Artworks columns
     if len(input_df.filter(like=' artwork').columns)>0:
         df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
+    
     # Page columns
     if len(input_df.filter(like='Page ').columns)>0:
         df = df.join(input_df.filter(like='Page '))
+    
     # Date columns    
     if len(input_df.filter(like=' date').columns)>0:
-        df = df.join(input_df.filter(like=' date').applymap(lambda x: pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
-    ##################
+        df = df.join(input_df.filter(like=' date').applymap(lambda x:pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
+    
+    # Include other unspecified columns
+    if include_all:
+        df.join(input_df[~df.columns])
+        
     return df
 
 ## Cards
@@ -848,6 +905,10 @@ def generate_changelog(previous_df, current_df, col):
         print('No changes')
         
     return changelog
+
+# Styling
+def style_df(df):
+    return df.style.format(hyperlinks='html')
 
 # Plotting functions
 def adjust_lightness(color, amount=0.5):
