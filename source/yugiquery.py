@@ -172,7 +172,7 @@ def footer():
 
 # CLI usage
 def run_all(progress_handler=None):    
-<<<<<<< HEAD:source/yugiquery.py
+
     # Get reports
     reports = sorted(glob.glob('*.ipynb'))
     
@@ -241,35 +241,6 @@ def run_all(progress_handler=None):
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
-=======
-    reports = sorted(glob.glob('*.ipynb'))
-    iterator = tqdm(reports, desc="Completion", unit='report')
-    external_pbar=None
-    if progress_handler:
-        external_pbar = progress_handler(reports, desc="Completion", unit='report')
-        
-    secrets_file = '../Assets/secrets.env'
-    if os.path.isfile(secrets_file):
-        secrets=dotenv_values("../Assets/secrets.env")
-        if all(key in secrets.keys() for key in ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']):
-            if (secrets['DISCORD_CHANNEL_ID'] and secrets['DISCORD_TOKEN']):
-                try:
-                    from tqdm.contrib.discord import tqdm as discord_tqdm
-                    iterator = discord_tqdm(reports, desc="Completion", unit='report', token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
-                except:
-                    pass
-    
-    for report in iterator:
-        if external_pbar:
-            external_pbar.set_postfix(report=report)
-            
-        iterator.set_postfix(report=report)
-        tqdm.write(f'Generating {report[:-6]} report')
-        pm.execute_notebook(report,report);
-        
-        if external_pbar:
-            external_pbar.update(1)
->>>>>>> main:Source/yugiquery.py
 
 ## If execution flow from the CLI
 if __name__ == "__main__":
