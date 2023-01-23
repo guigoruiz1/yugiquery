@@ -1,3 +1,4 @@
+aiohttp==3.8.3
 discord.py==2.1.0
 GitPython==3.1.30
 ipylab==0.6.0
@@ -5,10 +6,11 @@ ipynbname==2021.3.2
 ipython==8.8.0
 matplotlib==3.6.2
 matplotlib_venn==0.11.7
+nbformat==5.7.3
 numpy==1.23.5
 pandas==1.5.2
 papermill==2.4.0
-python-dotenv==0.21.0
+python-dotenv==0.21.1
 seaborn==0.12.2
 tqdm==4.64.1
 wikitextparser==0.51.1
