@@ -172,7 +172,6 @@ def footer():
 
 # CLI usage
 def run_all(progress_handler=None):    
-
     # Get reports
     reports = sorted(glob.glob('*.ipynb'))
     
