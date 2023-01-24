@@ -36,6 +36,9 @@ while True:
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
         from dotenv import dotenv_values
+        
+        # Defaults overrides
+        pd.set_option('display.max_columns', 40)
 
         break
 
@@ -48,10 +51,6 @@ while True:
         import subprocess
         print("Missing required packages. Trying to install now...")
         subprocess.call(['sh', './install.sh'])
-
-        
-# Defaults overrides
-pd.set_option('display.max_columns', 40)
         
 # Helpers
 ## Secrets
@@ -90,88 +89,21 @@ def md5(file_name):
     return hash_md5.hexdigest()
 
 ## Frontend shortcuts
+### Force saving the notebook to disk
 def save_notebook():
     app = JupyterFrontEnd()
     app.commands.execute('docmanager:save')
     print("Notebook saved to disk")
     
 ## Notebook management
+### Remove output from all notebooks in the source directory
 def clear_notebooks():
     reports = sorted(glob.glob('*.ipynb'))
     if len(reports)>0:
         subprocess.call(['nbstripout']+reports)
 
-## Data management
-def cleanup_data(dry_run=False):
-    file_list = glob.glob('../data/*')
-    df = pd.DataFrame(file_list, columns=['file'])
-    df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
-    df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
-    df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
-    # Monthly
-    keep_monthly = df.copy()
-    keep_monthly['Y+m'] = keep_monthly['timestamp'].dt.strftime('%Y%m')
-    keep_monthly.drop_duplicates(['Y+m','group'], keep="first", inplace = True)
-    # Weekly
-    keep_weekly = keep_monthly.where(keep_monthly['Y+m']==keep_monthly['Y+m'].min())
-    keep_weekly['W'] = keep_monthly['timestamp'].dt.strftime('%W')
-    keep_weekly.drop_duplicates(['W','group'], keep="first", inplace = True)
-
-    drop_index = keep_monthly.index.join(keep_weekly.index)
-    for file in df.loc[~df.index.isin(drop_index),'file']:
-        if dry_run:
-            print(file)
-        else:
-            os.remove(file)
-            
-## Markdown editing
-### Update webpage index with timestamps
-def update_index(): # Handle paths properly
-    index_file_name='README.md'
-    timestamp = datetime.now().astimezone(timezone.utc)
-    try:
-        with open(f'../assets/index.md') as f:
-            readme = f.read()
-            reports = sorted(glob.glob('../*.html'))
-            for report in reports:
-                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
-            
-            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-            with open(f'../{index_file_name}', 'w') as o:
-                print(readme, file=o)
-                
-        try:
-            repo = git.Repo(f'../')
-            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
-        except:
-            print('Failed to commit to git')
-        
-    except:
-        print('No "index.md" file in "assets". Aborting...')
-        
-### Generate Markdown header
-def header(name=None):
-    if name is None:
-        try: 
-            name = ipynbname.name()
-        except:
-            name = ''
-            
-    with open('../assets/header.md') as f:
-        header = f.read()
-        header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-        header = header.replace('@NOTEBOOK@', name)
-        return Markdown(header)
-
-### Generate Markdown footer
-def footer():
-    with open('../assets/footer.md') as f:
-        footer = f.read()
-        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-        return Markdown(footer)
-
-# CLI usage
-def run_all(progress_handler=None):    
+### Run all notebooks in the source directory
+def run_notebooks(progress_handler=None):    
     # Get reports
     reports = sorted(glob.glob('*.ipynb'))
     
@@ -240,20 +172,75 @@ def run_all(progress_handler=None):
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
+    
+## Data management
+def cleanup_data(dry_run=False):
+    file_list = glob.glob('../data/*')
+    df = pd.DataFrame(file_list, columns=['file'])
+    df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
+    df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
+    df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
+    # Monthly
+    keep_monthly = df.copy()
+    keep_monthly['Y+m'] = keep_monthly['timestamp'].dt.strftime('%Y%m')
+    keep_monthly.drop_duplicates(['Y+m','group'], keep="first", inplace = True)
+    # Weekly
+    keep_weekly = keep_monthly.where(keep_monthly['Y+m']==keep_monthly['Y+m'].min())
+    keep_weekly['W'] = keep_monthly['timestamp'].dt.strftime('%W')
+    keep_weekly.drop_duplicates(['W','group'], keep="first", inplace = True)
 
-## If execution flow from the CLI
-if __name__ == "__main__":
-    # Change working directory to script location
-    path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(path)
-    # Execute all notebooks in the source directory
-    run_all()
-    # Update page index to reflect last execution timestamp
-    update_index()
-    # Clear notebooks after HTML reports have been created
-    clear_notebooks()
-    # Exit python
-    quit()
+    drop_index = keep_monthly.index.join(keep_weekly.index)
+    for file in df.loc[~df.index.isin(drop_index),'file']:
+        if dry_run:
+            print(file)
+        else:
+            os.remove(file)
+            
+## Markdown editing
+### Update webpage index with timestamps
+def update_index(): # Handle paths properly
+    index_file_name='README.md'
+    timestamp = datetime.now().astimezone(timezone.utc)
+    try:
+        with open(f'../assets/index.md') as f:
+            readme = f.read()
+            reports = sorted(glob.glob('../*.html'))
+            for report in reports:
+                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
+            
+            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+            with open(f'../{index_file_name}', 'w') as o:
+                print(readme, file=o)
+                
+        try:
+            repo = git.Repo(f'../')
+            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+        except:
+            print('Failed to commit to git')
+        
+    except:
+        print('No "index.md" file in "assets". Aborting...')
+        
+### Generate Markdown header
+def header(name=None):
+    if name is None:
+        try: 
+            name = ipynbname.name()
+        except:
+            name = ''
+            
+    with open('../assets/header.md') as f:
+        header = f.read()
+        header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        header = header.replace('@NOTEBOOK@', name)
+        return Markdown(header)
+
+### Generate Markdown footer
+def footer():
+    with open('../assets/footer.md') as f:
+        footer = f.read()
+        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        return Markdown(footer)
 
 # API variables
 api_url = 'https://yugipedia.com/api.php'
@@ -1093,3 +1080,22 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
     plt.show()
         
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+    
+# CLI usage
+def run_all(progress_handler=None):
+    # Execute all notebooks in the source directory
+    run_notebooks(progress_handler)
+    # Update page index to reflect last execution timestamp
+    update_index()
+    # Clear notebooks after HTML reports have been created
+    clear_notebooks()
+
+## If executing from the CLI
+if __name__ == "__main__":
+    # Change working directory to script location
+    path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(path)
+    # Execute the complete workflow
+    run_all()
+    # Exit python
+    quit()

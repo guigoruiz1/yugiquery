@@ -65,13 +65,13 @@ async def run(ctx):
     process.close()
     
     if exitcode is None:
-        await ctx.edit_original_response(content='Failed!') 
+        await ctx.channel.edit_original_response(content='Failed!') 
     elif exitcode==0:
-        await ctx.edit_original_response(content='Completed!')
+        await ctx.channel.edit_original_response(content='Completed!')
     elif exitcode==-15:
-        await ctx.edit_original_response(content='Aborted!')
+        await ctx.channel.edit_original_response(content='Aborted!')
     else:
-        await ctx.edit_original_response(content=f'Unknown exit code: {exitcode}')
+        await ctx.channel.edit_original_response(content=f'Unknown exit code: {exitcode}')
     
         
 @bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
