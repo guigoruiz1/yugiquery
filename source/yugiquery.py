@@ -141,8 +141,9 @@ rarity_dict = {
     '20scr': '20th Secret Rare', 
     'dscpr': 'Duel Terminal Secret Parallel Rare', 
     'dnrpr': 'Duel Terminal Normal Rare Parallel Rare',
-    'kcc': 'Kaiba Corporation Common' 
-
+    'kcc': 'Kaiba Corporation Common',
+    'orr': 'Over Rush Rare',
+    'rr': 'Rush Rare'
 }
 
 ## Region abreviations dictionary
@@ -554,6 +555,12 @@ def extract_results(response):
     df = pd.concat([df,page_name,page_url],axis=1)
     return df
 
+## Extract categorymembers from query response
+def extract_categorymembers(response):
+    df = pd.DataFrame(response['query']['categorymembers'])
+    return df
+
+
 ## Cards
 ### Query arguments shortcut
 def card_query(default = None, _password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _name_errata = True, _type_errata = True, _alternate_artwork = True, _edited_artwork = True, _tcg = True, _ocg = True, _date = True, _page_name = True, _category = False, _image_URL=False):
@@ -803,8 +810,14 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
                     for argument in template.arguments:
                         if 'region=' in argument:
                             region = argument.string.split('=')[-1]
+                            if region.upper() == 'ES':
+                                region = 'SP'
                         elif 'rarities=' in argument:
-                            rarity = tuple(rarity_dict.get(i.strip().lower(), string.capwords(i.strip())) for i in (argument.string.split('=')[-1]).split(','))
+                            rarity = tuple(
+                                rarity_dict.get(
+                                    i.strip().lower(), string.capwords(i.strip())
+                                ) for i in (argument.string.split('=')[-1]).split(',')
+                            )
                         elif 'print=' in argument:
                             card_print = argument.string.split('=')[-1]
                         elif 'qty=' in argument:
@@ -821,31 +834,33 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
                             list_df = list_df[~list_df[0].str.contains('!:')]
                             list_df = list_df.applymap(lambda x: x.split('//')[0] if x is not None else x)
                             list_df = list_df.applymap(lambda x: x.strip() if x is not None else x)
-                            list_df.replace(r'^\s*$', None, regex = True, inplace = True)
+                            list_df.replace(r'^\s*$|^@.*$', None, regex = True, inplace = True)
 
+                    name_column = 1 if opt == 'noabbr' else 0
+                    
                     if opt != 'noabbr' and len(list_df.columns>1):
                         set_df['Card number'] = list_df[0]
                         set_df['Name'] = list_df[1]
                     else: 
                         set_df['Name'] = list_df[0]
 
-                    if len(list_df.columns)>2: # and rare in str
-                        set_df['Rarity'] = list_df[2].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
+                    if len(list_df.columns)>2-name_column: # and rare in str
+                        set_df['Rarity'] = list_df[2-name_column].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
                     else:
                         set_df['Rarity'] = [rarity for _ in set_df.index]
 
-                    if len(list_df.columns)>3:
+                    if len(list_df.columns)>3-name_column:
                         if card_print is not None: # and new/reprint in str
-                            set_df['Print'] = list_df[3].apply(lambda x: card_print if (card_print and x is None) else x)
-                            if len(list_df.columns)>4 and qty:
-                                set_df['Quantity'] = list_df[4].apply(lambda x: x if x is not None else qty)
+                            set_df['Print'] = list_df[3-name_column].apply(lambda x: card_print if (card_print and x is None) else x)
+                            if len(list_df.columns)>4-name_column and qty:
+                                set_df['Quantity'] = list_df[4-name_column].apply(lambda x: x if x is not None else qty)
                         elif qty:
-                            set_df['Quantity'] = list_df[3].apply(lambda x: x if x is not None else qty)
+                            set_df['Quantity'] = list_df[3-name_column].apply(lambda x: x if x is not None else qty)
 
                     set_df['Name'] = set_df['Name'].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
                     set_df['Set'] = title.split("(")[0].strip()
-                    set_df['Quantity'] = pd.to_numeric(set_df['Quantity'],errors='coerce')
-                    set_df['Region'] = region.upper()
+                    # set_df['Quantity'] = pd.to_numeric(set_df['Quantity'],errors='coerce')
+                    set_df['Region'] = region.upper() 
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
 

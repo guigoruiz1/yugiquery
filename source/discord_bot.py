@@ -1,4 +1,5 @@
 import os
+import glob
 import random
 import subprocess
 import discord
@@ -84,15 +85,13 @@ async def abort(ctx):
         await ctx.edit_original_response(content='Abort failed')
         
 @bot.tree.command(name='latest', description='Show latest time each report was generated')
-async def abort(ctx):
-
-     await ctx.response.send_message('Under construction.', ephemeral=True, delete_after=60)
+async def latest(ctx):
+    response='Latest reports generated:'
+    reports = sorted(glob.glob('../*.html'))
+    for report in reports:
+        response += f'\n- {os.path.basename(report)[:-5]}: {yq.pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}'
     
-#     try:
-#         process.terminate()
-#         await ctx.edit_original_response(content='Aborted')
-#     except:
-#         await ctx.edit_original_response(content='Abort failed')
+    await ctx.response.send_message(response)
     
 @bot.event
 async def on_ready():
