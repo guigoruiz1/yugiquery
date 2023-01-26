@@ -36,6 +36,9 @@ while True:
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
         from dotenv import dotenv_values
+        
+        # Defaults overrides
+        pd.set_option('display.max_columns', 40)
 
         break
 
@@ -48,10 +51,6 @@ while True:
         import subprocess
         print("Missing required packages. Trying to install now...")
         subprocess.call(['sh', './install.sh'])
-
-        
-# Defaults overrides
-pd.set_option('display.max_columns', 40)
         
 # Helpers
 ## Secrets
@@ -89,178 +88,6 @@ def md5(file_name):
     hash_md5.update(file_name.encode())
     return hash_md5.hexdigest()
 
-## Frontend shortcuts
-def save_notebook():
-    app = JupyterFrontEnd()
-    app.commands.execute('docmanager:save')
-    print("Notebook saved to disk")
-    
-## Notebook management
-def clear_notebooks():
-    reports = sorted(glob.glob('*.ipynb'))
-    if len(reports)>0:
-        subprocess.call(['nbstripout']+reports)
-
-## Data management
-def cleanup_data(dry_run=False):
-    file_list = glob.glob('../data/*')
-    df = pd.DataFrame(file_list, columns=['file'])
-    df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
-    df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
-    df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
-    # Monthly
-    keep_monthly = df.copy()
-    keep_monthly['Y+m'] = keep_monthly['timestamp'].dt.strftime('%Y%m')
-    keep_monthly.drop_duplicates(['Y+m','group'], keep="first", inplace = True)
-    # Weekly
-    keep_weekly = keep_monthly.where(keep_monthly['Y+m']==keep_monthly['Y+m'].min())
-    keep_weekly['W'] = keep_monthly['timestamp'].dt.strftime('%W')
-    keep_weekly.drop_duplicates(['W','group'], keep="first", inplace = True)
-
-    drop_index = keep_monthly.index.join(keep_weekly.index)
-    for file in df.loc[~df.index.isin(drop_index),'file']:
-        if dry_run:
-            print(file)
-        else:
-            os.remove(file)
-            
-## Markdown editing
-### Update webpage index with timestamps
-def update_index(): # Handle paths properly
-    index_file_name='README.md'
-    timestamp = datetime.now().astimezone(timezone.utc)
-    try:
-        with open(f'../assets/index.md') as f:
-            readme = f.read()
-            reports = sorted(glob.glob('../*.html'))
-            for report in reports:
-                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
-            
-            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-            with open(f'../{index_file_name}', 'w') as o:
-                print(readme, file=o)
-                
-        try:
-            repo = git.Repo(f'../')
-            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
-        except:
-            print('Failed to commit to git')
-        
-    except:
-        print('No "index.md" file in "assets". Aborting...')
-        
-### Generate Markdown header
-def header(name=None):
-    if name is None:
-        try: 
-            name = ipynbname.name()
-        except:
-            name = ''
-            
-    with open('../assets/header.md') as f:
-        header = f.read()
-        header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-        header = header.replace('@NOTEBOOK@', name)
-        return Markdown(header)
-
-### Generate Markdown footer
-def footer():
-    with open('../assets/footer.md') as f:
-        footer = f.read()
-        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
-        return Markdown(footer)
-
-# CLI usage
-def run_all(progress_handler=None):    
-    # Get reports
-    reports = sorted(glob.glob('*.ipynb'))
-    
-    if progress_handler:
-        external_pbar = progress_handler(reports, desc="Completion", unit='report', unit_scale=True)
-    
-    # Initialize iterators
-    try:
-        required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
-        secrets_file = '../assets/secrets.env'
-        secrets = load_secrets(secrets_file, required_secrets, required=True)
-        from tqdm.contrib.discord import tqdm as discord_tqdm
-        iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
-    except:
-        iterator = tqdm(reports, desc="Completion", unit='report')
-    
-    # Create a custom logger
-    logger = logging.getLogger("papermill")
-    logger.setLevel(logging.INFO)
-
-    # Create a StreamHandler and attach it to the logger
-    stream_handler = logging.StreamHandler(io.StringIO())
-    stream_handler.setFormatter(logging.Formatter("%(message)s"))
-    stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
-    logger.addHandler(stream_handler)
-    
-    # Define a function to update the output variable
-    def update_pbar():
-        iterator.update((1/cells))
-        if progress_handler:
-            external_pbar.update((1/cells))
-            
-    for i, report in enumerate(iterator):
-        iterator.n = i
-        iterator.last_print_n = i
-        iterator.refresh()
-        
-        with open(report) as f:
-            nb = nbformat.read(f,nbformat.NO_CONVERT)
-            cells = len(nb.cells)
-            # print(f'Number of Cells: {cells}')
-
-        # Attach the update_pbar function to the stream_handler
-        stream_handler.flush = update_pbar
-        
-        # Update postfix
-        tqdm.write(f'Generating {report[:-6]} report')
-        iterator.set_postfix(report=report)
-        if progress_handler:
-            external_pbar.set_postfix(report=report)
-            
-        # execute the notebook with papermill
-        pm.execute_notebook(
-            report,
-            report,
-            log_output=True,
-            progress_bar=True,
-        );
-        
-    # Clsoe the iterator
-    iterator.close()
-    if progress_handler:
-        external_pbar.close()
-        
-    # Close the stream_handler
-    stream_handler.close()
-    # Clear custom handler
-    logger.handlers.clear()
-
-## If execution flow from the CLI
-if __name__ == "__main__":
-    # Change working directory to script location
-    path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(path)
-    # Execute all notebooks in the source directory
-    run_all()
-    # Update page index to reflect last execution timestamp
-    update_index()
-    # Clear notebooks after HTML reports have been created
-    clear_notebooks()
-    # Exit python
-    quit()
-
-# API variables
-api_url = 'https://yugipedia.com/api.php'
-media_url='https://ws.yugipedia.com/'
-revisions_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
-
-# Lists - must be manually updated
 ## Attributes list to split monsters query
 attributes = [
     'DIVINE', 
@@ -314,8 +141,9 @@ rarity_dict = {
     '20scr': '20th Secret Rare', 
     'dscpr': 'Duel Terminal Secret Parallel Rare', 
     'dnrpr': 'Duel Terminal Normal Rare Parallel Rare',
-    'kcc': 'Kaiba Corporation Common' 
-
+    'kcc': 'Kaiba Corporation Common',
+    'orr': 'Over Rush Rare',
+    'rr': 'Rush Rare'
 }
 
 ## Region abreviations dictionary
@@ -351,40 +179,6 @@ arrows_dict = {
     'Bottom-Right': '\u2198'
 }
 
-## Colors dictionary to associate to series and cards
-colors_dict = {
-    'Effect Monster': '#FF8B53', 
-    'Normal Monster': '#FDE68A', 
-    'Ritual Monster': '#9DB5CC', 
-    'Fusion Monster': '#A086B7', 
-    'Synchro Monster': '#CCCCCC', 
-    'Xyz Monster': '#000000', 
-    'Link Monster': '#00008B', 
-    'Pendulum Monster': 'r', 
-    'Monster Card': '#FF8B53', 
-    'Spell Card': '#1D9E74', 
-    'Trap Card': '#BC5A84', 
-    'Monster Token': '#C0C0C0', 
-    'FIRE': '#fd1b1b', 
-    'WATER': '#03a9e6', 
-    'EARTH': '#060d0a', 
-    'WIND': '#77bb58', 
-    'DARK': '#745ea5', 
-    'LIGHT': '#9d8047', 
-    'DIVINE': '#7e6537', 
-    'Level': '#f1a41f',
-    'First Series': '#FDE68A',
-    'Duel Monsters': '#FF8B53',
-    'GX': '#A086B7',
-    '5D\'s': '#CCCCCC',
-    'ZEXAL': '#000000',
-    'ARC-V': 'r',
-    'VRAINS': '#00008B',
-    'SEVENS': '#1D9E74',
-    'GO RUSH!!': '#BC5A84'
-}
-
-# API call functions
 ## Images
 async def download_images(urls, save_folder:str = "../images/", validate:bool = True, max_tasks:int = 10):
     async def download_image(session, url, save_folder, semaphore, pbar):
@@ -416,332 +210,30 @@ async def download_images(urls, save_folder:str = "../images/", validate:bool = 
                 pbar.update()
                 await task
 
-## Cards
-### Query arguments shortcut
-def card_query(_password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _name_errata = True, _type_errata = True, _alternate_artwork = True, _edited_artwork = True, _tcg = True, _ocg = True, _date = True, _page_name = True, _category = False, _image_URL=False):
-    search_string = f'|?English%20name=Name'
-    if _password:
-        search_string += '|?Password'
-    if _card_type:
-        search_string += '|?Card%20type'
-    if _property:    
-        search_string += '|?Property'
-    if _primary:
-        search_string += '|?Primary%20type'
-    if _secondary:
-        search_string += '|?Secondary%20type'
-    if _attribute:
-        search_string += '|?Attribute'
-    if _monster_type:
-        search_string += '|?Type=Monster%20type'
-    if _stars:
-        search_string += '|?Stars%20string=Level%2FRank%20'
-    if _atk:
-        search_string += '|?ATK%20string=ATK'
-    if _def:
-        search_string += '|?DEF%20string=DEF'
-    if _scale:
-        search_string += '|?Pendulum%20Scale'
-    if _link:
-        search_string += '|?Link%20Rating=Link'
-    if _arrows:
-        search_string += '|?Link%20Arrows'
-    if _effect_type:
-        search_string += '|?Effect%20type'
-    if _archseries:
-        search_string += '|?Archseries'
-    if _alternate_artwork:
-        search_string += '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks'
-    if _edited_artwork:
-        search_string += '|?Category:OCG/TCG%20cards%20with%20edited%20artworks'
-    if _name_errata:
-        search_string += '|?Category:Cards%20with%20name%20errata'
-    if _type_errata:
-        search_string += '|?Category:Cards%20with%20card%20type%20errata'
-    if _tcg:
-        search_string += '|?TCG%20status'
-    if _ocg:
-        search_string += '|?OCG%20status'
-    if _date:
-        search_string += '|?Modification%20date'
-    if _image_URL:
-        search_string += '|?Card%20image' 
-    if _category: # Deprecated - Use for debuging
-        search_string += '|?category' 
-        
-    return search_string
+## Data management
+def cleanup_data(dry_run=False):
+    file_list = glob.glob('../data/*')
+    df = pd.DataFrame(file_list, columns=['file'])
+    df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
+    df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
+    df = df.sort_values(['group', 'timestamp'], ascending=[True,False]).reset_index(drop=True)
+    # Monthly
+    keep_monthly = df.copy()
+    keep_monthly['Y+m'] = keep_monthly['timestamp'].dt.strftime('%Y%m')
+    keep_monthly.drop_duplicates(['Y+m','group'], keep="first", inplace = True)
+    # Weekly
+    keep_weekly = keep_monthly.where(keep_monthly['Y+m']==keep_monthly['Y+m'].min())
+    keep_weekly['W'] = keep_monthly['timestamp'].dt.strftime('%W')
+    keep_weekly.drop_duplicates(['W','group'], keep="first", inplace = True)
 
-### Fetch cards from query and concept - should be called from parent functions
-def fetch_cards(query, concept, step=5000, limit=5000, extra_filter='', iterator=None, debug=False):
-    df=pd.DataFrame()
-    i = 0
-    complete = False
-    while not complete:
-        if iterator is not None:
-            iterator.set_postfix(it=i+1)
-        
-        response = pd.read_json(f'{api_url}?action=ask&query=[[Concept:{concept}]]{extra_filter}{query}|limit%3D{step}|offset={i*step}|order%3Dasc&format=json')
-
-        result = extract_results(response)
-        formatted_df = format_df(result)
-        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
-        
-        if debug:
-            tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
-
-        if len(formatted_df.index)<step or (i+1)*step>=limit:
-            complete = True
+    drop_index = keep_monthly.index.join(keep_weekly.index)
+    for file in df.loc[~df.index.isin(drop_index),'file']:
+        if dry_run:
+            print(file)
         else:
-            i+=1
+            os.remove(file)
             
-    return df
-
-### Fetch spell or trap cards
-def fetch_st(st_query, st='both', cg='CG', step = 1000, limit = 5000, debug=False):
-    valid_cg = validate_cg(cg)
-    st = st.capitalize()
-    valid_st = {'Spell', 'Trap', 'Both', 'All'}
-    if st not in valid_st:
-        raise ValueError("results: st must be one of %r." % valid_st)
-    elif st=='Both' or st=='All':
-        concept=f'{valid_cg}%20Spell%20Cards]]OR[[Concept:{valid_cg}%20Trap%20Cards'
-        st='Spells and Trap'
-    else:
-        concept=f'{valid_cg}%20{st}%20Cards'
-        
-    print(f'Downloading {st}s')
-    st_df = fetch_cards(st_query, concept, step=step, limit=limit, debug=debug)
-            
-    if debug:
-        print('- Total')
-              
-    print(f'{len(st_df.index)} results\n')
-    
-    return st_df
-
-### Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query, cg='CG', step = 1000, limit = 5000, debug=False):
-    valid_cg = validate_cg(cg)
-        
-    print('Downloading monsters')
-    monster_df = pd.DataFrame()
-    iterator = tqdm(attributes, leave = False, unit='attribute')
-    for att in iterator:
-        iterator.set_description(att)
-        if debug:
-            tqdm.write(f"- {att}")
-        
-        temp_df = fetch_cards(monster_query, f'{valid_cg}%20monsters', step=step, limit=limit, extra_filter=f'[[Attribute::{att}]]', iterator=iterator, debug=debug)
-        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0) 
-    
-    if debug:
-        print('- Total')
-        
-    print(f'{len(monster_df.index)} results\n')
-    
-    return monster_df
-
-def fetch_errata(errata='all', limit = 1000):
-    errata = errata.lower()
-    valid = {'name', 'type', 'all', 'both'}
-    if errata not in valid:
-        raise ValueError("results: errata must be one of %r." % valid)
-    elif errata == 'both' or errata=='all':
-        errata_list = ['name','type']
-    else:
-        errata_list = [errata]
-
-    errata_df = pd.DataFrame()
-    for errata in errata_list:
-        if errata == 'type':
-            category = 'Cards%20with%20card%20type%20errata'
-        if errata == 'name':
-            category = 'Cards%20with%20name%20errata'
-
-        print(f'Downloading {errata} errata')  
-        errata_query_df = pd.read_json(f'{api_url}?action=ask&query=[[Category:{category}]]|limit={limit}|order%3Dasc&format=json')
-        errata_keys = errata_query_df['query']['results'].keys()
-        errata_index = [i.split('Card Errata:')[-1].strip() for i in errata_keys if 'Card Errata:' in i]
-        errata_column = f'{errata.capitalize()} errata'
-        errata_series = pd.Series(True, index = errata_index, name=errata_column)
-        print(f'{len(errata_series)} results\n')
-
-        errata_df = pd.concat([errata_df, errata_series],axis=1).fillna(False)
-
-    return errata_df
-
-## Sets
-### Get title of set list pages
-def get_set_titles(cg='CG', limit=5000):
-    valid_cg = validate_cg(cg)
-    if valid_cg=='CG':
-        category='TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists'
-    else:
-        category=f'{valid_cg}%20Set%20Card%20Lists'
-        
-    df = pd.read_json(f'{api_url}?action=ask&query=[[Category:{category}]]|limit%3D{limit}|order%3Dasc&format=json')
-    keys = list(df['query']['results'].keys())
-    return keys
-
-### Fetch set lists from page titles
-def fetch_set_lists(titles, debug=False):  # Separate formating function
-    if debug:
-        print(f'{len(titles)} set lists requested')
-    
-    titles = up.quote('|'.join(titles))
-    
-    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
-    success = 0
-    error = 0
-
-    df = pd.read_json(f'{api_url}{revisions_query_url}{titles}')
-    contents = df['query']['pages'].values()
-    for content in contents:
-        if 'revisions' in  content.keys():
-            temp = content['revisions'][0]['*']
-            parsed = wtp.parse(temp)
-            for template in parsed.templates:
-                if template.name == 'Set list':
-                    title = content['title'].split('Lists:')[1]
-                    set_df = pd.DataFrame(columns = set_lists_df.columns)
-
-                    region = None
-                    rarity = None
-                    card_print = None
-                    qty = None
-                    desc = None
-                    opt = None
-                    list_df = None
-                    
-                    for argument in template.arguments:
-                        if 'region=' in argument:
-                            region = argument.string[argument.string.index('=')+1:]
-                        elif 'rarities=' in argument:
-                            rarity = tuple(rarity_dict.get(i.strip().lower(), string.capwords(i.strip())) for i in argument.string[argument.string.index('=')+1:].split(','))
-                        elif 'print=' in argument:
-                            card_print = argument.string[argument.string.index('=')+1:]
-                        elif 'qty=' in argument:
-                            qty = argument.string[argument.string.index('=')+1:]
-                        elif 'description=' in argument:
-                            desc = argument.string[argument.string.index('=')+1:]
-                        elif 'options=' in argument:
-                            opt = argument.string[argument.string.index('=')+1:]
-                        else:
-                            set_list = argument.string[2:-1]
-                            lines = set_list.split('\n')
-
-                            list_df = pd.DataFrame([x.split(';') for x in lines])
-                            list_df = list_df[~list_df[0].str.contains('!:')]
-                            list_df = list_df.applymap(lambda x: x.split('//')[0] if x is not None else x)
-                            list_df = list_df.applymap(lambda x: x.strip() if x is not None else x)
-                            list_df.replace(r'^\s*$', None, regex = True, inplace = True)
-
-                    if opt != 'noabbr':
-                        set_df['Card number'] = list_df[0]
-                        set_df['Name'] = list_df[1]
-                    else: 
-                        set_df['Name'] = list_df[0]
-
-                    if len(list_df.columns)>2: # and rare in str
-                        set_df['Rarity'] = list_df[2].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
-                    else:
-                        set_df['Rarity'] = [rarity for _ in set_df.index]
-
-                    if len(list_df.columns)>3 :
-                        if card_print is not None: # and new/reprint in str
-                            set_df['Print'] = list_df[3].apply(lambda x: x if x is not None else card_print)
-                            if len(list_df.columns)>4 and qty is not None:
-                                set_df['Quantity'] = list_df[4].apply(lambda x: x if x is not None else qty)
-                        elif qty is not None:
-                            set_df['Quantity'] = list_df[3].apply(lambda x: x if x is not None else qty)
-                    
-                    set_df['Name'] = set_df['Name'].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
-                    set_df['Set'] = title.split("(")[0].strip()
-                    set_df['Quantity'] = pd.to_numeric(set_df['Quantity'])
-                    set_df['Region'] = region.upper()
-                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
-                    success+=1
-                    
-        else:
-            if debug:
-                print(f"Error! No content for \"{content['title']}\"")
-            error+=1
-    
-    if debug:
-        print(f'{success} set lists received - {error} errors')
-        print('-------------------------------------------------')
-    
-    return set_lists_df, success, error
-
-### Fecth all set lists
-def fetch_all_set_lists(cg='CG', step = 50, debug=False):
-    keys = get_set_titles(cg) # Get list of sets
-
-    all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
-    total_success = 0
-    total_error = 0
-
-    for i in trange(np.ceil(len(keys)/step).astype(int), leave=False):
-        success = 0
-        error = 0
-        if debug:
-            tqdm.write(f'Iteration {i}:')
-
-        first = i*step
-        last = (i+1)*step
-        
-        set_lists_df, success, error = fetch_set_lists(keys[first:last])
-        all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
-        total_success+=success
-        total_error+=error
-
-    all_set_lists_df = all_set_lists_df.convert_dtypes()
-    all_set_lists_df.sort_values(by=['Set','Region','Card number']).reset_index(inplace = True)
-    print(f'{"Total:" if debug else ""}{total_success} set lists received - {total_error} errors')
-    
-    return all_set_lists_df
-
-### Fetch set info for list of sets
-def fetch_set_info(sets, step=15, debug=False):
-    # Info to ask
-    info = ['Series','Set type','Cover card','Modification date']
-    # Release to ask
-    release = [i+' release date' for i in set(regions_dict.values())]
-    # Ask list
-    ask = up.quote('|'.join(np.append(info,release)))
-
-    # Get set info
-    set_info_df = pd.DataFrame()
-    for i in trange(np.ceil(len(sets)/step).astype(int),leave=False):
-        first = i*step
-        last = (i+1)*step
-        titles = up.quote(']]OR[['.join(sets[first:last]))
-        response = pd.read_json(f'{api_url}?action=askargs&conditions={titles}&printouts={ask}&format=json')
-        formatted_response = extract_results(response)
-        formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(formatted_response)
-        if debug:
-            tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
-            tqdm.write('-------------------------------------------------')
-        
-        set_info_df = pd.concat([set_info_df, formatted_df])
-
-    set_info_df = set_info_df.convert_dtypes()
-    set_info_df.sort_index(inplace = True)
-    
-    print(f'{"Total:" if debug else ""}{len(set_info_df)} set properties received - {len(sets)-len(set_info_df)} errors')
-    
-    return set_info_df
-
-# Data formating functions
-def extract_results(response):
-    df = pd.DataFrame(response['query']['results']).transpose()
-    df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
-    page_url=pd.DataFrame(response['query']['results']).transpose()['fullurl'].rename('Page URL')
-    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
-    df = pd.concat([df,page_name,page_url],axis=1)
-    return df
-
+## Data formating functions
 def extract_fulltext(x):
     if len(x)>0:
         if isinstance(x[0], int):
@@ -826,7 +318,7 @@ def format_df(input_df, include_all=False):
         
     return df
 
-## Cards
+### Cards
 def extract_category_bool(x):
     if len(x)>0:
         if x[0]=='f':
@@ -873,7 +365,7 @@ def merge_errata(input_df, input_errata_df, drop=False):
     
     return input_df
 
-## Sets
+### Sets
 def merge_set_info(input_df, input_info_df):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
@@ -885,7 +377,7 @@ def merge_set_info(input_df, input_info_df):
         
     return input_df
 
-# Changelog
+## Changelog
 def generate_changelog(previous_df, current_df, col):
     changelog = previous_df.merge(current_df,indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
     changelog['_merge'].replace(['left_only','right_only'],['Old', 'New'], inplace = True)
@@ -899,18 +391,586 @@ def generate_changelog(previous_df, current_df, col):
         true_changes = changelog.drop(['Modification date', 'Version'], axis = 1)[nunique>1].dropna(axis=0, how='all').index
         new_entries = nunique[nunique['Version'] == 1].dropna(axis=0, how='all').index
         rows_to_keep = true_changes.union(new_entries).unique()
-        changelog = changelog.loc[rows_to_keep]
+        changelog = changelog.loc[rows_to_keep].sort_values([col,'Version'])
     
     if changelog.empty:
         print('No changes')
         
     return changelog
 
-# Styling
+## Styling
 def style_df(df):
     return df.style.format(hyperlinks='html')
 
+# Notebook management
+
+## Frontend shortcuts
+### Force saving the notebook to disk
+def save_notebook():
+    app = JupyterFrontEnd()
+    app.commands.execute('docmanager:save')
+    print("Notebook saved to disk")
+
+## Notebook management
+### Remove output from all notebooks in the source directory
+def clear_notebooks():
+    reports = sorted(glob.glob('*.ipynb'))
+    if len(reports)>0:
+        subprocess.call(['nbstripout']+reports)
+
+### Run all notebooks in the source directory
+def run_notebooks(progress_handler=None):    
+    # Get reports
+    reports = sorted(glob.glob('*.ipynb'))
+
+    if progress_handler:
+        external_pbar = progress_handler(reports, desc="Completion", unit='report', unit_scale=True)
+
+    # Initialize iterators
+    try:
+        required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
+        secrets_file = '../assets/secrets.env'
+        secrets = load_secrets(secrets_file, required_secrets, required=True)
+        from tqdm.contrib.discord import tqdm as discord_tqdm
+        iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+    except:
+        iterator = tqdm(reports, desc="Completion", unit='report')
+
+    # Create a custom logger
+    logger = logging.getLogger("papermill")
+    logger.setLevel(logging.INFO)
+
+    # Create a StreamHandler and attach it to the logger
+    stream_handler = logging.StreamHandler(io.StringIO())
+    stream_handler.setFormatter(logging.Formatter("%(message)s"))
+    stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
+    logger.addHandler(stream_handler)
+
+    # Define a function to update the output variable
+    def update_pbar():
+        iterator.update((1/cells))
+        if progress_handler:
+            external_pbar.update((1/cells))
+
+    for i, report in enumerate(iterator):
+        iterator.n = i
+        iterator.last_print_n = i
+        iterator.refresh()
+
+        with open(report) as f:
+            nb = nbformat.read(f,nbformat.NO_CONVERT)
+            cells = len(nb.cells)
+            # print(f'Number of Cells: {cells}')
+
+        # Attach the update_pbar function to the stream_handler
+        stream_handler.flush = update_pbar
+
+        # Update postfix
+        tqdm.write(f'Generating {report[:-6]} report')
+        iterator.set_postfix(report=report)
+        if progress_handler:
+            external_pbar.set_postfix(report=report)
+
+        # execute the notebook with papermill
+        pm.execute_notebook(
+            report,
+            report,
+            log_output=True,
+            progress_bar=True,
+        );
+
+    # Clsoe the iterator
+    iterator.close()
+    if progress_handler:
+        external_pbar.close()
+
+    # Close the stream_handler
+    stream_handler.close()
+    # Clear custom handler
+    logger.handlers.clear()
+            
+# Markdown editing
+
+## Update webpage index with timestamps
+def update_index(): # Handle paths properly
+    index_file_name='README.md'
+    timestamp = datetime.now().astimezone(timezone.utc)
+    try:
+        with open(f'../assets/index.md') as f:
+            readme = f.read()
+            reports = sorted(glob.glob('../*.html'))
+            for report in reports:
+                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
+
+            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+            with open(f'../{index_file_name}', 'w') as o:
+                print(readme, file=o)
+
+        try:
+            repo = git.Repo(f'../')
+            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+        except:
+            print('Failed to commit to git')
+
+    except:
+        print('No "index.md" file in "assets". Aborting...')
+
+## Generate Markdown header
+def header(name=None):
+    if name is None:
+        try: 
+            name = ipynbname.name()
+        except:
+            name = ''
+
+    with open('../assets/header.md') as f:
+        header = f.read()
+        header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        header = header.replace('@NOTEBOOK@', name)
+        return Markdown(header)
+
+## Generate Markdown footer
+def footer():
+    with open('../assets/footer.md') as f:
+        footer = f.read()
+        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        return Markdown(footer)
+
+# API call functions
+
+## Variables
+base_url = 'https://yugipedia.com/api.php'
+media_url='https://ws.yugipedia.com/'
+revisions_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
+ask_query_url='?action=ask&query='
+askargs_query_url = '?action=askargs&conditions='
+query_format='|order%3Dasc&format=json'
+
+## Extract results from query response
+def extract_results(response):
+    df = pd.DataFrame(response['query']['results']).transpose()
+    df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
+    page_url=pd.DataFrame(response['query']['results']).transpose()['fullurl'].rename('Page URL')
+    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
+    df = pd.concat([df,page_name,page_url],axis=1)
+    return df
+
+## Extract categorymembers from query response
+def extract_categorymembers(response):
+    df = pd.DataFrame(response['query']['categorymembers'])
+    return df
+
+
+## Cards
+### Query arguments shortcut
+def card_query(default = None, _password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _name_errata = True, _type_errata = True, _alternate_artwork = True, _edited_artwork = True, _tcg = True, _ocg = True, _date = True, _page_name = True, _category = False, _image_URL=False):
+    if default is not None:
+        default = default.lower() 
+    valid_default = {'spell', 'trap', 'st', 'monster', None}
+    if default not in valid_default:
+        raise ValueError("results: default must be one of %r." % valid_default)
+    elif default=='monster':
+        return card_query(
+            _property = False
+        )
+    elif default=='st' or default=='trap' or default=='spell':
+        return card_query(
+            _primary = False,
+            _secondary = False,
+            _attribute = False, 
+            _monster_type = False, 
+            _stars = False, 
+            _atk = False, 
+            _def = False, 
+            _scale = False, 
+            _link = False, 
+            _arrows = False
+        )
+    else:
+        search_string = '|?English%20name=Name'
+        if _password:
+            search_string += '|?Password'
+        if _card_type:
+            search_string += '|?Card%20type'
+        if _property:    
+            search_string += '|?Property'
+        if _primary:
+            search_string += '|?Primary%20type'
+        if _secondary:
+            search_string += '|?Secondary%20type'
+        if _attribute:
+            search_string += '|?Attribute'
+        if _monster_type:
+            search_string += '|?Type=Monster%20type'
+        if _stars:
+            search_string += '|?Stars%20string=Level%2FRank%20'
+        if _atk:
+            search_string += '|?ATK%20string=ATK'
+        if _def:
+            search_string += '|?DEF%20string=DEF'
+        if _scale:
+            search_string += '|?Pendulum%20Scale'
+        if _link:
+            search_string += '|?Link%20Rating=Link'
+        if _arrows:
+            search_string += '|?Link%20Arrows'
+        if _effect_type:
+            search_string += '|?Effect%20type'
+        if _archseries:
+            search_string += '|?Archseries'
+        if _alternate_artwork:
+            search_string += '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks'
+        if _edited_artwork:
+            search_string += '|?Category:OCG/TCG%20cards%20with%20edited%20artworks'
+        if _name_errata:
+            search_string += '|?Category:Cards%20with%20name%20errata'
+        if _type_errata:
+            search_string += '|?Category:Cards%20with%20card%20type%20errata'
+        if _tcg:
+            search_string += '|?TCG%20status'
+        if _ocg:
+            search_string += '|?OCG%20status'
+        if _date:
+            search_string += '|?Modification%20date'
+        if _image_URL:
+            search_string += '|?Card%20image' 
+        if _category: # Deprecated - Use for debuging
+            search_string += '|?category' 
+
+        return search_string
+
+### Fetch properties from query and condition - should be called from parent functions
+def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, debug=False):
+    df=pd.DataFrame()
+    i = 0
+    complete = False
+    while not complete:
+        if iterator is not None:
+            iterator.set_postfix(it=i+1)
+
+        response = pd.read_json(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}{query_format}')
+
+        result = extract_results(response)
+        formatted_df = format_df(result)
+        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
+
+        if debug:
+            tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
+
+        if len(formatted_df.index)<step or (i+1)*step>=limit:
+            complete = True
+        else:
+            i+=1
+
+    return df
+
+### Fetch spell or trap cards
+def fetch_st(st_query, st='both', cg='CG', step = 1000, limit = 5000, debug=False):
+    valid_cg = validate_cg(cg)
+    st = st.capitalize()
+    valid_st = {'Spell', 'Trap', 'Both', 'All'}
+    if st not in valid_st:
+        raise ValueError("results: st must be one of %r." % valid_st)
+    elif st=='Both' or st=='All':
+        concept=f'[[Concept:{valid_cg}%20Spell%20Cards]]OR[[Concept:{valid_cg}%20Trap%20Cards]]'
+        st='Spells and Trap'
+    else:
+        concept=f'[[Concept:{valid_cg}%20{st}%20Cards]]'
+
+    print(f'Downloading {st}s')
+    st_df = fetch_properties(
+        concept, 
+        st_query, 
+        step=step, 
+        limit=limit, 
+        debug=debug
+    )
+
+    if debug:
+        print('- Total')
+
+    print(f'{len(st_df.index)} results\n')
+
+    return st_df
+
+### Fetch monster cards by splitting into attributes
+def fetch_monster(monster_query, cg='CG', step = 1000, limit = 5000, debug=False):
+    valid_cg = validate_cg(cg)
+
+    print('Downloading monsters')
+    monster_df = pd.DataFrame()
+    iterator = tqdm(attributes, leave = False, unit='attribute')
+    for att in iterator:
+        iterator.set_description(att)
+        if debug:
+            tqdm.write(f"- {att}")
+
+        concept = f'[[Concept:{valid_cg}%20monsters]][[Attribute::{att}]]'
+
+        temp_df = fetch_properties(
+            concept, 
+            monster_query, 
+            step=step, 
+            limit=limit, 
+            iterator=iterator, 
+            debug=debug
+        )
+
+        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0) 
+
+    if debug:
+        print('- Total')
+
+    print(f'{len(monster_df.index)} results\n')
+
+    return monster_df
+
+def fetch_errata(errata='all', limit = 1000):
+    errata = errata.lower()
+    valid = {'name', 'type', 'all', 'both'}
+    if errata not in valid:
+        raise ValueError("results: errata must be one of %r." % valid)
+    elif errata == 'both' or errata=='all':
+        errata_list = ['name','type']
+    else:
+        errata_list = [errata]
+
+    errata_df = pd.DataFrame()
+    for errata in errata_list:
+        if errata == 'type':
+            condition = '[[Category:Cards%20with%20card%20type%20errata]]'
+        if errata == 'name':
+            condition = '[[Category:Cards%20with%20name%20errata]]'
+
+        print(f'Downloading {errata} errata')  
+        errata_query_df = fetch_properties(
+            condition, 
+            query='',
+            step=limit, 
+            limit=limit
+        )
+
+        errata_index = [i.split('Card Errata:')[-1].strip() for i in errata_query_df['Page name'] if 'Card Errata:' in i]
+        errata_column = f'{errata.capitalize()} errata'
+        errata_series = pd.Series(True, index = errata_index, name=errata_column)
+        print(f'{len(errata_series)} results\n')
+
+        errata_df = pd.concat([errata_df, errata_series],axis=1).fillna(False)
+
+    return errata_df
+
+## Sets
+### Get title of set list pages
+def get_set_titles(cg='CG', limit=5000):
+    valid_cg = validate_cg(cg)
+    if valid_cg=='CG':
+        condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
+    else:
+        category=f'[[Category:{valid_cg}%20Set%20Card%20Lists]]'
+
+    df = fetch_properties(
+        condition,
+        query='',
+        step=limit,
+        limit=limit
+    )
+
+    return df['Page name']
+
+### Fetch set lists from page titles
+def fetch_set_lists(titles, debug=False):  # Separate formating function
+    if debug:
+        print(f'{len(titles)} set lists requested')
+
+    titles = up.quote('|'.join(titles))
+
+    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
+    success = 0
+    error = 0
+
+    df = pd.read_json(f'{base_url}{revisions_query_url}{titles}')
+    contents = df['query']['pages'].values()
+    for content in contents:
+        if 'revisions' in  content.keys():
+            temp = content['revisions'][0]['*']
+            parsed = wtp.parse(temp)
+            for template in parsed.templates:
+                if template.name == 'Set list':
+                    title = content['title'].split('Lists:')[1]
+                    set_df = pd.DataFrame(columns = set_lists_df.columns)
+
+                    region = None
+                    rarity = None
+                    card_print = None
+                    qty = None
+                    desc = None
+                    opt = None
+                    list_df = None
+
+                    for argument in template.arguments:
+                        if 'region=' in argument:
+                            region = argument.string.split('=')[-1]
+                            if region.upper() == 'ES':
+                                region = 'SP'
+                        elif 'rarities=' in argument:
+                            rarity = tuple(
+                                rarity_dict.get(
+                                    i.strip().lower(), string.capwords(i.strip())
+                                ) for i in (argument.string.split('=')[-1]).split(',')
+                            )
+                        elif 'print=' in argument:
+                            card_print = argument.string.split('=')[-1]
+                        elif 'qty=' in argument:
+                            qty = argument.string.split('=')[-1]
+                        elif 'description=' in argument:
+                            desc = argument.string.split('=')[-1]
+                        elif 'options=' in argument:
+                            opt = argument.string.split('=')[-1]
+                        else:
+                            set_list = argument.string[2:-1]
+                            lines = set_list.split('\n')
+
+                            list_df = pd.DataFrame([x.split(';') for x in lines])
+                            list_df = list_df[~list_df[0].str.contains('!:')]
+                            list_df = list_df.applymap(lambda x: x.split('//')[0] if x is not None else x)
+                            list_df = list_df.applymap(lambda x: x.strip() if x is not None else x)
+                            list_df.replace(r'^\s*$|^@.*$', None, regex = True, inplace = True)
+
+                    name_column = 1 if opt == 'noabbr' else 0
+                    
+                    if opt != 'noabbr' and len(list_df.columns>1):
+                        set_df['Card number'] = list_df[0]
+                        set_df['Name'] = list_df[1]
+                    else: 
+                        set_df['Name'] = list_df[0]
+
+                    if len(list_df.columns)>2-name_column: # and rare in str
+                        set_df['Rarity'] = list_df[2-name_column].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
+                    else:
+                        set_df['Rarity'] = [rarity for _ in set_df.index]
+
+                    if len(list_df.columns)>3-name_column:
+                        if card_print is not None: # and new/reprint in str
+                            set_df['Print'] = list_df[3-name_column].apply(lambda x: card_print if (card_print and x is None) else x)
+                            if len(list_df.columns)>4-name_column and qty:
+                                set_df['Quantity'] = list_df[4-name_column].apply(lambda x: x if x is not None else qty)
+                        elif qty:
+                            set_df['Quantity'] = list_df[3-name_column].apply(lambda x: x if x is not None else qty)
+
+                    set_df['Name'] = set_df['Name'].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
+                    set_df['Set'] = title.split("(")[0].strip()
+                    # set_df['Quantity'] = pd.to_numeric(set_df['Quantity'],errors='coerce')
+                    set_df['Region'] = region.upper() 
+                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
+                    success+=1
+
+        else:
+            if debug:
+                print(f"Error! No content for \"{content['title']}\"")
+            error+=1
+
+    if debug:
+        print(f'{success} set lists received - {error} errors')
+        print('-------------------------------------------------')
+
+    return set_lists_df, success, error
+
+### Fecth all set lists
+
+def fetch_all_set_lists(cg='CG', step = 50, debug=False):
+    keys = get_set_titles(cg) # Get list of sets
+
+    all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
+    total_success = 0
+    total_error = 0
+
+    for i in trange(np.ceil(len(keys)/step).astype(int), leave=False):
+        success = 0
+        error = 0
+        if debug:
+            tqdm.write(f'Iteration {i}:')
+
+        first = i*step
+        last = (i+1)*step
+
+        set_lists_df, success, error = fetch_set_lists(keys[first:last])
+        all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
+        total_success+=success
+        total_error+=error
+
+    all_set_lists_df = all_set_lists_df.convert_dtypes()
+    all_set_lists_df.sort_values(by=['Set','Region','Card number']).reset_index(inplace = True)
+    print(f'{"Total:" if debug else ""}{total_success} set lists received - {total_error} errors')
+
+    return all_set_lists_df
+
+### Fetch set info for list of sets
+def fetch_set_info(sets, step=15, debug=False):
+    # Info to ask
+    info = ['Series','Set type','Cover card','Modification date']
+    # Release to ask
+    release = [i+' release date' for i in set(regions_dict.values())]
+    # Ask list
+    ask = up.quote('|'.join(np.append(info,release)))
+
+    # Get set info
+    set_info_df = pd.DataFrame()
+    for i in trange(np.ceil(len(sets)/step).astype(int),leave=False):
+        first = i*step
+        last = (i+1)*step
+        titles = up.quote(']]OR[['.join(sets[first:last]))
+        response = pd.read_json(f'{base_url}{askargs_query_url}{titles}&printouts={ask}&format=json')
+        formatted_response = extract_results(response)
+        formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
+        formatted_df = format_df(formatted_response)
+        if debug:
+            tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
+            tqdm.write('-------------------------------------------------')
+
+        set_info_df = pd.concat([set_info_df, formatted_df])
+
+    set_info_df = set_info_df.convert_dtypes()
+    set_info_df.sort_index(inplace = True)
+
+    print(f'{"Total:" if debug else ""}{len(set_info_df)} set properties received - {len(sets)-len(set_info_df)} errors')
+
+    return set_info_df
+
 # Plotting functions
+
+## Colors dictionary to associate to series and cards
+colors_dict = {
+    'Effect Monster': '#FF8B53', 
+    'Normal Monster': '#FDE68A', 
+    'Ritual Monster': '#9DB5CC', 
+    'Fusion Monster': '#A086B7', 
+    'Synchro Monster': '#CCCCCC', 
+    'Xyz Monster': '#000000', 
+    'Link Monster': '#00008B', 
+    'Pendulum Monster': 'r', 
+    'Monster Card': '#FF8B53', 
+    'Spell Card': '#1D9E74', 
+    'Trap Card': '#BC5A84', 
+    'Monster Token': '#C0C0C0', 
+    'FIRE': '#fd1b1b', 
+    'WATER': '#03a9e6', 
+    'EARTH': '#060d0a', 
+    'WIND': '#77bb58', 
+    'DARK': '#745ea5', 
+    'LIGHT': '#9d8047', 
+    'DIVINE': '#7e6537', 
+    'Level': '#f1a41f',
+    'First Series': '#FDE68A',
+    'Duel Monsters': '#FF8B53',
+    'GX': '#A086B7',
+    '5D\'s': '#CCCCCC',
+    'ZEXAL': '#000000',
+    'ARC-V': 'r',
+    'VRAINS': '#00008B',
+    'SEVENS': '#1D9E74',
+    'GO RUSH!!': '#BC5A84'
+}
+
 def adjust_lightness(color, amount=0.5):
     try:
         c = mc.cnames[color]
@@ -943,7 +1003,7 @@ def adjust_yaxis(ax,ydif,v):
 def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None, cumsum=True): 
     if colors is None:
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-        
+
     if cumsum: 
         cumsum_ax = ax
         divider = make_axes_locatable(cumsum_ax)
@@ -951,9 +1011,9 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         cumsum_ax.figure.add_axes(yearly_ax)   
         cumsum_ax.set_xticklabels([])
         axes = [cumsum_ax, yearly_ax]   
-        
+
         y = dy.fillna(0).cumsum()
-        
+
         if len(dy.columns)==1:
             cumsum_ax.plot(y, label = "Cummulative", c=colors[0], antialiased=True)
             cumsum_ax.fill_between(y.index, y.values.T[0], color=colors[0], alpha=0.1, hatch='x')
@@ -961,39 +1021,39 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         else:
             cumsum_ax.stackplot(y.index, y.values.T, labels = y.columns, colors=colors, antialiased=True)
             cumsum_ax.set_ylabel(f'Cumulative {y.index.name.lower()}')
-        
+
         yearly_ax.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
         cumsum_ax.legend(loc='upper left', ncols=int(len(dy.columns)/5+1)) # Test
-        
+
     else:
         yearly_ax = ax
         axes = [yearly_ax] 
-        
+
         if len(dy.columns)==1:
             yearly_ax.set_ylabel(f'{dy.columns[0]}\nYearly {dy.index.name.lower()} rate')
         else:
             yearly_ax.set_ylabel(f'Yearly {dy.index.name.lower()} rate')
-    
+
     if len(dy.columns)==1:
         monthly_ax = yearly_ax.twinx()
-        
+
         yearly_ax.plot(dy.resample('Y').sum(), label = "Yearly rate", ls='--', c=colors[1], antialiased=True)
         yearly_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
         monthly_ax.plot(dy.resample('M').sum(), label = "Monthly rate", c=colors[2], antialiased=True)
         monthly_ax.set_ylabel(f'Monthly {dy.index.name.lower()} rate')
         monthly_ax.legend(loc='upper right')
-        
+
     else:
         dy2=dy.resample('Y').sum()
         yearly_ax.stackplot(dy2.index, dy2.values.T, labels = dy2.columns, colors=colors, antialiased=True)
         if not cumsum:
             yearly_ax.legend(loc='upper left', ncols=int(len(dy.columns)/8+1))
-               
+
     if xlabel is not None:
         yearly_ax.set_xlabel(xlabel)
     else:
         yearly_ax.set_xticklabels([])
-    
+
     for temp_ax in axes:
         temp_ax.set_xlim([dy.index.min()-pd.Timedelta(weeks=13),dy.index.max()+pd.Timedelta(weeks=52)])
         temp_ax.xaxis.set_minor_locator(AutoMinorLocator())
@@ -1001,7 +1061,7 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         temp_ax.xaxis.set_major_locator(mdates.YearLocator())
         temp_ax.yaxis.set_major_locator(MaxNLocator(5, integer=True))
         temp_ax.grid()
-    
+
     if len(dy.columns)==1:
         align_yaxis(yearly_ax, 0, monthly_ax, 0)
         l = yearly_ax.get_ylim()
@@ -1013,11 +1073,11 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
         axes.append(monthly_ax)
 
     return axes
-    
+
 def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cumsum=True, bg = None, vlines = None):
     if figsize is None:
         figsize = (16, len(df.columns)*2*(1+cumsum))
-        
+
     fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
     fig.suptitle(f'{title if title is not None else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}', y=1)
 
@@ -1028,11 +1088,11 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
             cmap = mc.ListedColormap([adjust_lightness(c, i*0.5+0.75) for c in colors for i in (0, 1)])
         else:
             cmap = mc.ListedColormap(colors)
-    
+
     c=0
     for i, col in enumerate(df.columns):
         sub_axes = generate_rate_grid(df[col].to_frame(), ax=axes[i], colors = [cmap(2*c),cmap(2*c),cmap(2*c+1)], size='100%', xlabel='Date' if (i+1)==len(df.columns) else None, cumsum=cumsum)
-        
+
         for ix, ax in enumerate(sub_axes[:2]):
             if bg is not None and all(col in bg.columns for col in ['begin','end']):
                 bg = bg.copy()
@@ -1043,7 +1103,7 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
                         if i==0 and ix==0:
                             (x0, y0), (x1, y1) = filled_poly.get_path().get_extents().get_points()
                             ax.text((x0+x1)/2, y1, idx, ha='center', va='bottom', transform=ax.get_xaxis_transform())
-    
+
             if vlines is not None:
                 for idx, row in vlines.items():
                     if row>pd.to_datetime(ax.get_xlim()[0], unit='d'):
@@ -1051,22 +1111,22 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
                         if i==0 and ix==0:
                             (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
                             ax.text((x0+x1)/2 + 25, (0.02 if cumsum else 0.98), idx, c='maroon', ha='left', va=('bottom' if cumsum else 'top'), rotation = 90, transform=ax.get_xaxis_transform())
-        
+
         c+=1
         if 2*c+1>=cmap.N:
             c=0
 
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
-            
+
     fig.tight_layout()
     plt.show()
-    
+
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
-    
+
 def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True, bg = None, vlines = None):
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
-    
+
     axes = generate_rate_grid(dy, ax, size='100%', colors = colors, cumsum=cumsum)
     for i, ax in enumerate(axes[:2]):
         if bg is not None and all(col in bg.columns for col in ['begin','end']):
@@ -1078,7 +1138,7 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
                     if i==0:
                         (x0, y0), (x1, y1) = filled_poly.get_path().get_extents().get_points()
                         ax.text((x0+x1)/2, y1, idx, ha='center', va='bottom', transform=ax.get_xaxis_transform())
-    
+
         if vlines is not None:
             for idx, row in vlines.items():
                 if row>pd.to_datetime(ax.get_xlim()[0], unit='d'):
@@ -1086,10 +1146,29 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
                     if i==0:
                         (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
                         ax.text((x0+x1)/2 + 25, (0.02 if cumsum or len(dy.columns)>1 else 0.98), idx, c='maroon', ha='left', va=('bottom' if cumsum or len(dy.columns)>1 else 'top'), rotation = 90, transform=ax.get_xaxis_transform())
-    
+
     warnings.filterwarnings( "ignore", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
-    
+
     fig.tight_layout()
     plt.show()
-        
+
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
+    
+# CLI usage
+def run_all(progress_handler=None):
+    # Execute all notebooks in the source directory
+    run_notebooks(progress_handler)
+    # Update page index to reflect last execution timestamp
+    update_index()
+    # Clear notebooks after HTML reports have been created
+    clear_notebooks()
+
+## If executing from the CLI
+if __name__ == "__main__":
+    # Change working directory to script location
+    path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(path)
+    # Execute the complete workflow
+    run_all()
+    # Exit python
+    quit()
