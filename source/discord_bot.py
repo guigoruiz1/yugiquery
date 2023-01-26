@@ -26,9 +26,6 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 loop = None
 task = None
 process = None
-    
-async def check_owner(ctx):
-    return await bot.is_owner(ctx.message.author)
 
 @bot.tree.command(name='shutdown', description='Shutdown bot')
 @commands.is_owner()
@@ -40,7 +37,7 @@ async def shutdown(ctx):
 @commands.cooldown(1, 12*60*60, commands.BucketType.user)
 @commands.is_owner()
 async def run(ctx):
-    await ctx.response.send_message(content='Initializing...')
+    await ctx.response.send_message(content='Initializing...', ephemeral=True, delete_after=60)
     
     if ctx.channel.id != int(secrets['DISCORD_CHANNEL_ID']):
         def progress_handler(iterator, **kwargs):
@@ -65,28 +62,37 @@ async def run(ctx):
     process.close()
     
     if exitcode is None:
-        await ctx.channel.edit_original_response(content='Failed!') 
+        await ctx.channel.send(content='Query execution failed!') 
     elif exitcode==0:
-        await ctx.channel.edit_original_response(content='Completed!')
+        await ctx.channel.send(content='Query execution completed!')
     elif exitcode==-15:
-        await ctx.channel.edit_original_response(content='Aborted!')
+        await ctx.channel.send(content='Query execution aborted!')
     else:
-        await ctx.channel.edit_original_response(content=f'Unknown exit code: {exitcode}')
+        await ctx.channel.send(content=f'Query execution exited with unknown exit code: {exitcode}')
     
         
 @bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
 @commands.is_owner()
 async def abort(ctx):
 
-    await ctx.response.send_message('Aborting...')
+    await ctx.response.send_message('Aborting...', ephemeral=True, delete_after=60)
     
     try:
         process.terminate()
         await ctx.edit_original_response(content='Aborted')
-        await asyncio.sleep(5)
-        await ctx.delete_original_response()
     except:
         await ctx.edit_original_response(content='Abort failed')
+        
+@bot.tree.command(name='latest', description='Show latest time each report was generated')
+async def abort(ctx):
+
+     await ctx.response.send_message('Under construction.', ephemeral=True, delete_after=60)
+    
+#     try:
+#         process.terminate()
+#         await ctx.edit_original_response(content='Aborted')
+#     except:
+#         await ctx.edit_original_response(content='Abort failed')
     
 @bot.event
 async def on_ready():
