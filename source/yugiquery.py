@@ -17,6 +17,8 @@ while True:
         import hashlib
         import asyncio
         import aiohttp
+        import requests
+        import socket
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -405,7 +407,7 @@ def style_df(df):
 # Notebook management
 
 ## Frontend shortcuts
-### Force saving the notebook to disk
+### Force saving the current notebook to disk
 def save_notebook():
     app = JupyterFrontEnd()
     app.commands.execute('docmanager:save')
@@ -424,7 +426,7 @@ def run_notebooks(progress_handler=None):
     reports = sorted(glob.glob('*.ipynb'))
 
     if progress_handler:
-        external_pbar = progress_handler(reports, desc="Completion", unit='report', unit_scale=True)
+        external_pbar = progress_handler(iterable=reports, desc="Completion", unit='report', unit_scale=True)
 
     # Initialize iterators
     try:
@@ -436,7 +438,7 @@ def run_notebooks(progress_handler=None):
     except:
         iterator = tqdm(reports, desc="Completion", unit='report')
 
-    # Create a custom logger
+    # Get papermill logger
     logger = logging.getLogger("papermill")
     logger.setLevel(logging.INFO)
 
@@ -541,11 +543,34 @@ def footer():
 ## Variables
 base_url = 'https://yugipedia.com/api.php'
 media_url='https://ws.yugipedia.com/'
-revisions_query_url = '?action=query&prop=revisions&rvprop=content&format=json&titles='
-ask_query_url='?action=ask&query='
-askargs_query_url = '?action=askargs&conditions='
-query_format='|order%3Dasc&format=json'
+revisions_query_url = '?action=query&format=json&prop=revisions&rvprop=content&titles='
+ask_query_url='?action=ask&format=json&query='
+askargs_query_url = '?action=askargs&format=json&conditions='
+categorymembers_query_url = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
 
+## Check if API is live and responsive    
+def check_API_status():
+    payload = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
+    headers = {'User-Agent': 'None'}
+
+    try:
+        response = requests.get(base_url, params=payload, headers=headers)
+        response.raise_for_status()
+        print(f"{base_url} is up and running {response.json()['query']['general']['generator']}")
+        return True
+    except requests.exceptions.RequestException as err:
+        print(f"{base_url} is not alive: {err}")  
+        domain = up.urlparse(base_url).netloc
+        port = 443
+
+        try:
+            socket.create_connection((domain, port), timeout=2)
+            print(f"{domain} is reachable")
+        except socket.timeout:
+            print(f"{domain} is not reachable")
+
+        return False
+    
 ## Extract results from query response
 def extract_results(response):
     df = pd.DataFrame(response['query']['results']).transpose()
@@ -559,7 +584,6 @@ def extract_results(response):
 def extract_categorymembers(response):
     df = pd.DataFrame(response['query']['categorymembers'])
     return df
-
 
 ## Cards
 ### Query arguments shortcut
@@ -639,6 +663,14 @@ def card_query(default = None, _password = True, _card_type = True, _property = 
 
         return search_string
 
+### Fetch category members - still not used
+def fetch_categorymembers(category, namespace=0, step=5000):
+    response = pd.read_json(f'{base_url}{categorymembers_query_url}{category}&cmnamespace={namespace}&cmlimit={limit}')
+    result = extract_categorymembers(response)
+    # formatted_df = format_df(result)
+
+    return result
+    
 ### Fetch properties from query and condition - should be called from parent functions
 def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, debug=False):
     df=pd.DataFrame()
@@ -648,7 +680,7 @@ def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, deb
         if iterator is not None:
             iterator.set_postfix(it=i+1)
 
-        response = pd.read_json(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}{query_format}')
+        response = pd.read_json(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc')
 
         result = extract_results(response)
         formatted_df = format_df(result)
@@ -783,13 +815,13 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
         print(f'{len(titles)} set lists requested')
 
     titles = up.quote('|'.join(titles))
-
     set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
     success = 0
     error = 0
 
     df = pd.read_json(f'{base_url}{revisions_query_url}{titles}')
     contents = df['query']['pages'].values()
+    
     for content in contents:
         if 'revisions' in  content.keys():
             temp = content['revisions'][0]['*']
@@ -810,22 +842,29 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
                     for argument in template.arguments:
                         if 'region=' in argument:
                             region = argument.string.split('=')[-1]
+                            
                             if region.upper() == 'ES':
                                 region = 'SP'
+                                
                         elif 'rarities=' in argument:
                             rarity = tuple(
                                 rarity_dict.get(
                                     i.strip().lower(), string.capwords(i.strip())
                                 ) for i in (argument.string.split('=')[-1]).split(',')
                             )
+                            
                         elif 'print=' in argument:
                             card_print = argument.string.split('=')[-1]
+                            
                         elif 'qty=' in argument:
                             qty = argument.string.split('=')[-1]
+                            
                         elif 'description=' in argument:
                             desc = argument.string.split('=')[-1]
+                            
                         elif 'options=' in argument:
                             opt = argument.string.split('=')[-1]
+                            
                         else:
                             set_list = argument.string[2:-1]
                             lines = set_list.split('\n')
@@ -836,39 +875,39 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
                             list_df = list_df.applymap(lambda x: x.strip() if x is not None else x)
                             list_df.replace(r'^\s*$|^@.*$', None, regex = True, inplace = True)
 
-                    name_column = 1 if opt == 'noabbr' else 0
+                    noabbr = (opt == 'noabbr')
                     
-                    if opt != 'noabbr' and len(list_df.columns>1):
+                    set_df['Name'] = list_df[0-noabbr].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
+                    
+                    if not noabbr and len(list_df.columns>1):
                         set_df['Card number'] = list_df[0]
-                        set_df['Name'] = list_df[1]
-                    else: 
-                        set_df['Name'] = list_df[0]
-
-                    if len(list_df.columns)>2-name_column: # and rare in str
-                        set_df['Rarity'] = list_df[2-name_column].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
+                        
+                    if len(list_df.columns)>(2-noabbr): # and rare in str
+                        set_df['Rarity'] = list_df[2-noabbr].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
+                    
                     else:
                         set_df['Rarity'] = [rarity for _ in set_df.index]
 
-                    if len(list_df.columns)>3-name_column:
+                    if len(list_df.columns)>(3-noabbr):
                         if card_print is not None: # and new/reprint in str
-                            set_df['Print'] = list_df[3-name_column].apply(lambda x: card_print if (card_print and x is None) else x)
-                            if len(list_df.columns)>4-name_column and qty:
-                                set_df['Quantity'] = list_df[4-name_column].apply(lambda x: x if x is not None else qty)
+                            set_df['Print'] = list_df[3-noabbr].apply(lambda x: card_print if (card_print and x is None) else x)
+                            
+                            if len(list_df.columns)>(4-noabbr) and qty:
+                                set_df['Quantity'] = list_df[4-noabbr].apply(lambda x: x if x is not None else qty)
+                        
                         elif qty:
-                            set_df['Quantity'] = list_df[3-name_column].apply(lambda x: x if x is not None else qty)
+                            set_df['Quantity'] = list_df[3-noabbr].apply(lambda x: x if x is not None else qty)
 
-                    set_df['Name'] = set_df['Name'].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
                     set_df['Set'] = title.split("(")[0].strip()
-                    # set_df['Quantity'] = pd.to_numeric(set_df['Quantity'],errors='coerce')
                     set_df['Region'] = region.upper() 
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
 
         else:
+            error+=1
             if debug:
                 print(f"Error! No content for \"{content['title']}\"")
-            error+=1
-
+            
     if debug:
         print(f'{success} set lists received - {error} errors')
         print('-------------------------------------------------')
@@ -876,7 +915,6 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
     return set_lists_df, success, error
 
 ### Fecth all set lists
-
 def fetch_all_set_lists(cg='CG', step = 50, debug=False):
     keys = get_set_titles(cg) # Get list of sets
 
@@ -919,7 +957,7 @@ def fetch_set_info(sets, step=15, debug=False):
         first = i*step
         last = (i+1)*step
         titles = up.quote(']]OR[['.join(sets[first:last]))
-        response = pd.read_json(f'{base_url}{askargs_query_url}{titles}&printouts={ask}&format=json')
+        response = pd.read_json(f'{base_url}{askargs_query_url}{titles}&printouts={ask}')
         formatted_response = extract_results(response)
         formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(formatted_response)
@@ -1156,6 +1194,11 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
     
 # CLI usage
 def run_all(progress_handler=None):
+    # Check API status
+    if not check_API_status():
+        if progress_handler:
+            progress_handler(API_status=False)
+        return
     # Execute all notebooks in the source directory
     run_notebooks(progress_handler)
     # Update page index to reflect last execution timestamp
