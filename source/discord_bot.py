@@ -40,12 +40,15 @@ async def shutdown(ctx):
 async def run(ctx):
     await ctx.response.send_message(content='Initializing...', ephemeral=True, delete_after=60)
     
-    if ctx.channel.id != int(secrets['DISCORD_CHANNEL_ID']):
-        def progress_handler(iterator, **kwargs):
-            return discord_pbar(iterator, token = secrets['DISCORD_TOKEN'], channel_id=ctx.channel.id, file=io.StringIO(), **kwargs)
-    else:
-        progress_handler = None
-    
+    API_error = False
+    def progress_handler(iterable=None, API_status=None, **kwargs):
+        if iterable and ctx.channel.id != int(secrets['DISCORD_CHANNEL_ID']):
+                return discord_pbar(iterable, token = secrets['DISCORD_TOKEN'], channel_id=ctx.channel.id, file=io.StringIO(), **kwargs)
+        elif API_status is not None:
+            nonlocal API_error
+            API_error = not API_status
+            return
+        
     try: 
         global process
         process = mp.Process(target=yq.run_all, args=[progress_handler])
@@ -62,14 +65,17 @@ async def run(ctx):
     exitcode = await await_result()
     process.close()
     
-    if exitcode is None:
-        await ctx.channel.send(content='Query execution failed!') 
-    elif exitcode==0:
-        await ctx.channel.send(content='Query execution completed!')
-    elif exitcode==-15:
-        await ctx.channel.send(content='Query execution aborted!')
+    if API_error:
+        await ctx.channel.send(content='Unable to comunicate to the API. Try again later.') 
     else:
-        await ctx.channel.send(content=f'Query execution exited with unknown exit code: {exitcode}')
+        if exitcode is None:
+            await ctx.channel.send(content='Query execution failed!') 
+        elif exitcode==0:
+            await ctx.channel.send(content='Query execution completed!')
+        elif exitcode==-15:
+            await ctx.channel.send(content='Query execution aborted!')
+        else:
+            await ctx.channel.send(content=f'Query execution exited with exit code: {exitcode}')
     
         
 @bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
@@ -91,6 +97,20 @@ async def latest(ctx):
     for report in reports:
         response += f'\n- {os.path.basename(report)[:-5]}: {yq.pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}'
     
+    await ctx.response.send_message(response)
+    
+@bot.tree.command(name='links', description='Show Yugiquery links')
+async def links(ctx):
+    response = '\n'.join(
+        ['Webpage: https://guigoruiz1.github.io/yugiquery/',
+         'Repository: https://github.com/guigoruiz1/yugiquery/',
+         'Data: https://github.com/guigoruiz1/yugiquery/tree/main/data']
+    )
+    await ctx.response.send_message(response)
+    
+@bot.tree.command(name='data', description='Send latest data files')
+async def data(ctx):
+    response = 'Under construction'
     await ctx.response.send_message(response)
     
 @bot.event
