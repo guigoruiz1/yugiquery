@@ -481,7 +481,7 @@ def run_notebooks(progress_handler=None):
             progress_bar=True,
         );
 
-    # Clsoe the iterator
+    # Close the iterator
     iterator.close()
     if progress_handler:
         external_pbar.close()
@@ -547,14 +547,14 @@ revisions_query_url = '?action=query&format=json&prop=revisions&rvprop=content&t
 ask_query_url='?action=ask&format=json&query='
 askargs_query_url = '?action=askargs&format=json&conditions='
 categorymembers_query_url = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
+http_headers = {'User-Agent': 'Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/'}
 
 ## Check if API is live and responsive    
 def check_API_status():
     payload = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
-    headers = {'User-Agent': 'None'}
 
     try:
-        response = requests.get(base_url, params=payload, headers=headers)
+        response = requests.get(base_url, params=payload, headers=http_headers)
         response.raise_for_status()
         print(f"{base_url} is up and running {response.json()['query']['general']['generator']}")
         return True
@@ -573,16 +573,18 @@ def check_API_status():
     
 ## Extract results from query response
 def extract_results(response):
-    df = pd.DataFrame(response['query']['results']).transpose()
+    json = response.json()
+    df = pd.DataFrame(json['query']['results']).transpose()
     df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
-    page_url=pd.DataFrame(response['query']['results']).transpose()['fullurl'].rename('Page URL')
-    page_name=pd.DataFrame(response['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
+    page_url=pd.DataFrame(json['query']['results']).transpose()['fullurl'].rename('Page URL')
+    page_name=pd.DataFrame(json['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
     df = pd.concat([df,page_name,page_url],axis=1)
     return df
 
 ## Extract categorymembers from query response
 def extract_categorymembers(response):
-    df = pd.DataFrame(response['query']['categorymembers'])
+    json = response.json()
+    df = pd.DataFrame(json['query']['categorymembers'])
     return df
 
 ## Cards
@@ -665,7 +667,7 @@ def card_query(default = None, _password = True, _card_type = True, _property = 
 
 ### Fetch category members - still not used
 def fetch_categorymembers(category, namespace=0, step=5000):
-    response = pd.read_json(f'{base_url}{categorymembers_query_url}{category}&cmnamespace={namespace}&cmlimit={limit}')
+    response = requests.get(f'{base_url}{categorymembers_query_url}{category}&cmnamespace={namespace}&cmlimit={limit}', headers=http_headers)
     result = extract_categorymembers(response)
     # formatted_df = format_df(result)
 
@@ -680,8 +682,7 @@ def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, deb
         if iterator is not None:
             iterator.set_postfix(it=i+1)
 
-        response = pd.read_json(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc')
-
+        response = requests.get(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc', headers=http_headers)
         result = extract_results(response)
         formatted_df = format_df(result)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
@@ -819,8 +820,9 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
     success = 0
     error = 0
 
-    df = pd.read_json(f'{base_url}{revisions_query_url}{titles}')
-    contents = df['query']['pages'].values()
+    response = requests.get(f'{base_url}{revisions_query_url}{titles}', headers=http_headers)
+    json = response.json()
+    contents = json['query']['pages'].values()
     
     for content in contents:
         if 'revisions' in  content.keys():
@@ -877,7 +879,7 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
 
                     noabbr = (opt == 'noabbr')
                     
-                    set_df['Name'] = list_df[0-noabbr].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
+                    set_df['Name'] = list_df[1-noabbr].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
                     
                     if not noabbr and len(list_df.columns>1):
                         set_df['Card number'] = list_df[0]
@@ -957,7 +959,7 @@ def fetch_set_info(sets, step=15, debug=False):
         first = i*step
         last = (i+1)*step
         titles = up.quote(']]OR[['.join(sets[first:last]))
-        response = pd.read_json(f'{base_url}{askargs_query_url}{titles}&printouts={ask}')
+        response = requests.get(f'{base_url}{askargs_query_url}{titles}&printouts={ask}', headers=http_headers)
         formatted_response = extract_results(response)
         formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(formatted_response)
