@@ -160,7 +160,6 @@ regions_dict = {
     'FR': 'French', 
     'IT': 'Italian', 
     'SP': 'Spanish', 
-    'ES': 'Spanish', # Bug fix
     'JP': 'Japanese', 
     'JA': 'Japanese-Asian', 
     'AE': 'Asian-English', 
@@ -182,28 +181,36 @@ arrows_dict = {
 }
 
 ## Images
-async def download_images(urls, save_folder:str = "../images/", validate:bool = True, max_tasks:int = 10):
+async def download_images(file_name: pd.DataFrame, save_folder:str = "../images/", max_tasks:int = 10):
+    
+    # Prepare URL from file names
+    file_name_md5 = file_name.apply(md5)
+    urls = file_name_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_name
+    
+    # Download image from URL
     async def download_image(session, url, save_folder, semaphore, pbar):
         async with semaphore:
             async with session.get(url) as response:
+                save_name = url.split("/")[-1]
                 if response.status != 200:
                     raise ValueError(f"URL {url} returned status code {response.status}")
                 total_size = int(response.headers.get("Content-Length", 0))
-                progress = tqdm(unit="B", total=total_size, unit_scale=True, unit_divisor=1024, desc=url.split("/")[-1], leave=False)
-                if os.path.isfile(f'{save_folder}/{url.split("/")[-1]}'):
-                    os.remove(f'{save_folder}/{url.split("/")[-1]}')
+                progress = tqdm(unit="B", total=total_size, unit_scale=True, unit_divisor=1024, desc=save_name, leave=False)
+                if os.path.isfile(f'{save_folder}/{save_name}'):
+                    os.remove(f'{save_folder}/{save_name}')
                 while True:
                     chunk = await response.content.read(1024)
                     if not chunk:
                         break
                     progress.update(len(chunk))
-                    with open(f'{save_folder}/{url.split("/")[-1]}', 'ab') as f:
+                    with open(f'{save_folder}/{save_name}', 'ab') as f:
                         f.write(chunk)
                 progress.close()
-                return url.split("/")[-1]
+                return save_name
             
+    # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(base_url='https://ms.yugipedia.com/', headers=http_headers) as session:
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
         with tqdm(total=len(urls), unit_scale=True, unit="file") as pbar:
@@ -213,7 +220,7 @@ async def download_images(urls, save_folder:str = "../images/", validate:bool = 
                 await task
 
 ## Data management
-def cleanup_data(dry_run=False):
+def cleanup_data(dry_run: bool = False):
     file_list = glob.glob('../data/*')
     df = pd.DataFrame(file_list, columns=['file'])
     df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
@@ -247,7 +254,7 @@ def extract_fulltext(x):
     else:
         return np.nan
     
-def format_df(input_df, include_all=False):
+def format_df(input_df: pd.DataFrame, include_all: bool = False):
     df = pd.DataFrame(index=input_df.index)
     
     # Cards
@@ -330,7 +337,7 @@ def extract_category_bool(x):
     
     return np.nan
 
-def format_artwork(row):
+def format_artwork(row: pd.Series):
     result = tuple()
     if 'OCG/TCG cards with alternate artworks' in row: 
         if row['OCG/TCG cards with alternate artworks']:
@@ -343,7 +350,7 @@ def format_artwork(row):
     else:
         return result
 
-def format_errata(row):
+def format_errata(row: pd.Series):
     result = tuple()
     if 'Name errata' in row: 
         if row['Name errata']:
@@ -356,7 +363,7 @@ def format_errata(row):
     else:
         return result 
     
-def merge_errata(input_df, input_errata_df, drop=False):
+def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bool = False):
     if 'Page name' in input_df.columns:
         input_errata_df = input_errata_df.apply(format_errata,axis=1).rename('Errata')
         input_df = input_df.merge(input_errata_df, left_on = 'Page name', right_index = True, how='left')
@@ -368,7 +375,7 @@ def merge_errata(input_df, input_errata_df, drop=False):
     return input_df
 
 ### Sets
-def merge_set_info(input_df, input_info_df):
+def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
         input_df['Release'] = pd.to_datetime(input_df['Release'].astype(str), errors='coerce') # Bug fix
@@ -380,8 +387,8 @@ def merge_set_info(input_df, input_info_df):
     return input_df
 
 ## Changelog
-def generate_changelog(previous_df, current_df, col):
-    changelog = previous_df.merge(current_df,indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
+def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str):
+    changelog = previous_df.merge(current_df, indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
     changelog['_merge'].replace(['left_only','right_only'],['Old', 'New'], inplace = True)
     changelog.rename(columns={"_merge": "Version"}, inplace = True)
     nunique = changelog.groupby(col).nunique(dropna=False)
@@ -401,7 +408,7 @@ def generate_changelog(previous_df, current_df, col):
     return changelog
 
 ## Styling
-def style_df(df):
+def style_df(df: pd.DataFrame):
     return df.style.format(hyperlinks='html')
 
 # Notebook management
@@ -421,9 +428,12 @@ def clear_notebooks():
         subprocess.call(['nbstripout']+reports)
 
 ### Run all notebooks in the source directory
-def run_notebooks(progress_handler=None):    
-    # Get reports
-    reports = sorted(glob.glob('*.ipynb'))
+def run_notebooks(which='all', progress_handler=None):  
+    if which=='all':
+        # Get reports
+        reports = sorted(glob.glob('*.ipynb'))
+    else:
+        reports = [str(which)] if not isinstance(which,list) else which
 
     if progress_handler:
         external_pbar = progress_handler(iterable=reports, desc="Completion", unit='report', unit_scale=True)
@@ -518,7 +528,7 @@ def update_index(): # Handle paths properly
         print('No "index.md" file in "assets". Aborting...')
 
 ## Generate Markdown header
-def header(name=None):
+def header(name: str = None):
     if name is None:
         try: 
             name = ipynbname.name()
@@ -572,7 +582,7 @@ def check_API_status():
         return False
     
 ## Extract results from query response
-def extract_results(response):
+def extract_results(response: requests.Response):
     json = response.json()
     df = pd.DataFrame(json['query']['results']).transpose()
     df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
@@ -582,14 +592,14 @@ def extract_results(response):
     return df
 
 ## Extract categorymembers from query response
-def extract_categorymembers(response):
+def extract_categorymembers(response: requests.Response):
     json = response.json()
     df = pd.DataFrame(json['query']['categorymembers'])
     return df
 
 ## Cards
 ### Query arguments shortcut
-def card_query(default = None, _password = True, _card_type = True, _property = True, _primary = True, _secondary = True, _attribute = True, _monster_type = True, _stars = True, _atk = True, _def = True, _scale = True, _link = True, _arrows = True, _effect_type = True, _archseries = True, _name_errata = True, _type_errata = True, _alternate_artwork = True, _edited_artwork = True, _tcg = True, _ocg = True, _date = True, _page_name = True, _category = False, _image_URL=False):
+def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _name_errata: bool = True, _type_errata: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _date: bool = True, _page_name: bool = True, _category: bool = False, _image_URL: bool = False):
     if default is not None:
         default = default.lower() 
     valid_default = {'spell', 'trap', 'st', 'monster', None}
@@ -666,7 +676,7 @@ def card_query(default = None, _password = True, _card_type = True, _property = 
         return search_string
 
 ### Fetch category members - still not used
-def fetch_categorymembers(category, namespace=0, step=5000):
+def fetch_categorymembers(category: str, namespace: int = 0, step: int = 5000):
     response = requests.get(f'{base_url}{categorymembers_query_url}{category}&cmnamespace={namespace}&cmlimit={limit}', headers=http_headers)
     result = extract_categorymembers(response)
     # formatted_df = format_df(result)
@@ -674,7 +684,7 @@ def fetch_categorymembers(category, namespace=0, step=5000):
     return result
     
 ### Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, debug=False):
+def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 5000, iterator=None, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -698,7 +708,7 @@ def fetch_properties(condition, query, step=5000, limit=5000, iterator=None, deb
     return df
 
 ### Fetch spell or trap cards
-def fetch_st(st_query, st='both', cg='CG', step = 1000, limit = 5000, debug=False):
+def fetch_st(st_query: str, st: str = 'both', cg: str = 'CG', step: int = 1000, limit: int = 5000, debug: bool = False):
     valid_cg = validate_cg(cg)
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
@@ -727,7 +737,7 @@ def fetch_st(st_query, st='both', cg='CG', step = 1000, limit = 5000, debug=Fals
     return st_df
 
 ### Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query, cg='CG', step = 1000, limit = 5000, debug=False):
+def fetch_monster(monster_query: str, cg: str = 'CG', step: int = 1000, limit: int = 5000, debug: bool = False):
     valid_cg = validate_cg(cg)
 
     print('Downloading monsters')
@@ -758,7 +768,7 @@ def fetch_monster(monster_query, cg='CG', step = 1000, limit = 5000, debug=False
 
     return monster_df
 
-def fetch_errata(errata='all', limit = 1000):
+def fetch_errata(errata: str = 'all', limit: int = 1000):
     errata = errata.lower()
     valid = {'name', 'type', 'all', 'both'}
     if errata not in valid:
@@ -794,7 +804,7 @@ def fetch_errata(errata='all', limit = 1000):
 
 ## Sets
 ### Get title of set list pages
-def get_set_titles(cg='CG', limit=5000):
+def get_set_titles(cg: str = 'CG', limit: int = 5000):
     valid_cg = validate_cg(cg)
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -811,7 +821,7 @@ def get_set_titles(cg='CG', limit=5000):
     return df['Page name']
 
 ### Fetch set lists from page titles
-def fetch_set_lists(titles, debug=False):  # Separate formating function
+def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     if debug:
         print(f'{len(titles)} set lists requested')
 
@@ -845,7 +855,7 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
                         if 'region=' in argument:
                             region = argument.string.split('=')[-1]
                             
-                            if region.upper() == 'ES':
+                            if region.upper() == 'ES': # Remove duplicated entry for Spain
                                 region = 'SP'
                                 
                         elif 'rarities=' in argument:
@@ -917,7 +927,7 @@ def fetch_set_lists(titles, debug=False):  # Separate formating function
     return set_lists_df, success, error
 
 ### Fecth all set lists
-def fetch_all_set_lists(cg='CG', step = 50, debug=False):
+def fetch_all_set_lists(cg: str = 'CG', step: int = 50, debug: bool = False):
     keys = get_set_titles(cg) # Get list of sets
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
@@ -945,7 +955,7 @@ def fetch_all_set_lists(cg='CG', step = 50, debug=False):
     return all_set_lists_df
 
 ### Fetch set info for list of sets
-def fetch_set_info(sets, step=15, debug=False):
+def fetch_set_info(sets, step: int = 15, debug: bool = False):
     # Info to ask
     info = ['Series','Set type','Cover card','Modification date']
     # Release to ask
@@ -1011,7 +1021,7 @@ colors_dict = {
     'GO RUSH!!': '#BC5A84'
 }
 
-def adjust_lightness(color, amount=0.5):
+def adjust_lightness(color: str, amount: float = 0.5):
     try:
         c = mc.cnames[color]
     except:
@@ -1019,14 +1029,14 @@ def adjust_lightness(color, amount=0.5):
     c = colorsys.rgb_to_hls(*mc.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
-def align_yaxis(ax1, v1, ax2, v2):
+def align_yaxis(ax1, v1: float, ax2, v2: float):
     """adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1"""
     _, y1 = ax1.transData.transform((0, v1))
     _, y2 = ax2.transData.transform((0, v2))
     adjust_yaxis(ax2,(y1-y2)/2,v2)
     adjust_yaxis(ax1,(y2-y1)/2,v1)
 
-def adjust_yaxis(ax,ydif,v):
+def adjust_yaxis(ax, ydif: float, v: float):
     """shift axis ax by ydiff, maintaining point v at the same location"""
     inv = ax.transData.inverted()
     _, dy = inv.transform((0, 0)) - inv.transform((0, ydif))
@@ -1040,7 +1050,7 @@ def adjust_yaxis(ax,ydif,v):
         nminy = maxy*(miny+dy)/(maxy+dy)
     ax.set_ylim(nminy+v, nmaxy+v)
 
-def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None, cumsum=True): 
+def generate_rate_grid(dy: pd.DataFrame, ax, xlabel: str = 'Date', size: str = "150%", pad: int = 0, colors: list = None, cumsum: bool = True): 
     if colors is None:
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -1114,7 +1124,7 @@ def generate_rate_grid(dy, ax, xlabel = 'Date', size="150%", pad=0, colors=None,
 
     return axes
 
-def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cumsum=True, bg = None, vlines = None):
+def rate_subplots(df: pd.DataFrame, figsize = None, title: str = '', xlabel: str = 'Date', colors: list = None, cumsum: bool = True, bg: pd.DataFrame = None, vlines: pd.DataFrame = None):
     if figsize is None:
         figsize = (16, len(df.columns)*2*(1+cumsum))
 
@@ -1163,7 +1173,7 @@ def rate_subplots(df, figsize = None, title='', xlabel='Date', colors=None, cums
 
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
 
-def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cumsum=True, bg = None, vlines = None):
+def rate_plot(dy: pd.DataFrame, figsize = (16,6), title: str = None, xlabel: str = 'Date', colors: list = None, cumsum=True, bg = None, vlines = None):
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
 
@@ -1171,7 +1181,7 @@ def rate_plot(dy, figsize = (16,6), title=None, xlabel = 'Date', colors=None, cu
     for i, ax in enumerate(axes[:2]):
         if bg is not None and all(col in bg.columns for col in ['begin','end']):
             bg = bg.copy()
-            bg['end'].fillna( dy.index.max(), inplace=True)
+            bg['end'].fillna(dy.index.max(), inplace=True)
             for idx, row in bg.iterrows():
                 if row['end']>pd.to_datetime(ax.get_xlim()[0], unit='d'):
                     filled_poly = ax.axvspan(row['begin'], row['end'], alpha=.1, color=colors_dict[idx], zorder = -1)
@@ -1207,6 +1217,8 @@ def run_all(progress_handler=None):
     update_index()
     # Clear notebooks after HTML reports have been created
     clear_notebooks()
+    # Cleanup redundant data files
+    # cleanup_data()
 
 ## If executing from the CLI
 if __name__ == "__main__":
