@@ -1,7 +1,7 @@
 # Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 30/01/2023 22:32 UTC
+    Last execution: 30/01/2023 22:38 UTC
 
 ## Reports
 
@@ -9,7 +9,7 @@ Jupyter notebook to query and display yugipedia data
 | -------------------------:|:-------------------- |
 |       [Cards](Cards.html) | 30/01/2023 05:05 UTC |
 |         [Sets](Sets.html) | 30/01/2023 05:14 UTC |
-| [Timeline](Timeline.html) | 30/01/2023 22:32 UTC |
+| [Timeline](Timeline.html) | 30/01/2023 22:38 UTC |
 
 
 # Readme
