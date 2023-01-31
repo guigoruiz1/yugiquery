@@ -1,3 +1,5 @@
-Card number,Rarity,Modification date,Version
-CSOC-JP039,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",2022-11-05 18:53:44,Old
-CSOC-JP039,"('Ultra Rare', 'Ultimate Rare', 'Ghost Rare')",2022-11-05 18:53:44,New
+Card number,Name,Rarity,Print,Modification date,Version
+CL03-SC151,,,,2022-11-07 13:43:33,Old
+CL03-SC151,Scrap Chimera,"('Super Rare',)",New,2022-11-07 13:43:33,New
+CSOC-JP039,Black Rose Dragon,"('Ultra Rare', 'Ultimate Rare', 'Ghost Rare')",,2022-11-05 18:53:44,Old
+CSOC-JP039,Black Rose Dragon,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",,2022-11-05 18:53:44,New
