@@ -1,0 +1,4095 @@
+Card number,Rarity,Version
+20CP-JPC01,"('20th Secret rare',)",New
+20CP-JPC01,"('20th Secret Rare',)",Old
+20CP-JPC02,"('20th Secret rare',)",New
+20CP-JPC02,"('20th Secret Rare',)",Old
+ABPF-DESE1,"('Super Rare',)",Old
+ABPF-DESE1,"('Super rare',)",New
+ABPF-DESE2,"('Super Rare',)",Old
+ABPF-DESE2,"('Super rare',)",New
+ABPF-DESP1,"('Ultra rare',)",New
+ABPF-DESP1,"('Ultra Rare',)",Old
+ABPF-ENSE1,"('Super Rare',)",Old
+ABPF-ENSE1,"('Super rare',)",New
+ABPF-ENSE2,"('Super rare',)",New
+ABPF-ENSE2,"('Super Rare',)",Old
+ABPF-ENSP1,"('Ultra Rare',)",Old
+ABPF-ENSP1,"('Ultra rare',)",New
+ABPF-FRSE1,"('Super rare',)",New
+ABPF-FRSE1,"('Super Rare',)",Old
+ABPF-FRSE2,"('Super rare',)",New
+ABPF-FRSE2,"('Super Rare',)",Old
+ABPF-FRSP1,"('Ultra Rare',)",Old
+ABPF-FRSP1,"('Ultra rare',)",New
+ABPF-ITSE1,"('Super rare',)",New
+ABPF-ITSE1,"('Super Rare',)",Old
+ABPF-ITSE2,"('Super Rare',)",Old
+ABPF-ITSE2,"('Super rare',)",New
+ABPF-ITSP1,"('Ultra rare',)",New
+ABPF-ITSP1,"('Ultra Rare',)",Old
+ABPF-SPSE1,"('Super rare',)",New
+ABPF-SPSE1,"('Super Rare',)",Old
+ABPF-SPSE2,"('Super Rare',)",Old
+ABPF-SPSE2,"('Super rare',)",New
+ABPF-SPSP1,"('Ultra rare',)",New
+ABPF-SPSP1,"('Ultra Rare',)",Old
+ABYR-DESE1,"('Super Rare',)",Old
+ABYR-DESE1,"('Super rare',)",New
+ABYR-DESE2,"('Super rare',)",New
+ABYR-DESE2,"('Super Rare',)",Old
+ABYR-DESP1,"('Ultra rare',)",New
+ABYR-DESP1,"('Ultra Rare',)",Old
+ABYR-ENSE1,"('Super Rare',)",Old
+ABYR-ENSE1,"('Super rare',)",New
+ABYR-ENSE2,"('Super Rare',)",Old
+ABYR-ENSE2,"('Super rare',)",New
+ABYR-ENSP1,"('Ultra rare',)",New
+ABYR-ENSP1,"('Ultra Rare',)",Old
+ABYR-FRSE1,"('Super rare',)",New
+ABYR-FRSE1,"('Super Rare',)",Old
+ABYR-FRSE2,"('Super rare',)",New
+ABYR-FRSE2,"('Super Rare',)",Old
+ABYR-FRSP1,"('Ultra Rare',)",Old
+ABYR-FRSP1,"('Ultra rare',)",New
+ABYR-ITSE1,"('Super Rare',)",Old
+ABYR-ITSE1,"('Super rare',)",New
+ABYR-ITSE2,"('Super Rare',)",Old
+ABYR-ITSE2,"('Super rare',)",New
+ABYR-ITSP1,"('Ultra rare',)",New
+ABYR-ITSP1,"('Ultra Rare',)",Old
+ABYR-SPSE1,"('Super rare',)",New
+ABYR-SPSE1,"('Super Rare',)",Old
+ABYR-SPSE2,"('Super rare',)",New
+ABYR-SPSE2,"('Super Rare',)",Old
+ABYR-SPSP1,"('Ultra Rare',)",Old
+ABYR-SPSP1,"('Ultra rare',)",New
+AC01-JP005,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP005,"('Super Rare', ""Collector's Rare"")",Old
+AC01-JP009,"('Super Rare', ""Collector's Rare"")",Old
+AC01-JP009,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP012,"('Ultra Rare', 'Collector""s Rare')",New
+AC01-JP012,"('Ultra Rare', ""Collector's Rare"")",Old
+AC01-JP020,"('Super Rare', ""Collector's Rare"")",Old
+AC01-JP020,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP021,"('Ultra Rare', ""Collector's Rare"")",Old
+AC01-JP021,"('Ultra Rare', 'Collector""s Rare')",New
+AC01-JP023,"('Super Rare', ""Collector's Rare"")",Old
+AC01-JP023,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP027,"('Ultra Rare', 'Collector""s Rare')",New
+AC01-JP027,"('Ultra Rare', ""Collector's Rare"")",Old
+AC01-JP030,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP030,"('Super Rare', ""Collector's Rare"")",Old
+AC01-JP034,"('Ultra Rare', 'Collector""s Rare')",New
+AC01-JP034,"('Ultra Rare', ""Collector's Rare"")",Old
+AC01-JP035,"('Super Rare', 'Collector""s Rare')",New
+AC01-JP035,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP001,"('Ultra Rare', ""Collector's Rare"")",Old
+AC02-JP001,"('Ultra Rare', 'Collector""s Rare')",New
+AC02-JP007,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP007,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP010,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP010,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP016,"('Ultra Rare', ""Collector's Rare"")",Old
+AC02-JP016,"('Ultra Rare', 'Collector""s Rare')",New
+AC02-JP018,"('Ultra Rare', 'Collector""s Rare')",New
+AC02-JP018,"('Ultra Rare', ""Collector's Rare"")",Old
+AC02-JP021,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP021,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP026,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP026,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP029,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP029,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP033,"('Ultra Rare', ""Collector's Rare"")",Old
+AC02-JP033,"('Ultra Rare', 'Collector""s Rare')",New
+AC02-JP037,"('Super Rare', ""Collector's Rare"")",Old
+AC02-JP037,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP044,"('Ultra Rare', 'Collector""s Rare')",New
+AC02-JP044,"('Ultra Rare', ""Collector's Rare"")",Old
+AC02-JP045,"('Super Rare', 'Collector""s Rare')",New
+AC02-JP045,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-DE004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-DE007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-DE007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-DE013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-DE013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-DE017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-DE020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-DE022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-DE022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-DE025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE033,"('Rare', 'Collector""s Rare')",New
+AMDE-DE033,"('Rare', ""Collector's Rare"")",Old
+AMDE-DE038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-DE040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE046,"('Rare', 'Collector""s Rare')",New
+AMDE-DE046,"('Rare', ""Collector's Rare"")",Old
+AMDE-DE048,"('Rare', 'Collector""s Rare')",New
+AMDE-DE048,"('Rare', ""Collector's Rare"")",Old
+AMDE-DE052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-DE052,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-EN004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-EN007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-EN007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-EN013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-EN013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-EN017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-EN020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-EN022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-EN022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-EN025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN033,"('Rare', ""Collector's Rare"")",Old
+AMDE-EN033,"('Rare', 'Collector""s Rare')",New
+AMDE-EN038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-EN046,"('Rare', ""Collector's Rare"")",Old
+AMDE-EN046,"('Rare', 'Collector""s Rare')",New
+AMDE-EN048,"('Rare', 'Collector""s Rare')",New
+AMDE-EN048,"('Rare', ""Collector's Rare"")",Old
+AMDE-EN052,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-EN052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-FR004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-FR007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-FR007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-FR013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-FR013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-FR017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-FR020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-FR022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-FR022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-FR025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR033,"('Rare', ""Collector's Rare"")",Old
+AMDE-FR033,"('Rare', 'Collector""s Rare')",New
+AMDE-FR038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-FR040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR046,"('Rare', 'Collector""s Rare')",New
+AMDE-FR046,"('Rare', ""Collector's Rare"")",Old
+AMDE-FR048,"('Rare', 'Collector""s Rare')",New
+AMDE-FR048,"('Rare', ""Collector's Rare"")",Old
+AMDE-FR052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-FR052,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-IT004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-IT007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-IT007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-IT013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-IT013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-IT017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-IT020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-IT022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-IT022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-IT025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT033,"('Rare', 'Collector""s Rare')",New
+AMDE-IT033,"('Rare', ""Collector's Rare"")",Old
+AMDE-IT038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-IT040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT046,"('Rare', 'Collector""s Rare')",New
+AMDE-IT046,"('Rare', ""Collector's Rare"")",Old
+AMDE-IT048,"('Rare', ""Collector's Rare"")",Old
+AMDE-IT048,"('Rare', 'Collector""s Rare')",New
+AMDE-IT052,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-IT052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-PT004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-PT007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-PT007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-PT013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-PT013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-PT017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-PT020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-PT022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-PT022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-PT025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT033,"('Rare', ""Collector's Rare"")",Old
+AMDE-PT033,"('Rare', 'Collector""s Rare')",New
+AMDE-PT038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-PT040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT046,"('Rare', 'Collector""s Rare')",New
+AMDE-PT046,"('Rare', ""Collector's Rare"")",Old
+AMDE-PT048,"('Rare', 'Collector""s Rare')",New
+AMDE-PT048,"('Rare', ""Collector's Rare"")",Old
+AMDE-PT052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-PT052,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP004,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-SP004,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-SP007,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-SP007,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-SP013,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-SP013,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-SP017,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP017,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP018,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP018,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP020,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-SP020,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-SP022,"('Ultra Rare', ""Collector's Rare"")",Old
+AMDE-SP022,"('Ultra Rare', 'Collector""s Rare')",New
+AMDE-SP025,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP025,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP026,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP026,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP033,"('Rare', 'Collector""s Rare')",New
+AMDE-SP033,"('Rare', ""Collector's Rare"")",Old
+AMDE-SP038,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP038,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP040,"('Super Rare', ""Collector's Rare"")",Old
+AMDE-SP040,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP046,"('Rare', ""Collector's Rare"")",Old
+AMDE-SP046,"('Rare', 'Collector""s Rare')",New
+AMDE-SP048,"('Rare', ""Collector's Rare"")",Old
+AMDE-SP048,"('Rare', 'Collector""s Rare')",New
+AMDE-SP052,"('Super Rare', 'Collector""s Rare')",New
+AMDE-SP052,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-DE007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-DE018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-DE020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-DE035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-DE041,"('Rare', ""Collector's Rare"")",Old
+ANGU-DE041,"('Rare', 'Collector""s Rare')",New
+ANGU-DE043,"('Rare', ""Collector's Rare"")",Old
+ANGU-DE043,"('Rare', 'Collector""s Rare')",New
+ANGU-DE046,"('Rare', 'Collector""s Rare')",New
+ANGU-DE046,"('Rare', ""Collector's Rare"")",Old
+ANGU-DE051,"('Rare', ""Collector's Rare"")",Old
+ANGU-DE051,"('Rare', 'Collector""s Rare')",New
+ANGU-DE052,"('Rare', 'Collector""s Rare')",New
+ANGU-DE052,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-EN018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-EN020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-EN035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-EN041,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN041,"('Rare', 'Collector""s Rare')",New
+ANGU-EN043,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN043,"('Rare', 'Collector""s Rare')",New
+ANGU-EN046,"('Rare', 'Collector""s Rare')",New
+ANGU-EN046,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN051,"('Rare', 'Collector""s Rare')",New
+ANGU-EN051,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN052,"('Rare', ""Collector's Rare"")",Old
+ANGU-EN052,"('Rare', 'Collector""s Rare')",New
+ANGU-FR007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-FR018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-FR020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-FR035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-FR041,"('Rare', ""Collector's Rare"")",Old
+ANGU-FR041,"('Rare', 'Collector""s Rare')",New
+ANGU-FR043,"('Rare', 'Collector""s Rare')",New
+ANGU-FR043,"('Rare', ""Collector's Rare"")",Old
+ANGU-FR046,"('Rare', 'Collector""s Rare')",New
+ANGU-FR046,"('Rare', ""Collector's Rare"")",Old
+ANGU-FR051,"('Rare', ""Collector's Rare"")",Old
+ANGU-FR051,"('Rare', 'Collector""s Rare')",New
+ANGU-FR052,"('Rare', ""Collector's Rare"")",Old
+ANGU-FR052,"('Rare', 'Collector""s Rare')",New
+ANGU-IT007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-IT018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-IT020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-IT035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-IT041,"('Rare', ""Collector's Rare"")",Old
+ANGU-IT041,"('Rare', 'Collector""s Rare')",New
+ANGU-IT043,"('Rare', 'Collector""s Rare')",New
+ANGU-IT043,"('Rare', ""Collector's Rare"")",Old
+ANGU-IT046,"('Rare', 'Collector""s Rare')",New
+ANGU-IT046,"('Rare', ""Collector's Rare"")",Old
+ANGU-IT051,"('Rare', 'Collector""s Rare')",New
+ANGU-IT051,"('Rare', ""Collector's Rare"")",Old
+ANGU-IT052,"('Rare', 'Collector""s Rare')",New
+ANGU-IT052,"('Rare', ""Collector's Rare"")",Old
+ANGU-PT007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-PT018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-PT020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-PT035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-PT041,"('Rare', 'Collector""s Rare')",New
+ANGU-PT041,"('Rare', ""Collector's Rare"")",Old
+ANGU-PT043,"('Rare', 'Collector""s Rare')",New
+ANGU-PT043,"('Rare', ""Collector's Rare"")",Old
+ANGU-PT046,"('Rare', 'Collector""s Rare')",New
+ANGU-PT046,"('Rare', ""Collector's Rare"")",Old
+ANGU-PT051,"('Rare', 'Collector""s Rare')",New
+ANGU-PT051,"('Rare', ""Collector's Rare"")",Old
+ANGU-PT052,"('Rare', 'Collector""s Rare')",New
+ANGU-PT052,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP007,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP007,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP008,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP008,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP009,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP009,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP017,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP017,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP018,"('Super Rare', ""Collector's Rare"")",Old
+ANGU-SP018,"('Super Rare', 'Collector""s Rare')",New
+ANGU-SP020,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP020,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP021,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP021,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP033,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP033,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP034,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP034,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP035,"('Ultra Rare', 'Collector""s Rare')",New
+ANGU-SP035,"('Ultra Rare', ""Collector's Rare"")",Old
+ANGU-SP041,"('Rare', 'Collector""s Rare')",New
+ANGU-SP041,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP043,"('Rare', 'Collector""s Rare')",New
+ANGU-SP043,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP046,"('Rare', 'Collector""s Rare')",New
+ANGU-SP046,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP051,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP051,"('Rare', 'Collector""s Rare')",New
+ANGU-SP052,"('Rare', ""Collector's Rare"")",Old
+ANGU-SP052,"('Rare', 'Collector""s Rare')",New
+ANPR-DESE1,"('Super rare',)",New
+ANPR-DESE1,"('Super Rare',)",Old
+ANPR-DESE2,"('Super Rare',)",Old
+ANPR-DESE2,"('Super rare',)",New
+ANPR-DESP1,"('Ultra Rare',)",Old
+ANPR-DESP1,"('Ultra rare',)",New
+ANPR-ENSE1,"('Super rare',)",New
+ANPR-ENSE1,"('Super Rare',)",Old
+ANPR-ENSE2,"('Super Rare',)",Old
+ANPR-ENSE2,"('Super rare',)",New
+ANPR-ENSP1,"('Ultra rare',)",New
+ANPR-ENSP1,"('Ultra Rare',)",Old
+ANPR-FRSE1,"('Super Rare',)",Old
+ANPR-FRSE1,"('Super rare',)",New
+ANPR-FRSE2,"('Super rare',)",New
+ANPR-FRSE2,"('Super Rare',)",Old
+ANPR-FRSP1,"('Ultra rare',)",New
+ANPR-FRSP1,"('Ultra Rare',)",Old
+ANPR-ITSE1,"('Super Rare',)",Old
+ANPR-ITSE1,"('Super rare',)",New
+ANPR-ITSE2,"('Super Rare',)",Old
+ANPR-ITSE2,"('Super rare',)",New
+ANPR-ITSP1,"('Ultra Rare',)",Old
+ANPR-ITSP1,"('Ultra rare',)",New
+ANPR-SPSE1,"('Super rare',)",New
+ANPR-SPSE1,"('Super Rare',)",Old
+ANPR-SPSE2,"('Super rare',)",New
+ANPR-SPSE2,"('Super Rare',)",Old
+ANPR-SPSP1,"('Ultra Rare',)",Old
+ANPR-SPSP1,"('Ultra rare',)",New
+BACH-JP040,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BACH-JP040,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BACH-KR040,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BACH-KR040,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BATT-DE001,"('Starfoil rare',)",New
+BATT-DE001,"('Starfoil Rare',)",Old
+BATT-DE002,"('Starfoil rare',)",New
+BATT-DE002,"('Starfoil Rare',)",Old
+BATT-DE003,"('Starfoil Rare',)",Old
+BATT-DE003,"('Starfoil rare',)",New
+BATT-DE004,"('Starfoil rare',)",New
+BATT-DE004,"('Starfoil Rare',)",Old
+BATT-DE005,"('Starfoil rare',)",New
+BATT-DE005,"('Starfoil Rare',)",Old
+BATT-DE006,"('Starfoil Rare',)",Old
+BATT-DE006,"('Starfoil rare',)",New
+BATT-DE007,"('Starfoil rare',)",New
+BATT-DE007,"('Starfoil Rare',)",Old
+BATT-DE008,"('Starfoil rare',)",New
+BATT-DE008,"('Starfoil Rare',)",Old
+BATT-DE009,"('Starfoil Rare',)",Old
+BATT-DE009,"('Starfoil rare',)",New
+BATT-DE010,"('Starfoil Rare',)",Old
+BATT-DE010,"('Starfoil rare',)",New
+BATT-DE011,"('Starfoil Rare',)",Old
+BATT-DE011,"('Starfoil rare',)",New
+BATT-DE012,"('Starfoil Rare',)",Old
+BATT-DE012,"('Starfoil rare',)",New
+BATT-EN001,"('Starfoil Rare',)",Old
+BATT-EN001,"('Starfoil rare',)",New
+BATT-EN002,"('Starfoil rare',)",New
+BATT-EN002,"('Starfoil Rare',)",Old
+BATT-EN003,"('Starfoil rare',)",New
+BATT-EN003,"('Starfoil Rare',)",Old
+BATT-EN004,"('Starfoil rare',)",New
+BATT-EN004,"('Starfoil Rare',)",Old
+BATT-EN005,"('Starfoil Rare',)",Old
+BATT-EN005,"('Starfoil rare',)",New
+BATT-EN006,"('Starfoil rare',)",New
+BATT-EN006,"('Starfoil Rare',)",Old
+BATT-EN007,"('Starfoil rare',)",New
+BATT-EN007,"('Starfoil Rare',)",Old
+BATT-EN008,"('Starfoil rare',)",New
+BATT-EN008,"('Starfoil Rare',)",Old
+BATT-EN009,"('Starfoil Rare',)",Old
+BATT-EN009,"('Starfoil rare',)",New
+BATT-EN010,"('Starfoil Rare',)",Old
+BATT-EN010,"('Starfoil rare',)",New
+BATT-EN011,"('Starfoil rare',)",New
+BATT-EN011,"('Starfoil Rare',)",Old
+BATT-EN012,"('Starfoil Rare',)",Old
+BATT-EN012,"('Starfoil rare',)",New
+BATT-EN013,"('Starfoil Rare',)",Old
+BATT-EN013,"('Starfoil rare',)",New
+BATT-EN014,"('Starfoil Rare',)",Old
+BATT-EN014,"('Starfoil rare',)",New
+BATT-EN015,"('Starfoil rare',)",New
+BATT-EN015,"('Starfoil Rare',)",Old
+BATT-EN016,"('Starfoil rare',)",New
+BATT-EN016,"('Starfoil Rare',)",Old
+BATT-EN017,"('Starfoil Rare',)",Old
+BATT-EN017,"('Starfoil rare',)",New
+BATT-EN018,"('Starfoil rare',)",New
+BATT-EN018,"('Starfoil Rare',)",Old
+BATT-EN019,"('Starfoil rare',)",New
+BATT-EN019,"('Starfoil Rare',)",Old
+BATT-EN020,"('Starfoil rare',)",New
+BATT-EN020,"('Starfoil Rare',)",Old
+BATT-FR001,"('Starfoil rare',)",New
+BATT-FR001,"('Starfoil Rare',)",Old
+BATT-FR002,"('Starfoil Rare',)",Old
+BATT-FR002,"('Starfoil rare',)",New
+BATT-FR003,"('Starfoil Rare',)",Old
+BATT-FR003,"('Starfoil rare',)",New
+BATT-FR004,"('Starfoil Rare',)",Old
+BATT-FR004,"('Starfoil rare',)",New
+BATT-FR005,"('Starfoil Rare',)",Old
+BATT-FR005,"('Starfoil rare',)",New
+BATT-FR006,"('Starfoil Rare',)",Old
+BATT-FR006,"('Starfoil rare',)",New
+BATT-FR007,"('Starfoil Rare',)",Old
+BATT-FR007,"('Starfoil rare',)",New
+BATT-FR008,"('Starfoil Rare',)",Old
+BATT-FR008,"('Starfoil rare',)",New
+BATT-FR009,"('Starfoil rare',)",New
+BATT-FR009,"('Starfoil Rare',)",Old
+BATT-FR010,"('Starfoil rare',)",New
+BATT-FR010,"('Starfoil Rare',)",Old
+BATT-FR011,"('Starfoil rare',)",New
+BATT-FR011,"('Starfoil Rare',)",Old
+BATT-FR012,"('Starfoil Rare',)",Old
+BATT-FR012,"('Starfoil rare',)",New
+BATT-IT001,"('Starfoil rare',)",New
+BATT-IT001,"('Starfoil Rare',)",Old
+BATT-IT002,"('Starfoil Rare',)",Old
+BATT-IT002,"('Starfoil rare',)",New
+BATT-IT003,"('Starfoil rare',)",New
+BATT-IT003,"('Starfoil Rare',)",Old
+BATT-IT004,"('Starfoil Rare',)",Old
+BATT-IT004,"('Starfoil rare',)",New
+BATT-IT005,"('Starfoil Rare',)",Old
+BATT-IT005,"('Starfoil rare',)",New
+BATT-IT006,"('Starfoil Rare',)",Old
+BATT-IT006,"('Starfoil rare',)",New
+BATT-IT007,"('Starfoil Rare',)",Old
+BATT-IT007,"('Starfoil rare',)",New
+BATT-IT008,"('Starfoil Rare',)",Old
+BATT-IT008,"('Starfoil rare',)",New
+BATT-IT009,"('Starfoil rare',)",New
+BATT-IT009,"('Starfoil Rare',)",Old
+BATT-IT010,"('Starfoil Rare',)",Old
+BATT-IT010,"('Starfoil rare',)",New
+BATT-IT011,"('Starfoil rare',)",New
+BATT-IT011,"('Starfoil Rare',)",Old
+BATT-IT012,"('Starfoil Rare',)",Old
+BATT-IT012,"('Starfoil rare',)",New
+BATT-SP001,"('Starfoil Rare',)",Old
+BATT-SP001,"('Starfoil rare',)",New
+BATT-SP002,"('Starfoil rare',)",New
+BATT-SP002,"('Starfoil Rare',)",Old
+BATT-SP003,"('Starfoil rare',)",New
+BATT-SP003,"('Starfoil Rare',)",Old
+BATT-SP004,"('Starfoil rare',)",New
+BATT-SP004,"('Starfoil Rare',)",Old
+BATT-SP005,"('Starfoil rare',)",New
+BATT-SP005,"('Starfoil Rare',)",Old
+BATT-SP006,"('Starfoil rare',)",New
+BATT-SP006,"('Starfoil Rare',)",Old
+BATT-SP007,"('Starfoil rare',)",New
+BATT-SP007,"('Starfoil Rare',)",Old
+BATT-SP008,"('Starfoil rare',)",New
+BATT-SP008,"('Starfoil Rare',)",Old
+BATT-SP009,"('Starfoil Rare',)",Old
+BATT-SP009,"('Starfoil rare',)",New
+BATT-SP010,"('Starfoil rare',)",New
+BATT-SP010,"('Starfoil Rare',)",Old
+BATT-SP011,"('Starfoil Rare',)",Old
+BATT-SP011,"('Starfoil rare',)",New
+BATT-SP012,"('Starfoil Rare',)",Old
+BATT-SP012,"('Starfoil rare',)",New
+BLVO-JP050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BLVO-JP050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BLVO-KR050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BLVO-KR050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BNZ-DE002,"('Ultra Rare',)",Old
+BNZ-DE002,"('Ultra rare',)",New
+BNZ-G001,"('Ultra rare',)",New
+BNZ-G001,"('Ultra Rare',)",Old
+BODE-JP030,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BODE-JP030,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BODE-KR030,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+BODE-KR030,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+BOSH-DESE1,"('Super rare',)",New
+BOSH-DESE1,"('Super Rare',)",Old
+BOSH-DESE2,"('Super rare',)",New
+BOSH-DESE2,"('Super Rare',)",Old
+BOSH-DESE3,"('Super rare',)",New
+BOSH-DESE3,"('Super Rare',)",Old
+BOSH-DESE4,"('Super rare',)",New
+BOSH-DESE4,"('Super Rare',)",Old
+BOSH-DESP1,"('Ultra rare',)",New
+BOSH-DESP1,"('Ultra Rare',)",Old
+BOSH-ENSP1,"('Ultra Rare',)",Old
+BOSH-ENSP1,"('Ultra rare',)",New
+BOSH-FRSE1,"('Super rare',)",New
+BOSH-FRSE1,"('Super Rare',)",Old
+BOSH-FRSE2,"('Super rare',)",New
+BOSH-FRSE2,"('Super Rare',)",Old
+BOSH-FRSE3,"('Super rare',)",New
+BOSH-FRSE3,"('Super Rare',)",Old
+BOSH-FRSE4,"('Super rare',)",New
+BOSH-FRSE4,"('Super Rare',)",Old
+BOSH-FRSP1,"('Ultra rare',)",New
+BOSH-FRSP1,"('Ultra Rare',)",Old
+BOSH-ITSE1,"('Super rare',)",New
+BOSH-ITSE1,"('Super Rare',)",Old
+BOSH-ITSE2,"('Super Rare',)",Old
+BOSH-ITSE2,"('Super rare',)",New
+BOSH-ITSE3,"('Super rare',)",New
+BOSH-ITSE3,"('Super Rare',)",Old
+BOSH-ITSE4,"('Super Rare',)",Old
+BOSH-ITSE4,"('Super rare',)",New
+BOSH-ITSP1,"('Ultra Rare',)",Old
+BOSH-ITSP1,"('Ultra rare',)",New
+BOSH-PTSE1,"('Super rare',)",New
+BOSH-PTSE1,"('Super Rare',)",Old
+BOSH-PTSE2,"('Super Rare',)",Old
+BOSH-PTSE2,"('Super rare',)",New
+BOSH-PTSE3,"('Super Rare',)",Old
+BOSH-PTSE3,"('Super rare',)",New
+BOSH-PTSE4,"('Super Rare',)",Old
+BOSH-PTSE4,"('Super rare',)",New
+BOSH-PTSP1,"('Ultra rare',)",New
+BOSH-PTSP1,"('Ultra Rare',)",Old
+BOSH-SPSE1,"('Super rare',)",New
+BOSH-SPSE1,"('Super Rare',)",Old
+BOSH-SPSE2,"('Super rare',)",New
+BOSH-SPSE2,"('Super Rare',)",Old
+BOSH-SPSE3,"('Super rare',)",New
+BOSH-SPSE3,"('Super Rare',)",Old
+BOSH-SPSE4,"('Super Rare',)",Old
+BOSH-SPSE4,"('Super rare',)",New
+BOSH-SPSP1,"('Ultra rare',)",New
+BOSH-SPSP1,"('Ultra Rare',)",Old
+CBLZ-DESE1,"('Super rare',)",New
+CBLZ-DESE1,"('Super Rare',)",Old
+CBLZ-DESE2,"('Super rare',)",New
+CBLZ-DESE2,"('Super Rare',)",Old
+CBLZ-DESP1,"('Ultra Rare',)",Old
+CBLZ-DESP1,"('Ultra rare',)",New
+CBLZ-ENSE1,"('Super Rare',)",Old
+CBLZ-ENSE1,"('Super rare',)",New
+CBLZ-ENSE2,"('Super rare',)",New
+CBLZ-ENSE2,"('Super Rare',)",Old
+CBLZ-ENSP1,"('Ultra Rare',)",Old
+CBLZ-ENSP1,"('Ultra rare',)",New
+CBLZ-FRSE1,"('Super rare',)",New
+CBLZ-FRSE1,"('Super Rare',)",Old
+CBLZ-FRSE2,"('Super rare',)",New
+CBLZ-FRSE2,"('Super Rare',)",Old
+CBLZ-FRSP1,"('Ultra Rare',)",Old
+CBLZ-FRSP1,"('Ultra rare',)",New
+CBLZ-ITSE1,"('Super Rare',)",Old
+CBLZ-ITSE1,"('Super rare',)",New
+CBLZ-ITSE2,"('Super Rare',)",Old
+CBLZ-ITSE2,"('Super rare',)",New
+CBLZ-ITSP1,"('Ultra Rare',)",Old
+CBLZ-ITSP1,"('Ultra rare',)",New
+CBLZ-PTSE1,"('Super rare',)",New
+CBLZ-PTSE1,"('Super Rare',)",Old
+CBLZ-PTSE2,"('Super Rare',)",Old
+CBLZ-PTSE2,"('Super rare',)",New
+CBLZ-PTSP1,"('Ultra Rare',)",Old
+CBLZ-PTSP1,"('Ultra rare',)",New
+CBLZ-SPSE1,"('Super rare',)",New
+CBLZ-SPSE1,"('Super Rare',)",Old
+CBLZ-SPSE2,"('Super Rare',)",Old
+CBLZ-SPSE2,"('Super rare',)",New
+CBLZ-SPSP1,"('Ultra rare',)",New
+CBLZ-SPSP1,"('Ultra Rare',)",Old
+CMC-FR001,"('Super rare',)",New
+CMC-FR001,"('Super Rare',)",Old
+CMC-FR002,"('Super rare',)",New
+CMC-FR002,"('Super Rare',)",Old
+CMC-FR003,"('Super rare',)",New
+CMC-FR003,"('Super Rare',)",Old
+CORE-DESP1,"('Ultra rare',)",New
+CORE-DESP1,"('Ultra Rare',)",Old
+CORE-ENSP1,"('Ultra Rare',)",Old
+CORE-ENSP1,"('Ultra rare',)",New
+CORE-FRSP1,"('Ultra Rare',)",Old
+CORE-FRSP1,"('Ultra rare',)",New
+CORE-ITSP1,"('Ultra rare',)",New
+CORE-ITSP1,"('Ultra Rare',)",Old
+CORE-PTSP1,"('Ultra rare',)",New
+CORE-PTSP1,"('Ultra Rare',)",Old
+CORE-SPSP1,"('Ultra rare',)",New
+CORE-SPSP1,"('Ultra Rare',)",Old
+CP20-JP006,"('Ultra Rare', ""Collector's Rare"")",Old
+CP20-JP006,"('Ultra Rare', 'Collector""s Rare')",New
+CP20-JP009,"('Super Rare', ""Collector's Rare"")",Old
+CP20-JP009,"('Super Rare', 'Collector""s Rare')",New
+CP20-JP011,"('Ultra Rare', 'Collector""s Rare')",New
+CP20-JP011,"('Ultra Rare', ""Collector's Rare"")",Old
+CP20-JP019,"('Ultra Rare', 'Collector""s Rare')",New
+CP20-JP019,"('Ultra Rare', ""Collector's Rare"")",Old
+CP20-JP021,"('Ultra Rare', 'Collector""s Rare')",New
+CP20-JP021,"('Ultra Rare', ""Collector's Rare"")",Old
+CP20-JP026,"('Super Rare', ""Collector's Rare"")",Old
+CP20-JP026,"('Super Rare', 'Collector""s Rare')",New
+CP20-JP028,"('Super Rare', 'Collector""s Rare')",New
+CP20-JP028,"('Super Rare', ""Collector's Rare"")",Old
+CP20-JP038,"('Super Rare', 'Collector""s Rare')",New
+CP20-JP038,"('Super Rare', ""Collector's Rare"")",Old
+CP20-JP045,"('Super Rare', 'Collector""s Rare')",New
+CP20-JP045,"('Super Rare', ""Collector's Rare"")",Old
+CRMS-AE004,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CRMS-AE004,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+CRMS-DESE1,"('Super Rare',)",Old
+CRMS-DESE1,"('Super rare',)",New
+CRMS-DESE2,"('Super rare',)",New
+CRMS-DESE2,"('Super Rare',)",Old
+CRMS-DESP1,"('Super Rare',)",Old
+CRMS-DESP1,"('Super rare',)",New
+CRMS-ENSE1,"('Super rare',)",New
+CRMS-ENSE1,"('Super Rare',)",Old
+CRMS-ENSE2,"('Super rare',)",New
+CRMS-ENSE2,"('Super Rare',)",Old
+CRMS-ENSP1,"('Super Rare',)",Old
+CRMS-ENSP1,"('Super rare',)",New
+CRMS-FRSE1,"('Super Rare',)",Old
+CRMS-FRSE1,"('Super rare',)",New
+CRMS-FRSE2,"('Super Rare',)",Old
+CRMS-FRSE2,"('Super rare',)",New
+CRMS-FRSP1,"('Super Rare',)",Old
+CRMS-FRSP1,"('Super rare',)",New
+CRMS-ITSE1,"('Super rare',)",New
+CRMS-ITSE1,"('Super Rare',)",Old
+CRMS-ITSE2,"('Super Rare',)",Old
+CRMS-ITSE2,"('Super rare',)",New
+CRMS-ITSP1,"('Super Rare',)",Old
+CRMS-ITSP1,"('Super rare',)",New
+CRMS-KR004,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CRMS-KR004,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+CRMS-SPSE1,"('Super Rare',)",Old
+CRMS-SPSE1,"('Super rare',)",New
+CRMS-SPSE2,"('Super Rare',)",Old
+CRMS-SPSE2,"('Super rare',)",New
+CRMS-SPSP1,"('Super rare',)",New
+CRMS-SPSP1,"('Super Rare',)",Old
+CROS-DEAE1,"('Super Rare',)",Old
+CROS-DEAE1,"('Super rare',)",New
+CROS-DEAE2,"('Super Rare',)",Old
+CROS-DEAE2,"('Super rare',)",New
+CROS-DEAE3,"('Super rare',)",New
+CROS-DEAE3,"('Super Rare',)",Old
+CROS-DEAE4,"('Super Rare',)",Old
+CROS-DEAE4,"('Super rare',)",New
+CROS-DESP1,"('Ultra Rare',)",Old
+CROS-DESP1,"('Ultra rare',)",New
+CROS-ENSP1,"('Ultra rare',)",New
+CROS-ENSP1,"('Ultra Rare',)",Old
+CROS-FRAE1,"('Super rare',)",New
+CROS-FRAE1,"('Super Rare',)",Old
+CROS-FRAE2,"('Super rare',)",New
+CROS-FRAE2,"('Super Rare',)",Old
+CROS-FRAE3,"('Super rare',)",New
+CROS-FRAE3,"('Super Rare',)",Old
+CROS-FRAE4,"('Super Rare',)",Old
+CROS-FRAE4,"('Super rare',)",New
+CROS-FRSP1,"('Ultra rare',)",New
+CROS-FRSP1,"('Ultra Rare',)",Old
+CROS-ITAE1,"('Super rare',)",New
+CROS-ITAE1,"('Super Rare',)",Old
+CROS-ITAE2,"('Super rare',)",New
+CROS-ITAE2,"('Super Rare',)",Old
+CROS-ITAE3,"('Super rare',)",New
+CROS-ITAE3,"('Super Rare',)",Old
+CROS-ITAE4,"('Super rare',)",New
+CROS-ITAE4,"('Super Rare',)",Old
+CROS-ITSP1,"('Ultra Rare',)",Old
+CROS-ITSP1,"('Ultra rare',)",New
+CROS-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CROS-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+CROS-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CROS-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+CROS-PTAE1,"('Super rare',)",New
+CROS-PTAE1,"('Super Rare',)",Old
+CROS-PTAE2,"('Super Rare',)",Old
+CROS-PTAE2,"('Super rare',)",New
+CROS-PTAE3,"('Super rare',)",New
+CROS-PTAE3,"('Super Rare',)",Old
+CROS-PTAE4,"('Super Rare',)",Old
+CROS-PTAE4,"('Super rare',)",New
+CROS-PTSP1,"('Ultra Rare',)",Old
+CROS-PTSP1,"('Ultra rare',)",New
+CROS-SPAE1,"('Super rare',)",New
+CROS-SPAE1,"('Super Rare',)",Old
+CROS-SPAE2,"('Super rare',)",New
+CROS-SPAE2,"('Super Rare',)",Old
+CROS-SPAE3,"('Super rare',)",New
+CROS-SPAE3,"('Super Rare',)",Old
+CROS-SPAE4,"('Super rare',)",New
+CROS-SPAE4,"('Super Rare',)",Old
+CROS-SPSP1,"('Ultra Rare',)",Old
+CROS-SPSP1,"('Ultra rare',)",New
+CSOC-DESE1,"('Super rare',)",New
+CSOC-DESE1,"('Super Rare',)",Old
+CSOC-DESE2,"('Super Rare',)",Old
+CSOC-DESE2,"('Super rare',)",New
+CSOC-DESP1,"('Super rare',)",New
+CSOC-DESP1,"('Super Rare',)",Old
+CSOC-ENSE1,"('Super rare',)",New
+CSOC-ENSE1,"('Super Rare',)",Old
+CSOC-ENSE2,"('Super Rare',)",Old
+CSOC-ENSE2,"('Super rare',)",New
+CSOC-ENSP1,"('Super rare',)",New
+CSOC-ENSP1,"('Super Rare',)",Old
+CSOC-FRSE1,"('Super Rare',)",Old
+CSOC-FRSE1,"('Super rare',)",New
+CSOC-FRSE2,"('Super Rare',)",Old
+CSOC-FRSE2,"('Super rare',)",New
+CSOC-FRSP1,"('Super rare',)",New
+CSOC-FRSP1,"('Super Rare',)",Old
+CSOC-ITSE1,"('Super Rare',)",Old
+CSOC-ITSE1,"('Super rare',)",New
+CSOC-ITSE2,"('Super Rare',)",Old
+CSOC-ITSE2,"('Super rare',)",New
+CSOC-ITSP1,"('Super Rare',)",Old
+CSOC-ITSP1,"('Super rare',)",New
+CSOC-JP039,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+CSOC-JP039,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CSOC-KR039,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+CSOC-KR039,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+CSOC-SPSE1,"('Super Rare',)",Old
+CSOC-SPSE1,"('Super rare',)",New
+CSOC-SPSE2,"('Super rare',)",New
+CSOC-SPSE2,"('Super Rare',)",Old
+CSOC-SPSP1,"('Super Rare',)",Old
+CSOC-SPSP1,"('Super rare',)",New
+CT06-DE001,"('Secret Rare',)",Old
+CT06-DE001,"('Secret rare',)",New
+CT06-DE002,"('Secret Rare',)",Old
+CT06-DE002,"('Secret rare',)",New
+CT06-DE003,"('Secret rare',)",New
+CT06-DE003,"('Secret Rare',)",Old
+CT06-DE004,"('Secret Rare',)",Old
+CT06-DE004,"('Secret rare',)",New
+CT06-EN001,"('Secret rare',)",New
+CT06-EN001,"('Secret Rare',)",Old
+CT06-EN002,"('Secret Rare',)",Old
+CT06-EN002,"('Secret rare',)",New
+CT06-EN003,"('Secret rare',)",New
+CT06-EN003,"('Secret Rare',)",Old
+CT06-EN004,"('Secret rare',)",New
+CT06-EN004,"('Secret Rare',)",Old
+CT06-FR001,"('Secret rare',)",New
+CT06-FR001,"('Secret Rare',)",Old
+CT06-FR002,"('Secret Rare',)",Old
+CT06-FR002,"('Secret rare',)",New
+CT06-FR003,"('Secret rare',)",New
+CT06-FR003,"('Secret Rare',)",Old
+CT06-FR004,"('Secret Rare',)",Old
+CT06-FR004,"('Secret rare',)",New
+CT06-IT001,"('Secret Rare',)",Old
+CT06-IT001,"('Secret rare',)",New
+CT06-IT002,"('Secret rare',)",New
+CT06-IT002,"('Secret Rare',)",Old
+CT06-IT003,"('Secret rare',)",New
+CT06-IT003,"('Secret Rare',)",Old
+CT06-IT004,"('Secret rare',)",New
+CT06-IT004,"('Secret Rare',)",Old
+CT06-SP001,"('Secret rare',)",New
+CT06-SP001,"('Secret Rare',)",Old
+CT06-SP002,"('Secret rare',)",New
+CT06-SP002,"('Secret Rare',)",Old
+CT06-SP003,"('Secret Rare',)",Old
+CT06-SP003,"('Secret rare',)",New
+CT06-SP004,"('Secret Rare',)",Old
+CT06-SP004,"('Secret rare',)",New
+CYAC-JP024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+CYAC-JP024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DABL-JP050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DABL-JP050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DABL-KR050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DABL-KR050,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DAMA-JP024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DAMA-JP024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DAMA-KR024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DAMA-KR024,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DBT-FR001,"('Super Rare',)",Old
+DBT-FR001,"('Super rare',)",New
+DBT-FR002,"('Super rare',)",New
+DBT-FR002,"('Super Rare',)",Old
+DBT-FR003,"('Super Rare',)",Old
+DBT-FR003,"('Super rare',)",New
+DIFO-JP043,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DIFO-JP043,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DIFO-KR043,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'Holographic Rare')",Old
+DIFO-KR043,"('Ultra Rare', 'Ultimate Rare', 'Secret Rare', 'Prismatic Secret Rare', 'HGR')",New
+DOCS-FRSE1,"('Super rare',)",New
+DOCS-FRSE1,"('Super Rare',)",Old
+DOCS-FRSE2,"('Super Rare',)",Old
+DOCS-FRSE2,"('Super rare',)",New
+DOCS-FRSE3,"('Super Rare',)",Old
+DOCS-FRSE3,"('Super rare',)",New
+DOCS-FRSE4,"('Super Rare',)",Old
+DOCS-FRSE4,"('Super rare',)",New
+DOCS-FRSP1,"('Ultra Rare',)",Old
+DOCS-FRSP1,"('Ultra rare',)",New
+DOCS-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+DOCS-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+DOCS-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+DOCS-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+DOD-FR001,"('Super rare',)",New
+DOD-FR001,"('Super Rare',)",Old
+DOD-FR002,"('Super rare',)",New
+DOD-FR002,"('Super Rare',)",Old
+DOD-FR003,"('Super rare',)",New
+DOD-FR003,"('Super Rare',)",Old
+DOR-F001,"('Prismatic Secret Rare',)",Old
+DOR-F001,"('Prismatic Secret rare',)",New
+DOR-F002,"('Prismatic Secret Rare',)",Old
+DOR-F002,"('Prismatic Secret rare',)",New
+DOR-F003,"('Prismatic Secret Rare',)",Old
+DOR-F003,"('Prismatic Secret rare',)",New
+DP23-JP000,"('HGR',)",New
+DP23-JP000,"('Holographic Rare',)",Old
+DP24-JP000,"('HGR',)",New
+DP24-JP000,"('Holographic Rare',)",Old
+DP25-JP000,"('Holographic Rare',)",Old
+DP25-JP000,"('HGR',)",New
+DP25-SC000,"('HGR',)",New
+DP25-SC000,"('Holographic Rare',)",Old
+DP26-JP000,"('HGR',)",New
+DP26-JP000,"('Holographic Rare',)",Old
+DP27-JP000,"('Holographic Rare',)",Old
+DP27-JP000,"('HGR',)",New
+DPCT-FR001,"('Ultra rare',)",New
+DPCT-FR001,"('Ultra Rare',)",Old
+DREV-FRSE1,"('Super Rare',)",Old
+DREV-FRSE1,"('Super rare',)",New
+DREV-FRSE2,"('Super Rare',)",Old
+DREV-FRSE2,"('Super rare',)",New
+DREV-FRSP1,"('Ultra Rare',)",Old
+DREV-FRSP1,"('Ultra rare',)",New
+DREV-JP038,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+DREV-JP038,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+DREV-KR038,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+DREV-KR038,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+DUEA-FRSP1,"('Ultra Rare',)",Old
+DUEA-FRSP1,"('Ultra rare',)",New
+DUEA-JA004,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+DUEA-JA004,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+DUEA-JP004,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+DUEA-JP004,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+DUEA-KR004,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+DUEA-KR004,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+ETCO-JP046,"('Ultra Rare', 'Secret Rare', '20th Secret Rare', 'Ultimate Rare', 'HGR')",New
+ETCO-JP046,"('Ultra Rare', 'Secret Rare', '20th Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+ETCO-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+ETCO-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+EV09-KR001,"('Secret rare',)",New
+EV09-KR001,"('Secret Rare',)",Old
+EV09-KR002,"('Secret Rare',)",Old
+EV09-KR002,"('Secret rare',)",New
+EV09-KR003,"('Secret rare',)",New
+EV09-KR003,"('Secret Rare',)",Old
+EV09-KR004,"('Secret Rare',)",Old
+EV09-KR004,"('Secret rare',)",New
+EV10-KR001,"('Secret rare',)",New
+EV10-KR001,"('Secret Rare',)",Old
+EV10-KR002,"('Secret rare',)",New
+EV10-KR002,"('Secret Rare',)",Old
+EV10-KR003,"('Secret Rare',)",Old
+EV10-KR003,"('Secret rare',)",New
+EV10-KR004,"('Secret rare',)",New
+EV10-KR004,"('Secret Rare',)",Old
+EV10-KR007,"('Secret rare',)",New
+EV10-KR007,"('Secret Rare',)",Old
+EV10-KR008,"('Secret rare',)",New
+EV10-KR008,"('Secret Rare',)",Old
+EV10-KR009,"('Secret rare',)",New
+EV10-KR009,"('Secret Rare',)",Old
+EV10-KR010,"('Secret rare',)",New
+EV10-KR010,"('Secret Rare',)",Old
+EV10-KR013,"('Secret rare',)",New
+EV10-KR013,"('Secret Rare',)",Old
+EV10-KR014,"('Secret Rare',)",Old
+EV10-KR014,"('Secret rare',)",New
+EV10-KR015,"('Secret Rare',)",Old
+EV10-KR015,"('Secret rare',)",New
+EV11-KR005,"('Secret Rare',)",Old
+EV11-KR005,"('Secret rare',)",New
+EV11-KR006,"('Secret rare',)",New
+EV11-KR006,"('Secret Rare',)",Old
+EV12-KR007,"('Super Rare',)",Old
+EV12-KR007,"('Super rare',)",New
+EV12-KR008,"('Secret Rare',)",Old
+EV12-KR008,"('Secret rare',)",New
+EV12-KR009,"('Secret rare',)",New
+EV12-KR009,"('Secret Rare',)",Old
+EV12-KR010,"('Secret Rare',)",Old
+EV12-KR010,"('Secret rare',)",New
+EV13-KR001,"('Secret Rare',)",Old
+EV13-KR001,"('Secret rare',)",New
+EV13-KR002,"('Secret Rare',)",Old
+EV13-KR002,"('Secret rare',)",New
+EV13-KR003,"('Secret Rare',)",Old
+EV13-KR003,"('Secret rare',)",New
+EV13-KR004,"('Secret rare',)",New
+EV13-KR004,"('Secret Rare',)",Old
+EXFO-JP038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+EXFO-JP038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+EXVC-FRSP1,"('Ultra rare',)",New
+EXVC-FRSP1,"('Ultra Rare',)",Old
+EXVC-JP037,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+EXVC-JP037,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+EXVC-KR037,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+EXVC-KR037,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+FOTB-FRSE1,"('Super Rare',)",Old
+FOTB-FRSE1,"('Super rare',)",New
+FOTB-FRSE2,"('Super rare',)",New
+FOTB-FRSE2,"('Super Rare',)",Old
+FOTB-FRSP1,"('Super Rare',)",Old
+FOTB-FRSP1,"('Super rare',)",New
+GAOV-FRSP1,"('Ultra rare',)",New
+GAOV-FRSP1,"('Ultra Rare',)",Old
+GAOV-JP041,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GAOV-JP041,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GAOV-KR041,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GAOV-KR041,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GENF-FRSE1,"('Super Rare',)",Old
+GENF-FRSE1,"('Super rare',)",New
+GENF-FRSE2,"('Super Rare',)",Old
+GENF-FRSE2,"('Super rare',)",New
+GENF-FRSP1,"('Ultra rare',)",New
+GENF-FRSP1,"('Ultra Rare',)",Old
+GENF-JP039,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GENF-JP039,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GENF-KR039,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GENF-KR039,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GLAS-FRSP1,"('Super Rare',)",Old
+GLAS-FRSP1,"('Super rare',)",New
+GLAS-JP036,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GLAS-JP036,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GLAS-KR036,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+GLAS-KR036,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+GX02-FR001,"('Super rare',)",New
+GX02-FR001,"('Super Rare',)",Old
+GX02-FR002,"('Super rare',)",New
+GX02-FR002,"('Super Rare',)",Old
+GX02-FR003,"('Super rare',)",New
+GX02-FR003,"('Super Rare',)",Old
+GX03-FR001,"('Super Rare',)",Old
+GX03-FR001,"('Super rare',)",New
+GX03-FR002,"('Super rare',)",New
+GX03-FR002,"('Super Rare',)",Old
+GX03-FR003,"('Super Rare',)",Old
+GX03-FR003,"('Super rare',)",New
+GX04-FR001,"('Super rare',)",New
+GX04-FR001,"('Super Rare',)",Old
+GX04-FR002,"('Super Rare',)",Old
+GX04-FR002,"('Super rare',)",New
+GX04-FR003,"('Super rare',)",New
+GX04-FR003,"('Super Rare',)",Old
+GX06-FR001,"('Super Rare',)",Old
+GX06-FR001,"('Super rare',)",New
+GX06-FR002,"('Super Rare',)",Old
+GX06-FR002,"('Super rare',)",New
+GX06-FR003,"('Super rare',)",New
+GX06-FR003,"('Super Rare',)",Old
+GX1-FR001,"('Super rare',)",New
+GX1-FR001,"('Super Rare',)",Old
+GX1-FR002,"('Super rare',)",New
+GX1-FR002,"('Super Rare',)",Old
+GX1-FR003,"('Super Rare',)",Old
+GX1-FR003,"('Super rare',)",New
+H5SE-FR001,"('Super Rare',)",Old
+H5SE-FR001,"('Super rare',)",New
+H5SE-FR002,"('Super Rare',)",Old
+H5SE-FR002,"('Super rare',)",New
+HASE-FR001,"('Super rare',)",New
+HASE-FR001,"('Super Rare',)",Old
+HASE-FR002,"('Super Rare',)",Old
+HASE-FR002,"('Super rare',)",New
+INOV-FRSE1,"('Super rare',)",New
+INOV-FRSE1,"('Super Rare',)",Old
+INOV-FRSE2,"('Super Rare',)",Old
+INOV-FRSE2,"('Super rare',)",New
+INOV-FRSE3,"('Super rare',)",New
+INOV-FRSE3,"('Super Rare',)",Old
+INOV-FRSE4,"('Super Rare',)",Old
+INOV-FRSE4,"('Super rare',)",New
+INOV-FRSP1,"('Ultra rare',)",New
+INOV-FRSP1,"('Ultra Rare',)",Old
+INOV-JP038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+INOV-JP038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+INOV-KR038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+INOV-KR038,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+JOTL-FRSP1,"('Ultra Rare',)",Old
+JOTL-FRSP1,"('Ultra rare',)",New
+JOTL-JP048,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+JOTL-JP048,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+JOTL-KR048,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+JOTL-KR048,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LC03-FR001,"('Ultra rare',)",New
+LC03-FR001,"('Ultra Rare',)",Old
+LC03-FR002,"('Ultra rare',)",New
+LC03-FR002,"('Ultra Rare',)",Old
+LC03-FR003,"('Ultra rare',)",New
+LC03-FR003,"('Ultra Rare',)",Old
+LC03-FR004,"('Ultra Rare',)",Old
+LC03-FR004,"('Ultra rare',)",New
+LC03-FR005,"('Ultra rare',)",New
+LC03-FR005,"('Ultra Rare',)",Old
+LC03-FR006,"('Ultra rare',)",New
+LC03-FR006,"('Ultra Rare',)",Old
+LC03-FR007,"('Ultra Rare',)",Old
+LC03-FR007,"('Ultra rare',)",New
+LODT-FRSE1,"('Super Rare',)",Old
+LODT-FRSE1,"('Super rare',)",New
+LODT-FRSE2,"('Super Rare',)",Old
+LODT-FRSE2,"('Super rare',)",New
+LODT-FRSP1,"('Super rare',)",New
+LODT-FRSP1,"('Super Rare',)",Old
+LODT-JP001,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+LODT-JP001,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LODT-KR001,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LODT-KR001,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+LTGY-FRSP1,"('Ultra Rare',)",Old
+LTGY-FRSP1,"('Ultra rare',)",New
+LTGY-JP044,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LTGY-JP044,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+LTGY-KR044,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LTGY-KR044,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+LVAL-FRSP1,"('Ultra rare',)",New
+LVAL-FRSP1,"('Ultra Rare',)",Old
+LVAL-JP046,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+LVAL-JP046,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+LVAL-KR046,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+LVAL-KR046,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+MOV2-FR001,"('Super Rare',)",Old
+MOV2-FR001,"('Super rare',)",New
+MVPC-KR000,"('Ultra Rare',)",Old
+MVPC-KR000,"('Ultra rare',)",New
+MVPC-KR001,"('Ultra Rare',)",Old
+MVPC-KR001,"('Ultra rare',)",New
+MVPC-KR002,"('Ultra rare',)",New
+MVPC-KR002,"('Ultra Rare',)",Old
+MVPC-KR003,"('Ultra rare',)",New
+MVPC-KR003,"('Ultra Rare',)",Old
+MVPC-KR004,"('Ultra rare',)",New
+MVPC-KR004,"('Ultra Rare',)",Old
+MVPC-KR005,"('Ultra rare',)",New
+MVPC-KR005,"('Ultra Rare',)",Old
+MVPC-KR006,"('Ultra rare',)",New
+MVPC-KR006,"('Ultra Rare',)",Old
+MVPC-KR007,"('Ultra Rare',)",Old
+MVPC-KR007,"('Ultra rare',)",New
+MVPC-KR008,"('Ultra Rare',)",Old
+MVPC-KR008,"('Ultra rare',)",New
+NECH-FRSP1,"('Ultra rare',)",New
+NECH-FRSP1,"('Ultra Rare',)",Old
+NECH-JP053,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+NECH-JP053,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+NECH-KR053,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+NECH-KR053,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+NTR-FR001,"('Super rare',)",New
+NTR-FR001,"('Super Rare',)",Old
+NTR-FR002,"('Super rare',)",New
+NTR-FR002,"('Super Rare',)",Old
+NTR-FR003,"('Super Rare',)",Old
+NTR-FR003,"('Super rare',)",New
+ORCS-FRSE1,"('Super Rare',)",Old
+ORCS-FRSE1,"('Super rare',)",New
+ORCS-FRSE2,"('Super rare',)",New
+ORCS-FRSE2,"('Super Rare',)",Old
+ORCS-FRSP1,"('Ultra rare',)",New
+ORCS-FRSP1,"('Ultra Rare',)",Old
+ORCS-JP040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+ORCS-JP040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+ORCS-KR040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+ORCS-KR040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PCJ-FR001,"('Prismatic Secret Rare',)",Old
+PCJ-FR001,"('Prismatic Secret rare',)",New
+PCJ-FR002,"('Prismatic Secret Rare',)",Old
+PCJ-FR002,"('Prismatic Secret rare',)",New
+PCJ-FR003,"('Prismatic Secret Rare',)",Old
+PCJ-FR003,"('Prismatic Secret rare',)",New
+PCK-F001,"('Prismatic Secret rare',)",New
+PCK-F001,"('Prismatic Secret Rare',)",Old
+PCK-F002,"('Prismatic Secret Rare',)",Old
+PCK-F002,"('Prismatic Secret rare',)",New
+PCK-F003,"('Prismatic Secret rare',)",New
+PCK-F003,"('Prismatic Secret Rare',)",Old
+PCY-F001,"('Prismatic Secret Rare',)",Old
+PCY-F001,"('Prismatic Secret rare',)",New
+PCY-F002,"('Prismatic Secret Rare',)",Old
+PCY-F002,"('Prismatic Secret rare',)",New
+PCY-F003,"('Prismatic Secret rare',)",New
+PCY-F003,"('Prismatic Secret Rare',)",Old
+PHSW-FRSP1,"('Ultra rare',)",New
+PHSW-FRSP1,"('Ultra Rare',)",Old
+PHSW-JP011,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PHSW-JP011,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+PHSW-KR011,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+PHSW-KR011,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PRIO-ENPL1,"('SFR',)",New
+PRIO-ENPL1,"('Starfoil Rare',)",Old
+PRIO-FRSP1,"('Ultra Rare',)",Old
+PRIO-FRSP1,"('Ultra rare',)",New
+PRIO-JP040,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PRIO-JP040,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+PRIO-KR040,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+PRIO-KR040,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+PTDN-FRSE1,"('Super rare',)",New
+PTDN-FRSE1,"('Super Rare',)",Old
+PTDN-FRSE2,"('Super Rare',)",Old
+PTDN-FRSE2,"('Super rare',)",New
+PTDN-FRSP1,"('Super rare',)",New
+PTDN-FRSP1,"('Super Rare',)",Old
+PTDN-JP044,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PTDN-JP044,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+PTDN-KR044,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+PTDN-KR044,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+RATE-FRSP1,"('Ultra Rare',)",Old
+RATE-FRSP1,"('Ultra rare',)",New
+RATE-JP048,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+RATE-JP048,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RATE-KR048,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RATE-KR048,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+REDU-FRSE1,"('Super Rare',)",Old
+REDU-FRSE1,"('Super rare',)",New
+REDU-FRSE2,"('Super Rare',)",Old
+REDU-FRSE2,"('Super rare',)",New
+REDU-FRSP1,"('Ultra rare',)",New
+REDU-FRSP1,"('Ultra Rare',)",Old
+REDU-JP041,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+REDU-JP041,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+REDU-KR041,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+REDU-KR041,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RGBT-AE042,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+RGBT-AE042,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RGBT-FRSE1,"('Super Rare',)",Old
+RGBT-FRSE1,"('Super rare',)",New
+RGBT-FRSE2,"('Super rare',)",New
+RGBT-FRSE2,"('Super Rare',)",Old
+RGBT-FRSP1,"('Super rare',)",New
+RGBT-FRSP1,"('Super Rare',)",Old
+RGBT-JP042,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+RGBT-JP042,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RGBT-KR042,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+RGBT-KR042,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+ROD-FR001,"('Prismatic Secret rare',)",New
+ROD-FR001,"('Prismatic Secret Rare',)",Old
+ROD-FR002,"('Prismatic Secret Rare',)",Old
+ROD-FR002,"('Prismatic Secret rare',)",New
+ROD-FR003,"('Prismatic Secret Rare',)",Old
+ROD-FR003,"('Prismatic Secret rare',)",New
+SD09-KRSE1,"('Secret rare',)",New
+SD09-KRSE1,"('Secret Rare',)",Old
+SD13-KRSE1,"('Secret rare',)",New
+SD13-KRSE1,"('Secret Rare',)",Old
+SD15-KRFE1,"('Secret rare',)",New
+SD15-KRFE1,"('Secret Rare',)",Old
+SD15-KRFE2,"('Secret rare',)",New
+SD15-KRFE2,"('Secret Rare',)",Old
+SD25-KRSS1,"('Secret Rare',)",Old
+SD25-KRSS1,"('Secret rare',)",New
+SD25-KRSS2,"('Secret rare',)",New
+SD25-KRSS2,"('Secret Rare',)",Old
+SD5-KRSE1,"('Secret Rare',)",Old
+SD5-KRSE1,"('Secret rare',)",New
+SD6-KRSE1,"('Secret rare',)",New
+SD6-KRSE1,"('Secret Rare',)",Old
+SD8-KRDS1,"('Secret Rare',)",Old
+SD8-KRDS1,"('Secret rare',)",New
+SD8-KRDS2,"('Secret rare',)",New
+SD8-KRDS2,"('Secret Rare',)",Old
+SDS-KR002,"('Ultra rare',)",New
+SDS-KR002,"('Ultra Rare',)",Old
+SECE-FRS01,"('Super rare',)",New
+SECE-FRS01,"('Super Rare',)",Old
+SECE-FRS02,"('Super rare',)",New
+SECE-FRS02,"('Super Rare',)",Old
+SECE-FRS03,"('Super rare',)",New
+SECE-FRS03,"('Super Rare',)",Old
+SECE-FRS04,"('Super Rare',)",Old
+SECE-FRS04,"('Super rare',)",New
+SECE-FRS05,"('Super rare',)",New
+SECE-FRS05,"('Super Rare',)",Old
+SECE-FRS06,"('Super Rare',)",Old
+SECE-FRS06,"('Super rare',)",New
+SECE-FRS07,"('Super rare',)",New
+SECE-FRS07,"('Super Rare',)",Old
+SECE-FRS08,"('Super rare',)",New
+SECE-FRS08,"('Super Rare',)",Old
+SECE-FRS09,"('Super Rare',)",Old
+SECE-FRS09,"('Super rare',)",New
+SECE-FRS10,"('Super Rare',)",Old
+SECE-FRS10,"('Super rare',)",New
+SECE-FRS11,"('Super Rare',)",Old
+SECE-FRS11,"('Super rare',)",New
+SECE-FRS12,"('Super rare',)",New
+SECE-FRS12,"('Super Rare',)",Old
+SECE-FRS13,"('Super rare',)",New
+SECE-FRS13,"('Super Rare',)",Old
+SECE-FRS14,"('Super Rare',)",Old
+SECE-FRS14,"('Super rare',)",New
+SECE-FRSP1,"('Ultra rare',)",New
+SECE-FRSP1,"('Ultra Rare',)",Old
+SECE-JP045,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+SECE-JP045,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SECE-KR045,"('Ultra Rare', 'Secret Rare', 'Holographic Rare')",Old
+SECE-KR045,"('Ultra Rare', 'Secret Rare', 'HGR')",New
+SHSP-FRSP1,"('Ultra Rare',)",Old
+SHSP-FRSP1,"('Ultra rare',)",New
+SHSP-JP046,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+SHSP-JP046,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SHSP-KR046,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SHSP-KR046,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+SHVI-FRSE1,"('Super Rare',)",Old
+SHVI-FRSE1,"('Super rare',)",New
+SHVI-FRSE2,"('Super Rare',)",Old
+SHVI-FRSE2,"('Super rare',)",New
+SHVI-FRSE3,"('Super Rare',)",Old
+SHVI-FRSE3,"('Super rare',)",New
+SHVI-FRSE4,"('Super rare',)",New
+SHVI-FRSE4,"('Super Rare',)",Old
+SHVI-FRSP1,"('Ultra rare',)",New
+SHVI-FRSP1,"('Ultra Rare',)",Old
+SHVI-JP049,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+SHVI-JP049,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SHVI-KR049,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+SHVI-KR049,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SOVR-FRSE1,"('Super rare',)",New
+SOVR-FRSE1,"('Super Rare',)",Old
+SOVR-FRSE2,"('Super Rare',)",Old
+SOVR-FRSE2,"('Super rare',)",New
+SOVR-JP040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SOVR-JP040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+SOVR-KR040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+SOVR-KR040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+SP13-DE001,"('Common', 'SFR')",New
+SP13-DE001,"('Common', 'Starfoil Rare')",Old
+SP13-DE002,"('Common', 'Starfoil Rare')",Old
+SP13-DE002,"('Common', 'SFR')",New
+SP13-DE003,"('Common', 'SFR')",New
+SP13-DE003,"('Common', 'Starfoil Rare')",Old
+SP13-DE004,"('Common', 'SFR')",New
+SP13-DE004,"('Common', 'Starfoil Rare')",Old
+SP13-DE005,"('Common', 'Starfoil Rare')",Old
+SP13-DE005,"('Common', 'SFR')",New
+SP13-DE006,"('Common', 'Starfoil Rare')",Old
+SP13-DE006,"('Common', 'SFR')",New
+SP13-DE007,"('Common', 'Starfoil Rare')",Old
+SP13-DE007,"('Common', 'SFR')",New
+SP13-DE008,"('Common', 'SFR')",New
+SP13-DE008,"('Common', 'Starfoil Rare')",Old
+SP13-DE009,"('Common', 'Starfoil Rare')",Old
+SP13-DE009,"('Common', 'SFR')",New
+SP13-DE010,"('Common', 'Starfoil Rare')",Old
+SP13-DE010,"('Common', 'SFR')",New
+SP13-DE011,"('Common', 'SFR')",New
+SP13-DE011,"('Common', 'Starfoil Rare')",Old
+SP13-DE012,"('Common', 'Starfoil Rare')",Old
+SP13-DE012,"('Common', 'SFR')",New
+SP13-DE013,"('Common', 'Starfoil Rare')",Old
+SP13-DE013,"('Common', 'SFR')",New
+SP13-DE014,"('Common', 'SFR')",New
+SP13-DE014,"('Common', 'Starfoil Rare')",Old
+SP13-DE015,"('Common', 'SFR')",New
+SP13-DE015,"('Common', 'Starfoil Rare')",Old
+SP13-DE016,"('Common', 'SFR')",New
+SP13-DE016,"('Common', 'Starfoil Rare')",Old
+SP13-DE017,"('Common', 'Starfoil Rare')",Old
+SP13-DE017,"('Common', 'SFR')",New
+SP13-DE018,"('Common', 'SFR')",New
+SP13-DE018,"('Common', 'Starfoil Rare')",Old
+SP13-DE019,"('Common', 'SFR')",New
+SP13-DE019,"('Common', 'Starfoil Rare')",Old
+SP13-DE020,"('Common', 'Starfoil Rare')",Old
+SP13-DE020,"('Common', 'SFR')",New
+SP13-DE021,"('Common', 'Starfoil Rare')",Old
+SP13-DE021,"('Common', 'SFR')",New
+SP13-DE022,"('Common', 'Starfoil Rare')",Old
+SP13-DE022,"('Common', 'SFR')",New
+SP13-DE023,"('Common', 'Starfoil Rare')",Old
+SP13-DE023,"('Common', 'SFR')",New
+SP13-DE024,"('Common', 'Starfoil Rare')",Old
+SP13-DE024,"('Common', 'SFR')",New
+SP13-DE025,"('Common', 'Starfoil Rare')",Old
+SP13-DE025,"('Common', 'SFR')",New
+SP13-DE026,"('Common', 'SFR')",New
+SP13-DE026,"('Common', 'Starfoil Rare')",Old
+SP13-DE027,"('Common', 'SFR')",New
+SP13-DE027,"('Common', 'Starfoil Rare')",Old
+SP13-DE028,"('Common', 'Starfoil Rare')",Old
+SP13-DE028,"('Common', 'SFR')",New
+SP13-DE029,"('Common', 'Starfoil Rare')",Old
+SP13-DE029,"('Common', 'SFR')",New
+SP13-DE030,"('Common', 'Starfoil Rare')",Old
+SP13-DE030,"('Common', 'SFR')",New
+SP13-DE031,"('Common', 'Starfoil Rare')",Old
+SP13-DE031,"('Common', 'SFR')",New
+SP13-DE032,"('Common', 'SFR')",New
+SP13-DE032,"('Common', 'Starfoil Rare')",Old
+SP13-DE033,"('Common', 'SFR')",New
+SP13-DE033,"('Common', 'Starfoil Rare')",Old
+SP13-DE034,"('Common', 'Starfoil Rare')",Old
+SP13-DE034,"('Common', 'SFR')",New
+SP13-DE035,"('Common', 'SFR')",New
+SP13-DE035,"('Common', 'Starfoil Rare')",Old
+SP13-DE036,"('Common', 'Starfoil Rare')",Old
+SP13-DE036,"('Common', 'SFR')",New
+SP13-DE037,"('Common', 'Starfoil Rare')",Old
+SP13-DE037,"('Common', 'SFR')",New
+SP13-DE038,"('Common', 'SFR')",New
+SP13-DE038,"('Common', 'Starfoil Rare')",Old
+SP13-DE039,"('Common', 'SFR')",New
+SP13-DE039,"('Common', 'Starfoil Rare')",Old
+SP13-DE040,"('Common', 'Starfoil Rare')",Old
+SP13-DE040,"('Common', 'SFR')",New
+SP13-DE041,"('Common', 'Starfoil Rare')",Old
+SP13-DE041,"('Common', 'SFR')",New
+SP13-DE042,"('Common', 'SFR')",New
+SP13-DE042,"('Common', 'Starfoil Rare')",Old
+SP13-DE043,"('Common', 'SFR')",New
+SP13-DE043,"('Common', 'Starfoil Rare')",Old
+SP13-DE044,"('Common', 'Starfoil Rare')",Old
+SP13-DE044,"('Common', 'SFR')",New
+SP13-DE045,"('Common', 'Starfoil Rare')",Old
+SP13-DE045,"('Common', 'SFR')",New
+SP13-DE046,"('Common', 'SFR')",New
+SP13-DE046,"('Common', 'Starfoil Rare')",Old
+SP13-DE047,"('Common', 'SFR')",New
+SP13-DE047,"('Common', 'Starfoil Rare')",Old
+SP13-DE048,"('Common', 'SFR')",New
+SP13-DE048,"('Common', 'Starfoil Rare')",Old
+SP13-DE049,"('Common', 'SFR')",New
+SP13-DE049,"('Common', 'Starfoil Rare')",Old
+SP13-DE050,"('Common', 'Starfoil Rare')",Old
+SP13-DE050,"('Common', 'SFR')",New
+SP13-EN001,"('Common', 'SFR')",New
+SP13-EN001,"('Common', 'Starfoil Rare')",Old
+SP13-EN002,"('Common', 'SFR')",New
+SP13-EN002,"('Common', 'Starfoil Rare')",Old
+SP13-EN003,"('Common', 'SFR')",New
+SP13-EN003,"('Common', 'Starfoil Rare')",Old
+SP13-EN004,"('Common', 'SFR')",New
+SP13-EN004,"('Common', 'Starfoil Rare')",Old
+SP13-EN005,"('Common', 'SFR')",New
+SP13-EN005,"('Common', 'Starfoil Rare')",Old
+SP13-EN006,"('Common', 'SFR')",New
+SP13-EN006,"('Common', 'Starfoil Rare')",Old
+SP13-EN007,"('Common', 'SFR')",New
+SP13-EN007,"('Common', 'Starfoil Rare')",Old
+SP13-EN008,"('Common', 'Starfoil Rare')",Old
+SP13-EN008,"('Common', 'SFR')",New
+SP13-EN009,"('Common', 'SFR')",New
+SP13-EN009,"('Common', 'Starfoil Rare')",Old
+SP13-EN010,"('Common', 'Starfoil Rare')",Old
+SP13-EN010,"('Common', 'SFR')",New
+SP13-EN011,"('Common', 'Starfoil Rare')",Old
+SP13-EN011,"('Common', 'SFR')",New
+SP13-EN012,"('Common', 'SFR')",New
+SP13-EN012,"('Common', 'Starfoil Rare')",Old
+SP13-EN013,"('Common', 'SFR')",New
+SP13-EN013,"('Common', 'Starfoil Rare')",Old
+SP13-EN014,"('Common', 'SFR')",New
+SP13-EN014,"('Common', 'Starfoil Rare')",Old
+SP13-EN015,"('Common', 'SFR')",New
+SP13-EN015,"('Common', 'Starfoil Rare')",Old
+SP13-EN016,"('Common', 'SFR')",New
+SP13-EN016,"('Common', 'Starfoil Rare')",Old
+SP13-EN017,"('Common', 'Starfoil Rare')",Old
+SP13-EN017,"('Common', 'SFR')",New
+SP13-EN018,"('Common', 'Starfoil Rare')",Old
+SP13-EN018,"('Common', 'SFR')",New
+SP13-EN019,"('Common', 'Starfoil Rare')",Old
+SP13-EN019,"('Common', 'SFR')",New
+SP13-EN020,"('Common', 'Starfoil Rare')",Old
+SP13-EN020,"('Common', 'SFR')",New
+SP13-EN021,"('Common', 'SFR')",New
+SP13-EN021,"('Common', 'Starfoil Rare')",Old
+SP13-EN022,"('Common', 'SFR')",New
+SP13-EN022,"('Common', 'Starfoil Rare')",Old
+SP13-EN023,"('Common', 'SFR')",New
+SP13-EN023,"('Common', 'Starfoil Rare')",Old
+SP13-EN024,"('Common', 'Starfoil Rare')",Old
+SP13-EN024,"('Common', 'SFR')",New
+SP13-EN025,"('Common', 'Starfoil Rare')",Old
+SP13-EN025,"('Common', 'SFR')",New
+SP13-EN026,"('Common', 'Starfoil Rare')",Old
+SP13-EN026,"('Common', 'SFR')",New
+SP13-EN027,"('Common', 'Starfoil Rare')",Old
+SP13-EN027,"('Common', 'SFR')",New
+SP13-EN028,"('Common', 'Starfoil Rare')",Old
+SP13-EN028,"('Common', 'SFR')",New
+SP13-EN029,"('Common', 'Starfoil Rare')",Old
+SP13-EN029,"('Common', 'SFR')",New
+SP13-EN030,"('Common', 'SFR')",New
+SP13-EN030,"('Common', 'Starfoil Rare')",Old
+SP13-EN031,"('Common', 'SFR')",New
+SP13-EN031,"('Common', 'Starfoil Rare')",Old
+SP13-EN032,"('Common', 'SFR')",New
+SP13-EN032,"('Common', 'Starfoil Rare')",Old
+SP13-EN033,"('Common', 'SFR')",New
+SP13-EN033,"('Common', 'Starfoil Rare')",Old
+SP13-EN034,"('Common', 'SFR')",New
+SP13-EN034,"('Common', 'Starfoil Rare')",Old
+SP13-EN035,"('Common', 'Starfoil Rare')",Old
+SP13-EN035,"('Common', 'SFR')",New
+SP13-EN036,"('Common', 'Starfoil Rare')",Old
+SP13-EN036,"('Common', 'SFR')",New
+SP13-EN037,"('Common', 'Starfoil Rare')",Old
+SP13-EN037,"('Common', 'SFR')",New
+SP13-EN038,"('Common', 'Starfoil Rare')",Old
+SP13-EN038,"('Common', 'SFR')",New
+SP13-EN039,"('Common', 'Starfoil Rare')",Old
+SP13-EN039,"('Common', 'SFR')",New
+SP13-EN040,"('Common', 'Starfoil Rare')",Old
+SP13-EN040,"('Common', 'SFR')",New
+SP13-EN041,"('Common', 'Starfoil Rare')",Old
+SP13-EN041,"('Common', 'SFR')",New
+SP13-EN042,"('Common', 'Starfoil Rare')",Old
+SP13-EN042,"('Common', 'SFR')",New
+SP13-EN043,"('Common', 'SFR')",New
+SP13-EN043,"('Common', 'Starfoil Rare')",Old
+SP13-EN044,"('Common', 'Starfoil Rare')",Old
+SP13-EN044,"('Common', 'SFR')",New
+SP13-EN045,"('Common', 'SFR')",New
+SP13-EN045,"('Common', 'Starfoil Rare')",Old
+SP13-EN046,"('Common', 'SFR')",New
+SP13-EN046,"('Common', 'Starfoil Rare')",Old
+SP13-EN047,"('Common', 'SFR')",New
+SP13-EN047,"('Common', 'Starfoil Rare')",Old
+SP13-EN048,"('Common', 'SFR')",New
+SP13-EN048,"('Common', 'Starfoil Rare')",Old
+SP13-EN049,"('Common', 'SFR')",New
+SP13-EN049,"('Common', 'Starfoil Rare')",Old
+SP13-EN050,"('Common', 'Starfoil Rare')",Old
+SP13-EN050,"('Common', 'SFR')",New
+SP13-FR001,"('Common', 'SFR')",New
+SP13-FR001,"('Common', 'Starfoil Rare')",Old
+SP13-FR002,"('Common', 'SFR')",New
+SP13-FR002,"('Common', 'Starfoil Rare')",Old
+SP13-FR003,"('Common', 'SFR')",New
+SP13-FR003,"('Common', 'Starfoil Rare')",Old
+SP13-FR004,"('Common', 'Starfoil Rare')",Old
+SP13-FR004,"('Common', 'SFR')",New
+SP13-FR005,"('Common', 'Starfoil Rare')",Old
+SP13-FR005,"('Common', 'SFR')",New
+SP13-FR006,"('Common', 'Starfoil Rare')",Old
+SP13-FR006,"('Common', 'SFR')",New
+SP13-FR007,"('Common', 'Starfoil Rare')",Old
+SP13-FR007,"('Common', 'SFR')",New
+SP13-FR008,"('Common', 'SFR')",New
+SP13-FR008,"('Common', 'Starfoil Rare')",Old
+SP13-FR009,"('Common', 'SFR')",New
+SP13-FR009,"('Common', 'Starfoil Rare')",Old
+SP13-FR010,"('Common', 'Starfoil Rare')",Old
+SP13-FR010,"('Common', 'SFR')",New
+SP13-FR011,"('Common', 'Starfoil Rare')",Old
+SP13-FR011,"('Common', 'SFR')",New
+SP13-FR012,"('Common', 'Starfoil Rare')",Old
+SP13-FR012,"('Common', 'SFR')",New
+SP13-FR013,"('Common', 'Starfoil Rare')",Old
+SP13-FR013,"('Common', 'SFR')",New
+SP13-FR014,"('Common', 'Starfoil Rare')",Old
+SP13-FR014,"('Common', 'SFR')",New
+SP13-FR015,"('Common', 'SFR')",New
+SP13-FR015,"('Common', 'Starfoil Rare')",Old
+SP13-FR016,"('Common', 'SFR')",New
+SP13-FR016,"('Common', 'Starfoil Rare')",Old
+SP13-FR017,"('Common', 'Starfoil Rare')",Old
+SP13-FR017,"('Common', 'SFR')",New
+SP13-FR018,"('Common', 'SFR')",New
+SP13-FR018,"('Common', 'Starfoil Rare')",Old
+SP13-FR019,"('Common', 'Starfoil Rare')",Old
+SP13-FR019,"('Common', 'SFR')",New
+SP13-FR020,"('Common', 'Starfoil Rare')",Old
+SP13-FR020,"('Common', 'SFR')",New
+SP13-FR021,"('Common', 'SFR')",New
+SP13-FR021,"('Common', 'Starfoil Rare')",Old
+SP13-FR022,"('Common', 'SFR')",New
+SP13-FR022,"('Common', 'Starfoil Rare')",Old
+SP13-FR023,"('Common', 'Starfoil Rare')",Old
+SP13-FR023,"('Common', 'SFR')",New
+SP13-FR024,"('Common', 'Starfoil Rare')",Old
+SP13-FR024,"('Common', 'SFR')",New
+SP13-FR025,"('Common', 'Starfoil Rare')",Old
+SP13-FR025,"('Common', 'SFR')",New
+SP13-FR026,"('Common', 'Starfoil Rare')",Old
+SP13-FR026,"('Common', 'SFR')",New
+SP13-FR027,"('Common', 'SFR')",New
+SP13-FR027,"('Common', 'Starfoil Rare')",Old
+SP13-FR028,"('Common', 'SFR')",New
+SP13-FR028,"('Common', 'Starfoil Rare')",Old
+SP13-FR029,"('Common', 'SFR')",New
+SP13-FR029,"('Common', 'Starfoil Rare')",Old
+SP13-FR030,"('Common', 'SFR')",New
+SP13-FR030,"('Common', 'Starfoil Rare')",Old
+SP13-FR031,"('Common', 'SFR')",New
+SP13-FR031,"('Common', 'Starfoil Rare')",Old
+SP13-FR032,"('Common', 'Starfoil Rare')",Old
+SP13-FR032,"('Common', 'SFR')",New
+SP13-FR033,"('Common', 'Starfoil Rare')",Old
+SP13-FR033,"('Common', 'SFR')",New
+SP13-FR034,"('Common', 'Starfoil Rare')",Old
+SP13-FR034,"('Common', 'SFR')",New
+SP13-FR035,"('Common', 'SFR')",New
+SP13-FR035,"('Common', 'Starfoil Rare')",Old
+SP13-FR036,"('Common', 'Starfoil Rare')",Old
+SP13-FR036,"('Common', 'SFR')",New
+SP13-FR037,"('Common', 'Starfoil Rare')",Old
+SP13-FR037,"('Common', 'SFR')",New
+SP13-FR038,"('Common', 'Starfoil Rare')",Old
+SP13-FR038,"('Common', 'SFR')",New
+SP13-FR039,"('Common', 'SFR')",New
+SP13-FR039,"('Common', 'Starfoil Rare')",Old
+SP13-FR040,"('Common', 'Starfoil Rare')",Old
+SP13-FR040,"('Common', 'SFR')",New
+SP13-FR041,"('Common', 'SFR')",New
+SP13-FR041,"('Common', 'Starfoil Rare')",Old
+SP13-FR042,"('Common', 'SFR')",New
+SP13-FR042,"('Common', 'Starfoil Rare')",Old
+SP13-FR043,"('Common', 'Starfoil Rare')",Old
+SP13-FR043,"('Common', 'SFR')",New
+SP13-FR044,"('Common', 'Starfoil Rare')",Old
+SP13-FR044,"('Common', 'SFR')",New
+SP13-FR045,"('Common', 'Starfoil Rare')",Old
+SP13-FR045,"('Common', 'SFR')",New
+SP13-FR046,"('Common', 'SFR')",New
+SP13-FR046,"('Common', 'Starfoil Rare')",Old
+SP13-FR047,"('Common', 'SFR')",New
+SP13-FR047,"('Common', 'Starfoil Rare')",Old
+SP13-FR048,"('Common', 'SFR')",New
+SP13-FR048,"('Common', 'Starfoil Rare')",Old
+SP13-FR049,"('Common', 'Starfoil Rare')",Old
+SP13-FR049,"('Common', 'SFR')",New
+SP13-FR050,"('Common', 'SFR')",New
+SP13-FR050,"('Common', 'Starfoil Rare')",Old
+SP13-IT001,"('Common', 'SFR')",New
+SP13-IT001,"('Common', 'Starfoil Rare')",Old
+SP13-IT002,"('Common', 'SFR')",New
+SP13-IT002,"('Common', 'Starfoil Rare')",Old
+SP13-IT003,"('Common', 'SFR')",New
+SP13-IT003,"('Common', 'Starfoil Rare')",Old
+SP13-IT004,"('Common', 'Starfoil Rare')",Old
+SP13-IT004,"('Common', 'SFR')",New
+SP13-IT005,"('Common', 'Starfoil Rare')",Old
+SP13-IT005,"('Common', 'SFR')",New
+SP13-IT006,"('Common', 'Starfoil Rare')",Old
+SP13-IT006,"('Common', 'SFR')",New
+SP13-IT007,"('Common', 'SFR')",New
+SP13-IT007,"('Common', 'Starfoil Rare')",Old
+SP13-IT008,"('Common', 'Starfoil Rare')",Old
+SP13-IT008,"('Common', 'SFR')",New
+SP13-IT009,"('Common', 'Starfoil Rare')",Old
+SP13-IT009,"('Common', 'SFR')",New
+SP13-IT010,"('Common', 'Starfoil Rare')",Old
+SP13-IT010,"('Common', 'SFR')",New
+SP13-IT011,"('Common', 'SFR')",New
+SP13-IT011,"('Common', 'Starfoil Rare')",Old
+SP13-IT012,"('Common', 'SFR')",New
+SP13-IT012,"('Common', 'Starfoil Rare')",Old
+SP13-IT013,"('Common', 'Starfoil Rare')",Old
+SP13-IT013,"('Common', 'SFR')",New
+SP13-IT014,"('Common', 'SFR')",New
+SP13-IT014,"('Common', 'Starfoil Rare')",Old
+SP13-IT015,"('Common', 'SFR')",New
+SP13-IT015,"('Common', 'Starfoil Rare')",Old
+SP13-IT016,"('Common', 'SFR')",New
+SP13-IT016,"('Common', 'Starfoil Rare')",Old
+SP13-IT017,"('Common', 'SFR')",New
+SP13-IT017,"('Common', 'Starfoil Rare')",Old
+SP13-IT018,"('Common', 'SFR')",New
+SP13-IT018,"('Common', 'Starfoil Rare')",Old
+SP13-IT019,"('Common', 'Starfoil Rare')",Old
+SP13-IT019,"('Common', 'SFR')",New
+SP13-IT020,"('Common', 'Starfoil Rare')",Old
+SP13-IT020,"('Common', 'SFR')",New
+SP13-IT021,"('Common', 'Starfoil Rare')",Old
+SP13-IT021,"('Common', 'SFR')",New
+SP13-IT022,"('Common', 'Starfoil Rare')",Old
+SP13-IT022,"('Common', 'SFR')",New
+SP13-IT023,"('Common', 'Starfoil Rare')",Old
+SP13-IT023,"('Common', 'SFR')",New
+SP13-IT024,"('Common', 'Starfoil Rare')",Old
+SP13-IT024,"('Common', 'SFR')",New
+SP13-IT025,"('Common', 'Starfoil Rare')",Old
+SP13-IT025,"('Common', 'SFR')",New
+SP13-IT026,"('Common', 'SFR')",New
+SP13-IT026,"('Common', 'Starfoil Rare')",Old
+SP13-IT027,"('Common', 'Starfoil Rare')",Old
+SP13-IT027,"('Common', 'SFR')",New
+SP13-IT028,"('Common', 'SFR')",New
+SP13-IT028,"('Common', 'Starfoil Rare')",Old
+SP13-IT029,"('Common', 'Starfoil Rare')",Old
+SP13-IT029,"('Common', 'SFR')",New
+SP13-IT030,"('Common', 'Starfoil Rare')",Old
+SP13-IT030,"('Common', 'SFR')",New
+SP13-IT031,"('Common', 'Starfoil Rare')",Old
+SP13-IT031,"('Common', 'SFR')",New
+SP13-IT032,"('Common', 'SFR')",New
+SP13-IT032,"('Common', 'Starfoil Rare')",Old
+SP13-IT033,"('Common', 'SFR')",New
+SP13-IT033,"('Common', 'Starfoil Rare')",Old
+SP13-IT034,"('Common', 'Starfoil Rare')",Old
+SP13-IT034,"('Common', 'SFR')",New
+SP13-IT035,"('Common', 'Starfoil Rare')",Old
+SP13-IT035,"('Common', 'SFR')",New
+SP13-IT036,"('Common', 'SFR')",New
+SP13-IT036,"('Common', 'Starfoil Rare')",Old
+SP13-IT037,"('Common', 'Starfoil Rare')",Old
+SP13-IT037,"('Common', 'SFR')",New
+SP13-IT038,"('Common', 'Starfoil Rare')",Old
+SP13-IT038,"('Common', 'SFR')",New
+SP13-IT039,"('Common', 'Starfoil Rare')",Old
+SP13-IT039,"('Common', 'SFR')",New
+SP13-IT040,"('Common', 'SFR')",New
+SP13-IT040,"('Common', 'Starfoil Rare')",Old
+SP13-IT041,"('Common', 'SFR')",New
+SP13-IT041,"('Common', 'Starfoil Rare')",Old
+SP13-IT042,"('Common', 'SFR')",New
+SP13-IT042,"('Common', 'Starfoil Rare')",Old
+SP13-IT043,"('Common', 'SFR')",New
+SP13-IT043,"('Common', 'Starfoil Rare')",Old
+SP13-IT044,"('Common', 'Starfoil Rare')",Old
+SP13-IT044,"('Common', 'SFR')",New
+SP13-IT045,"('Common', 'Starfoil Rare')",Old
+SP13-IT045,"('Common', 'SFR')",New
+SP13-IT046,"('Common', 'Starfoil Rare')",Old
+SP13-IT046,"('Common', 'SFR')",New
+SP13-IT047,"('Common', 'Starfoil Rare')",Old
+SP13-IT047,"('Common', 'SFR')",New
+SP13-IT048,"('Common', 'SFR')",New
+SP13-IT048,"('Common', 'Starfoil Rare')",Old
+SP13-IT049,"('Common', 'Starfoil Rare')",Old
+SP13-IT049,"('Common', 'SFR')",New
+SP13-IT050,"('Common', 'SFR')",New
+SP13-IT050,"('Common', 'Starfoil Rare')",Old
+SP13-PT001,"('Common', 'Starfoil Rare')",Old
+SP13-PT001,"('Common', 'SFR')",New
+SP13-PT002,"('Common', 'Starfoil Rare')",Old
+SP13-PT002,"('Common', 'SFR')",New
+SP13-PT003,"('Common', 'Starfoil Rare')",Old
+SP13-PT003,"('Common', 'SFR')",New
+SP13-PT004,"('Common', 'Starfoil Rare')",Old
+SP13-PT004,"('Common', 'SFR')",New
+SP13-PT005,"('Common', 'SFR')",New
+SP13-PT005,"('Common', 'Starfoil Rare')",Old
+SP13-PT006,"('Common', 'Starfoil Rare')",Old
+SP13-PT006,"('Common', 'SFR')",New
+SP13-PT007,"('Common', 'Starfoil Rare')",Old
+SP13-PT007,"('Common', 'SFR')",New
+SP13-PT008,"('Common', 'SFR')",New
+SP13-PT008,"('Common', 'Starfoil Rare')",Old
+SP13-PT009,"('Common', 'Starfoil Rare')",Old
+SP13-PT009,"('Common', 'SFR')",New
+SP13-PT010,"('Common', 'Starfoil Rare')",Old
+SP13-PT010,"('Common', 'SFR')",New
+SP13-PT011,"('Common', 'SFR')",New
+SP13-PT011,"('Common', 'Starfoil Rare')",Old
+SP13-PT012,"('Common', 'SFR')",New
+SP13-PT012,"('Common', 'Starfoil Rare')",Old
+SP13-PT013,"('Common', 'SFR')",New
+SP13-PT013,"('Common', 'Starfoil Rare')",Old
+SP13-PT014,"('Common', 'SFR')",New
+SP13-PT014,"('Common', 'Starfoil Rare')",Old
+SP13-PT015,"('Common', 'Starfoil Rare')",Old
+SP13-PT015,"('Common', 'SFR')",New
+SP13-PT016,"('Common', 'Starfoil Rare')",Old
+SP13-PT016,"('Common', 'SFR')",New
+SP13-PT017,"('Common', 'Starfoil Rare')",Old
+SP13-PT017,"('Common', 'SFR')",New
+SP13-PT018,"('Common', 'Starfoil Rare')",Old
+SP13-PT018,"('Common', 'SFR')",New
+SP13-PT019,"('Common', 'Starfoil Rare')",Old
+SP13-PT019,"('Common', 'SFR')",New
+SP13-PT020,"('Common', 'SFR')",New
+SP13-PT020,"('Common', 'Starfoil Rare')",Old
+SP13-PT021,"('Common', 'SFR')",New
+SP13-PT021,"('Common', 'Starfoil Rare')",Old
+SP13-PT022,"('Common', 'Starfoil Rare')",Old
+SP13-PT022,"('Common', 'SFR')",New
+SP13-PT023,"('Common', 'Starfoil Rare')",Old
+SP13-PT023,"('Common', 'SFR')",New
+SP13-PT024,"('Common', 'Starfoil Rare')",Old
+SP13-PT024,"('Common', 'SFR')",New
+SP13-PT025,"('Common', 'SFR')",New
+SP13-PT025,"('Common', 'Starfoil Rare')",Old
+SP13-PT026,"('Common', 'Starfoil Rare')",Old
+SP13-PT026,"('Common', 'SFR')",New
+SP13-PT027,"('Common', 'Starfoil Rare')",Old
+SP13-PT027,"('Common', 'SFR')",New
+SP13-PT028,"('Common', 'Starfoil Rare')",Old
+SP13-PT028,"('Common', 'SFR')",New
+SP13-PT029,"('Common', 'Starfoil Rare')",Old
+SP13-PT029,"('Common', 'SFR')",New
+SP13-PT030,"('Common', 'SFR')",New
+SP13-PT030,"('Common', 'Starfoil Rare')",Old
+SP13-PT031,"('Common', 'SFR')",New
+SP13-PT031,"('Common', 'Starfoil Rare')",Old
+SP13-PT032,"('Common', 'SFR')",New
+SP13-PT032,"('Common', 'Starfoil Rare')",Old
+SP13-PT033,"('Common', 'SFR')",New
+SP13-PT033,"('Common', 'Starfoil Rare')",Old
+SP13-PT034,"('Common', 'Starfoil Rare')",Old
+SP13-PT034,"('Common', 'SFR')",New
+SP13-PT035,"('Common', 'SFR')",New
+SP13-PT035,"('Common', 'Starfoil Rare')",Old
+SP13-PT036,"('Common', 'SFR')",New
+SP13-PT036,"('Common', 'Starfoil Rare')",Old
+SP13-PT037,"('Common', 'SFR')",New
+SP13-PT037,"('Common', 'Starfoil Rare')",Old
+SP13-PT038,"('Common', 'SFR')",New
+SP13-PT038,"('Common', 'Starfoil Rare')",Old
+SP13-PT039,"('Common', 'Starfoil Rare')",Old
+SP13-PT039,"('Common', 'SFR')",New
+SP13-PT040,"('Common', 'SFR')",New
+SP13-PT040,"('Common', 'Starfoil Rare')",Old
+SP13-PT041,"('Common', 'SFR')",New
+SP13-PT041,"('Common', 'Starfoil Rare')",Old
+SP13-PT042,"('Common', 'Starfoil Rare')",Old
+SP13-PT042,"('Common', 'SFR')",New
+SP13-PT043,"('Common', 'Starfoil Rare')",Old
+SP13-PT043,"('Common', 'SFR')",New
+SP13-PT044,"('Common', 'Starfoil Rare')",Old
+SP13-PT044,"('Common', 'SFR')",New
+SP13-PT045,"('Common', 'Starfoil Rare')",Old
+SP13-PT045,"('Common', 'SFR')",New
+SP13-PT046,"('Common', 'Starfoil Rare')",Old
+SP13-PT046,"('Common', 'SFR')",New
+SP13-PT047,"('Common', 'Starfoil Rare')",Old
+SP13-PT047,"('Common', 'SFR')",New
+SP13-PT048,"('Common', 'SFR')",New
+SP13-PT048,"('Common', 'Starfoil Rare')",Old
+SP13-PT049,"('Common', 'Starfoil Rare')",Old
+SP13-PT049,"('Common', 'SFR')",New
+SP13-PT050,"('Common', 'SFR')",New
+SP13-PT050,"('Common', 'Starfoil Rare')",Old
+SP13-SP001,"('Common', 'Starfoil Rare')",Old
+SP13-SP001,"('Common', 'SFR')",New
+SP13-SP002,"('Common', 'SFR')",New
+SP13-SP002,"('Common', 'Starfoil Rare')",Old
+SP13-SP003,"('Common', 'SFR')",New
+SP13-SP003,"('Common', 'Starfoil Rare')",Old
+SP13-SP004,"('Common', 'Starfoil Rare')",Old
+SP13-SP004,"('Common', 'SFR')",New
+SP13-SP005,"('Common', 'Starfoil Rare')",Old
+SP13-SP005,"('Common', 'SFR')",New
+SP13-SP006,"('Common', 'Starfoil Rare')",Old
+SP13-SP006,"('Common', 'SFR')",New
+SP13-SP007,"('Common', 'SFR')",New
+SP13-SP007,"('Common', 'Starfoil Rare')",Old
+SP13-SP008,"('Common', 'SFR')",New
+SP13-SP008,"('Common', 'Starfoil Rare')",Old
+SP13-SP009,"('Common', 'SFR')",New
+SP13-SP009,"('Common', 'Starfoil Rare')",Old
+SP13-SP010,"('Common', 'Starfoil Rare')",Old
+SP13-SP010,"('Common', 'SFR')",New
+SP13-SP011,"('Common', 'SFR')",New
+SP13-SP011,"('Common', 'Starfoil Rare')",Old
+SP13-SP012,"('Common', 'Starfoil Rare')",Old
+SP13-SP012,"('Common', 'SFR')",New
+SP13-SP013,"('Common', 'SFR')",New
+SP13-SP013,"('Common', 'Starfoil Rare')",Old
+SP13-SP014,"('Common', 'SFR')",New
+SP13-SP014,"('Common', 'Starfoil Rare')",Old
+SP13-SP015,"('Common', 'SFR')",New
+SP13-SP015,"('Common', 'Starfoil Rare')",Old
+SP13-SP016,"('Common', 'SFR')",New
+SP13-SP016,"('Common', 'Starfoil Rare')",Old
+SP13-SP017,"('Common', 'Starfoil Rare')",Old
+SP13-SP017,"('Common', 'SFR')",New
+SP13-SP018,"('Common', 'SFR')",New
+SP13-SP018,"('Common', 'Starfoil Rare')",Old
+SP13-SP019,"('Common', 'SFR')",New
+SP13-SP019,"('Common', 'Starfoil Rare')",Old
+SP13-SP020,"('Common', 'SFR')",New
+SP13-SP020,"('Common', 'Starfoil Rare')",Old
+SP13-SP021,"('Common', 'Starfoil Rare')",Old
+SP13-SP021,"('Common', 'SFR')",New
+SP13-SP022,"('Common', 'SFR')",New
+SP13-SP022,"('Common', 'Starfoil Rare')",Old
+SP13-SP023,"('Common', 'Starfoil Rare')",Old
+SP13-SP023,"('Common', 'SFR')",New
+SP13-SP024,"('Common', 'Starfoil Rare')",Old
+SP13-SP024,"('Common', 'SFR')",New
+SP13-SP025,"('Common', 'SFR')",New
+SP13-SP025,"('Common', 'Starfoil Rare')",Old
+SP13-SP026,"('Common', 'Starfoil Rare')",Old
+SP13-SP026,"('Common', 'SFR')",New
+SP13-SP027,"('Common', 'Starfoil Rare')",Old
+SP13-SP027,"('Common', 'SFR')",New
+SP13-SP028,"('Common', 'Starfoil Rare')",Old
+SP13-SP028,"('Common', 'SFR')",New
+SP13-SP029,"('Common', 'Starfoil Rare')",Old
+SP13-SP029,"('Common', 'SFR')",New
+SP13-SP030,"('Common', 'Starfoil Rare')",Old
+SP13-SP030,"('Common', 'SFR')",New
+SP13-SP031,"('Common', 'Starfoil Rare')",Old
+SP13-SP031,"('Common', 'SFR')",New
+SP13-SP032,"('Common', 'Starfoil Rare')",Old
+SP13-SP032,"('Common', 'SFR')",New
+SP13-SP033,"('Common', 'Starfoil Rare')",Old
+SP13-SP033,"('Common', 'SFR')",New
+SP13-SP034,"('Common', 'Starfoil Rare')",Old
+SP13-SP034,"('Common', 'SFR')",New
+SP13-SP035,"('Common', 'Starfoil Rare')",Old
+SP13-SP035,"('Common', 'SFR')",New
+SP13-SP036,"('Common', 'Starfoil Rare')",Old
+SP13-SP036,"('Common', 'SFR')",New
+SP13-SP037,"('Common', 'SFR')",New
+SP13-SP037,"('Common', 'Starfoil Rare')",Old
+SP13-SP038,"('Common', 'Starfoil Rare')",Old
+SP13-SP038,"('Common', 'SFR')",New
+SP13-SP039,"('Common', 'Starfoil Rare')",Old
+SP13-SP039,"('Common', 'SFR')",New
+SP13-SP040,"('Common', 'SFR')",New
+SP13-SP040,"('Common', 'Starfoil Rare')",Old
+SP13-SP041,"('Common', 'Starfoil Rare')",Old
+SP13-SP041,"('Common', 'SFR')",New
+SP13-SP042,"('Common', 'Starfoil Rare')",Old
+SP13-SP042,"('Common', 'SFR')",New
+SP13-SP043,"('Common', 'Starfoil Rare')",Old
+SP13-SP043,"('Common', 'SFR')",New
+SP13-SP044,"('Common', 'Starfoil Rare')",Old
+SP13-SP044,"('Common', 'SFR')",New
+SP13-SP045,"('Common', 'Starfoil Rare')",Old
+SP13-SP045,"('Common', 'SFR')",New
+SP13-SP046,"('Common', 'Starfoil Rare')",Old
+SP13-SP046,"('Common', 'SFR')",New
+SP13-SP047,"('Common', 'Starfoil Rare')",Old
+SP13-SP047,"('Common', 'SFR')",New
+SP13-SP048,"('Common', 'Starfoil Rare')",Old
+SP13-SP048,"('Common', 'SFR')",New
+SP13-SP049,"('Common', 'SFR')",New
+SP13-SP049,"('Common', 'Starfoil Rare')",Old
+SP13-SP050,"('Common', 'SFR')",New
+SP13-SP050,"('Common', 'Starfoil Rare')",Old
+SP14-DE001,"('Common', 'Starfoil Rare')",Old
+SP14-DE001,"('Common', 'SFR')",New
+SP14-DE002,"('Common', 'SFR')",New
+SP14-DE002,"('Common', 'Starfoil Rare')",Old
+SP14-DE003,"('Common', 'SFR')",New
+SP14-DE003,"('Common', 'Starfoil Rare')",Old
+SP14-DE004,"('Common', 'Starfoil Rare')",Old
+SP14-DE004,"('Common', 'SFR')",New
+SP14-DE005,"('Common', 'Starfoil Rare')",Old
+SP14-DE005,"('Common', 'SFR')",New
+SP14-DE006,"('Common', 'Starfoil Rare')",Old
+SP14-DE006,"('Common', 'SFR')",New
+SP14-DE007,"('Common', 'SFR')",New
+SP14-DE007,"('Common', 'Starfoil Rare')",Old
+SP14-DE008,"('Common', 'SFR')",New
+SP14-DE008,"('Common', 'Starfoil Rare')",Old
+SP14-DE009,"('Common', 'Starfoil Rare')",Old
+SP14-DE009,"('Common', 'SFR')",New
+SP14-DE010,"('Common', 'SFR')",New
+SP14-DE010,"('Common', 'Starfoil Rare')",Old
+SP14-DE011,"('Common', 'Starfoil Rare')",Old
+SP14-DE011,"('Common', 'SFR')",New
+SP14-DE012,"('Common', 'Starfoil Rare')",Old
+SP14-DE012,"('Common', 'SFR')",New
+SP14-DE013,"('Common', 'SFR')",New
+SP14-DE013,"('Common', 'Starfoil Rare')",Old
+SP14-DE014,"('Common', 'Starfoil Rare')",Old
+SP14-DE014,"('Common', 'SFR')",New
+SP14-DE015,"('Common', 'SFR')",New
+SP14-DE015,"('Common', 'Starfoil Rare')",Old
+SP14-DE016,"('Common', 'Starfoil Rare')",Old
+SP14-DE016,"('Common', 'SFR')",New
+SP14-DE017,"('Common', 'Starfoil Rare')",Old
+SP14-DE017,"('Common', 'SFR')",New
+SP14-DE018,"('Common', 'SFR')",New
+SP14-DE018,"('Common', 'Starfoil Rare')",Old
+SP14-DE019,"('Common', 'SFR')",New
+SP14-DE019,"('Common', 'Starfoil Rare')",Old
+SP14-DE020,"('Common', 'SFR')",New
+SP14-DE020,"('Common', 'Starfoil Rare')",Old
+SP14-DE021,"('Common', 'Starfoil Rare')",Old
+SP14-DE021,"('Common', 'SFR')",New
+SP14-DE022,"('Common', 'Starfoil Rare')",Old
+SP14-DE022,"('Common', 'SFR')",New
+SP14-DE023,"('Common', 'Starfoil Rare')",Old
+SP14-DE023,"('Common', 'SFR')",New
+SP14-DE024,"('Common', 'Starfoil Rare')",Old
+SP14-DE024,"('Common', 'SFR')",New
+SP14-DE025,"('Common', 'SFR')",New
+SP14-DE025,"('Common', 'Starfoil Rare')",Old
+SP14-DE026,"('Common', 'SFR')",New
+SP14-DE026,"('Common', 'Starfoil Rare')",Old
+SP14-DE027,"('Common', 'SFR')",New
+SP14-DE027,"('Common', 'Starfoil Rare')",Old
+SP14-DE028,"('Common', 'SFR')",New
+SP14-DE028,"('Common', 'Starfoil Rare')",Old
+SP14-DE029,"('Common', 'Starfoil Rare')",Old
+SP14-DE029,"('Common', 'SFR')",New
+SP14-DE030,"('Common', 'SFR')",New
+SP14-DE030,"('Common', 'Starfoil Rare')",Old
+SP14-DE031,"('Common', 'SFR')",New
+SP14-DE031,"('Common', 'Starfoil Rare')",Old
+SP14-DE032,"('Common', 'Starfoil Rare')",Old
+SP14-DE032,"('Common', 'SFR')",New
+SP14-DE033,"('Common', 'Starfoil Rare')",Old
+SP14-DE033,"('Common', 'SFR')",New
+SP14-DE034,"('Common', 'Starfoil Rare')",Old
+SP14-DE034,"('Common', 'SFR')",New
+SP14-DE035,"('Common', 'Starfoil Rare')",Old
+SP14-DE035,"('Common', 'SFR')",New
+SP14-DE036,"('Common', 'SFR')",New
+SP14-DE036,"('Common', 'Starfoil Rare')",Old
+SP14-DE037,"('Common', 'SFR')",New
+SP14-DE037,"('Common', 'Starfoil Rare')",Old
+SP14-DE038,"('Common', 'Starfoil Rare')",Old
+SP14-DE038,"('Common', 'SFR')",New
+SP14-DE039,"('Common', 'Starfoil Rare')",Old
+SP14-DE039,"('Common', 'SFR')",New
+SP14-DE040,"('Common', 'Starfoil Rare')",Old
+SP14-DE040,"('Common', 'SFR')",New
+SP14-DE041,"('Common', 'SFR')",New
+SP14-DE041,"('Common', 'Starfoil Rare')",Old
+SP14-DE042,"('Common', 'Starfoil Rare')",Old
+SP14-DE042,"('Common', 'SFR')",New
+SP14-DE043,"('Common', 'Starfoil Rare')",Old
+SP14-DE043,"('Common', 'SFR')",New
+SP14-DE044,"('Common', 'SFR')",New
+SP14-DE044,"('Common', 'Starfoil Rare')",Old
+SP14-DE045,"('Common', 'Starfoil Rare')",Old
+SP14-DE045,"('Common', 'SFR')",New
+SP14-DE046,"('Common', 'Starfoil Rare')",Old
+SP14-DE046,"('Common', 'SFR')",New
+SP14-DE047,"('Common', 'SFR')",New
+SP14-DE047,"('Common', 'Starfoil Rare')",Old
+SP14-DE048,"('Common', 'SFR')",New
+SP14-DE048,"('Common', 'Starfoil Rare')",Old
+SP14-DE049,"('Common', 'Starfoil Rare')",Old
+SP14-DE049,"('Common', 'SFR')",New
+SP14-DE050,"('Common', 'Starfoil Rare')",Old
+SP14-DE050,"('Common', 'SFR')",New
+SP14-EN001,"('Common', 'Starfoil Rare')",Old
+SP14-EN001,"('Common', 'SFR')",New
+SP14-EN002,"('Common', 'Starfoil Rare')",Old
+SP14-EN002,"('Common', 'SFR')",New
+SP14-EN003,"('Common', 'SFR')",New
+SP14-EN003,"('Common', 'Starfoil Rare')",Old
+SP14-EN004,"('Common', 'SFR')",New
+SP14-EN004,"('Common', 'Starfoil Rare')",Old
+SP14-EN005,"('Common', 'SFR')",New
+SP14-EN005,"('Common', 'Starfoil Rare')",Old
+SP14-EN006,"('Common', 'SFR')",New
+SP14-EN006,"('Common', 'Starfoil Rare')",Old
+SP14-EN007,"('Common', 'SFR')",New
+SP14-EN007,"('Common', 'Starfoil Rare')",Old
+SP14-EN008,"('Common', 'SFR')",New
+SP14-EN008,"('Common', 'Starfoil Rare')",Old
+SP14-EN009,"('Common', 'SFR')",New
+SP14-EN009,"('Common', 'Starfoil Rare')",Old
+SP14-EN010,"('Common', 'SFR')",New
+SP14-EN010,"('Common', 'Starfoil Rare')",Old
+SP14-EN011,"('Common', 'Starfoil Rare')",Old
+SP14-EN011,"('Common', 'SFR')",New
+SP14-EN012,"('Common', 'SFR')",New
+SP14-EN012,"('Common', 'Starfoil Rare')",Old
+SP14-EN013,"('Common', 'Starfoil Rare')",Old
+SP14-EN013,"('Common', 'SFR')",New
+SP14-EN014,"('Common', 'Starfoil Rare')",Old
+SP14-EN014,"('Common', 'SFR')",New
+SP14-EN015,"('Common', 'Starfoil Rare')",Old
+SP14-EN015,"('Common', 'SFR')",New
+SP14-EN016,"('Common', 'Starfoil Rare')",Old
+SP14-EN016,"('Common', 'SFR')",New
+SP14-EN017,"('Common', 'Starfoil Rare')",Old
+SP14-EN017,"('Common', 'SFR')",New
+SP14-EN018,"('Common', 'SFR')",New
+SP14-EN018,"('Common', 'Starfoil Rare')",Old
+SP14-EN019,"('Common', 'SFR')",New
+SP14-EN019,"('Common', 'Starfoil Rare')",Old
+SP14-EN020,"('Common', 'Starfoil Rare')",Old
+SP14-EN020,"('Common', 'SFR')",New
+SP14-EN021,"('Common', 'Starfoil Rare')",Old
+SP14-EN021,"('Common', 'SFR')",New
+SP14-EN022,"('Common', 'Starfoil Rare')",Old
+SP14-EN022,"('Common', 'SFR')",New
+SP14-EN023,"('Common', 'Starfoil Rare')",Old
+SP14-EN023,"('Common', 'SFR')",New
+SP14-EN024,"('Common', 'SFR')",New
+SP14-EN024,"('Common', 'Starfoil Rare')",Old
+SP14-EN025,"('Common', 'SFR')",New
+SP14-EN025,"('Common', 'Starfoil Rare')",Old
+SP14-EN026,"('Common', 'Starfoil Rare')",Old
+SP14-EN026,"('Common', 'SFR')",New
+SP14-EN027,"('Common', 'Starfoil Rare')",Old
+SP14-EN027,"('Common', 'SFR')",New
+SP14-EN028,"('Common', 'Starfoil Rare')",Old
+SP14-EN028,"('Common', 'SFR')",New
+SP14-EN029,"('Common', 'Starfoil Rare')",Old
+SP14-EN029,"('Common', 'SFR')",New
+SP14-EN030,"('Common', 'Starfoil Rare')",Old
+SP14-EN030,"('Common', 'SFR')",New
+SP14-EN031,"('Common', 'SFR')",New
+SP14-EN031,"('Common', 'Starfoil Rare')",Old
+SP14-EN032,"('Common', 'SFR')",New
+SP14-EN032,"('Common', 'Starfoil Rare')",Old
+SP14-EN033,"('Common', 'Starfoil Rare')",Old
+SP14-EN033,"('Common', 'SFR')",New
+SP14-EN034,"('Common', 'Starfoil Rare')",Old
+SP14-EN034,"('Common', 'SFR')",New
+SP14-EN035,"('Common', 'SFR')",New
+SP14-EN035,"('Common', 'Starfoil Rare')",Old
+SP14-EN036,"('Common', 'SFR')",New
+SP14-EN036,"('Common', 'Starfoil Rare')",Old
+SP14-EN037,"('Common', 'Starfoil Rare')",Old
+SP14-EN037,"('Common', 'SFR')",New
+SP14-EN038,"('Common', 'Starfoil Rare')",Old
+SP14-EN038,"('Common', 'SFR')",New
+SP14-EN039,"('Common', 'SFR')",New
+SP14-EN039,"('Common', 'Starfoil Rare')",Old
+SP14-EN040,"('Common', 'SFR')",New
+SP14-EN040,"('Common', 'Starfoil Rare')",Old
+SP14-EN041,"('Common', 'Starfoil Rare')",Old
+SP14-EN041,"('Common', 'SFR')",New
+SP14-EN042,"('Common', 'Starfoil Rare')",Old
+SP14-EN042,"('Common', 'SFR')",New
+SP14-EN043,"('Common', 'SFR')",New
+SP14-EN043,"('Common', 'Starfoil Rare')",Old
+SP14-EN044,"('Common', 'SFR')",New
+SP14-EN044,"('Common', 'Starfoil Rare')",Old
+SP14-EN045,"('Common', 'SFR')",New
+SP14-EN045,"('Common', 'Starfoil Rare')",Old
+SP14-EN046,"('Common', 'Starfoil Rare')",Old
+SP14-EN046,"('Common', 'SFR')",New
+SP14-EN047,"('Common', 'SFR')",New
+SP14-EN047,"('Common', 'Starfoil Rare')",Old
+SP14-EN048,"('Common', 'SFR')",New
+SP14-EN048,"('Common', 'Starfoil Rare')",Old
+SP14-EN049,"('Common', 'Starfoil Rare')",Old
+SP14-EN049,"('Common', 'SFR')",New
+SP14-EN050,"('Common', 'Starfoil Rare')",Old
+SP14-EN050,"('Common', 'SFR')",New
+SP14-FR001,"('Common', 'Starfoil Rare')",Old
+SP14-FR001,"('Common', 'SFR')",New
+SP14-FR002,"('Common', 'SFR')",New
+SP14-FR002,"('Common', 'Starfoil Rare')",Old
+SP14-FR003,"('Common', 'SFR')",New
+SP14-FR003,"('Common', 'Starfoil Rare')",Old
+SP14-FR004,"('Common', 'SFR')",New
+SP14-FR004,"('Common', 'Starfoil Rare')",Old
+SP14-FR005,"('Common', 'SFR')",New
+SP14-FR005,"('Common', 'Starfoil Rare')",Old
+SP14-FR006,"('Common', 'Starfoil Rare')",Old
+SP14-FR006,"('Common', 'SFR')",New
+SP14-FR007,"('Common', 'Starfoil Rare')",Old
+SP14-FR007,"('Common', 'SFR')",New
+SP14-FR008,"('Common', 'SFR')",New
+SP14-FR008,"('Common', 'Starfoil Rare')",Old
+SP14-FR009,"('Common', 'Starfoil Rare')",Old
+SP14-FR009,"('Common', 'SFR')",New
+SP14-FR010,"('Common', 'Starfoil Rare')",Old
+SP14-FR010,"('Common', 'SFR')",New
+SP14-FR011,"('Common', 'Starfoil Rare')",Old
+SP14-FR011,"('Common', 'SFR')",New
+SP14-FR012,"('Common', 'Starfoil Rare')",Old
+SP14-FR012,"('Common', 'SFR')",New
+SP14-FR013,"('Common', 'Starfoil Rare')",Old
+SP14-FR013,"('Common', 'SFR')",New
+SP14-FR014,"('Common', 'Starfoil Rare')",Old
+SP14-FR014,"('Common', 'SFR')",New
+SP14-FR015,"('Common', 'Starfoil Rare')",Old
+SP14-FR015,"('Common', 'SFR')",New
+SP14-FR016,"('Common', 'Starfoil Rare')",Old
+SP14-FR016,"('Common', 'SFR')",New
+SP14-FR017,"('Common', 'Starfoil Rare')",Old
+SP14-FR017,"('Common', 'SFR')",New
+SP14-FR018,"('Common', 'Starfoil Rare')",Old
+SP14-FR018,"('Common', 'SFR')",New
+SP14-FR019,"('Common', 'Starfoil Rare')",Old
+SP14-FR019,"('Common', 'SFR')",New
+SP14-FR020,"('Common', 'SFR')",New
+SP14-FR020,"('Common', 'Starfoil Rare')",Old
+SP14-FR021,"('Common', 'Starfoil Rare')",Old
+SP14-FR021,"('Common', 'SFR')",New
+SP14-FR022,"('Common', 'Starfoil Rare')",Old
+SP14-FR022,"('Common', 'SFR')",New
+SP14-FR023,"('Common', 'Starfoil Rare')",Old
+SP14-FR023,"('Common', 'SFR')",New
+SP14-FR024,"('Common', 'Starfoil Rare')",Old
+SP14-FR024,"('Common', 'SFR')",New
+SP14-FR025,"('Common', 'Starfoil Rare')",Old
+SP14-FR025,"('Common', 'SFR')",New
+SP14-FR026,"('Common', 'Starfoil Rare')",Old
+SP14-FR026,"('Common', 'SFR')",New
+SP14-FR027,"('Common', 'SFR')",New
+SP14-FR027,"('Common', 'Starfoil Rare')",Old
+SP14-FR028,"('Common', 'Starfoil Rare')",Old
+SP14-FR028,"('Common', 'SFR')",New
+SP14-FR029,"('Common', 'Starfoil Rare')",Old
+SP14-FR029,"('Common', 'SFR')",New
+SP14-FR030,"('Common', 'SFR')",New
+SP14-FR030,"('Common', 'Starfoil Rare')",Old
+SP14-FR031,"('Common', 'Starfoil Rare')",Old
+SP14-FR031,"('Common', 'SFR')",New
+SP14-FR032,"('Common', 'Starfoil Rare')",Old
+SP14-FR032,"('Common', 'SFR')",New
+SP14-FR033,"('Common', 'Starfoil Rare')",Old
+SP14-FR033,"('Common', 'SFR')",New
+SP14-FR034,"('Common', 'Starfoil Rare')",Old
+SP14-FR034,"('Common', 'SFR')",New
+SP14-FR035,"('Common', 'SFR')",New
+SP14-FR035,"('Common', 'Starfoil Rare')",Old
+SP14-FR036,"('Common', 'SFR')",New
+SP14-FR036,"('Common', 'Starfoil Rare')",Old
+SP14-FR037,"('Common', 'SFR')",New
+SP14-FR037,"('Common', 'Starfoil Rare')",Old
+SP14-FR038,"('Common', 'Starfoil Rare')",Old
+SP14-FR038,"('Common', 'SFR')",New
+SP14-FR039,"('Common', 'SFR')",New
+SP14-FR039,"('Common', 'Starfoil Rare')",Old
+SP14-FR040,"('Common', 'SFR')",New
+SP14-FR040,"('Common', 'Starfoil Rare')",Old
+SP14-FR041,"('Common', 'Starfoil Rare')",Old
+SP14-FR041,"('Common', 'SFR')",New
+SP14-FR042,"('Common', 'SFR')",New
+SP14-FR042,"('Common', 'Starfoil Rare')",Old
+SP14-FR043,"('Common', 'Starfoil Rare')",Old
+SP14-FR043,"('Common', 'SFR')",New
+SP14-FR044,"('Common', 'Starfoil Rare')",Old
+SP14-FR044,"('Common', 'SFR')",New
+SP14-FR045,"('Common', 'SFR')",New
+SP14-FR045,"('Common', 'Starfoil Rare')",Old
+SP14-FR046,"('Common', 'SFR')",New
+SP14-FR046,"('Common', 'Starfoil Rare')",Old
+SP14-FR047,"('Common', 'Starfoil Rare')",Old
+SP14-FR047,"('Common', 'SFR')",New
+SP14-FR048,"('Common', 'SFR')",New
+SP14-FR048,"('Common', 'Starfoil Rare')",Old
+SP14-FR049,"('Common', 'Starfoil Rare')",Old
+SP14-FR049,"('Common', 'SFR')",New
+SP14-FR050,"('Common', 'Starfoil Rare')",Old
+SP14-FR050,"('Common', 'SFR')",New
+SP14-IT001,"('Common', 'Starfoil Rare')",Old
+SP14-IT001,"('Common', 'SFR')",New
+SP14-IT002,"('Common', 'Starfoil Rare')",Old
+SP14-IT002,"('Common', 'SFR')",New
+SP14-IT003,"('Common', 'SFR')",New
+SP14-IT003,"('Common', 'Starfoil Rare')",Old
+SP14-IT004,"('Common', 'SFR')",New
+SP14-IT004,"('Common', 'Starfoil Rare')",Old
+SP14-IT005,"('Common', 'SFR')",New
+SP14-IT005,"('Common', 'Starfoil Rare')",Old
+SP14-IT006,"('Common', 'SFR')",New
+SP14-IT006,"('Common', 'Starfoil Rare')",Old
+SP14-IT007,"('Common', 'SFR')",New
+SP14-IT007,"('Common', 'Starfoil Rare')",Old
+SP14-IT008,"('Common', 'SFR')",New
+SP14-IT008,"('Common', 'Starfoil Rare')",Old
+SP14-IT009,"('Common', 'SFR')",New
+SP14-IT009,"('Common', 'Starfoil Rare')",Old
+SP14-IT010,"('Common', 'SFR')",New
+SP14-IT010,"('Common', 'Starfoil Rare')",Old
+SP14-IT011,"('Common', 'SFR')",New
+SP14-IT011,"('Common', 'Starfoil Rare')",Old
+SP14-IT012,"('Common', 'Starfoil Rare')",Old
+SP14-IT012,"('Common', 'SFR')",New
+SP14-IT013,"('Common', 'Starfoil Rare')",Old
+SP14-IT013,"('Common', 'SFR')",New
+SP14-IT014,"('Common', 'Starfoil Rare')",Old
+SP14-IT014,"('Common', 'SFR')",New
+SP14-IT015,"('Common', 'SFR')",New
+SP14-IT015,"('Common', 'Starfoil Rare')",Old
+SP14-IT016,"('Common', 'SFR')",New
+SP14-IT016,"('Common', 'Starfoil Rare')",Old
+SP14-IT017,"('Common', 'Starfoil Rare')",Old
+SP14-IT017,"('Common', 'SFR')",New
+SP14-IT018,"('Common', 'Starfoil Rare')",Old
+SP14-IT018,"('Common', 'SFR')",New
+SP14-IT019,"('Common', 'SFR')",New
+SP14-IT019,"('Common', 'Starfoil Rare')",Old
+SP14-IT020,"('Common', 'SFR')",New
+SP14-IT020,"('Common', 'Starfoil Rare')",Old
+SP14-IT021,"('Common', 'SFR')",New
+SP14-IT021,"('Common', 'Starfoil Rare')",Old
+SP14-IT022,"('Common', 'Starfoil Rare')",Old
+SP14-IT022,"('Common', 'SFR')",New
+SP14-IT023,"('Common', 'SFR')",New
+SP14-IT023,"('Common', 'Starfoil Rare')",Old
+SP14-IT024,"('Common', 'Starfoil Rare')",Old
+SP14-IT024,"('Common', 'SFR')",New
+SP14-IT025,"('Common', 'Starfoil Rare')",Old
+SP14-IT025,"('Common', 'SFR')",New
+SP14-IT026,"('Common', 'Starfoil Rare')",Old
+SP14-IT026,"('Common', 'SFR')",New
+SP14-IT027,"('Common', 'Starfoil Rare')",Old
+SP14-IT027,"('Common', 'SFR')",New
+SP14-IT028,"('Common', 'SFR')",New
+SP14-IT028,"('Common', 'Starfoil Rare')",Old
+SP14-IT029,"('Common', 'SFR')",New
+SP14-IT029,"('Common', 'Starfoil Rare')",Old
+SP14-IT030,"('Common', 'Starfoil Rare')",Old
+SP14-IT030,"('Common', 'SFR')",New
+SP14-IT031,"('Common', 'SFR')",New
+SP14-IT031,"('Common', 'Starfoil Rare')",Old
+SP14-IT032,"('Common', 'SFR')",New
+SP14-IT032,"('Common', 'Starfoil Rare')",Old
+SP14-IT033,"('Common', 'SFR')",New
+SP14-IT033,"('Common', 'Starfoil Rare')",Old
+SP14-IT034,"('Common', 'SFR')",New
+SP14-IT034,"('Common', 'Starfoil Rare')",Old
+SP14-IT035,"('Common', 'SFR')",New
+SP14-IT035,"('Common', 'Starfoil Rare')",Old
+SP14-IT036,"('Common', 'SFR')",New
+SP14-IT036,"('Common', 'Starfoil Rare')",Old
+SP14-IT037,"('Common', 'Starfoil Rare')",Old
+SP14-IT037,"('Common', 'SFR')",New
+SP14-IT038,"('Common', 'SFR')",New
+SP14-IT038,"('Common', 'Starfoil Rare')",Old
+SP14-IT039,"('Common', 'Starfoil Rare')",Old
+SP14-IT039,"('Common', 'SFR')",New
+SP14-IT040,"('Common', 'Starfoil Rare')",Old
+SP14-IT040,"('Common', 'SFR')",New
+SP14-IT041,"('Common', 'SFR')",New
+SP14-IT041,"('Common', 'Starfoil Rare')",Old
+SP14-IT042,"('Common', 'SFR')",New
+SP14-IT042,"('Common', 'Starfoil Rare')",Old
+SP14-IT043,"('Common', 'SFR')",New
+SP14-IT043,"('Common', 'Starfoil Rare')",Old
+SP14-IT044,"('Common', 'SFR')",New
+SP14-IT044,"('Common', 'Starfoil Rare')",Old
+SP14-IT045,"('Common', 'SFR')",New
+SP14-IT045,"('Common', 'Starfoil Rare')",Old
+SP14-IT046,"('Common', 'Starfoil Rare')",Old
+SP14-IT046,"('Common', 'SFR')",New
+SP14-IT047,"('Common', 'SFR')",New
+SP14-IT047,"('Common', 'Starfoil Rare')",Old
+SP14-IT048,"('Common', 'SFR')",New
+SP14-IT048,"('Common', 'Starfoil Rare')",Old
+SP14-IT049,"('Common', 'Starfoil Rare')",Old
+SP14-IT049,"('Common', 'SFR')",New
+SP14-IT050,"('Common', 'SFR')",New
+SP14-IT050,"('Common', 'Starfoil Rare')",Old
+SP14-PT001,"('Common', 'Starfoil Rare')",Old
+SP14-PT001,"('Common', 'SFR')",New
+SP14-PT002,"('Common', 'SFR')",New
+SP14-PT002,"('Common', 'Starfoil Rare')",Old
+SP14-PT003,"('Common', 'SFR')",New
+SP14-PT003,"('Common', 'Starfoil Rare')",Old
+SP14-PT004,"('Common', 'SFR')",New
+SP14-PT004,"('Common', 'Starfoil Rare')",Old
+SP14-PT005,"('Common', 'SFR')",New
+SP14-PT005,"('Common', 'Starfoil Rare')",Old
+SP14-PT006,"('Common', 'Starfoil Rare')",Old
+SP14-PT006,"('Common', 'SFR')",New
+SP14-PT007,"('Common', 'SFR')",New
+SP14-PT007,"('Common', 'Starfoil Rare')",Old
+SP14-PT008,"('Common', 'SFR')",New
+SP14-PT008,"('Common', 'Starfoil Rare')",Old
+SP14-PT009,"('Common', 'SFR')",New
+SP14-PT009,"('Common', 'Starfoil Rare')",Old
+SP14-PT010,"('Common', 'SFR')",New
+SP14-PT010,"('Common', 'Starfoil Rare')",Old
+SP14-PT011,"('Common', 'SFR')",New
+SP14-PT011,"('Common', 'Starfoil Rare')",Old
+SP14-PT012,"('Common', 'SFR')",New
+SP14-PT012,"('Common', 'Starfoil Rare')",Old
+SP14-PT013,"('Common', 'Starfoil Rare')",Old
+SP14-PT013,"('Common', 'SFR')",New
+SP14-PT014,"('Common', 'Starfoil Rare')",Old
+SP14-PT014,"('Common', 'SFR')",New
+SP14-PT015,"('Common', 'Starfoil Rare')",Old
+SP14-PT015,"('Common', 'SFR')",New
+SP14-PT016,"('Common', 'SFR')",New
+SP14-PT016,"('Common', 'Starfoil Rare')",Old
+SP14-PT017,"('Common', 'SFR')",New
+SP14-PT017,"('Common', 'Starfoil Rare')",Old
+SP14-PT018,"('Common', 'SFR')",New
+SP14-PT018,"('Common', 'Starfoil Rare')",Old
+SP14-PT019,"('Common', 'SFR')",New
+SP14-PT019,"('Common', 'Starfoil Rare')",Old
+SP14-PT020,"('Common', 'Starfoil Rare')",Old
+SP14-PT020,"('Common', 'SFR')",New
+SP14-PT021,"('Common', 'Starfoil Rare')",Old
+SP14-PT021,"('Common', 'SFR')",New
+SP14-PT022,"('Common', 'Starfoil Rare')",Old
+SP14-PT022,"('Common', 'SFR')",New
+SP14-PT023,"('Common', 'SFR')",New
+SP14-PT023,"('Common', 'Starfoil Rare')",Old
+SP14-PT024,"('Common', 'SFR')",New
+SP14-PT024,"('Common', 'Starfoil Rare')",Old
+SP14-PT025,"('Common', 'SFR')",New
+SP14-PT025,"('Common', 'Starfoil Rare')",Old
+SP14-PT026,"('Common', 'SFR')",New
+SP14-PT026,"('Common', 'Starfoil Rare')",Old
+SP14-PT027,"('Common', 'SFR')",New
+SP14-PT027,"('Common', 'Starfoil Rare')",Old
+SP14-PT028,"('Common', 'SFR')",New
+SP14-PT028,"('Common', 'Starfoil Rare')",Old
+SP14-PT029,"('Common', 'Starfoil Rare')",Old
+SP14-PT029,"('Common', 'SFR')",New
+SP14-PT030,"('Common', 'SFR')",New
+SP14-PT030,"('Common', 'Starfoil Rare')",Old
+SP14-PT031,"('Common', 'Starfoil Rare')",Old
+SP14-PT031,"('Common', 'SFR')",New
+SP14-PT032,"('Common', 'SFR')",New
+SP14-PT032,"('Common', 'Starfoil Rare')",Old
+SP14-PT033,"('Common', 'Starfoil Rare')",Old
+SP14-PT033,"('Common', 'SFR')",New
+SP14-PT034,"('Common', 'SFR')",New
+SP14-PT034,"('Common', 'Starfoil Rare')",Old
+SP14-PT035,"('Common', 'Starfoil Rare')",Old
+SP14-PT035,"('Common', 'SFR')",New
+SP14-PT036,"('Common', 'Starfoil Rare')",Old
+SP14-PT036,"('Common', 'SFR')",New
+SP14-PT037,"('Common', 'Starfoil Rare')",Old
+SP14-PT037,"('Common', 'SFR')",New
+SP14-PT038,"('Common', 'Starfoil Rare')",Old
+SP14-PT038,"('Common', 'SFR')",New
+SP14-PT039,"('Common', 'Starfoil Rare')",Old
+SP14-PT039,"('Common', 'SFR')",New
+SP14-PT040,"('Common', 'SFR')",New
+SP14-PT040,"('Common', 'Starfoil Rare')",Old
+SP14-PT041,"('Common', 'Starfoil Rare')",Old
+SP14-PT041,"('Common', 'SFR')",New
+SP14-PT042,"('Common', 'Starfoil Rare')",Old
+SP14-PT042,"('Common', 'SFR')",New
+SP14-PT043,"('Common', 'Starfoil Rare')",Old
+SP14-PT043,"('Common', 'SFR')",New
+SP14-PT044,"('Common', 'Starfoil Rare')",Old
+SP14-PT044,"('Common', 'SFR')",New
+SP14-PT045,"('Common', 'Starfoil Rare')",Old
+SP14-PT045,"('Common', 'SFR')",New
+SP14-PT046,"('Common', 'SFR')",New
+SP14-PT046,"('Common', 'Starfoil Rare')",Old
+SP14-PT047,"('Common', 'Starfoil Rare')",Old
+SP14-PT047,"('Common', 'SFR')",New
+SP14-PT048,"('Common', 'SFR')",New
+SP14-PT048,"('Common', 'Starfoil Rare')",Old
+SP14-PT049,"('Common', 'Starfoil Rare')",Old
+SP14-PT049,"('Common', 'SFR')",New
+SP14-PT050,"('Common', 'SFR')",New
+SP14-PT050,"('Common', 'Starfoil Rare')",Old
+SP14-SP001,"('Common', 'SFR')",New
+SP14-SP001,"('Common', 'Starfoil Rare')",Old
+SP14-SP002,"('Common', 'SFR')",New
+SP14-SP002,"('Common', 'Starfoil Rare')",Old
+SP14-SP003,"('Common', 'SFR')",New
+SP14-SP003,"('Common', 'Starfoil Rare')",Old
+SP14-SP004,"('Common', 'SFR')",New
+SP14-SP004,"('Common', 'Starfoil Rare')",Old
+SP14-SP005,"('Common', 'SFR')",New
+SP14-SP005,"('Common', 'Starfoil Rare')",Old
+SP14-SP006,"('Common', 'Starfoil Rare')",Old
+SP14-SP006,"('Common', 'SFR')",New
+SP14-SP007,"('Common', 'Starfoil Rare')",Old
+SP14-SP007,"('Common', 'SFR')",New
+SP14-SP008,"('Common', 'SFR')",New
+SP14-SP008,"('Common', 'Starfoil Rare')",Old
+SP14-SP009,"('Common', 'Starfoil Rare')",Old
+SP14-SP009,"('Common', 'SFR')",New
+SP14-SP010,"('Common', 'Starfoil Rare')",Old
+SP14-SP010,"('Common', 'SFR')",New
+SP14-SP011,"('Common', 'Starfoil Rare')",Old
+SP14-SP011,"('Common', 'SFR')",New
+SP14-SP012,"('Common', 'SFR')",New
+SP14-SP012,"('Common', 'Starfoil Rare')",Old
+SP14-SP013,"('Common', 'SFR')",New
+SP14-SP013,"('Common', 'Starfoil Rare')",Old
+SP14-SP014,"('Common', 'Starfoil Rare')",Old
+SP14-SP014,"('Common', 'SFR')",New
+SP14-SP015,"('Common', 'Starfoil Rare')",Old
+SP14-SP015,"('Common', 'SFR')",New
+SP14-SP016,"('Common', 'Starfoil Rare')",Old
+SP14-SP016,"('Common', 'SFR')",New
+SP14-SP017,"('Common', 'Starfoil Rare')",Old
+SP14-SP017,"('Common', 'SFR')",New
+SP14-SP018,"('Common', 'Starfoil Rare')",Old
+SP14-SP018,"('Common', 'SFR')",New
+SP14-SP019,"('Common', 'SFR')",New
+SP14-SP019,"('Common', 'Starfoil Rare')",Old
+SP14-SP020,"('Common', 'Starfoil Rare')",Old
+SP14-SP020,"('Common', 'SFR')",New
+SP14-SP021,"('Common', 'SFR')",New
+SP14-SP021,"('Common', 'Starfoil Rare')",Old
+SP14-SP022,"('Common', 'Starfoil Rare')",Old
+SP14-SP022,"('Common', 'SFR')",New
+SP14-SP023,"('Common', 'Starfoil Rare')",Old
+SP14-SP023,"('Common', 'SFR')",New
+SP14-SP024,"('Common', 'Starfoil Rare')",Old
+SP14-SP024,"('Common', 'SFR')",New
+SP14-SP025,"('Common', 'Starfoil Rare')",Old
+SP14-SP025,"('Common', 'SFR')",New
+SP14-SP026,"('Common', 'Starfoil Rare')",Old
+SP14-SP026,"('Common', 'SFR')",New
+SP14-SP027,"('Common', 'SFR')",New
+SP14-SP027,"('Common', 'Starfoil Rare')",Old
+SP14-SP028,"('Common', 'Starfoil Rare')",Old
+SP14-SP028,"('Common', 'SFR')",New
+SP14-SP029,"('Common', 'Starfoil Rare')",Old
+SP14-SP029,"('Common', 'SFR')",New
+SP14-SP030,"('Common', 'Starfoil Rare')",Old
+SP14-SP030,"('Common', 'SFR')",New
+SP14-SP031,"('Common', 'Starfoil Rare')",Old
+SP14-SP031,"('Common', 'SFR')",New
+SP14-SP032,"('Common', 'Starfoil Rare')",Old
+SP14-SP032,"('Common', 'SFR')",New
+SP14-SP033,"('Common', 'SFR')",New
+SP14-SP033,"('Common', 'Starfoil Rare')",Old
+SP14-SP034,"('Common', 'SFR')",New
+SP14-SP034,"('Common', 'Starfoil Rare')",Old
+SP14-SP035,"('Common', 'Starfoil Rare')",Old
+SP14-SP035,"('Common', 'SFR')",New
+SP14-SP036,"('Common', 'SFR')",New
+SP14-SP036,"('Common', 'Starfoil Rare')",Old
+SP14-SP037,"('Common', 'Starfoil Rare')",Old
+SP14-SP037,"('Common', 'SFR')",New
+SP14-SP038,"('Common', 'SFR')",New
+SP14-SP038,"('Common', 'Starfoil Rare')",Old
+SP14-SP039,"('Common', 'Starfoil Rare')",Old
+SP14-SP039,"('Common', 'SFR')",New
+SP14-SP040,"('Common', 'Starfoil Rare')",Old
+SP14-SP040,"('Common', 'SFR')",New
+SP14-SP041,"('Common', 'Starfoil Rare')",Old
+SP14-SP041,"('Common', 'SFR')",New
+SP14-SP042,"('Common', 'SFR')",New
+SP14-SP042,"('Common', 'Starfoil Rare')",Old
+SP14-SP043,"('Common', 'SFR')",New
+SP14-SP043,"('Common', 'Starfoil Rare')",Old
+SP14-SP044,"('Common', 'Starfoil Rare')",Old
+SP14-SP044,"('Common', 'SFR')",New
+SP14-SP045,"('Common', 'Starfoil Rare')",Old
+SP14-SP045,"('Common', 'SFR')",New
+SP14-SP046,"('Common', 'Starfoil Rare')",Old
+SP14-SP046,"('Common', 'SFR')",New
+SP14-SP047,"('Common', 'Starfoil Rare')",Old
+SP14-SP047,"('Common', 'SFR')",New
+SP14-SP048,"('Common', 'SFR')",New
+SP14-SP048,"('Common', 'Starfoil Rare')",Old
+SP14-SP049,"('Common', 'SFR')",New
+SP14-SP049,"('Common', 'Starfoil Rare')",Old
+SP14-SP050,"('Common', 'SFR')",New
+SP14-SP050,"('Common', 'Starfoil Rare')",Old
+SP15-DE001,"('Common', 'Starfoil Rare')",Old
+SP15-DE001,"('Common', 'SFR')",New
+SP15-DE002,"('Common', 'Starfoil Rare')",Old
+SP15-DE002,"('Common', 'SFR')",New
+SP15-DE003,"('Common', 'SFR')",New
+SP15-DE003,"('Common', 'Starfoil Rare')",Old
+SP15-DE004,"('Common', 'Starfoil Rare')",Old
+SP15-DE004,"('Common', 'SFR')",New
+SP15-DE005,"('Common', 'Starfoil Rare')",Old
+SP15-DE005,"('Common', 'SFR')",New
+SP15-DE006,"('Common', 'Starfoil Rare')",Old
+SP15-DE006,"('Common', 'SFR')",New
+SP15-DE007,"('Common', 'SFR')",New
+SP15-DE007,"('Common', 'Starfoil Rare')",Old
+SP15-DE008,"('Common', 'SFR')",New
+SP15-DE008,"('Common', 'Starfoil Rare')",Old
+SP15-DE009,"('Common', 'SFR')",New
+SP15-DE009,"('Common', 'Starfoil Rare')",Old
+SP15-DE010,"('Common', 'SFR')",New
+SP15-DE010,"('Common', 'Starfoil Rare')",Old
+SP15-DE011,"('Common', 'SFR')",New
+SP15-DE011,"('Common', 'Starfoil Rare')",Old
+SP15-DE012,"('SFR',)",New
+SP15-DE012,"('Starfoil Rare',)",Old
+SP15-DE013,"('Common', 'SFR')",New
+SP15-DE013,"('Common', 'Starfoil Rare')",Old
+SP15-DE014,"('Common', 'SFR')",New
+SP15-DE014,"('Common', 'Starfoil Rare')",Old
+SP15-DE015,"('Common', 'SFR')",New
+SP15-DE015,"('Common', 'Starfoil Rare')",Old
+SP15-DE016,"('Common', 'Starfoil Rare')",Old
+SP15-DE016,"('Common', 'SFR')",New
+SP15-DE017,"('Common', 'Starfoil Rare')",Old
+SP15-DE017,"('Common', 'SFR')",New
+SP15-DE018,"('Common', 'Starfoil Rare')",Old
+SP15-DE018,"('Common', 'SFR')",New
+SP15-DE019,"('Common', 'SFR')",New
+SP15-DE019,"('Common', 'Starfoil Rare')",Old
+SP15-DE020,"('Common', 'Starfoil Rare')",Old
+SP15-DE020,"('Common', 'SFR')",New
+SP15-DE021,"('Common', 'Starfoil Rare')",Old
+SP15-DE021,"('Common', 'SFR')",New
+SP15-DE022,"('Common', 'Starfoil Rare')",Old
+SP15-DE022,"('Common', 'SFR')",New
+SP15-DE023,"('Common', 'Starfoil Rare')",Old
+SP15-DE023,"('Common', 'SFR')",New
+SP15-DE024,"('Common', 'Starfoil Rare')",Old
+SP15-DE024,"('Common', 'SFR')",New
+SP15-DE025,"('Common', 'SFR')",New
+SP15-DE025,"('Common', 'Starfoil Rare')",Old
+SP15-DE026,"('Common', 'SFR')",New
+SP15-DE026,"('Common', 'Starfoil Rare')",Old
+SP15-DE027,"('Common', 'Starfoil Rare')",Old
+SP15-DE027,"('Common', 'SFR')",New
+SP15-DE028,"('Common', 'Starfoil Rare')",Old
+SP15-DE028,"('Common', 'SFR')",New
+SP15-DE029,"('Common', 'SFR')",New
+SP15-DE029,"('Common', 'Starfoil Rare')",Old
+SP15-DE030,"('Common', 'Starfoil Rare')",Old
+SP15-DE030,"('Common', 'SFR')",New
+SP15-DE031,"('Common', 'SFR')",New
+SP15-DE031,"('Common', 'Starfoil Rare')",Old
+SP15-DE032,"('Common', 'SFR')",New
+SP15-DE032,"('Common', 'Starfoil Rare')",Old
+SP15-DE033,"('Common', 'SFR')",New
+SP15-DE033,"('Common', 'Starfoil Rare')",Old
+SP15-DE034,"('Common', 'SFR')",New
+SP15-DE034,"('Common', 'Starfoil Rare')",Old
+SP15-DE035,"('Common', 'SFR')",New
+SP15-DE035,"('Common', 'Starfoil Rare')",Old
+SP15-DE036,"('SFR',)",New
+SP15-DE036,"('Starfoil Rare',)",Old
+SP15-DE037,"('Common', 'SFR')",New
+SP15-DE037,"('Common', 'Starfoil Rare')",Old
+SP15-DE038,"('Common', 'SFR')",New
+SP15-DE038,"('Common', 'Starfoil Rare')",Old
+SP15-DE039,"('Common', 'SFR')",New
+SP15-DE039,"('Common', 'Starfoil Rare')",Old
+SP15-DE040,"('Common', 'SFR')",New
+SP15-DE040,"('Common', 'Starfoil Rare')",Old
+SP15-DE041,"('Common', 'Starfoil Rare')",Old
+SP15-DE041,"('Common', 'SFR')",New
+SP15-DE042,"('Common', 'Starfoil Rare')",Old
+SP15-DE042,"('Common', 'SFR')",New
+SP15-DE043,"('Common', 'SFR')",New
+SP15-DE043,"('Common', 'Starfoil Rare')",Old
+SP15-DE044,"('Common', 'Starfoil Rare')",Old
+SP15-DE044,"('Common', 'SFR')",New
+SP15-DE045,"('Common', 'Starfoil Rare')",Old
+SP15-DE045,"('Common', 'SFR')",New
+SP15-DE046,"('Common', 'SFR')",New
+SP15-DE046,"('Common', 'Starfoil Rare')",Old
+SP15-DE047,"('Common', 'SFR')",New
+SP15-DE047,"('Common', 'Starfoil Rare')",Old
+SP15-DE048,"('Common', 'SFR')",New
+SP15-DE048,"('Common', 'Starfoil Rare')",Old
+SP15-DE049,"('Common', 'Starfoil Rare')",Old
+SP15-DE049,"('Common', 'SFR')",New
+SP15-DE050,"('Common', 'Starfoil Rare')",Old
+SP15-DE050,"('Common', 'SFR')",New
+SP15-EN001,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN001,"('Common', 'SHR')",New
+SP15-EN002,"('Common', 'SHR')",New
+SP15-EN002,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN003,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN003,"('Common', 'SHR')",New
+SP15-EN004,"('Common', 'SHR')",New
+SP15-EN004,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN005,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN005,"('Common', 'SHR')",New
+SP15-EN006,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN006,"('Common', 'SHR')",New
+SP15-EN007,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN007,"('Common', 'SHR')",New
+SP15-EN008,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN008,"('Common', 'SHR')",New
+SP15-EN009,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN009,"('Common', 'SHR')",New
+SP15-EN010,"('Common', 'SHR')",New
+SP15-EN010,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN011,"('Common', 'SHR')",New
+SP15-EN011,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN012,"('SHR',)",New
+SP15-EN012,"('Shatterfoil Rare',)",Old
+SP15-EN013,"('Common', 'SHR')",New
+SP15-EN013,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN014,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN014,"('Common', 'SHR')",New
+SP15-EN015,"('Common', 'SHR')",New
+SP15-EN015,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN016,"('Common', 'SHR')",New
+SP15-EN016,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN017,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN017,"('Common', 'SHR')",New
+SP15-EN018,"('Common', 'SHR')",New
+SP15-EN018,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN019,"('Common', 'SHR')",New
+SP15-EN019,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN020,"('Common', 'SHR')",New
+SP15-EN020,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN021,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN021,"('Common', 'SHR')",New
+SP15-EN022,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN022,"('Common', 'SHR')",New
+SP15-EN023,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN023,"('Common', 'SHR')",New
+SP15-EN024,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN024,"('Common', 'SHR')",New
+SP15-EN025,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN025,"('Common', 'SHR')",New
+SP15-EN026,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN026,"('Common', 'SHR')",New
+SP15-EN027,"('Common', 'SHR')",New
+SP15-EN027,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN028,"('Common', 'SHR')",New
+SP15-EN028,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN029,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN029,"('Common', 'SHR')",New
+SP15-EN030,"('Common', 'SHR')",New
+SP15-EN030,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN031,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN031,"('Common', 'SHR')",New
+SP15-EN032,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN032,"('Common', 'SHR')",New
+SP15-EN033,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN033,"('Common', 'SHR')",New
+SP15-EN034,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN034,"('Common', 'SHR')",New
+SP15-EN035,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN035,"('Common', 'SHR')",New
+SP15-EN036,"('Shatterfoil Rare',)",Old
+SP15-EN036,"('SHR',)",New
+SP15-EN037,"('Common', 'SHR')",New
+SP15-EN037,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN038,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN038,"('Common', 'SHR')",New
+SP15-EN039,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN039,"('Common', 'SHR')",New
+SP15-EN040,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN040,"('Common', 'SHR')",New
+SP15-EN041,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN041,"('Common', 'SHR')",New
+SP15-EN042,"('Common', 'SHR')",New
+SP15-EN042,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN043,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN043,"('Common', 'SHR')",New
+SP15-EN044,"('Common', 'SHR')",New
+SP15-EN044,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN045,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN045,"('Common', 'SHR')",New
+SP15-EN046,"('Common', 'SHR')",New
+SP15-EN046,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN047,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN047,"('Common', 'SHR')",New
+SP15-EN048,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN048,"('Common', 'SHR')",New
+SP15-EN049,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN049,"('Common', 'SHR')",New
+SP15-EN050,"('Common', 'Shatterfoil Rare')",Old
+SP15-EN050,"('Common', 'SHR')",New
+SP15-FR001,"('Common', 'SFR')",New
+SP15-FR001,"('Common', 'Starfoil Rare')",Old
+SP15-FR002,"('Common', 'SFR')",New
+SP15-FR002,"('Common', 'Starfoil Rare')",Old
+SP15-FR003,"('Common', 'Starfoil Rare')",Old
+SP15-FR003,"('Common', 'SFR')",New
+SP15-FR004,"('Common', 'SFR')",New
+SP15-FR004,"('Common', 'Starfoil Rare')",Old
+SP15-FR005,"('Common', 'SFR')",New
+SP15-FR005,"('Common', 'Starfoil Rare')",Old
+SP15-FR006,"('Common', 'SFR')",New
+SP15-FR006,"('Common', 'Starfoil Rare')",Old
+SP15-FR007,"('Common', 'Starfoil Rare')",Old
+SP15-FR007,"('Common', 'SFR')",New
+SP15-FR008,"('Common', 'Starfoil Rare')",Old
+SP15-FR008,"('Common', 'SFR')",New
+SP15-FR009,"('Common', 'SFR')",New
+SP15-FR009,"('Common', 'Starfoil Rare')",Old
+SP15-FR010,"('Common', 'SFR')",New
+SP15-FR010,"('Common', 'Starfoil Rare')",Old
+SP15-FR011,"('Common', 'SFR')",New
+SP15-FR011,"('Common', 'Starfoil Rare')",Old
+SP15-FR012,"('SFR',)",New
+SP15-FR012,"('Starfoil Rare',)",Old
+SP15-FR013,"('Common', 'SFR')",New
+SP15-FR013,"('Common', 'Starfoil Rare')",Old
+SP15-FR014,"('Common', 'SFR')",New
+SP15-FR014,"('Common', 'Starfoil Rare')",Old
+SP15-FR015,"('Common', 'Starfoil Rare')",Old
+SP15-FR015,"('Common', 'SFR')",New
+SP15-FR016,"('Common', 'SFR')",New
+SP15-FR016,"('Common', 'Starfoil Rare')",Old
+SP15-FR017,"('Common', 'SFR')",New
+SP15-FR017,"('Common', 'Starfoil Rare')",Old
+SP15-FR018,"('Common', 'SFR')",New
+SP15-FR018,"('Common', 'Starfoil Rare')",Old
+SP15-FR019,"('Common', 'SFR')",New
+SP15-FR019,"('Common', 'Starfoil Rare')",Old
+SP15-FR020,"('Common', 'SFR')",New
+SP15-FR020,"('Common', 'Starfoil Rare')",Old
+SP15-FR021,"('Common', 'SFR')",New
+SP15-FR021,"('Common', 'Starfoil Rare')",Old
+SP15-FR022,"('Common', 'SFR')",New
+SP15-FR022,"('Common', 'Starfoil Rare')",Old
+SP15-FR023,"('Common', 'SFR')",New
+SP15-FR023,"('Common', 'Starfoil Rare')",Old
+SP15-FR024,"('Common', 'SFR')",New
+SP15-FR024,"('Common', 'Starfoil Rare')",Old
+SP15-FR025,"('Common', 'Starfoil Rare')",Old
+SP15-FR025,"('Common', 'SFR')",New
+SP15-FR026,"('Common', 'Starfoil Rare')",Old
+SP15-FR026,"('Common', 'SFR')",New
+SP15-FR027,"('Common', 'SFR')",New
+SP15-FR027,"('Common', 'Starfoil Rare')",Old
+SP15-FR028,"('Common', 'Starfoil Rare')",Old
+SP15-FR028,"('Common', 'SFR')",New
+SP15-FR029,"('Common', 'SFR')",New
+SP15-FR029,"('Common', 'Starfoil Rare')",Old
+SP15-FR030,"('Common', 'Starfoil Rare')",Old
+SP15-FR030,"('Common', 'SFR')",New
+SP15-FR031,"('Common', 'SFR')",New
+SP15-FR031,"('Common', 'Starfoil Rare')",Old
+SP15-FR032,"('Common', 'SFR')",New
+SP15-FR032,"('Common', 'Starfoil Rare')",Old
+SP15-FR033,"('Common', 'Starfoil Rare')",Old
+SP15-FR033,"('Common', 'SFR')",New
+SP15-FR034,"('Common', 'SFR')",New
+SP15-FR034,"('Common', 'Starfoil Rare')",Old
+SP15-FR035,"('Common', 'SFR')",New
+SP15-FR035,"('Common', 'Starfoil Rare')",Old
+SP15-FR036,"('Starfoil Rare',)",Old
+SP15-FR036,"('SFR',)",New
+SP15-FR037,"('Common', 'Starfoil Rare')",Old
+SP15-FR037,"('Common', 'SFR')",New
+SP15-FR038,"('Common', 'Starfoil Rare')",Old
+SP15-FR038,"('Common', 'SFR')",New
+SP15-FR039,"('Common', 'SFR')",New
+SP15-FR039,"('Common', 'Starfoil Rare')",Old
+SP15-FR040,"('Common', 'SFR')",New
+SP15-FR040,"('Common', 'Starfoil Rare')",Old
+SP15-FR041,"('Common', 'Starfoil Rare')",Old
+SP15-FR041,"('Common', 'SFR')",New
+SP15-FR042,"('Common', 'SFR')",New
+SP15-FR042,"('Common', 'Starfoil Rare')",Old
+SP15-FR043,"('Common', 'SFR')",New
+SP15-FR043,"('Common', 'Starfoil Rare')",Old
+SP15-FR044,"('Common', 'SFR')",New
+SP15-FR044,"('Common', 'Starfoil Rare')",Old
+SP15-FR045,"('Common', 'Starfoil Rare')",Old
+SP15-FR045,"('Common', 'SFR')",New
+SP15-FR046,"('Common', 'SFR')",New
+SP15-FR046,"('Common', 'Starfoil Rare')",Old
+SP15-FR047,"('Common', 'Starfoil Rare')",Old
+SP15-FR047,"('Common', 'SFR')",New
+SP15-FR048,"('Common', 'SFR')",New
+SP15-FR048,"('Common', 'Starfoil Rare')",Old
+SP15-FR049,"('Common', 'Starfoil Rare')",Old
+SP15-FR049,"('Common', 'SFR')",New
+SP15-FR050,"('Common', 'Starfoil Rare')",Old
+SP15-FR050,"('Common', 'SFR')",New
+SP15-IT001,"('Common', 'Starfoil Rare')",Old
+SP15-IT001,"('Common', 'SFR')",New
+SP15-IT002,"('Common', 'SFR')",New
+SP15-IT002,"('Common', 'Starfoil Rare')",Old
+SP15-IT003,"('Common', 'Starfoil Rare')",Old
+SP15-IT003,"('Common', 'SFR')",New
+SP15-IT004,"('Common', 'Starfoil Rare')",Old
+SP15-IT004,"('Common', 'SFR')",New
+SP15-IT005,"('Common', 'Starfoil Rare')",Old
+SP15-IT005,"('Common', 'SFR')",New
+SP15-IT006,"('Common', 'Starfoil Rare')",Old
+SP15-IT006,"('Common', 'SFR')",New
+SP15-IT007,"('Common', 'Starfoil Rare')",Old
+SP15-IT007,"('Common', 'SFR')",New
+SP15-IT008,"('Common', 'Starfoil Rare')",Old
+SP15-IT008,"('Common', 'SFR')",New
+SP15-IT009,"('Common', 'SFR')",New
+SP15-IT009,"('Common', 'Starfoil Rare')",Old
+SP15-IT010,"('Common', 'SFR')",New
+SP15-IT010,"('Common', 'Starfoil Rare')",Old
+SP15-IT011,"('Common', 'SFR')",New
+SP15-IT011,"('Common', 'Starfoil Rare')",Old
+SP15-IT012,"('SFR',)",New
+SP15-IT012,"('Starfoil Rare',)",Old
+SP15-IT013,"('Common', 'SFR')",New
+SP15-IT013,"('Common', 'Starfoil Rare')",Old
+SP15-IT014,"('Common', 'SFR')",New
+SP15-IT014,"('Common', 'Starfoil Rare')",Old
+SP15-IT015,"('Common', 'SFR')",New
+SP15-IT015,"('Common', 'Starfoil Rare')",Old
+SP15-IT016,"('Common', 'Starfoil Rare')",Old
+SP15-IT016,"('Common', 'SFR')",New
+SP15-IT017,"('Common', 'SFR')",New
+SP15-IT017,"('Common', 'Starfoil Rare')",Old
+SP15-IT018,"('Common', 'Starfoil Rare')",Old
+SP15-IT018,"('Common', 'SFR')",New
+SP15-IT019,"('Common', 'Starfoil Rare')",Old
+SP15-IT019,"('Common', 'SFR')",New
+SP15-IT020,"('Common', 'SFR')",New
+SP15-IT020,"('Common', 'Starfoil Rare')",Old
+SP15-IT021,"('Common', 'Starfoil Rare')",Old
+SP15-IT021,"('Common', 'SFR')",New
+SP15-IT022,"('Common', 'SFR')",New
+SP15-IT022,"('Common', 'Starfoil Rare')",Old
+SP15-IT023,"('Common', 'SFR')",New
+SP15-IT023,"('Common', 'Starfoil Rare')",Old
+SP15-IT024,"('Common', 'SFR')",New
+SP15-IT024,"('Common', 'Starfoil Rare')",Old
+SP15-IT025,"('Common', 'Starfoil Rare')",Old
+SP15-IT025,"('Common', 'SFR')",New
+SP15-IT026,"('Common', 'SFR')",New
+SP15-IT026,"('Common', 'Starfoil Rare')",Old
+SP15-IT027,"('Common', 'Starfoil Rare')",Old
+SP15-IT027,"('Common', 'SFR')",New
+SP15-IT028,"('Common', 'Starfoil Rare')",Old
+SP15-IT028,"('Common', 'SFR')",New
+SP15-IT029,"('Common', 'SFR')",New
+SP15-IT029,"('Common', 'Starfoil Rare')",Old
+SP15-IT030,"('Common', 'Starfoil Rare')",Old
+SP15-IT030,"('Common', 'SFR')",New
+SP15-IT031,"('Common', 'SFR')",New
+SP15-IT031,"('Common', 'Starfoil Rare')",Old
+SP15-IT032,"('Common', 'SFR')",New
+SP15-IT032,"('Common', 'Starfoil Rare')",Old
+SP15-IT033,"('Common', 'Starfoil Rare')",Old
+SP15-IT033,"('Common', 'SFR')",New
+SP15-IT034,"('Common', 'SFR')",New
+SP15-IT034,"('Common', 'Starfoil Rare')",Old
+SP15-IT035,"('Common', 'SFR')",New
+SP15-IT035,"('Common', 'Starfoil Rare')",Old
+SP15-IT036,"('SFR',)",New
+SP15-IT036,"('Starfoil Rare',)",Old
+SP15-IT037,"('Common', 'SFR')",New
+SP15-IT037,"('Common', 'Starfoil Rare')",Old
+SP15-IT038,"('Common', 'Starfoil Rare')",Old
+SP15-IT038,"('Common', 'SFR')",New
+SP15-IT039,"('Common', 'Starfoil Rare')",Old
+SP15-IT039,"('Common', 'SFR')",New
+SP15-IT040,"('Common', 'Starfoil Rare')",Old
+SP15-IT040,"('Common', 'SFR')",New
+SP15-IT041,"('Common', 'Starfoil Rare')",Old
+SP15-IT041,"('Common', 'SFR')",New
+SP15-IT042,"('Common', 'Starfoil Rare')",Old
+SP15-IT042,"('Common', 'SFR')",New
+SP15-IT043,"('Common', 'Starfoil Rare')",Old
+SP15-IT043,"('Common', 'SFR')",New
+SP15-IT044,"('Common', 'Starfoil Rare')",Old
+SP15-IT044,"('Common', 'SFR')",New
+SP15-IT045,"('Common', 'SFR')",New
+SP15-IT045,"('Common', 'Starfoil Rare')",Old
+SP15-IT046,"('Common', 'SFR')",New
+SP15-IT046,"('Common', 'Starfoil Rare')",Old
+SP15-IT047,"('Common', 'Starfoil Rare')",Old
+SP15-IT047,"('Common', 'SFR')",New
+SP15-IT048,"('Common', 'SFR')",New
+SP15-IT048,"('Common', 'Starfoil Rare')",Old
+SP15-IT049,"('Common', 'SFR')",New
+SP15-IT049,"('Common', 'Starfoil Rare')",Old
+SP15-IT050,"('Common', 'Starfoil Rare')",Old
+SP15-IT050,"('Common', 'SFR')",New
+SP15-PT001,"('Common', 'Starfoil Rare')",Old
+SP15-PT001,"('Common', 'SFR')",New
+SP15-PT002,"('Common', 'Starfoil Rare')",Old
+SP15-PT002,"('Common', 'SFR')",New
+SP15-PT003,"('Common', 'SFR')",New
+SP15-PT003,"('Common', 'Starfoil Rare')",Old
+SP15-PT004,"('Common', 'Starfoil Rare')",Old
+SP15-PT004,"('Common', 'SFR')",New
+SP15-PT005,"('Common', 'Starfoil Rare')",Old
+SP15-PT005,"('Common', 'SFR')",New
+SP15-PT006,"('Common', 'SFR')",New
+SP15-PT006,"('Common', 'Starfoil Rare')",Old
+SP15-PT007,"('Common', 'Starfoil Rare')",Old
+SP15-PT007,"('Common', 'SFR')",New
+SP15-PT008,"('Common', 'SFR')",New
+SP15-PT008,"('Common', 'Starfoil Rare')",Old
+SP15-PT009,"('Common', 'Starfoil Rare')",Old
+SP15-PT009,"('Common', 'SFR')",New
+SP15-PT010,"('Common', 'Starfoil Rare')",Old
+SP15-PT010,"('Common', 'SFR')",New
+SP15-PT011,"('Common', 'Starfoil Rare')",Old
+SP15-PT011,"('Common', 'SFR')",New
+SP15-PT012,"('Starfoil Rare',)",Old
+SP15-PT012,"('SFR',)",New
+SP15-PT013,"('Common', 'Starfoil Rare')",Old
+SP15-PT013,"('Common', 'SFR')",New
+SP15-PT014,"('Common', 'Starfoil Rare')",Old
+SP15-PT014,"('Common', 'SFR')",New
+SP15-PT015,"('Common', 'Starfoil Rare')",Old
+SP15-PT015,"('Common', 'SFR')",New
+SP15-PT016,"('Common', 'Starfoil Rare')",Old
+SP15-PT016,"('Common', 'SFR')",New
+SP15-PT017,"('Common', 'Starfoil Rare')",Old
+SP15-PT017,"('Common', 'SFR')",New
+SP15-PT018,"('Common', 'SFR')",New
+SP15-PT018,"('Common', 'Starfoil Rare')",Old
+SP15-PT019,"('Common', 'SFR')",New
+SP15-PT019,"('Common', 'Starfoil Rare')",Old
+SP15-PT020,"('Common', 'SFR')",New
+SP15-PT020,"('Common', 'Starfoil Rare')",Old
+SP15-PT021,"('Common', 'SFR')",New
+SP15-PT021,"('Common', 'Starfoil Rare')",Old
+SP15-PT022,"('Common', 'SFR')",New
+SP15-PT022,"('Common', 'Starfoil Rare')",Old
+SP15-PT023,"('Common', 'SFR')",New
+SP15-PT023,"('Common', 'Starfoil Rare')",Old
+SP15-PT024,"('Common', 'SFR')",New
+SP15-PT024,"('Common', 'Starfoil Rare')",Old
+SP15-PT025,"('Common', 'SFR')",New
+SP15-PT025,"('Common', 'Starfoil Rare')",Old
+SP15-PT026,"('Common', 'SFR')",New
+SP15-PT026,"('Common', 'Starfoil Rare')",Old
+SP15-PT027,"('Common', 'SFR')",New
+SP15-PT027,"('Common', 'Starfoil Rare')",Old
+SP15-PT028,"('Common', 'SFR')",New
+SP15-PT028,"('Common', 'Starfoil Rare')",Old
+SP15-PT029,"('Common', 'SFR')",New
+SP15-PT029,"('Common', 'Starfoil Rare')",Old
+SP15-PT030,"('Common', 'Starfoil Rare')",Old
+SP15-PT030,"('Common', 'SFR')",New
+SP15-PT031,"('Common', 'SFR')",New
+SP15-PT031,"('Common', 'Starfoil Rare')",Old
+SP15-PT032,"('Common', 'Starfoil Rare')",Old
+SP15-PT032,"('Common', 'SFR')",New
+SP15-PT033,"('Common', 'SFR')",New
+SP15-PT033,"('Common', 'Starfoil Rare')",Old
+SP15-PT034,"('Common', 'SFR')",New
+SP15-PT034,"('Common', 'Starfoil Rare')",Old
+SP15-PT035,"('Common', 'Starfoil Rare')",Old
+SP15-PT035,"('Common', 'SFR')",New
+SP15-PT036,"('SFR',)",New
+SP15-PT036,"('Starfoil Rare',)",Old
+SP15-PT037,"('Common', 'Starfoil Rare')",Old
+SP15-PT037,"('Common', 'SFR')",New
+SP15-PT038,"('Common', 'SFR')",New
+SP15-PT038,"('Common', 'Starfoil Rare')",Old
+SP15-PT039,"('Common', 'Starfoil Rare')",Old
+SP15-PT039,"('Common', 'SFR')",New
+SP15-PT040,"('Common', 'SFR')",New
+SP15-PT040,"('Common', 'Starfoil Rare')",Old
+SP15-PT041,"('Common', 'SFR')",New
+SP15-PT041,"('Common', 'Starfoil Rare')",Old
+SP15-PT042,"('Common', 'SFR')",New
+SP15-PT042,"('Common', 'Starfoil Rare')",Old
+SP15-PT043,"('Common', 'SFR')",New
+SP15-PT043,"('Common', 'Starfoil Rare')",Old
+SP15-PT044,"('Common', 'SFR')",New
+SP15-PT044,"('Common', 'Starfoil Rare')",Old
+SP15-PT045,"('Common', 'Starfoil Rare')",Old
+SP15-PT045,"('Common', 'SFR')",New
+SP15-PT046,"('Common', 'Starfoil Rare')",Old
+SP15-PT046,"('Common', 'SFR')",New
+SP15-PT047,"('Common', 'Starfoil Rare')",Old
+SP15-PT047,"('Common', 'SFR')",New
+SP15-PT048,"('Common', 'Starfoil Rare')",Old
+SP15-PT048,"('Common', 'SFR')",New
+SP15-PT049,"('Common', 'SFR')",New
+SP15-PT049,"('Common', 'Starfoil Rare')",Old
+SP15-PT050,"('Common', 'SFR')",New
+SP15-PT050,"('Common', 'Starfoil Rare')",Old
+SP15-SP001,"('Common', 'SFR')",New
+SP15-SP001,"('Common', 'Starfoil Rare')",Old
+SP15-SP002,"('Common', 'SFR')",New
+SP15-SP002,"('Common', 'Starfoil Rare')",Old
+SP15-SP003,"('Common', 'Starfoil Rare')",Old
+SP15-SP003,"('Common', 'SFR')",New
+SP15-SP004,"('Common', 'SFR')",New
+SP15-SP004,"('Common', 'Starfoil Rare')",Old
+SP15-SP005,"('Common', 'SFR')",New
+SP15-SP005,"('Common', 'Starfoil Rare')",Old
+SP15-SP006,"('Common', 'Starfoil Rare')",Old
+SP15-SP006,"('Common', 'SFR')",New
+SP15-SP007,"('Common', 'SFR')",New
+SP15-SP007,"('Common', 'Starfoil Rare')",Old
+SP15-SP008,"('Common', 'SFR')",New
+SP15-SP008,"('Common', 'Starfoil Rare')",Old
+SP15-SP009,"('Common', 'SFR')",New
+SP15-SP009,"('Common', 'Starfoil Rare')",Old
+SP15-SP010,"('Common', 'SFR')",New
+SP15-SP010,"('Common', 'Starfoil Rare')",Old
+SP15-SP011,"('Common', 'Starfoil Rare')",Old
+SP15-SP011,"('Common', 'SFR')",New
+SP15-SP012,"('Starfoil Rare',)",Old
+SP15-SP012,"('SFR',)",New
+SP15-SP013,"('Common', 'SFR')",New
+SP15-SP013,"('Common', 'Starfoil Rare')",Old
+SP15-SP014,"('Common', 'SFR')",New
+SP15-SP014,"('Common', 'Starfoil Rare')",Old
+SP15-SP015,"('Common', 'Starfoil Rare')",Old
+SP15-SP015,"('Common', 'SFR')",New
+SP15-SP016,"('Common', 'Starfoil Rare')",Old
+SP15-SP016,"('Common', 'SFR')",New
+SP15-SP017,"('Common', 'Starfoil Rare')",Old
+SP15-SP017,"('Common', 'SFR')",New
+SP15-SP018,"('Common', 'Starfoil Rare')",Old
+SP15-SP018,"('Common', 'SFR')",New
+SP15-SP019,"('Common', 'Starfoil Rare')",Old
+SP15-SP019,"('Common', 'SFR')",New
+SP15-SP020,"('Common', 'Starfoil Rare')",Old
+SP15-SP020,"('Common', 'SFR')",New
+SP15-SP021,"('Common', 'Starfoil Rare')",Old
+SP15-SP021,"('Common', 'SFR')",New
+SP15-SP022,"('Common', 'Starfoil Rare')",Old
+SP15-SP022,"('Common', 'SFR')",New
+SP15-SP023,"('Common', 'SFR')",New
+SP15-SP023,"('Common', 'Starfoil Rare')",Old
+SP15-SP024,"('Common', 'SFR')",New
+SP15-SP024,"('Common', 'Starfoil Rare')",Old
+SP15-SP025,"('Common', 'Starfoil Rare')",Old
+SP15-SP025,"('Common', 'SFR')",New
+SP15-SP026,"('Common', 'Starfoil Rare')",Old
+SP15-SP026,"('Common', 'SFR')",New
+SP15-SP027,"('Common', 'Starfoil Rare')",Old
+SP15-SP027,"('Common', 'SFR')",New
+SP15-SP028,"('Common', 'Starfoil Rare')",Old
+SP15-SP028,"('Common', 'SFR')",New
+SP15-SP029,"('Common', 'Starfoil Rare')",Old
+SP15-SP029,"('Common', 'SFR')",New
+SP15-SP030,"('Common', 'Starfoil Rare')",Old
+SP15-SP030,"('Common', 'SFR')",New
+SP15-SP031,"('Common', 'SFR')",New
+SP15-SP031,"('Common', 'Starfoil Rare')",Old
+SP15-SP032,"('Common', 'SFR')",New
+SP15-SP032,"('Common', 'Starfoil Rare')",Old
+SP15-SP033,"('Common', 'SFR')",New
+SP15-SP033,"('Common', 'Starfoil Rare')",Old
+SP15-SP034,"('Common', 'SFR')",New
+SP15-SP034,"('Common', 'Starfoil Rare')",Old
+SP15-SP035,"('Common', 'SFR')",New
+SP15-SP035,"('Common', 'Starfoil Rare')",Old
+SP15-SP036,"('Starfoil Rare',)",Old
+SP15-SP036,"('SFR',)",New
+SP15-SP037,"('Common', 'SFR')",New
+SP15-SP037,"('Common', 'Starfoil Rare')",Old
+SP15-SP038,"('Common', 'Starfoil Rare')",Old
+SP15-SP038,"('Common', 'SFR')",New
+SP15-SP039,"('Common', 'SFR')",New
+SP15-SP039,"('Common', 'Starfoil Rare')",Old
+SP15-SP040,"('Common', 'Starfoil Rare')",Old
+SP15-SP040,"('Common', 'SFR')",New
+SP15-SP041,"('Common', 'SFR')",New
+SP15-SP041,"('Common', 'Starfoil Rare')",Old
+SP15-SP042,"('Common', 'SFR')",New
+SP15-SP042,"('Common', 'Starfoil Rare')",Old
+SP15-SP043,"('Common', 'SFR')",New
+SP15-SP043,"('Common', 'Starfoil Rare')",Old
+SP15-SP044,"('Common', 'Starfoil Rare')",Old
+SP15-SP044,"('Common', 'SFR')",New
+SP15-SP045,"('Common', 'SFR')",New
+SP15-SP045,"('Common', 'Starfoil Rare')",Old
+SP15-SP046,"('Common', 'SFR')",New
+SP15-SP046,"('Common', 'Starfoil Rare')",Old
+SP15-SP047,"('Common', 'SFR')",New
+SP15-SP047,"('Common', 'Starfoil Rare')",Old
+SP15-SP048,"('Common', 'SFR')",New
+SP15-SP048,"('Common', 'Starfoil Rare')",Old
+SP15-SP049,"('Common', 'SFR')",New
+SP15-SP049,"('Common', 'Starfoil Rare')",Old
+SP15-SP050,"('Common', 'Starfoil Rare')",Old
+SP15-SP050,"('Common', 'SFR')",New
+STBL-FRSP1,"('Ultra Rare',)",Old
+STBL-FRSP1,"('Ultra rare',)",New
+STON-FRSE1,"('Super Rare',)",Old
+STON-FRSE1,"('Super rare',)",New
+STON-FRSE2,"('Super Rare',)",Old
+STON-FRSE2,"('Super rare',)",New
+STON-FRSP1,"('Super Rare',)",Old
+STON-FRSP1,"('Super rare',)",New
+STOR-FRSE1,"('Super Rare',)",Old
+STOR-FRSE1,"('Super rare',)",New
+STOR-FRSE2,"('Super Rare',)",Old
+STOR-FRSE2,"('Super rare',)",New
+STOR-FRSP1,"('Ultra rare',)",New
+STOR-FRSP1,"('Ultra Rare',)",Old
+STOR-JP040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+STOR-JP040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+STOR-KR040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+STOR-KR040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TAEV-FRSE1,"('Super rare',)",New
+TAEV-FRSE1,"('Super Rare',)",Old
+TAEV-FRSE2,"('Super Rare',)",Old
+TAEV-FRSE2,"('Super rare',)",New
+TAEV-FRSP1,"('Super rare',)",New
+TAEV-FRSP1,"('Super Rare',)",Old
+TAEV-JP006,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TAEV-JP006,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TAEV-KR006,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TAEV-KR006,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TDGS-FRSE1,"('Super Rare',)",Old
+TDGS-FRSE1,"('Super rare',)",New
+TDGS-FRSE2,"('Super Rare',)",Old
+TDGS-FRSE2,"('Super rare',)",New
+TDGS-FRSP1,"('Super Rare',)",Old
+TDGS-FRSP1,"('Super rare',)",New
+TDGS-JP040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TDGS-JP040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TDGS-KR040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TDGS-KR040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TDIL-FRSP1,"('Ultra Rare',)",Old
+TDIL-FRSP1,"('Ultra rare',)",New
+TDIL-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TDIL-JP046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+TDIL-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'HGR')",New
+TDIL-KR046,"('Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TDIL-KRGE1,"('Super Rare',)",Old
+TDIL-KRGE1,"('Super rare',)",New
+TF04-FR001,"('Super rare',)",New
+TF04-FR001,"('Super Rare',)",Old
+TF04-FR002,"('Super Rare',)",Old
+TF04-FR002,"('Super rare',)",New
+TF04-FR003,"('Super rare',)",New
+TF04-FR003,"('Super Rare',)",Old
+TF05-FR001,"('Super rare',)",New
+TF05-FR001,"('Super Rare',)",Old
+TF05-FR002,"('Super rare',)",New
+TF05-FR002,"('Super Rare',)",Old
+TF05-FR003,"('Super Rare',)",Old
+TF05-FR003,"('Super rare',)",New
+TFK-FR001,"('Super Rare',)",Old
+TFK-FR001,"('Super rare',)",New
+TFK-FR002,"('Super rare',)",New
+TFK-FR002,"('Super Rare',)",Old
+TFK-FR003,"('Super rare',)",New
+TFK-FR003,"('Super Rare',)",Old
+TLM-FRSE1,"('Ultra rare',)",New
+TLM-FRSE1,"('Ultra Rare',)",Old
+TLM-FRSE2,"('Ultra Rare',)",Old
+TLM-FRSE2,"('Ultra rare',)",New
+TLM-FRSE3,"('Ultra Rare',)",Old
+TLM-FRSE3,"('Ultra rare',)",New
+TLM-FRSE4,"('Ultra Rare',)",Old
+TLM-FRSE4,"('Ultra rare',)",New
+TSHD-FRSP1,"('Ultra Rare',)",Old
+TSHD-FRSP1,"('Ultra rare',)",New
+TSHD-JP040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TSHD-JP040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TSHD-KR040,"('Ultra Rare', 'Ultimate Rare', 'Holographic Rare')",Old
+TSHD-KR040,"('Ultra Rare', 'Ultimate Rare', 'HGR')",New
+TWED-FR001,"('Ultra rare',)",New
+TWED-FR001,"('Ultra Rare',)",Old
+WB01-FR001,"('Super rare',)",New
+WB01-FR001,"('Super Rare',)",Old
+WB01-FR002,"('Super rare',)",New
+WB01-FR002,"('Super Rare',)",Old
+WB01-FR003,"('Super rare',)",New
+WB01-FR003,"('Super Rare',)",Old
+WC07-FR001,"('Super rare',)",New
+WC07-FR001,"('Super Rare',)",Old
+WC07-FR002,"('Super rare',)",New
+WC07-FR002,"('Super Rare',)",Old
+WC07-FR003,"('Super Rare',)",Old
+WC07-FR003,"('Super rare',)",New
+WC08-FR001,"('Super Rare',)",Old
+WC08-FR001,"('Super rare',)",New
+WC08-FR002,"('Super rare',)",New
+WC08-FR002,"('Super Rare',)",Old
+WC08-FR003,"('Super rare',)",New
+WC08-FR003,"('Super Rare',)",Old
+WC08-KR001,"('Ultra rare',)",New
+WC08-KR001,"('Ultra Rare',)",Old
+WC08-KR002,"('Ultra rare',)",New
+WC08-KR002,"('Ultra Rare',)",Old
+WC08-KR003,"('Ultra rare',)",New
+WC08-KR003,"('Ultra Rare',)",Old
+WC08-KR004,"('Ultra Rare',)",Old
+WC08-KR004,"('Ultra rare',)",New
+WC08-KR005,"('Ultra Rare',)",Old
+WC08-KR005,"('Ultra rare',)",New
+WC08-KR006,"('Ultra Rare',)",Old
+WC08-KR006,"('Ultra rare',)",New
+WC11-FR001,"('Super rare',)",New
+WC11-FR001,"('Super Rare',)",Old
+WC11-FR002,"('Super Rare',)",Old
+WC11-FR002,"('Super rare',)",New
+WC11-FR003,"('Super Rare',)",Old
+WC11-FR003,"('Super rare',)",New
+WC11-KR001,"('Ultra Rare',)",Old
+WC11-KR001,"('Ultra rare',)",New
+WC11-KR002,"('Ultra rare',)",New
+WC11-KR002,"('Ultra Rare',)",Old
+WC11-KR003,"('Ultra Rare',)",Old
+WC11-KR003,"('Ultra rare',)",New
+WC11-KR004,"('Ultra rare',)",New
+WC11-KR004,"('Ultra Rare',)",Old
+WC11-KR005,"('Ultra Rare',)",Old
+WC11-KR005,"('Ultra rare',)",New
+WC11-KR006,"('Ultra rare',)",New
+WC11-KR006,"('Ultra Rare',)",Old
+WC11-KR007,"('Ultra rare',)",New
+WC11-KR007,"('Ultra Rare',)",Old
+WC4-F001,"('Prismatic Secret rare',)",New
+WC4-F001,"('Prismatic Secret Rare',)",Old
+WC4-F002,"('Prismatic Secret rare',)",New
+WC4-F002,"('Prismatic Secret Rare',)",Old
+WC4-F003,"('Prismatic Secret Rare',)",Old
+WC4-F003,"('Prismatic Secret rare',)",New
+WGRT-DE001,"('c',)",New
+WGRT-DE001,"('Common',)",Old
+WGRT-DE003,"('c',)",New
+WGRT-DE003,"('Common',)",Old
+WGRT-DE005,"('c',)",New
+WGRT-DE005,"('Common',)",Old
+WGRT-DE007,"('c',)",New
+WGRT-DE007,"('Common',)",Old
+WGRT-DE008,"('c',)",New
+WGRT-DE008,"('Common',)",Old
+WGRT-DE009,"('c',)",New
+WGRT-DE009,"('Common',)",Old
+WGRT-DE010,"('c',)",New
+WGRT-DE010,"('Common',)",Old
+WGRT-DE012,"('c',)",New
+WGRT-DE012,"('Common',)",Old
+WGRT-DE018,"('c',)",New
+WGRT-DE018,"('Common',)",Old
+WGRT-DE019,"('Common',)",Old
+WGRT-DE019,"('c',)",New
+WGRT-DE023,"('Common',)",Old
+WGRT-DE023,"('c',)",New
+WGRT-DE027,"('c',)",New
+WGRT-DE027,"('Common',)",Old
+WGRT-DE028,"('Common',)",Old
+WGRT-DE028,"('c',)",New
+WGRT-DE029,"('Common',)",Old
+WGRT-DE029,"('c',)",New
+WGRT-DE031,"('c',)",New
+WGRT-DE031,"('Common',)",Old
+WGRT-DE032,"('c',)",New
+WGRT-DE032,"('Common',)",Old
+WGRT-DE033,"('c',)",New
+WGRT-DE033,"('Common',)",Old
+WGRT-DE035,"('c',)",New
+WGRT-DE035,"('Common',)",Old
+WGRT-DE037,"('c',)",New
+WGRT-DE037,"('Common',)",Old
+WGRT-DE038,"('c',)",New
+WGRT-DE038,"('Common',)",Old
+WGRT-DE041,"('c',)",New
+WGRT-DE041,"('Common',)",Old
+WGRT-DE042,"('c',)",New
+WGRT-DE042,"('Common',)",Old
+WGRT-DE045,"('Common',)",Old
+WGRT-DE045,"('c',)",New
+WGRT-DE046,"('c',)",New
+WGRT-DE046,"('Common',)",Old
+WGRT-DE047,"('Common',)",Old
+WGRT-DE047,"('c',)",New
+WGRT-DE051,"('Common',)",Old
+WGRT-DE051,"('c',)",New
+WGRT-DE052,"('c',)",New
+WGRT-DE052,"('Common',)",Old
+WGRT-DE053,"('Common',)",Old
+WGRT-DE053,"('c',)",New
+WGRT-DE054,"('Common',)",Old
+WGRT-DE054,"('c',)",New
+WGRT-DE055,"('c',)",New
+WGRT-DE055,"('Common',)",Old
+WGRT-DE056,"('Common',)",Old
+WGRT-DE056,"('c',)",New
+WGRT-DE057,"('c',)",New
+WGRT-DE057,"('Common',)",Old
+WGRT-DE058,"('c',)",New
+WGRT-DE058,"('Common',)",Old
+WGRT-DE060,"('Common',)",Old
+WGRT-DE060,"('c',)",New
+WGRT-DE061,"('Common',)",Old
+WGRT-DE061,"('c',)",New
+WGRT-DE063,"('Common',)",Old
+WGRT-DE063,"('c',)",New
+WGRT-DE064,"('Common',)",Old
+WGRT-DE064,"('c',)",New
+WGRT-DE067,"('Common',)",Old
+WGRT-DE067,"('c',)",New
+WGRT-DE068,"('Common',)",Old
+WGRT-DE068,"('c',)",New
+WGRT-DE074,"('c',)",New
+WGRT-DE074,"('Common',)",Old
+WGRT-DE075,"('c',)",New
+WGRT-DE075,"('Common',)",Old
+WGRT-DE076,"('c',)",New
+WGRT-DE076,"('Common',)",Old
+WGRT-DE078,"('Common',)",Old
+WGRT-DE078,"('c',)",New
+WGRT-DE080,"('Common',)",Old
+WGRT-DE080,"('c',)",New
+WGRT-DE081,"('Common',)",Old
+WGRT-DE081,"('c',)",New
+WGRT-DE082,"('Common',)",Old
+WGRT-DE082,"('c',)",New
+WGRT-DE084,"('c',)",New
+WGRT-DE084,"('Common',)",Old
+WGRT-DE085,"('c',)",New
+WGRT-DE085,"('Common',)",Old
+WGRT-DE086,"('c',)",New
+WGRT-DE086,"('Common',)",Old
+WGRT-DE090,"('Common',)",Old
+WGRT-DE090,"('c',)",New
+WGRT-DE092,"('c',)",New
+WGRT-DE092,"('Common',)",Old
+WGRT-DE094,"('c',)",New
+WGRT-DE094,"('Common',)",Old
+WGRT-DE096,"('c',)",New
+WGRT-DE096,"('Common',)",Old
+WGRT-DE097,"('c',)",New
+WGRT-DE097,"('Common',)",Old
+WGRT-DE098,"('Common',)",Old
+WGRT-DE098,"('c',)",New
+WGRT-EN001,"('c',)",New
+WGRT-EN001,"('Common',)",Old
+WGRT-EN003,"('c',)",New
+WGRT-EN003,"('Common',)",Old
+WGRT-EN005,"('c',)",New
+WGRT-EN005,"('Common',)",Old
+WGRT-EN007,"('c',)",New
+WGRT-EN007,"('Common',)",Old
+WGRT-EN008,"('Common',)",Old
+WGRT-EN008,"('c',)",New
+WGRT-EN009,"('Common',)",Old
+WGRT-EN009,"('c',)",New
+WGRT-EN010,"('c',)",New
+WGRT-EN010,"('Common',)",Old
+WGRT-EN012,"('c',)",New
+WGRT-EN012,"('Common',)",Old
+WGRT-EN018,"('c',)",New
+WGRT-EN018,"('Common',)",Old
+WGRT-EN019,"('c',)",New
+WGRT-EN019,"('Common',)",Old
+WGRT-EN023,"('Common',)",Old
+WGRT-EN023,"('c',)",New
+WGRT-EN027,"('Common',)",Old
+WGRT-EN027,"('c',)",New
+WGRT-EN028,"('Common',)",Old
+WGRT-EN028,"('c',)",New
+WGRT-EN029,"('Common',)",Old
+WGRT-EN029,"('c',)",New
+WGRT-EN031,"('Common',)",Old
+WGRT-EN031,"('c',)",New
+WGRT-EN032,"('Common',)",Old
+WGRT-EN032,"('c',)",New
+WGRT-EN033,"('c',)",New
+WGRT-EN033,"('Common',)",Old
+WGRT-EN035,"('Common',)",Old
+WGRT-EN035,"('c',)",New
+WGRT-EN037,"('Common',)",Old
+WGRT-EN037,"('c',)",New
+WGRT-EN038,"('Common',)",Old
+WGRT-EN038,"('c',)",New
+WGRT-EN041,"('c',)",New
+WGRT-EN041,"('Common',)",Old
+WGRT-EN042,"('c',)",New
+WGRT-EN042,"('Common',)",Old
+WGRT-EN045,"('Common',)",Old
+WGRT-EN045,"('c',)",New
+WGRT-EN046,"('c',)",New
+WGRT-EN046,"('Common',)",Old
+WGRT-EN047,"('Common',)",Old
+WGRT-EN047,"('c',)",New
+WGRT-EN051,"('c',)",New
+WGRT-EN051,"('Common',)",Old
+WGRT-EN052,"('Common',)",Old
+WGRT-EN052,"('c',)",New
+WGRT-EN053,"('c',)",New
+WGRT-EN053,"('Common',)",Old
+WGRT-EN054,"('Common',)",Old
+WGRT-EN054,"('c',)",New
+WGRT-EN055,"('Common',)",Old
+WGRT-EN055,"('c',)",New
+WGRT-EN056,"('Common',)",Old
+WGRT-EN056,"('c',)",New
+WGRT-EN057,"('c',)",New
+WGRT-EN057,"('Common',)",Old
+WGRT-EN058,"('c',)",New
+WGRT-EN058,"('Common',)",Old
+WGRT-EN060,"('c',)",New
+WGRT-EN060,"('Common',)",Old
+WGRT-EN061,"('Common',)",Old
+WGRT-EN061,"('c',)",New
+WGRT-EN063,"('c',)",New
+WGRT-EN063,"('Common',)",Old
+WGRT-EN064,"('Common',)",Old
+WGRT-EN064,"('c',)",New
+WGRT-EN067,"('c',)",New
+WGRT-EN067,"('Common',)",Old
+WGRT-EN068,"('Common',)",Old
+WGRT-EN068,"('c',)",New
+WGRT-EN074,"('Common',)",Old
+WGRT-EN074,"('c',)",New
+WGRT-EN075,"('Common',)",Old
+WGRT-EN075,"('c',)",New
+WGRT-EN076,"('Common',)",Old
+WGRT-EN076,"('c',)",New
+WGRT-EN078,"('c',)",New
+WGRT-EN078,"('Common',)",Old
+WGRT-EN080,"('Common',)",Old
+WGRT-EN080,"('c',)",New
+WGRT-EN081,"('Common',)",Old
+WGRT-EN081,"('c',)",New
+WGRT-EN082,"('Common',)",Old
+WGRT-EN082,"('c',)",New
+WGRT-EN084,"('c',)",New
+WGRT-EN084,"('Common',)",Old
+WGRT-EN085,"('c',)",New
+WGRT-EN085,"('Common',)",Old
+WGRT-EN086,"('Common',)",Old
+WGRT-EN086,"('c',)",New
+WGRT-EN090,"('c',)",New
+WGRT-EN090,"('Common',)",Old
+WGRT-EN092,"('c',)",New
+WGRT-EN092,"('Common',)",Old
+WGRT-EN094,"('Common',)",Old
+WGRT-EN094,"('c',)",New
+WGRT-EN096,"('c',)",New
+WGRT-EN096,"('Common',)",Old
+WGRT-EN097,"('Common',)",Old
+WGRT-EN097,"('c',)",New
+WGRT-EN098,"('c',)",New
+WGRT-EN098,"('Common',)",Old
+WGRT-FR001,"('Common',)",Old
+WGRT-FR001,"('c',)",New
+WGRT-FR003,"('Common',)",Old
+WGRT-FR003,"('c',)",New
+WGRT-FR005,"('c',)",New
+WGRT-FR005,"('Common',)",Old
+WGRT-FR007,"('c',)",New
+WGRT-FR007,"('Common',)",Old
+WGRT-FR008,"('c',)",New
+WGRT-FR008,"('Common',)",Old
+WGRT-FR009,"('Common',)",Old
+WGRT-FR009,"('c',)",New
+WGRT-FR010,"('Common',)",Old
+WGRT-FR010,"('c',)",New
+WGRT-FR012,"('Common',)",Old
+WGRT-FR012,"('c',)",New
+WGRT-FR018,"('c',)",New
+WGRT-FR018,"('Common',)",Old
+WGRT-FR019,"('Common',)",Old
+WGRT-FR019,"('c',)",New
+WGRT-FR023,"('c',)",New
+WGRT-FR023,"('Common',)",Old
+WGRT-FR027,"('c',)",New
+WGRT-FR027,"('Common',)",Old
+WGRT-FR028,"('c',)",New
+WGRT-FR028,"('Common',)",Old
+WGRT-FR029,"('c',)",New
+WGRT-FR029,"('Common',)",Old
+WGRT-FR031,"('Common',)",Old
+WGRT-FR031,"('c',)",New
+WGRT-FR032,"('Common',)",Old
+WGRT-FR032,"('c',)",New
+WGRT-FR033,"('Common',)",Old
+WGRT-FR033,"('c',)",New
+WGRT-FR035,"('c',)",New
+WGRT-FR035,"('Common',)",Old
+WGRT-FR037,"('Common',)",Old
+WGRT-FR037,"('c',)",New
+WGRT-FR038,"('c',)",New
+WGRT-FR038,"('Common',)",Old
+WGRT-FR041,"('c',)",New
+WGRT-FR041,"('Common',)",Old
+WGRT-FR042,"('c',)",New
+WGRT-FR042,"('Common',)",Old
+WGRT-FR045,"('c',)",New
+WGRT-FR045,"('Common',)",Old
+WGRT-FR046,"('Common',)",Old
+WGRT-FR046,"('c',)",New
+WGRT-FR047,"('c',)",New
+WGRT-FR047,"('Common',)",Old
+WGRT-FR051,"('c',)",New
+WGRT-FR051,"('Common',)",Old
+WGRT-FR052,"('Common',)",Old
+WGRT-FR052,"('c',)",New
+WGRT-FR053,"('c',)",New
+WGRT-FR053,"('Common',)",Old
+WGRT-FR054,"('Common',)",Old
+WGRT-FR054,"('c',)",New
+WGRT-FR055,"('Common',)",Old
+WGRT-FR055,"('c',)",New
+WGRT-FR056,"('Common',)",Old
+WGRT-FR056,"('c',)",New
+WGRT-FR057,"('c',)",New
+WGRT-FR057,"('Common',)",Old
+WGRT-FR058,"('Common',)",Old
+WGRT-FR058,"('c',)",New
+WGRT-FR060,"('Common',)",Old
+WGRT-FR060,"('c',)",New
+WGRT-FR061,"('Common',)",Old
+WGRT-FR061,"('c',)",New
+WGRT-FR063,"('Common',)",Old
+WGRT-FR063,"('c',)",New
+WGRT-FR064,"('Common',)",Old
+WGRT-FR064,"('c',)",New
+WGRT-FR067,"('c',)",New
+WGRT-FR067,"('Common',)",Old
+WGRT-FR068,"('c',)",New
+WGRT-FR068,"('Common',)",Old
+WGRT-FR074,"('Common',)",Old
+WGRT-FR074,"('c',)",New
+WGRT-FR075,"('c',)",New
+WGRT-FR075,"('Common',)",Old
+WGRT-FR076,"('Common',)",Old
+WGRT-FR076,"('c',)",New
+WGRT-FR078,"('Common',)",Old
+WGRT-FR078,"('c',)",New
+WGRT-FR080,"('Common',)",Old
+WGRT-FR080,"('c',)",New
+WGRT-FR081,"('Common',)",Old
+WGRT-FR081,"('c',)",New
+WGRT-FR082,"('Common',)",Old
+WGRT-FR082,"('c',)",New
+WGRT-FR084,"('Common',)",Old
+WGRT-FR084,"('c',)",New
+WGRT-FR085,"('Common',)",Old
+WGRT-FR085,"('c',)",New
+WGRT-FR086,"('c',)",New
+WGRT-FR086,"('Common',)",Old
+WGRT-FR090,"('Common',)",Old
+WGRT-FR090,"('c',)",New
+WGRT-FR092,"('Common',)",Old
+WGRT-FR092,"('c',)",New
+WGRT-FR094,"('Common',)",Old
+WGRT-FR094,"('c',)",New
+WGRT-FR096,"('Common',)",Old
+WGRT-FR096,"('c',)",New
+WGRT-FR097,"('c',)",New
+WGRT-FR097,"('Common',)",Old
+WGRT-FR098,"('c',)",New
+WGRT-FR098,"('Common',)",Old
+WGRT-IT001,"('c',)",New
+WGRT-IT001,"('Common',)",Old
+WGRT-IT003,"('Common',)",Old
+WGRT-IT003,"('c',)",New
+WGRT-IT005,"('c',)",New
+WGRT-IT005,"('Common',)",Old
+WGRT-IT007,"('c',)",New
+WGRT-IT007,"('Common',)",Old
+WGRT-IT008,"('c',)",New
+WGRT-IT008,"('Common',)",Old
+WGRT-IT009,"('c',)",New
+WGRT-IT009,"('Common',)",Old
+WGRT-IT010,"('Common',)",Old
+WGRT-IT010,"('c',)",New
+WGRT-IT012,"('c',)",New
+WGRT-IT012,"('Common',)",Old
+WGRT-IT018,"('Common',)",Old
+WGRT-IT018,"('c',)",New
+WGRT-IT019,"('c',)",New
+WGRT-IT019,"('Common',)",Old
+WGRT-IT023,"('Common',)",Old
+WGRT-IT023,"('c',)",New
+WGRT-IT027,"('c',)",New
+WGRT-IT027,"('Common',)",Old
+WGRT-IT028,"('c',)",New
+WGRT-IT028,"('Common',)",Old
+WGRT-IT029,"('Common',)",Old
+WGRT-IT029,"('c',)",New
+WGRT-IT031,"('Common',)",Old
+WGRT-IT031,"('c',)",New
+WGRT-IT032,"('c',)",New
+WGRT-IT032,"('Common',)",Old
+WGRT-IT033,"('Common',)",Old
+WGRT-IT033,"('c',)",New
+WGRT-IT035,"('Common',)",Old
+WGRT-IT035,"('c',)",New
+WGRT-IT037,"('Common',)",Old
+WGRT-IT037,"('c',)",New
+WGRT-IT038,"('Common',)",Old
+WGRT-IT038,"('c',)",New
+WGRT-IT041,"('Common',)",Old
+WGRT-IT041,"('c',)",New
+WGRT-IT042,"('Common',)",Old
+WGRT-IT042,"('c',)",New
+WGRT-IT045,"('c',)",New
+WGRT-IT045,"('Common',)",Old
+WGRT-IT046,"('Common',)",Old
+WGRT-IT046,"('c',)",New
+WGRT-IT047,"('Common',)",Old
+WGRT-IT047,"('c',)",New
+WGRT-IT051,"('Common',)",Old
+WGRT-IT051,"('c',)",New
+WGRT-IT052,"('c',)",New
+WGRT-IT052,"('Common',)",Old
+WGRT-IT053,"('c',)",New
+WGRT-IT053,"('Common',)",Old
+WGRT-IT054,"('c',)",New
+WGRT-IT054,"('Common',)",Old
+WGRT-IT055,"('c',)",New
+WGRT-IT055,"('Common',)",Old
+WGRT-IT056,"('Common',)",Old
+WGRT-IT056,"('c',)",New
+WGRT-IT057,"('c',)",New
+WGRT-IT057,"('Common',)",Old
+WGRT-IT058,"('c',)",New
+WGRT-IT058,"('Common',)",Old
+WGRT-IT060,"('Common',)",Old
+WGRT-IT060,"('c',)",New
+WGRT-IT061,"('Common',)",Old
+WGRT-IT061,"('c',)",New
+WGRT-IT063,"('Common',)",Old
+WGRT-IT063,"('c',)",New
+WGRT-IT064,"('Common',)",Old
+WGRT-IT064,"('c',)",New
+WGRT-IT067,"('Common',)",Old
+WGRT-IT067,"('c',)",New
+WGRT-IT068,"('Common',)",Old
+WGRT-IT068,"('c',)",New
+WGRT-IT074,"('c',)",New
+WGRT-IT074,"('Common',)",Old
+WGRT-IT075,"('c',)",New
+WGRT-IT075,"('Common',)",Old
+WGRT-IT076,"('c',)",New
+WGRT-IT076,"('Common',)",Old
+WGRT-IT078,"('c',)",New
+WGRT-IT078,"('Common',)",Old
+WGRT-IT080,"('c',)",New
+WGRT-IT080,"('Common',)",Old
+WGRT-IT081,"('c',)",New
+WGRT-IT081,"('Common',)",Old
+WGRT-IT082,"('Common',)",Old
+WGRT-IT082,"('c',)",New
+WGRT-IT084,"('c',)",New
+WGRT-IT084,"('Common',)",Old
+WGRT-IT085,"('Common',)",Old
+WGRT-IT085,"('c',)",New
+WGRT-IT086,"('c',)",New
+WGRT-IT086,"('Common',)",Old
+WGRT-IT090,"('c',)",New
+WGRT-IT090,"('Common',)",Old
+WGRT-IT092,"('c',)",New
+WGRT-IT092,"('Common',)",Old
+WGRT-IT094,"('c',)",New
+WGRT-IT094,"('Common',)",Old
+WGRT-IT096,"('c',)",New
+WGRT-IT096,"('Common',)",Old
+WGRT-IT097,"('c',)",New
+WGRT-IT097,"('Common',)",Old
+WGRT-IT098,"('c',)",New
+WGRT-IT098,"('Common',)",Old
+WGRT-PT001,"('c',)",New
+WGRT-PT001,"('Common',)",Old
+WGRT-PT003,"('Common',)",Old
+WGRT-PT003,"('c',)",New
+WGRT-PT005,"('Common',)",Old
+WGRT-PT005,"('c',)",New
+WGRT-PT007,"('c',)",New
+WGRT-PT007,"('Common',)",Old
+WGRT-PT008,"('c',)",New
+WGRT-PT008,"('Common',)",Old
+WGRT-PT009,"('c',)",New
+WGRT-PT009,"('Common',)",Old
+WGRT-PT010,"('c',)",New
+WGRT-PT010,"('Common',)",Old
+WGRT-PT012,"('c',)",New
+WGRT-PT012,"('Common',)",Old
+WGRT-PT018,"('c',)",New
+WGRT-PT018,"('Common',)",Old
+WGRT-PT019,"('c',)",New
+WGRT-PT019,"('Common',)",Old
+WGRT-PT023,"('c',)",New
+WGRT-PT023,"('Common',)",Old
+WGRT-PT027,"('c',)",New
+WGRT-PT027,"('Common',)",Old
+WGRT-PT028,"('Common',)",Old
+WGRT-PT028,"('c',)",New
+WGRT-PT029,"('Common',)",Old
+WGRT-PT029,"('c',)",New
+WGRT-PT031,"('Common',)",Old
+WGRT-PT031,"('c',)",New
+WGRT-PT032,"('c',)",New
+WGRT-PT032,"('Common',)",Old
+WGRT-PT033,"('c',)",New
+WGRT-PT033,"('Common',)",Old
+WGRT-PT035,"('c',)",New
+WGRT-PT035,"('Common',)",Old
+WGRT-PT037,"('c',)",New
+WGRT-PT037,"('Common',)",Old
+WGRT-PT038,"('Common',)",Old
+WGRT-PT038,"('c',)",New
+WGRT-PT041,"('Common',)",Old
+WGRT-PT041,"('c',)",New
+WGRT-PT042,"('c',)",New
+WGRT-PT042,"('Common',)",Old
+WGRT-PT045,"('Common',)",Old
+WGRT-PT045,"('c',)",New
+WGRT-PT046,"('c',)",New
+WGRT-PT046,"('Common',)",Old
+WGRT-PT047,"('Common',)",Old
+WGRT-PT047,"('c',)",New
+WGRT-PT051,"('c',)",New
+WGRT-PT051,"('Common',)",Old
+WGRT-PT052,"('c',)",New
+WGRT-PT052,"('Common',)",Old
+WGRT-PT053,"('c',)",New
+WGRT-PT053,"('Common',)",Old
+WGRT-PT054,"('c',)",New
+WGRT-PT054,"('Common',)",Old
+WGRT-PT055,"('c',)",New
+WGRT-PT055,"('Common',)",Old
+WGRT-PT056,"('c',)",New
+WGRT-PT056,"('Common',)",Old
+WGRT-PT057,"('Common',)",Old
+WGRT-PT057,"('c',)",New
+WGRT-PT058,"('Common',)",Old
+WGRT-PT058,"('c',)",New
+WGRT-PT060,"('Common',)",Old
+WGRT-PT060,"('c',)",New
+WGRT-PT061,"('c',)",New
+WGRT-PT061,"('Common',)",Old
+WGRT-PT063,"('Common',)",Old
+WGRT-PT063,"('c',)",New
+WGRT-PT064,"('Common',)",Old
+WGRT-PT064,"('c',)",New
+WGRT-PT067,"('c',)",New
+WGRT-PT067,"('Common',)",Old
+WGRT-PT068,"('c',)",New
+WGRT-PT068,"('Common',)",Old
+WGRT-PT074,"('Common',)",Old
+WGRT-PT074,"('c',)",New
+WGRT-PT075,"('Common',)",Old
+WGRT-PT075,"('c',)",New
+WGRT-PT076,"('Common',)",Old
+WGRT-PT076,"('c',)",New
+WGRT-PT078,"('Common',)",Old
+WGRT-PT078,"('c',)",New
+WGRT-PT080,"('c',)",New
+WGRT-PT080,"('Common',)",Old
+WGRT-PT081,"('Common',)",Old
+WGRT-PT081,"('c',)",New
+WGRT-PT082,"('Common',)",Old
+WGRT-PT082,"('c',)",New
+WGRT-PT084,"('Common',)",Old
+WGRT-PT084,"('c',)",New
+WGRT-PT085,"('c',)",New
+WGRT-PT085,"('Common',)",Old
+WGRT-PT086,"('c',)",New
+WGRT-PT086,"('Common',)",Old
+WGRT-PT090,"('c',)",New
+WGRT-PT090,"('Common',)",Old
+WGRT-PT092,"('Common',)",Old
+WGRT-PT092,"('c',)",New
+WGRT-PT094,"('Common',)",Old
+WGRT-PT094,"('c',)",New
+WGRT-PT096,"('c',)",New
+WGRT-PT096,"('Common',)",Old
+WGRT-PT097,"('Common',)",Old
+WGRT-PT097,"('c',)",New
+WGRT-PT098,"('Common',)",Old
+WGRT-PT098,"('c',)",New
+WGRT-SP001,"('Common',)",Old
+WGRT-SP001,"('c',)",New
+WGRT-SP003,"('c',)",New
+WGRT-SP003,"('Common',)",Old
+WGRT-SP005,"('c',)",New
+WGRT-SP005,"('Common',)",Old
+WGRT-SP007,"('c',)",New
+WGRT-SP007,"('Common',)",Old
+WGRT-SP008,"('Common',)",Old
+WGRT-SP008,"('c',)",New
+WGRT-SP009,"('Common',)",Old
+WGRT-SP009,"('c',)",New
+WGRT-SP010,"('Common',)",Old
+WGRT-SP010,"('c',)",New
+WGRT-SP012,"('c',)",New
+WGRT-SP012,"('Common',)",Old
+WGRT-SP018,"('Common',)",Old
+WGRT-SP018,"('c',)",New
+WGRT-SP019,"('Common',)",Old
+WGRT-SP019,"('c',)",New
+WGRT-SP023,"('Common',)",Old
+WGRT-SP023,"('c',)",New
+WGRT-SP027,"('Common',)",Old
+WGRT-SP027,"('c',)",New
+WGRT-SP028,"('Common',)",Old
+WGRT-SP028,"('c',)",New
+WGRT-SP029,"('c',)",New
+WGRT-SP029,"('Common',)",Old
+WGRT-SP031,"('Common',)",Old
+WGRT-SP031,"('c',)",New
+WGRT-SP032,"('Common',)",Old
+WGRT-SP032,"('c',)",New
+WGRT-SP033,"('Common',)",Old
+WGRT-SP033,"('c',)",New
+WGRT-SP035,"('Common',)",Old
+WGRT-SP035,"('c',)",New
+WGRT-SP037,"('Common',)",Old
+WGRT-SP037,"('c',)",New
+WGRT-SP038,"('c',)",New
+WGRT-SP038,"('Common',)",Old
+WGRT-SP041,"('Common',)",Old
+WGRT-SP041,"('c',)",New
+WGRT-SP042,"('Common',)",Old
+WGRT-SP042,"('c',)",New
+WGRT-SP045,"('c',)",New
+WGRT-SP045,"('Common',)",Old
+WGRT-SP046,"('c',)",New
+WGRT-SP046,"('Common',)",Old
+WGRT-SP047,"('Common',)",Old
+WGRT-SP047,"('c',)",New
+WGRT-SP051,"('Common',)",Old
+WGRT-SP051,"('c',)",New
+WGRT-SP052,"('Common',)",Old
+WGRT-SP052,"('c',)",New
+WGRT-SP053,"('Common',)",Old
+WGRT-SP053,"('c',)",New
+WGRT-SP054,"('Common',)",Old
+WGRT-SP054,"('c',)",New
+WGRT-SP055,"('Common',)",Old
+WGRT-SP055,"('c',)",New
+WGRT-SP056,"('c',)",New
+WGRT-SP056,"('Common',)",Old
+WGRT-SP057,"('Common',)",Old
+WGRT-SP057,"('c',)",New
+WGRT-SP058,"('c',)",New
+WGRT-SP058,"('Common',)",Old
+WGRT-SP060,"('Common',)",Old
+WGRT-SP060,"('c',)",New
+WGRT-SP061,"('c',)",New
+WGRT-SP061,"('Common',)",Old
+WGRT-SP063,"('Common',)",Old
+WGRT-SP063,"('c',)",New
+WGRT-SP064,"('Common',)",Old
+WGRT-SP064,"('c',)",New
+WGRT-SP067,"('Common',)",Old
+WGRT-SP067,"('c',)",New
+WGRT-SP068,"('c',)",New
+WGRT-SP068,"('Common',)",Old
+WGRT-SP074,"('Common',)",Old
+WGRT-SP074,"('c',)",New
+WGRT-SP075,"('Common',)",Old
+WGRT-SP075,"('c',)",New
+WGRT-SP076,"('Common',)",Old
+WGRT-SP076,"('c',)",New
+WGRT-SP078,"('c',)",New
+WGRT-SP078,"('Common',)",Old
+WGRT-SP080,"('c',)",New
+WGRT-SP080,"('Common',)",Old
+WGRT-SP081,"('c',)",New
+WGRT-SP081,"('Common',)",Old
+WGRT-SP082,"('c',)",New
+WGRT-SP082,"('Common',)",Old
+WGRT-SP084,"('Common',)",Old
+WGRT-SP084,"('c',)",New
+WGRT-SP085,"('Common',)",Old
+WGRT-SP085,"('c',)",New
+WGRT-SP086,"('Common',)",Old
+WGRT-SP086,"('c',)",New
+WGRT-SP090,"('Common',)",Old
+WGRT-SP090,"('c',)",New
+WGRT-SP092,"('c',)",New
+WGRT-SP092,"('Common',)",Old
+WGRT-SP094,"('Common',)",Old
+WGRT-SP094,"('c',)",New
+WGRT-SP096,"('Common',)",Old
+WGRT-SP096,"('c',)",New
+WGRT-SP097,"('c',)",New
+WGRT-SP097,"('Common',)",Old
+WGRT-SP098,"('Common',)",Old
+WGRT-SP098,"('c',)",New
+YDT1-FR001,"('Super Rare',)",Old
+YDT1-FR001,"('Super rare',)",New
+YDT1-FR002,"('Super Rare',)",Old
+YDT1-FR002,"('Super rare',)",New
+YDT1-FR003,"('Super Rare',)",Old
+YDT1-FR003,"('Super rare',)",New
+YF01-EN001,"('Ultra Rare',)",Old
+YF01-EN001,"('Ultra rare',)",New
+YF01-FR001,"('Ultra rare',)",New
+YF01-FR001,"('Ultra Rare',)",Old
+YF01-JP001,"('Ultra rare',)",New
+YF01-JP001,"('Ultra Rare',)",Old
+YG04-EN001,"('Ultra rare',)",New
+YG04-EN001,"('Ultra Rare',)",Old
+YG04-FR001,"('Ultra rare',)",New
+YG04-FR001,"('Ultra Rare',)",Old
+YG04-JP001,"('Ultra Rare',)",Old
+YG04-JP001,"('Ultra rare',)",New
+YS15-ENF03,"('Shatterfoil Rare',)",Old
+YS15-ENF03,"('SHR',)",New
+YS15-ENF13,"('Shatterfoil Rare',)",Old
+YS15-ENF13,"('SHR',)",New
+YS15-ENF14,"('Shatterfoil Rare',)",Old
+YS15-ENF14,"('SHR',)",New
+YS15-ENF21,"('Shatterfoil Rare',)",Old
+YS15-ENF21,"('SHR',)",New
+YS15-ENF22,"('Shatterfoil Rare',)",Old
+YS15-ENF22,"('SHR',)",New
+YS15-ENL12,"('SHR',)",New
+YS15-ENL12,"('Shatterfoil Rare',)",Old
+YS15-ENL14,"('Shatterfoil Rare',)",Old
+YS15-ENL14,"('SHR',)",New
+YS15-ENL15,"('SHR',)",New
+YS15-ENL15,"('Shatterfoil Rare',)",Old
+YS15-ENL22,"('SHR',)",New
+YS15-ENL22,"('Shatterfoil Rare',)",Old
+YS15-ENL23,"('Shatterfoil Rare',)",Old
+YS15-ENL23,"('SHR',)",New
+YZ02-EN001,"('Ultra Rare',)",Old
+YZ02-EN001,"('Ultra rare',)",New
+YZ02-FR001,"('Ultra Rare',)",Old
+YZ02-FR001,"('Ultra rare',)",New
+YZ02-JP001,"('Ultra Rare',)",Old
+YZ02-JP001,"('Ultra rare',)",New
+YZ02-KR001,"('Ultra Rare',)",Old
+YZ02-KR001,"('Ultra rare',)",New
+YZ03-EN001,"('Ultra rare',)",New
+YZ03-EN001,"('Ultra Rare',)",Old
+YZ03-JP001,"('Ultra Rare',)",Old
+YZ03-JP001,"('Ultra rare',)",New
+YZ03-KR001,"('Ultra Rare',)",Old
+YZ03-KR001,"('Ultra rare',)",New
+YZ04-EN001,"('Ultra rare',)",New
+YZ04-EN001,"('Ultra Rare',)",Old
+YZ04-JP001,"('Ultra rare',)",New
+YZ04-JP001,"('Ultra Rare',)",Old
+YZ04-KR001,"('Ultra Rare',)",Old
+YZ04-KR001,"('Ultra rare',)",New
+YZ05-EN001,"('Ultra Rare',)",Old
+YZ05-EN001,"('Ultra rare',)",New
+YZ05-JP001,"('Ultra Rare',)",Old
+YZ05-JP001,"('Ultra rare',)",New
+YZ05-KR001,"('Ultra Rare',)",Old
+YZ05-KR001,"('Ultra rare',)",New
+YZ06-EN001,"('Ultra Rare',)",Old
+YZ06-EN001,"('Ultra rare',)",New
+YZ06-JP001,"('Ultra Rare',)",Old
+YZ06-JP001,"('Ultra rare',)",New
+YZ06-KR001,"('Ultra rare',)",New
+YZ06-KR001,"('Ultra Rare',)",Old
+YZ07-EN001,"('Ultra Rare',)",Old
+YZ07-EN001,"('Ultra rare',)",New
+YZ07-JP001,"('Ultra rare',)",New
+YZ07-JP001,"('Ultra Rare',)",Old
+YZ07-KR001,"('Ultra Rare',)",Old
+YZ07-KR001,"('Ultra rare',)",New
+YZ08-EN001,"('Ultra rare',)",New
+YZ08-EN001,"('Ultra Rare',)",Old
+YZ08-JP001,"('Ultra Rare',)",Old
+YZ08-JP001,"('Ultra rare',)",New
+YZ08-KR001,"('Ultra rare',)",New
+YZ08-KR001,"('Ultra Rare',)",Old
+YZ09-EN001,"('Ultra Rare',)",Old
+YZ09-EN001,"('Ultra rare',)",New
+YZ09-JP001,"('Ultra rare',)",New
+YZ09-JP001,"('Ultra Rare',)",Old
+YZ09-KR001,"('Ultra rare',)",New
+YZ09-KR001,"('Ultra Rare',)",Old
+ZDC1-FR001,"('Ultra rare',)",New
+ZDC1-FR001,"('Ultra Rare',)",Old
+ZDC1-FR002,"('Ultra rare',)",New
+ZDC1-FR002,"('Ultra Rare',)",Old
+ZDC1-FR003,"('Ultra rare',)",New
+ZDC1-FR003,"('Ultra Rare',)",Old
+,"('Millennium Rare',)",Old
+,"('Millennium rare',)",New
