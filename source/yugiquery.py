@@ -1,4 +1,16 @@
-# Imports
+__author__ = "Guilherme Ruiz"
+__copyright__ = "Copyright 2023, Yugiquery"
+__license__ = "MIT"
+__version__ = "1.0.0"
+__maintainer__ = "Guilherme Ruiz"
+__email__ = "57478888+guigoruiz1@users.noreply.github.com"
+__status__ = "Development"
+
+
+###########
+# Imports #
+###########
+
 loop = 0
 while True:
     try:
@@ -19,6 +31,8 @@ while True:
         import aiohttp
         import requests
         import socket
+        import json
+        from enum import Enum
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -53,9 +67,13 @@ while True:
         import subprocess
         print("Missing required packages. Trying to install now...")
         subprocess.call(['sh', './install.sh'])
-        
-# Helpers
-## Secrets
+
+
+###########      
+# Helpers #
+###########
+
+# Secrets
 def load_secrets(secrets_file, requested_secrets=[], required=False):
     if os.path.isfile(secrets_file):
         secrets = dotenv_values(secrets_file)
@@ -73,24 +91,30 @@ def load_secrets(secrets_file, requested_secrets=[], required=False):
     
     else:
         raise FileNotFoundError(f'No such file or directory: {secrets_file}')
+        
+def load_json(json_file):
+    try:
+        with open(json_file, 'r') as file:
+            data = json.load(file)
+            return data
+    except:
+        print(f'Error loading {json_file}. Ignoring...')
+        return {}
     
-## Validators
-def validate_cg(cg):
-    cg = cg.upper()
-    valid_cg = {'TCG', 'OCG', 'CG', 'BOTH', 'ALL'}
-    if cg not in valid_cg:
-        raise ValueError("results: CG must be one of %r." % valid_cg)
-    elif cg=='BOTH' or cg=='ALL':
-        return 'CG'
-    else:
-        return cg
-    
+# Validators
 def md5(file_name):
     hash_md5 = hashlib.md5()
     hash_md5.update(file_name.encode())
     return hash_md5.hexdigest()
 
-## Attributes list to split monsters query
+class CG(Enum):
+    CG = 'CG'
+    ALL = CG
+    BOTH = CG
+    TCG = 'TCG'
+    OCG = 'OCG'
+    
+# Attributes list to split monsters query
 attributes = [
     'DIVINE', 
     'LIGHT', 
@@ -101,58 +125,11 @@ attributes = [
     'WIND'
 ]
 
-## Rarity abreviations dictionary
-rarity_dict = {
-    'c': 'Common', 
-    'r': 'Rare', 
-    'sr': 'Super Rare', 
-    'ur': 'Ultra Rare', 
-    'utr': 'Ultimate Rare', 
-    'n': 'Normal', 
-    'nr': 'Normal Rare', 
-    'sp': 'Short Print', 
-    'ssp': 'Super Short Print', 
-    'hfr': 'Holofoil Rare', 
-    'scr': 'Secret Rare', 
-    'uscr': 'Ultra Secret Rare', 
-    'scur': 'Secret Ultra Rare', 
-    'pscr': 'Prismatic Secret Rare', 
-    'hgr': 'Holographic Rare', 
-    'gr': 'Ghost Rare', 
-    'pr': 'Parallel Rare', 
-    'npr': 'Normal Parallel Rare', 
-    'pc': 'Parallel Common', 
-    'spr': 'Super Parallel Rare', 
-    'upr': 'Ultra Parallel Rare', 
-    'dnpr': 'Duel Terminal Normal Parallel Rare', 
-    'dpc': 'Duel Terminal Parallel Common', 
-    'drpr': 'Duel Terminal Rare Parallel Rare', 
-    'dspr': 'Duel Terminal Super Parallel Rare', 
-    'dupr': 'Duel Terminal Ultra Parallel Rare', 
-    'DScPR': 'Duel Terminal Secret Parallel Rare', 
-    'gur': 'Gold Rare', 
-    'escr': 'Extra Secret Rare', 
-    'ggr': 'Ghost/Gold Rare', 
-    'shr': 'Shatterfoil Rare', 
-    'cr': 'Collector\'s Rare', 
-    'altr': 'Starlight Rare', 
-    'str': 'Starlight Rare', 
-    'gr': 'Ghost Rare', 
-    'gscr': 'Gold Secret Rare', 
-    'sfr': 'Starfoil Rare', 
-    '20scr': '20th Secret Rare', 
-    'dscpr': 'Duel Terminal Secret Parallel Rare', 
-    'dnrpr': 'Duel Terminal Normal Rare Parallel Rare',
-    'kcc': 'Kaiba Corporation Common',
-    'orr': 'Over Rush Rare',
-    'rr': 'Rush Rare'
-}
-
-## Region abreviations dictionary
+# Region abreviations dictionary
 regions_dict = {
     'EN': 'English', 
     'NA': 'North American English',
-    'EU':'European English', 
+    'EU': 'European English', 
     'AU': 'Oceanic English', 
     'PT': 'Portuguese', 
     'DE': 'German', 
@@ -168,7 +145,7 @@ regions_dict = {
     'SC': 'Simplified Chinese'
 }
 
-## Arrow unicode simbols dictionary
+# Arrow unicode simbols dictionary
 arrows_dict = {
     'Middle-Left': '\u2190', 
     'Middle-Right': '\u2192', 
@@ -180,9 +157,8 @@ arrows_dict = {
     'Bottom-Right': '\u2198'
 }
 
-## Images
-async def download_images(file_name: pd.DataFrame, save_folder:str = "../images/", max_tasks:int = 10):
-    
+# Images
+async def download_images(file_name: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
     # Prepare URL from file names
     file_name_md5 = file_name.apply(md5)
     urls = file_name_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_name
@@ -219,7 +195,7 @@ async def download_images(file_name: pd.DataFrame, save_folder:str = "../images/
                 pbar.update()
                 await task
 
-## Data management
+# Data management
 def cleanup_data(dry_run: bool = False):
     file_list = glob.glob('../data/*')
     df = pd.DataFrame(file_list, columns=['file'])
@@ -242,7 +218,7 @@ def cleanup_data(dry_run: bool = False):
         else:
             os.remove(file)
             
-## Data formating functions
+# Data formating functions
 def extract_fulltext(x):
     if len(x)>0:
         if isinstance(x[0], int):
@@ -327,7 +303,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         
     return df
 
-### Cards
+## Cards
 def extract_category_bool(x):
     if len(x)>0:
         if x[0]=='f':
@@ -374,7 +350,7 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bo
     
     return input_df
 
-### Sets
+## Sets
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
@@ -386,7 +362,11 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         
     return input_df
 
-## Changelog
+
+#############
+# Changelog #
+#############
+
 def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str):
     changelog = previous_df.merge(current_df, indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
     changelog['_merge'].replace(['left_only','right_only'],['Old', 'New'], inplace = True)
@@ -407,27 +387,36 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
         
     return changelog
 
-## Styling
+
+###########
+# Styling #
+###########
+
 def style_df(df: pd.DataFrame):
     return df.style.format(hyperlinks='html')
 
-# Notebook management
+#######################
+# Notebook management #
+#######################
 
-## Frontend shortcuts
-### Force saving the current notebook to disk
+# Frontend shortcuts
+## Force saving the current notebook to disk
 def save_notebook():
     app = JupyterFrontEnd()
     app.commands.execute('docmanager:save')
     print("Notebook saved to disk")
 
-## Notebook management
-### Remove output from all notebooks in the source directory
-def clear_notebooks():
-    reports = sorted(glob.glob('*.ipynb'))
+## Remove output from all notebooks in the source directory
+def clear_notebooks(which = 'all'):
+    if which=='all':
+        # Get reports
+        reports = sorted(glob.glob('*.ipynb'))
+    else:
+        reports = [str(which)] if not isinstance(which,list) else which
     if len(reports)>0:
         subprocess.call(['nbstripout']+reports)
 
-### Run all notebooks in the source directory
+## Run all notebooks in the source directory
 def run_notebooks(which='all', progress_handler=None):  
     if which=='all':
         # Get reports
@@ -461,7 +450,7 @@ def run_notebooks(which='all', progress_handler=None):
     # Define a function to update the output variable
     def update_pbar():
         iterator.update((1/cells))
-        if progress_handler:
+        if external_pbar:
             external_pbar.update((1/cells))
 
     for i, report in enumerate(iterator):
@@ -480,7 +469,7 @@ def run_notebooks(which='all', progress_handler=None):
         # Update postfix
         tqdm.write(f'Generating {report[:-6]} report')
         iterator.set_postfix(report=report)
-        if progress_handler:
+        if external_pbar:
             external_pbar.set_postfix(report=report)
 
         # execute the notebook with papermill
@@ -493,17 +482,20 @@ def run_notebooks(which='all', progress_handler=None):
 
     # Close the iterator
     iterator.close()
-    if progress_handler:
+    if external_pbar:
         external_pbar.close()
 
     # Close the stream_handler
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
-            
-# Markdown editing
 
-## Update webpage index with timestamps
+
+####################
+# Markdown editing #
+####################
+
+# Update webpage index with timestamps
 def update_index(): # Handle paths properly
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
@@ -527,7 +519,7 @@ def update_index(): # Handle paths properly
     except:
         print('No "index.md" file in "assets". Aborting...')
 
-## Generate Markdown header
+# Generate Markdown header
 def header(name: str = None):
     if name is None:
         try: 
@@ -541,30 +533,34 @@ def header(name: str = None):
         header = header.replace('@NOTEBOOK@', name)
         return Markdown(header)
 
-## Generate Markdown footer
+# Generate Markdown footer
 def footer():
     with open('../assets/footer.md') as f:
         footer = f.read()
         footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
         return Markdown(footer)
 
-# API call functions
+    
+######################
+# API call functions #
+######################
 
-## Variables
+# Variables
+http_headers = {'User-Agent': 'Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/'}
 base_url = 'https://yugipedia.com/api.php'
 media_url='https://ws.yugipedia.com/'
-revisions_query_url = '?action=query&format=json&prop=revisions&rvprop=content&titles='
-ask_query_url='?action=ask&format=json&query='
-askargs_query_url = '?action=askargs&format=json&conditions='
-categorymembers_query_url = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
-http_headers = {'User-Agent': 'Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/'}
+revisions_query_action = '?action=query&format=json&prop=revisions&rvprop=content&titles='
+ask_query_action='?action=ask&format=json&query='
+askargs_query_action = '?action=askargs&format=json&conditions='
+categorymembers_query_action = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
+redirects_query_action = '?action=query&format=json&redirects&titles='
 
-## Check if API is live and responsive    
+# Check if API is live and responsive    
 def check_API_status():
-    payload = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
+    params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
 
     try:
-        response = requests.get(base_url, params=payload, headers=http_headers)
+        response = requests.get(base_url, params=params, headers=http_headers)
         response.raise_for_status()
         print(f"{base_url} is up and running {response.json()['query']['general']['generator']}")
         return True
@@ -581,7 +577,7 @@ def check_API_status():
 
         return False
     
-## Extract results from query response
+# Extract results from query response
 def extract_results(response: requests.Response):
     json = response.json()
     df = pd.DataFrame(json['query']['results']).transpose()
@@ -591,14 +587,7 @@ def extract_results(response: requests.Response):
     df = pd.concat([df,page_name,page_url],axis=1)
     return df
 
-## Extract categorymembers from query response
-def extract_categorymembers(response: requests.Response):
-    json = response.json()
-    df = pd.DataFrame(json['query']['categorymembers'])
-    return df
-
-## Cards
-### Query arguments shortcut
+# Cards Query arguments shortcut
 def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _name_errata: bool = True, _type_errata: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _date: bool = True, _page_name: bool = True, _category: bool = False, _image_URL: bool = False):
     if default is not None:
         default = default.lower() 
@@ -675,15 +664,33 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
 
         return search_string
 
-### Fetch category members - still not used
-def fetch_categorymembers(category: str, namespace: int = 0, step: int = 5000):
-    response = requests.get(f'{base_url}{categorymembers_query_url}{category}&cmnamespace={namespace}&cmlimit={limit}', headers=http_headers)
-    result = extract_categorymembers(response)
-    # formatted_df = format_df(result)
+# Fetch category members - still not used
+def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
+    request = {
+        'cmtitle': category, 
+        'cmlimit': step, 
+        'cmnamespace': namespace 
+    }
 
-    return result
+    lastContinue = {}
+    all_results = []
+    while True:
+        req = request.copy()
+        req.update(lastContinue)
+        result = requests.get(f'{base_url}{categorymembers_query_action}', params=req, headers=http_headers).json()
+        if 'error' in result:
+            raise Error(result['error'])
+        if 'warnings' in result:
+            print(result['warnings'])
+        if 'query' in result:
+            all_results+=result['query']['categorymembers']
+        if 'continue' not in result:
+            break
+        lastContinue = result['continue']
     
-### Fetch properties from query and condition - should be called from parent functions
+    return all_results
+    
+# Fetch properties from query and condition - should be called from parent functions
 def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 5000, iterator=None, debug: bool = False):
     df=pd.DataFrame()
     i = 0
@@ -692,7 +699,7 @@ def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 
         if iterator is not None:
             iterator.set_postfix(it=i+1)
 
-        response = requests.get(f'{base_url}{ask_query_url}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc', headers=http_headers)
+        response = requests.get(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc', headers=http_headers)
         result = extract_results(response)
         formatted_df = format_df(result)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
@@ -707,11 +714,10 @@ def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 
 
     return df
 
-### Fetch spell or trap cards
-def fetch_st(st_query: str, st: str = 'both', cg: str = 'CG', step: int = 1000, limit: int = 5000, debug: bool = False):
-    valid_cg = validate_cg(cg)
+# Fetch spell or trap cards
+def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
     st = st.capitalize()
-    valid_st = {'Spell', 'Trap', 'Both', 'All'}
+    valid_cg = cg.value
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st=='Both' or st=='All':
@@ -736,9 +742,9 @@ def fetch_st(st_query: str, st: str = 'both', cg: str = 'CG', step: int = 1000, 
 
     return st_df
 
-### Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str, cg: str = 'CG', step: int = 1000, limit: int = 5000, debug: bool = False):
-    valid_cg = validate_cg(cg)
+# Fetch monster cards by splitting into attributes
+def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+    valid_cg = cg.value
 
     print('Downloading monsters')
     monster_df = pd.DataFrame()
@@ -787,9 +793,9 @@ def fetch_errata(errata: str = 'all', limit: int = 1000):
 
         print(f'Downloading {errata} errata')  
         errata_query_df = fetch_properties(
-            condition, 
+            condition,
             query='',
-            step=limit, 
+            step=limit,
             limit=limit
         )
 
@@ -802,10 +808,10 @@ def fetch_errata(errata: str = 'all', limit: int = 1000):
 
     return errata_df
 
-## Sets
-### Get title of set list pages
-def get_set_titles(cg: str = 'CG', limit: int = 5000):
-    valid_cg = validate_cg(cg)
+# Sets
+## Get title of set list pages
+def get_set_titles(cg: CG = CG.ALL, limit: int = 5000):
+    valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
     else:
@@ -820,17 +826,18 @@ def get_set_titles(cg: str = 'CG', limit: int = 5000):
 
     return df['Page name']
 
-### Fetch set lists from page titles
+## Fetch set lists from page titles
 def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     if debug:
         print(f'{len(titles)} set lists requested')
 
     titles = up.quote('|'.join(titles))
+    rarity_dict = load_json('../assets/rarities.json')
     set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
     success = 0
     error = 0
 
-    response = requests.get(f'{base_url}{revisions_query_url}{titles}', headers=http_headers)
+    response = requests.get(f'{base_url}{revisions_query_action}{titles}', headers=http_headers)
     json = response.json()
     contents = json['query']['pages'].values()
     
@@ -860,9 +867,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                                 
                         elif 'rarities=' in argument:
                             rarity = tuple(
-                                rarity_dict.get(
-                                    i.strip().lower(), string.capwords(i.strip())
-                                ) for i in (argument.string.split('=')[-1]).split(',')
+                                rarity_dict.get( i.strip(), i.strip()) for i in (argument.string.split('=')[-1]).split(',')
                             )
                             
                         elif 'print=' in argument:
@@ -895,7 +900,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                         set_df['Card number'] = list_df[0]
                         
                     if len(list_df.columns)>(2-noabbr): # and rare in str
-                        set_df['Rarity'] = list_df[2-noabbr].apply(lambda x: tuple([rarity_dict.get(y.strip().lower(), string.capwords(y.strip())) for y in x.split(',')]) if x is not None else rarity)
+                        set_df['Rarity'] = list_df[2-noabbr].apply(lambda x: tuple([rarity_dict.get(y.strip(), y.strip()) for y in x.split(',')]) if x is not None else rarity)
                     
                     else:
                         set_df['Rarity'] = [rarity for _ in set_df.index]
@@ -926,8 +931,8 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
     return set_lists_df, success, error
 
-### Fecth all set lists
-def fetch_all_set_lists(cg: str = 'CG', step: int = 50, debug: bool = False):
+## Fecth all set lists
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
     keys = get_set_titles(cg) # Get list of sets
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
@@ -954,7 +959,7 @@ def fetch_all_set_lists(cg: str = 'CG', step: int = 50, debug: bool = False):
 
     return all_set_lists_df
 
-### Fetch set info for list of sets
+## Fetch set info for list of sets
 def fetch_set_info(sets, step: int = 15, debug: bool = False):
     # Info to ask
     info = ['Series','Set type','Cover card','Modification date']
@@ -969,7 +974,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
         first = i*step
         last = (i+1)*step
         titles = up.quote(']]OR[['.join(sets[first:last]))
-        response = requests.get(f'{base_url}{askargs_query_url}{titles}&printouts={ask}', headers=http_headers)
+        response = requests.get(f'{base_url}{askargs_query_action}{titles}&printouts={ask}', headers=http_headers)
         formatted_response = extract_results(response)
         formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(formatted_response)
@@ -986,9 +991,12 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
 
     return set_info_df
 
-# Plotting functions
 
-## Colors dictionary to associate to series and cards
+######################
+# Plotting functions #
+######################
+
+# Colors dictionary to associate to series and cards
 colors_dict = {
     'Effect Monster': '#FF8B53', 
     'Normal Monster': '#FDE68A', 
@@ -1203,29 +1211,36 @@ def rate_plot(dy: pd.DataFrame, figsize = (16,6), title: str = None, xlabel: str
     plt.show()
 
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
-    
-# CLI usage
-def run_all(progress_handler=None):
+
+###########################
+# Complete execution flow #
+###########################
+
+def run(report = 'all', progress_handler = None):
     # Check API status
     if not check_API_status():
         if progress_handler:
             progress_handler(API_status=False)
         return
     # Execute all notebooks in the source directory
-    run_notebooks(progress_handler)
+    run_notebooks(which = report, progress_handler = progress_handler)
     # Update page index to reflect last execution timestamp
     update_index()
     # Clear notebooks after HTML reports have been created
-    clear_notebooks()
+    clear_notebooks(which = report)
     # Cleanup redundant data files
     # cleanup_data()
 
-## If executing from the CLI
+
+#############
+# CLI usage #
+#############
+
 if __name__ == "__main__":
     # Change working directory to script location
     path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(path)
     # Execute the complete workflow
-    run_all()
+    run()
     # Exit python
     quit()

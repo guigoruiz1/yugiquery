@@ -5,8 +5,9 @@ import subprocess
 import discord
 import asyncio
 import io
-import yugiquery as yq
+from enum import Enum
 import multiprocessing as mp
+import yugiquery as yq
 from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
@@ -21,11 +22,20 @@ def load_secrets(secrets_file):
     print('Secrets not found. Exiting...')
     exit()
 
+def init_reports_enum():
+    reports = sorted(glob.glob('*.ipynb'))
+    if reports:
+        reports = {report[:-6].capitalize(): report for report in sorted(reports)}
+    else:
+        reports = {}
+
+    reports['All'] = 'all'
+    return  Enum('DynamicEnum', reports)
+
 secrets = load_secrets('../assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
-loop = None
-task = None
+Reports = init_reports_enum()
 process = None
 
 @bot.tree.command(name='shutdown', description='Shutdown bot')
@@ -35,9 +45,14 @@ async def shutdown(ctx):
     await bot.close()
 
 @bot.tree.command(name='run', description='Run full Yugiquery workflow')
-@commands.cooldown(1, 12*60*60, commands.BucketType.user)
 @commands.is_owner()
-async def run(ctx):
+@commands.cooldown(1, 12*60*60, commands.BucketType.user)
+async def run(ctx, report: Reports):
+    global process
+    if process is not None:
+        await ctx.response.send_message(content='Query already running. Try again after it has finished.', ephemeral=True, delete_after=60)
+        return
+    
     await ctx.response.send_message(content='Initializing...', ephemeral=True, delete_after=60)
     
     API_error = False
@@ -49,9 +64,8 @@ async def run(ctx):
             API_error = not API_status
             return
         
-    try: 
-        global process
-        process = mp.Process(target=yq.run_all, args=[progress_handler])
+    try:
+        process = mp.Process(target=yq.run, args=[report.value, progress_handler])
         process.start()
         await ctx.edit_original_response(content='Running...')
     except:
@@ -64,6 +78,7 @@ async def run(ctx):
     
     exitcode = await await_result()
     process.close()
+    process = None
     
     if API_error:
         await ctx.channel.send(content='Unable to comunicate to the API. Try again later.') 
@@ -112,6 +127,16 @@ async def links(ctx):
 async def data(ctx):
     response = 'Under construction'
     await ctx.response.send_message(response)
+
+@bot.tree.command(name='ping', description='Test the bot connection latency')
+async def ping(ctx):
+    await ctx.response.send_message('Pong! {0}ms'.format(round(bot.latency*1000, 1)), ephemeral=True, delete_after=60)
+    
+@bot.tree.command(name='test', description='test')
+@commands.cooldown(1, 60*60, commands.BucketType.user)
+async def links(ctx):
+    response = 'test'
+    await ctx.response.send_message(response)
     
 @bot.event
 async def on_ready():
@@ -123,7 +148,7 @@ async def on_ready():
         print(f'{guild.name}(id: {guild.id})')
         members = '\n - '.join([member.name for member in guild.members])
         print(f'Guild Members:\n - {members}')
-
+        
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
