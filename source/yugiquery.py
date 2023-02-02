@@ -426,6 +426,8 @@ def run_notebooks(which='all', progress_handler=None):
 
     if progress_handler:
         external_pbar = progress_handler(iterable=reports, desc="Completion", unit='report', unit_scale=True)
+    else:
+        external_pbar = None
 
     # Initialize iterators
     try:
@@ -717,14 +719,14 @@ def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 
 # Fetch spell or trap cards
 def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
     st = st.capitalize()
-    valid_cg = cg.value
+    valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st=='Both' or st=='All':
-        concept=f'[[Concept:{valid_cg}%20Spell%20Cards]]OR[[Concept:{valid_cg}%20Trap%20Cards]]'
+        concept=f'[[Concept:{cg.value}%20Spell%20Cards]]OR[[Concept:{cg.value}%20Trap%20Cards]]'
         st='Spells and Trap'
     else:
-        concept=f'[[Concept:{valid_cg}%20{st}%20Cards]]'
+        concept=f'[[Concept:{cg.value}%20{st}%20Cards]]'
 
     print(f'Downloading {st}s')
     st_df = fetch_properties(

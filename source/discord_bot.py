@@ -35,18 +35,24 @@ def init_reports_enum():
 secrets = load_secrets('../assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
+checks = discord.app_commands.checks
 Reports = init_reports_enum()
 process = None
 
+def is_owner():
+    async def predicate(ctx):
+        return await bot.is_owner(ctx.user)
+    return checks.check(predicate)
+
 @bot.tree.command(name='shutdown', description='Shutdown bot')
-@commands.is_owner()
+@is_owner()
 async def shutdown(ctx):
     await ctx.response.send_message(content='Shutting down...')
     await bot.close()
 
 @bot.tree.command(name='run', description='Run full Yugiquery workflow')
-@commands.is_owner()
-@commands.cooldown(1, 12*60*60, commands.BucketType.user)
+@is_owner()
+@checks.cooldown(1, 12*60*60, key=lambda i: (i.guild_id, i.user.id))
 async def run(ctx, report: Reports):
     global process
     if process is not None:
@@ -94,7 +100,7 @@ async def run(ctx, report: Reports):
     
         
 @bot.tree.command(name='abort', description='Abort running Yugiquery workflow')
-@commands.is_owner()
+@is_owner()
 async def abort(ctx):
 
     await ctx.response.send_message('Aborting...', ephemeral=True, delete_after=60)
@@ -107,12 +113,13 @@ async def abort(ctx):
         
 @bot.tree.command(name='latest', description='Show latest time each report was generated')
 async def latest(ctx):
+    await ctx.response.defer()
     response='Latest reports generated:'
     reports = sorted(glob.glob('../*.html'))
     for report in reports:
         response += f'\n- {os.path.basename(report)[:-5]}: {yq.pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}'
     
-    await ctx.response.send_message(response)
+    await ctx.followup.send(response)
     
 @bot.tree.command(name='links', description='Show Yugiquery links')
 async def links(ctx):
@@ -131,13 +138,7 @@ async def data(ctx):
 @bot.tree.command(name='ping', description='Test the bot connection latency')
 async def ping(ctx):
     await ctx.response.send_message('Pong! {0}ms'.format(round(bot.latency*1000, 1)), ephemeral=True, delete_after=60)
-    
-@bot.tree.command(name='test', description='test')
-@commands.cooldown(1, 60*60, commands.BucketType.user)
-async def links(ctx):
-    response = 'test'
-    await ctx.response.send_message(response)
-    
+
 @bot.event
 async def on_ready():
     print('You are logged as {0.user}'.format(bot))
@@ -157,5 +158,12 @@ async def on_message(message):
     await bot.process_commands(message)
     if message.content.lower().startswith('hi'):
         await message.channel.send(f'Hello, {message.author.name}!')
+    
+@bot.tree.error
+async def on_error(ctx, error):
+    if isinstance(error, discord.app_commands.errors.CommandOnCooldown):
+        await ctx.response.send_message(error)
+    elif isinstance(error, discord.app_commands.errors.CheckFailure):
+        await ctx.response.send_message(error)
 
 bot.run(secrets['DISCORD_TOKEN'])
