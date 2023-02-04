@@ -34,6 +34,7 @@ def init_reports_enum():
     reports['All'] = 'all'
     return  Enum('DynamicEnum', reports)
 
+repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents/data"
 secrets = load_secrets('../assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
@@ -155,27 +156,31 @@ async def links(ctx):
     await ctx.send(embed=embed)
     
 @bot.hybrid_command(name='data', description='Send latest data files', with_app_command=True)
-@commands.cooldown(1, 24*60*60, commands.BucketType.user)
 async def data(ctx):
     await ctx.defer()
     
-    await ctx.send('Under construction')
-    
-#     original_response = await ctx.send(content='Sending requested files...')
-    
-#     reports = glob.glob('../data/*cards*.csv')
-#     files=pd.DataFrame({'File':reports})
-#     files['Timestamp'] = files['File'].apply(os.path.getctime)
-#     files['Group'] = files['File'].apply(lambda x: re.search(r'(\w+_\w+)_(\d+-\d+-\d+T\d+:\d+.*).csv', os.path.basename(x)).group(1))
-#     index = files.groupby('Group')['Timestamp'].idxmax()
-#     latest_files = files.loc[index,'File'].tolist()
-    
-#     files=[]
-#     for file_path in latest_files:
-#         with open(file_path, 'rb') as f:
-#             files.append(discord.File(f))
-    
-#     await original_response.edit(content='Latest files:', attachments=files)
+    repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents/data"
+    try:
+        files = pd.read_json(repository_api_url)
+        files['Group'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(1))
+        files['Timestamp'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(3))
+        files['Timestamp'] = pd.to_datetime(files['Timestamp'])
+        index = files.groupby('Group')['Timestamp'].idxmax()
+        latest_files = files.loc[index,['name','download_url']]
+
+        description=''
+        for idx, file in latest_files.iterrows():
+            description+=f'• [{file["name"]}]({file["download_url"]})\n'
+
+        embed = discord.Embed(
+            title="Latest data files:",
+            description=description,
+            color=discord.Colour.blue()
+        )
+        await ctx.send(embed=embed)
+        
+    except:
+        await ctx.send('Unable to obtain latest files at this time. Try again later.')
 
 @bot.hybrid_command(name='ping', description='Test the bot connection latency', with_app_command=True)
 async def ping(ctx):
