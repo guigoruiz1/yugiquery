@@ -32,6 +32,7 @@ while True:
         import requests
         import socket
         import json
+        import re
         from enum import Enum
         import pandas as pd
         import numpy as np
@@ -555,30 +556,8 @@ revisions_query_action = '?action=query&format=json&prop=revisions&rvprop=conten
 ask_query_action='?action=ask&format=json&query='
 askargs_query_action = '?action=askargs&format=json&conditions='
 categorymembers_query_action = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
-redirects_query_action = '?action=query&format=json&redirects&titles='
+redirects_query_action = '?action=query&format=json&redirects=True&titles='
 
-# Check if API is live and responsive    
-def check_API_status():
-    params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
-
-    try:
-        response = requests.get(base_url, params=params, headers=http_headers)
-        response.raise_for_status()
-        print(f"{base_url} is up and running {response.json()['query']['general']['generator']}")
-        return True
-    except requests.exceptions.RequestException as err:
-        print(f"{base_url} is not alive: {err}")  
-        domain = up.urlparse(base_url).netloc
-        port = 443
-
-        try:
-            socket.create_connection((domain, port), timeout=2)
-            print(f"{domain} is reachable")
-        except socket.timeout:
-            print(f"{domain} is not reachable")
-
-        return False
-    
 # Extract results from query response
 def extract_results(response: requests.Response):
     json = response.json()
@@ -666,9 +645,31 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
 
         return search_string
 
+# Check if API is live and responsive    
+def check_API_status():
+    params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
+
+    try:
+        response = requests.get(base_url, params=params, headers=http_headers)
+        response.raise_for_status()
+        print(f"{base_url} is up and running {response.json()['query']['general']['generator']}")
+        return True
+    except requests.exceptions.RequestException as err:
+        print(f"{base_url} is not alive: {err}")  
+        domain = up.urlparse(base_url).netloc
+        port = 443
+
+        try:
+            socket.create_connection((domain, port), timeout=2)
+            print(f"{domain} is reachable")
+        except socket.timeout:
+            print(f"{domain} is not reachable")
+
+        return False
+
 # Fetch category members - still not used
 def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
-    request = {
+    params = {
         'cmtitle': category, 
         'cmlimit': step, 
         'cmnamespace': namespace 
@@ -677,9 +678,9 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     lastContinue = {}
     all_results = []
     while True:
-        req = request.copy()
-        req.update(lastContinue)
-        result = requests.get(f'{base_url}{categorymembers_query_action}', params=req, headers=http_headers).json()
+        params = params.copy()
+        params.update(lastContinue)
+        result = requests.get(f'{base_url}{categorymembers_query_action}', params=params, headers=http_headers).json()
         if 'error' in result:
             raise Error(result['error'])
         if 'warnings' in result:
@@ -812,7 +813,7 @@ def fetch_errata(errata: str = 'all', limit: int = 1000):
 
 # Sets
 ## Get title of set list pages
-def get_set_titles(cg: CG = CG.ALL, limit: int = 5000):
+def fetch_set_titles(cg: CG = CG.ALL, limit: int = 5000):
     valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -935,7 +936,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
 ## Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    keys = get_set_titles(cg) # Get list of sets
+    keys = fetch_set_titles(cg) # Get list of sets
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
     total_success = 0
