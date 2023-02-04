@@ -34,7 +34,9 @@ def init_reports_enum():
     reports['All'] = 'all'
     return  Enum('DynamicEnum', reports)
 
-repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents/data"
+repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents"
+repository_url = 'https://github.com/guigoruiz1/yugiquery'
+webpage_url = 'https://guigoruiz1.github.io/yugiquery'
 secrets = load_secrets('../assets/secrets.env')
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
@@ -114,7 +116,7 @@ async def run(ctx, report: Reports):
         
     # Reset cooldown in case query did not complete
     if API_error or exitcode!=1:
-        await ctx.command.reset_cooldown(ctx)
+        ctx.command.reset_cooldown(ctx)
     
         
 @bot.hybrid_command(name='abort', description='Abort running Yugiquery workflow', with_app_command=True)
@@ -135,21 +137,26 @@ async def abort(ctx):
 @bot.hybrid_command(name='latest', description='Show latest time each report was generated', with_app_command=True)
 async def latest(ctx):
     await ctx.defer()
-    response='Latest reports generated:'
     reports = sorted(glob.glob('../*.html'))
+    description=''
     for report in reports:
-        response += f'\n- {os.path.basename(report)[:-5]}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}'
-    
-    await ctx.send(content=response)
+        description += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+        
+    embed = discord.Embed(
+        title='Latest reports generated:', 
+        description=description, 
+        color=discord.Colour.blue()
+    )
+    await ctx.send(embed=embed)
     
 @bot.hybrid_command(name='links', description='Show Yugiquery links', with_app_command=True)
 async def links(ctx):
     
     embed = discord.Embed(
-        title="Yugiquery links",
-        description='• [Webpage](https://guigoruiz1.github.io/yugiquery/)\n'\
-                    '• [Repository](https://github.com/guigoruiz1/yugiquery/)\n'\
-                    '• [Data](https://github.com/guigoruiz1/yugiquery/tree/main/data)',
+        title="Yugiquery links:",
+        description=f'• [Webpage]({webpage_url})\n'\
+                    f'• [Repository]({repository_url})\n'\
+                    f'• [Data]({repository_url}/tree/main/data)',
         color=discord.Colour.blue()
     )
     
@@ -159,12 +166,11 @@ async def links(ctx):
 async def data(ctx):
     await ctx.defer()
     
-    repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents/data"
     try:
-        files = pd.read_json(repository_api_url)
+        files = pd.read_json(f'{repository_api_url}/data')
         files['Group'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(1))
         files['Timestamp'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(3))
-        files['Timestamp'] = pd.to_datetime(files['Timestamp'])
+        files['Timestamp'] = pd.to_datetime(files['Timestamp'], utc=True)
         index = files.groupby('Group')['Timestamp'].idxmax()
         latest_files = files.loc[index,['name','download_url']]
 
