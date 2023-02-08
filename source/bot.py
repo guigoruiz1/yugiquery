@@ -34,7 +34,7 @@ def init_reports_enum():
     reports['All'] = 'all'
     return  Enum('DynamicEnum', reports)
 
-repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery/contents"
+repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery"
 repository_url = 'https://github.com/guigoruiz1/yugiquery'
 webpage_url = 'https://guigoruiz1.github.io/yugiquery'
 secrets = load_secrets('../assets/secrets.env')
@@ -138,25 +138,47 @@ async def abort(ctx):
 async def latest(ctx):
     await ctx.defer()
     reports = sorted(glob.glob('../*.html'))
-    description=''
-    for report in reports:
-        description += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
-        
     embed = discord.Embed(
-        title='Latest reports generated:', 
-        description=description, 
+        title='Latest reports generated', 
+        description='The live reports may not always be up to date with the local reports', 
         color=discord.Colour.blue()
     )
+    
+    # Get local files timestamps
+    local_value=''
+    for report in reports:
+        local_value += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+    
+    embed.add_field(
+        name='Local:', 
+        value=local_value, 
+        inline=False
+    )
+     
+    # Get live files timestamps
+    try:
+        live_value=''
+        for report in reports:
+            result = pd.read_json(f'{repository_api_url}/commits?path={os.path.basename(report)}')
+            timestamp = pd.DataFrame(result.loc[0,'commit']).loc['date','author']
+            live_value += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+
+        embed.add_field(
+            name='Live:', 
+            value=live_value, 
+            inline=False
+        )
+    except:
+        pass
+        
     await ctx.send(embed=embed)
     
 @bot.hybrid_command(name='links', description='Show Yugiquery links', with_app_command=True)
 async def links(ctx):
     
     embed = discord.Embed(
-        title="Yugiquery links:",
-        description=f'• [Webpage]({webpage_url})\n'\
-                    f'• [Repository]({repository_url})\n'\
-                    f'• [Data]({repository_url}/tree/main/data)',
+        title="Yugiquery links",
+        description=f'[Webpage]({webpage_url}) • [Repository]({repository_url}) • [Data]({repository_url}/tree/main/data)',
         color=discord.Colour.blue()
     )
     
@@ -167,21 +189,36 @@ async def data(ctx):
     await ctx.defer()
     
     try:
-        files = pd.read_json(f'{repository_api_url}/data')
+        embed = discord.Embed(
+            title="Latest data files",
+            description='Direct links to download files from GitHub.',
+            color=discord.Colour.blue()
+        )
+        
+        files = pd.read_json(f'{repository_api_url}/contents/data')
         files['Group'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(1))
         files['Timestamp'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(3))
         files['Timestamp'] = pd.to_datetime(files['Timestamp'], utc=True)
         index = files.groupby('Group')['Timestamp'].idxmax()
         latest_files = files.loc[index,['name','download_url']]
 
-        description=''
+        data_value=''
+        changelog_value=''
         for idx, file in latest_files.iterrows():
-            description+=f'• [{file["name"]}]({file["download_url"]})\n'
-
-        embed = discord.Embed(
-            title="Latest data files:",
-            description=description,
-            color=discord.Colour.blue()
+            if 'changelog' in file["name"]:
+                changelog_value+=f'• [{file["name"]}]({file["download_url"]})\n'
+            else:
+                data_value+=f'• [{file["name"]}]({file["download_url"]})\n'
+        
+        embed.add_field(
+            name='Data:', 
+            value=data_value, 
+            inline=False
+        )
+        embed.add_field(
+            name='Changelog:', 
+            value=changelog_value, 
+            inline=False
         )
         await ctx.send(embed=embed)
         
@@ -191,7 +228,7 @@ async def data(ctx):
 @bot.hybrid_command(name='ping', description='Test the bot connection latency', with_app_command=True)
 async def ping(ctx):
     await ctx.send(
-        content='Pong! {0}ms'.format(round(bot.latency*1000, 1)), 
+        content='🏓 Pong! {0}ms'.format(round(bot.latency*1000, 1)), 
         ephemeral=True, 
         delete_after=60
     )
