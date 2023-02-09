@@ -1,0 +1,72 @@
+Name,Password,Effect type,Archseries,TCG status,Modification date,Errata,Secondary type,Monster type,ATK,DEF,Version
+Amaze Attraction Majestic Merry-Go-Round,29867611,"('Condition', 'Continuous-like Effect', 'Effect')","('Attraction',)",Unlimited,2022-06-17 10:43:11,,,,,,Old
+Amaze Attraction Majestic Merry-Go-Round,29867611,"('Continuous-like Effect', 'Effect')","('Attraction',)",Unlimited,2023-02-09 12:48:58,,,,,,New
+Baegriller de Nouvellez,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 13:59:02,,,Warrior,2400,1850,New
+Balameuniere de Nouvellez,,"('Condition', 'Ignition Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 09:17:45,,,Beast-Warrior,2000,1850,New
+Buerillabaisse de Nouvellez,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 09:15:28,,,Beast-Warrior,400,1850,New
+Confitras de Nouvellez,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 09:15:35,,,Warrior,800,1850,New
+Contact with the Aquamirror,10925955,"('Activation condition', 'Effect')","('Aquamirror',)",Unlimited,2022-11-09 04:20:45,,,,,,Old
+Contact with the Aquamirror,10925955,"('Effect',)","('Aquamirror',)",Unlimited,2023-02-09 12:49:09,,,,,,New
+Delusion Trap Hole,75294187,"('Condition', 'Effect')","('Trap Hole (archetype)',)",,2022-12-03 02:55:21,,,,,,Old
+Fire Formation - Tenki,57103969,"('Condition', 'Continuous-like Effect', 'Effect')","('Fire Formation',)",Unlimited,2022-02-14 02:29:39,,,,,,Old
+Fire Formation - Tenki,57103969,"('Condition', 'Continuous-like Effect', 'Effect')","('Fire Formation',)",Semi-Limited,2022-02-14 02:29:39,,,,,,New
+Foie Glasya de Nouvellez,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 09:15:55,,,Warrior,1600,1850,New
+Gold Pride - Captain Carrie,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-02 21:40:01,,,Fiend,900,1700,Old
+Gold Pride - Captain Carrie,96305350,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-08 22:59:32,,,Fiend,900,1700,New
+Gold Pride - Leon,,"('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Unlimited,2023-02-03 12:39:30,,Tuner monster,Warrior,1500,1200,Old
+Gold Pride - Leon,23512906,"('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Unlimited,2023-02-08 00:43:52,,Tuner monster,Warrior,1500,1200,New
+Gold Pride - Nytro Blaster,,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-02 21:39:48,,,Pyro,2300,,Old
+Gold Pride - Nytro Blaster,58884063,"('Condition', 'Ignition Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-08 23:08:00,,,Pyro,2300,,New
+Gold Pride - Nytro Head,,"('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-02 21:39:51,,,Pyro,2300,2600,Old
+Gold Pride - Nytro Head,59900655,"('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-08 00:50:38,,,Pyro,2300,2600,New
+Gold Pride - Star Leon,,"('Condition', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-02 21:39:50,,,Thunder,2000,2000,Old
+Gold Pride - Star Leon,22390469,"('Condition', 'Quick Effect', 'Trigger Effect')","('Gold Pride',)",Not yet released,2023-02-08 23:02:21,,,Thunder,2000,2000,New
+Gold Pride - Start Your Engines!,,"('Effect',)","('Gold Pride',)",Not yet released,2023-02-02 21:39:47,,,,,,Old
+Gold Pride - Start Your Engines!,21677871,"('Effect',)","('Gold Pride',)",Not yet released,2023-02-08 23:17:56,,,,,,New
+Gold Pride - The Crowd Goes Wild!,,"('Condition', 'Effect')","('Gold Pride',)",Not yet released,2023-02-02 21:39:48,,,,,,Old
+Gold Pride - The Crowd Goes Wild!,95283172,"('Condition', 'Effect')","('Gold Pride',)",Not yet released,2023-02-08 23:15:23,,,,,,New
+Ground Xeno,,"('Condition', 'Effect', 'Ignition-like Effect')",,,2023-02-06 13:14:09,,,,,,New
+Hamburger Recipe,80811661,"('Effect',)",,Unlimited,2021-11-22 00:15:42,"('Type',)",,,,,Old
+Hamburger Recipe,80811661,"('Effect',)","('Recipe',)",Unlimited,2023-02-09 04:56:18,"('Type',)",,,,,New
+Kashtira Big Bang,33925864,"('Condition', 'Effect', 'Trigger Effect')","('Kashtira',)",Not yet released,2023-02-02 21:52:47,,,,,,Old
+Kashtira Big Bang,33925864,"('Condition', 'Effect', 'Trigger Effect')","('Kashtira',)",Unlimited,2023-02-09 13:14:51,,,,,,New
+Kashtira Riseheart,31149212,"('Condition', 'Ignition Effect')","('Heart', 'Kashtira')",Not yet released,2023-02-02 22:19:06,,,Warrior,1500,2100,Old
+Kashtira Riseheart,31149212,"('Condition', 'Ignition Effect')","('Heart', 'Kashtira')",Unlimited,2023-02-09 13:11:50,,,Warrior,1500,2100,New
+Kashtiratheosis,34447918,"('Condition', 'Effect', 'Trigger Effect')","('Kashtira',)",Not yet released,2023-02-02 21:52:56,,,,,,Old
+Kashtiratheosis,34447918,"('Condition', 'Effect', 'Trigger Effect')","('Kashtira',)",Unlimited,2023-02-09 13:13:31,,,,,,New
+Light of the Branded,72554664,"('Condition', 'Effect')","('Branded',)",Not yet released,2023-02-02 21:53:10,,,,,,Old
+Light of the Branded,72554664,"('Condition', 'Effect')","('Branded',)",Unlimited,2023-02-09 11:02:19,,,,,,New
+Mist Body,47529357,"('Continuous-like Effect',)",,Unlimited,2021-03-07 06:21:19,,,,,,Old
+Mist Body,47529357,"('Continuous-like Effect',)",,Unlimited,2021-03-07 06:21:19,"('Name',)",,,,,New
+Mysterious Puppeteer,54098121,"('Trigger Effect',)",,Unlimited,2023-02-02 23:37:10,,,Warrior,1000,1500,Old
+Mysterious Puppeteer,54098121,"('Condition', 'Trigger Effect')",,Unlimited,2023-02-09 12:57:55,,,Warrior,1000,1500,New
+"Nouvellez Auberge ""À Table""",,"('Condition', 'Effect', 'Ignition-like Effect', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 07:17:34,,,,,,New
+Power Pro Knight Girls,68075840,,,,2023-01-25 14:01:37,,,Warrior,1200,2400,Old
+Power Pro Knight Sisters,68075840,,,,2023-02-07 13:45:46,,,Warrior,1200,2400,New
+Poêlétis de Nouvellez,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Nouvellez',)",,2023-02-09 09:15:44,,,Beast-Warrior,1200,1850,New
+Pressured Planet Wraitsoth,71832012,"('Condition', 'Continuous-like Effect', 'Effect', 'Trigger Effect')","('World Destruction',)",Not yet released,2023-02-02 21:52:56,,,,,,Old
+Pressured Planet Wraitsoth,71832012,"('Condition', 'Continuous-like Effect', 'Effect', 'Trigger Effect')","('World Destruction',)",Unlimited,2023-02-09 13:14:19,,,,,,New
+Recette de Personnel - Cook's Recipe,,"('Condition', 'Quick-like Effect')","('Recipe',)",,2023-02-09 12:42:05,,,,,,New
+Recette de Poisson - Fish Recipe,,"('Effect',)","('Recipe',)",,2023-02-09 12:46:17,,,,,,New
+Recette de Spécialité - Chef's Specialty Recipe,,"('Condition', 'Effect', 'Trigger Effect')","('Recipe',)",,2023-02-09 12:42:46,,,,,,New
+Recette de Viande - Meat Recipe,,"('Effect',)","('Recipe',)",,2023-02-09 12:41:47,,,,,,New
+Saincred Magician,,,,,2023-01-19 10:05:36,,,,???,???,Old
+Saincred Magician,,"('Condition', 'Trigger Effect')",,,2023-02-08 01:55:21,,Flip monster,Spellcaster,600,800,New
+Scareclaw Kashtira,78534861,"('Condition', 'Continuous Effect', 'Quick Effect')","('Kashtira', 'Scareclaw')",Not yet released,2023-02-02 22:19:21,,,Psychic,0,2600,Old
+Scareclaw Kashtira,78534861,"('Condition', 'Continuous Effect', 'Quick Effect')","('Kashtira', 'Scareclaw')",Unlimited,2023-02-09 11:01:20,,,Psychic,0,2600,New
+Tearlaments Kashtira,04928565,"('Condition', 'Quick Effect', 'Trigger Effect')","('Kashtira', 'Tearlaments')",Not yet released,2023-02-02 22:19:03,,,Psychic,2300,1200,Old
+Tearlaments Kashtira,04928565,"('Condition', 'Quick Effect', 'Trigger Effect')","('Kashtira', 'Tearlaments')",Unlimited,2023-02-09 13:12:57,,,Psychic,2300,1200,New
+Tearlaments Merrli,74078255,"('Condition', 'Trigger Effect')","('Tearlaments',)",Unlimited,2022-09-23 06:13:45,,,Aqua,800,2000,Old
+Tearlaments Merrli,74078255,"('Condition', 'Trigger Effect')","('Tearlaments',)",,2023-02-09 10:59:08,,,Aqua,800,2000,New
+Terrifying Trap Hole Nightmare,75294187,"('Condition', 'Effect')","('Trap Hole (archetype)',)",,2023-02-08 14:47:35,,,,,,New
+Transcendrake Drillgnathus,,"('Condition', 'Continuous Effect', 'Ignition Effect', 'Trigger Effect')","('Transcendrake',)",,2023-02-06 13:11:48,,,Dinosaur,3000,2300,New
+Transcendrake Gigantozowler,,"('Condition', 'Trigger Effect')","('Transcendrake',)",,2023-02-06 13:07:07,,,Dinosaur,3800,2000,New
+Transcendrake Glacesaurus,,"('Condition', 'Continuous Effect', 'Trigger Effect')","('Transcendrake',)",,2023-02-06 13:09:52,,,Dinosaur,3600,2700,New
+Transcendrake Meteoros,,"('Condition', 'Quick Effect', 'Summoning condition', 'Trigger Effect')","('Transcendrake',)",,2023-02-06 13:01:07,,,Dinosaur,3500,700,New
+Traptantalizing Tune,48805472,"('Condition', 'Effect', 'Ignition-like Effect')",,,2023-02-08 14:44:41,,,,,,New
+Traptrip Garden,12801833,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,2023-02-08 14:40:46,,,,,,New
+Traptrix Allure,48805472,"('Condition', 'Effect', 'Ignition-like Effect')",,,2022-12-03 02:52:37,,,,,,Old
+Traptrix Holetaea,74577599,"('Condition', 'Effect', 'Quick-like Effect')","('Hole', 'Traptrix')",,2022-12-03 03:29:27,,,,,,Old
+Traptrix Holeutea,74577599,"('Condition', 'Effect', 'Quick-like Effect')","('Hole', 'Traptrix')",,2023-02-08 14:53:26,,,,,,New
+Traptrix Orchard,12801833,"('Condition', 'Continuous-like Effect', 'Ignition-like Effect')",,,2022-12-03 02:51:03,,,,,,Old
+Xeno Meteoros,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,,2023-02-06 12:50:21,,Tuner monster,Dinosaur,2000,200,New
