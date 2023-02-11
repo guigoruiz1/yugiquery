@@ -951,7 +951,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
 ## Fetch set lists from page titles
 def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     if debug:
-        print(f'{len(titles)} setas requested')
+        print(f'{len(titles)} sets requested')
 
     titles = up.quote('|'.join(titles))
     rarity_dict = load_json('../assets/rarities.json')
@@ -965,12 +965,18 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     
     for content in contents:
         if 'revisions' in  content.keys():
-            temp = content['revisions'][0]['*']
-            parsed = wtp.parse(temp)
+            title = None
+            raw = content['revisions'][0]['*']
+            parsed = wtp.parse(raw)
             for template in parsed.templates:
+                if template.name == 'Set page header':
+                    for argument in template.arguments:
+                        if 'set=' in argument:
+                            title = argument.value
                 if template.name == 'Set list':
-                    title = content['title'].split('Lists:')[1]
                     set_df = pd.DataFrame(columns = set_lists_df.columns)
+                    if not title:
+                        title = content['title'].split('Lists:')[1]
 
                     region = None
                     rarity = None
@@ -982,7 +988,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
                     for argument in template.arguments:
                         if 'region=' in argument:
-                            region = argument.string.split('=')[-1]
+                            region = argument.value
                             # if region = 'ES': # Remove second identifier for spanish
                             #     region = 'SP'
                                 
@@ -991,23 +997,23 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                                 rarity_dict.get(
                                     (i[0].upper() + i[1:] if i[0].islower() else i).strip(), # Correct lower case accronymns (Example: c->C for common)
                                     i.strip()
-                                ) for i in (argument.string.split('=')[-1]).split(',')
+                                ) for i in (argument.value).split(',')
                             )
                             
                         elif 'print=' in argument:
-                            card_print = argument.string.split('=')[-1]
+                            card_print = argument.value
                             
                         elif 'qty=' in argument:
-                            qty = argument.string.split('=')[-1]
+                            qty = argument.value
                             
                         elif 'description=' in argument:
-                            desc = argument.string.split('=')[-1]
+                            desc = argument.value
                             
                         elif 'options=' in argument:
-                            opt = argument.string.split('=')[-1]
+                            opt = argument.value
                             
                         else:
-                            set_list = argument.string[2:-1]
+                            set_list = argument.value[1:-1]
                             lines = set_list.split('\n')
 
                             list_df = pd.DataFrame([x.split(';') for x in lines])
@@ -1039,7 +1045,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                         elif qty:
                             set_df['Quantity'] = list_df[3-noabbr].apply(lambda x: x if x is not None else qty)
 
-                    set_df['Set'] = title.split("(")[0].strip()
+                    set_df['Set'] = re.sub(r'\(\w{3}-\w{2}\)\s*$','',title).strip()
                     set_df['Region'] = region.upper() 
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
@@ -1079,12 +1085,15 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
     all_set_lists_df.sort_values(by=['Set','Region','Card number']).reset_index(inplace = True)
-    print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} errors')
+    print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing')
 
     return all_set_lists_df
 
 ## Fetch set info for list of sets
 def fetch_set_info(sets, step: int = 15, debug: bool = False):
+    if debug:
+        print(f'{len(titles)} sets requested')
+        
     regions_dict = load_json('../assets/regions.json')
     # Info to ask
     info = ['Series','Set type','Cover card','Modification date']
