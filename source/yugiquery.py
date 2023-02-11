@@ -114,37 +114,6 @@ class CG(Enum):
     BOTH = CG
     TCG = 'TCG'
     OCG = 'OCG'
-    
-# Attributes list to split monsters query
-attributes = [
-    'DIVINE', 
-    'LIGHT', 
-    'DARK', 
-    'WATER', 
-    'EARTH', 
-    'FIRE', 
-    'WIND'
-]
-
-# Region abreviations dictionary
-regions_dict = {
-    'EN': 'English', 
-    'NA': 'North American English',
-    'EU': 'European English', 
-    'AU': 'Oceanic English', 
-    'PT': 'Portuguese', 
-    'DE': 'German', 
-    'FC': 'French-Canadian', 
-    'FR': 'French', 
-    'IT': 'Italian', 
-    'SP': 'Spanish', 
-    'JP': 'Japanese', 
-    'JA': 'Japanese-Asian', 
-    'AE': 'Asian-English', 
-    'KR': 'Korean', 
-    'TC': 'Traditional Chinese', 
-    'SC': 'Simplified Chinese'
-}
 
 # Arrow unicode simbols dictionary
 arrows_dict = {
@@ -244,7 +213,8 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if 'Property' in input_df.columns:
         df['Property'] = input_df['Property'].dropna().apply(extract_fulltext)
     if 'Primary type' in input_df.columns:
-        df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Pendulum Monster', y)) if len(y)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Effect Monster', y))[0] if len(y)>1 else (y[0] if len(y)>0 else np.nan))
+        df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: tuple(sorted([i['fulltext'] for i in x])) if len(x)>0 else np.nan)
+        # df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Pendulum Monster', y)) if len(y)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Effect Monster', y))[0] if len(y)>1 else (y[0] if len(y)>0 else np.nan))
     if 'Secondary type' in input_df.columns:
         df['Secondary type'] = input_df['Secondary type'].dropna().apply(extract_fulltext)
     if 'Attribute' in input_df.columns:
@@ -354,6 +324,7 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bo
 ## Sets
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
+        regions_dict = load_json('../assets/regions.json')
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
         input_df['Release'] = pd.to_datetime(input_df['Release'].astype(str), errors='coerce') # Bug fix
         input_df = input_df.merge(input_info_df.loc[:,:'Modification date'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
@@ -748,7 +719,15 @@ def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000,
 # Fetch monster cards by splitting into attributes
 def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
     valid_cg = cg.value
-
+    attributes = [
+        'DIVINE', 
+        'LIGHT', 
+        'DARK', 
+        'WATER', 
+        'EARTH', 
+        'FIRE', 
+        'WIND'
+    ]
     print('Downloading monsters')
     monster_df = pd.DataFrame()
     iterator = tqdm(attributes, leave = False, unit='attribute')
@@ -864,9 +843,6 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                     for argument in template.arguments:
                         if 'region=' in argument:
                             region = argument.string.split('=')[-1]
-                            
-                            if region.upper() == 'ES': # Remove duplicated entry for Spain
-                                region = 'SP'
                                 
                         elif 'rarities=' in argument:
                             rarity = tuple(
@@ -964,6 +940,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
 
 ## Fetch set info for list of sets
 def fetch_set_info(sets, step: int = 15, debug: bool = False):
+    regions_dict = load_json('../assets/regions.json')
     # Info to ask
     info = ['Series','Set type','Cover card','Modification date']
     # Release to ask
