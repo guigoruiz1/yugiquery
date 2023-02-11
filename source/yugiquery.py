@@ -242,10 +242,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         df['Effect type'] = input_df['Effect type'].dropna().apply(extract_fulltext,multiple=True)
     if 'Archseries' in input_df.columns:
         df['Archseries'] = input_df['Archseries'].dropna().apply(extract_fulltext,multiple=True)
-    if 'TCG status' in input_df.columns:
-        df['TCG status'] = input_df['TCG status'].dropna().apply(extract_fulltext)
-    if 'OCG status' in input_df.columns:
-        df['OCG status'] = input_df['OCG status'].dropna().apply(extract_fulltext)
     if 'Card image' in input_df.columns:
         df['Card image'] = input_df['Card image'].apply(extract_fulltext)
     
@@ -261,6 +257,10 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if 'Category'in input_df.columns:
         df['Category'] = input_df['Category'].dropna().apply(extract_fulltext,multiple=True)
 
+    # Status columns
+    if len(input_df.filter(like=' status').columns)>0:
+        df = df.join(input_df.filter(like=' status').applymap(extract_fulltext))
+        
     # Artworks columns
     if len(input_df.filter(like=' artwork').columns)>0:
         df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
@@ -279,7 +279,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     
     # Include other unspecified columns
     if include_all:
-        df.join(input_df[~df.columns])
+        df = df.join(input_df[input_df.columns.difference(df.columns)])
         
     return df
 
@@ -334,7 +334,7 @@ def format_errata(row: pd.Series):
     
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bool = False):
     if 'Page name' in input_df.columns:
-        input_df = input_df.merge(input_errata_df, left_on = 'Page name', right_index = True, how='left')
+        input_df = input_df.merge(input_errata_df['Errata'], left_on = 'Page name', right_index = True, how='left', suffixes=('', ' errata'))
         if drop:
             input_df.drop('Page name', axis=1, inplace=True)
     else:
@@ -934,10 +934,15 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                     for argument in template.arguments:
                         if 'region=' in argument:
                             region = argument.string.split('=')[-1]
+                            # if region = 'ES': # Remove second identifier for spanish
+                            #     region = 'SP'
                                 
                         elif 'rarities=' in argument:
                             rarity = tuple(
-                                rarity_dict.get( i.strip(), i.strip()) for i in (argument.string.split('=')[-1]).split(',')
+                                rarity_dict.get(
+                                    (i[0].upper() + i[1:] if i[0].islower() else i).strip(), # Correct lower case accronymns (Example: c->C for common)
+                                    i.strip()
+                                ) for i in (argument.string.split('=')[-1]).split(',')
                             )
                             
                         elif 'print=' in argument:
@@ -1068,38 +1073,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
 ######################
 
 # Colors dictionary to associate to series and cards
-colors_dict = {
-    'Effect Monster': '#FF8B53', 
-    'Normal Monster': '#FDE68A', 
-    'Ritual Monster': '#9DB5CC', 
-    'Fusion Monster': '#A086B7', 
-    'Synchro Monster': '#CCCCCC', 
-    'Xyz Monster': '#000000', 
-    'Link Monster': '#00008B', 
-    'Pendulum Monster': 'r', 
-    'Monster Card': '#FF8B53', 
-    'Spell Card': '#1D9E74', 
-    'Trap Card': '#BC5A84', 
-    'Monster Token': '#C0C0C0',
-    'Counter': '#C0C0C0',
-    'FIRE': '#fd1b1b', 
-    'WATER': '#03a9e6', 
-    'EARTH': '#060d0a', 
-    'WIND': '#77bb58', 
-    'DARK': '#745ea5', 
-    'LIGHT': '#9d8047', 
-    'DIVINE': '#7e6537', 
-    'Level': '#f1a41f',
-    'First Series': '#FDE68A',
-    'Duel Monsters': '#FF8B53',
-    'GX': '#A086B7',
-    '5D\'s': '#CCCCCC',
-    'ZEXAL': '#000000',
-    'ARC-V': 'r',
-    'VRAINS': '#00008B',
-    'SEVENS': '#1D9E74',
-    'GO RUSH!!': '#BC5A84'
-}
+colors_dict = load_json('../assets/colors.json')
 
 def adjust_lightness(color: str, amount: float = 0.5):
     try:
