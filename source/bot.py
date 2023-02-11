@@ -115,7 +115,7 @@ async def run(ctx, report: Reports):
             await ctx.channel.send(content=f'Query execution exited with exit code: {exitcode}')
         
     # Reset cooldown in case query did not complete
-    if API_error or exitcode!=1:
+    if API_error or exitcode!=0:
         ctx.command.reset_cooldown(ctx)
     
         

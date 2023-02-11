@@ -189,14 +189,20 @@ def cleanup_data(dry_run: bool = False):
             os.remove(file)
             
 # Data formating functions
-def extract_fulltext(x):
+def extract_fulltext(x, multiple=False):
     if len(x)>0:
         if isinstance(x[0], int):
             return str(x[0])
         elif 'fulltext' in x[0]:
-            return x[0]['fulltext'].strip('\u200e')
+            if multiple:
+                return tuple(sorted([i['fulltext'] for i in x]))
+            else:
+                return x[0]['fulltext'].strip('\u200e')
         else:
-            return x[0].strip('\u200e')
+            if multiple:
+                return tuple(sorted(x))
+            else:
+                return x[0].strip('\u200e') 
     else:
         return np.nan
     
@@ -213,10 +219,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if 'Property' in input_df.columns:
         df['Property'] = input_df['Property'].dropna().apply(extract_fulltext)
     if 'Primary type' in input_df.columns:
-        df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: tuple(sorted([i['fulltext'] for i in x])) if len(x)>0 else np.nan)
-        # df['Primary type'] = input_df['Primary type'].dropna().apply(lambda x: [i['fulltext'] for i in x] if len(x)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Pendulum Monster', y)) if len(y)>0 else []).apply(lambda y: list(filter(lambda z: z != 'Effect Monster', y))[0] if len(y)>1 else (y[0] if len(y)>0 else np.nan))
+        df['Primary type'] = input_df['Primary type'].dropna().apply(extract_fulltext,multiple=True).apply(extract_primary_type)
     if 'Secondary type' in input_df.columns:
-        df['Secondary type'] = input_df['Secondary type'].dropna().apply(extract_fulltext)
+        df['Secondary type'] = input_df['Secondary type'].dropna().apply(extract_fulltext,multiple=True)
     if 'Attribute' in input_df.columns:
         df['Attribute'] = input_df['Attribute'].dropna().apply(extract_fulltext)
     if 'Monster type' in input_df.columns:
@@ -234,13 +239,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if 'Link Arrows' in input_df.columns:
         df['Link Arrows'] = input_df['Link Arrows'].dropna().apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
     if 'Effect type' in input_df.columns:
-        df['Effect type'] = input_df['Effect type'].dropna().apply(lambda x: tuple(sorted([i['fulltext'] for i in x])) if len(x)>0 else np.nan)
+        df['Effect type'] = input_df['Effect type'].dropna().apply(extract_fulltext,multiple=True)
     if 'Archseries' in input_df.columns:
-        df['Archseries'] = input_df['Archseries'].dropna().apply(lambda x: tuple(sorted(x)) if len(x)>0 else np.nan)
-    if 'TCG status' in input_df.columns:
-        df['TCG status'] = input_df['TCG status'].dropna().apply(extract_fulltext)
-    if 'OCG status' in input_df.columns:
-        df['OCG status'] = input_df['OCG status'].dropna().apply(extract_fulltext)
+        df['Archseries'] = input_df['Archseries'].dropna().apply(extract_fulltext,multiple=True)
     if 'Card image' in input_df.columns:
         df['Card image'] = input_df['Card image'].apply(extract_fulltext)
     
@@ -250,15 +251,23 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if 'Set type' in input_df.columns:
         df['Set type'] = input_df['Set type'].apply(extract_fulltext)
     if 'Cover card' in input_df.columns:
-        df['Cover card'] = input_df['Cover card'].apply(lambda x: tuple(sorted([y['fulltext'] for y in x])) if len(x)>0 else np.nan)
+        df['Cover card'] = input_df['Cover card'].apply(extract_fulltext,multiple=True)
         
     # Category
     if 'Category'in input_df.columns:
-        df['Category'] = input_df['Category'].dropna().apply(lambda x: tuple(sorted([y['fulltext'] for y in x])) if len(x)>0 else np.nan)
+        df['Category'] = input_df['Category'].dropna().apply(extract_fulltext,multiple=True)
 
+    # Status columns
+    if len(input_df.filter(like=' status').columns)>0:
+        df = df.join(input_df.filter(like=' status').applymap(extract_fulltext))
+        
     # Artworks columns
     if len(input_df.filter(like=' artwork').columns)>0:
         df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
+    
+    # Errata columns
+    if len(input_df.filter(like=' errata').columns)>0:
+        df['Errata'] = input_df.filter(like=' errata').applymap(extract_category_bool).apply(format_errata, axis=1)
     
     # Page columns
     if len(input_df.filter(like='Page ').columns)>0:
@@ -270,11 +279,24 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     
     # Include other unspecified columns
     if include_all:
-        df.join(input_df[~df.columns])
+        df = df.join(input_df[input_df.columns.difference(df.columns)])
         
     return df
 
-## Cards
+## Cards 
+def extract_primary_type(x):
+    if isinstance(x,list) or isinstance(x,tuple):
+        if 'Monster Token' in x:
+            return 'Monster Token' 
+        else:
+            x=[z for z in x if z != 'Pendulum Monster']
+            if len(x)==1 and 'Effect Monster' in x:
+                return 'Effect Monster'
+            elif len(x)>0:
+                return [z for z in x if z != 'Effect Monster'][0]
+        
+    return x
+    
 def extract_category_bool(x):
     if len(x)>0:
         if x[0]=='f':
@@ -299,11 +321,11 @@ def format_artwork(row: pd.Series):
 
 def format_errata(row: pd.Series):
     result = tuple()
-    if 'Name errata' in row: 
-        if row['Name errata']:
+    if 'Cards with name errata' in row: 
+        if row['Cards with name errata']:
             result += ('Name',)
-    if 'Type errata' in row:  
-        if row['Type errata']:
+    if 'Cards with card type errata' in row:  
+        if row['Cards with card type errata']:
             result += ('Type',)
     if result == tuple():
         return np.nan
@@ -312,8 +334,7 @@ def format_errata(row: pd.Series):
     
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bool = False):
     if 'Page name' in input_df.columns:
-        input_errata_df = input_errata_df.apply(format_errata,axis=1).rename('Errata')
-        input_df = input_df.merge(input_errata_df, left_on = 'Page name', right_index = True, how='left')
+        input_df = input_df.merge(input_errata_df['Errata'], left_on = 'Page name', right_index = True, how='left', suffixes=('', ' errata'))
         if drop:
             input_df.drop('Page name', axis=1, inplace=True)
     else:
@@ -540,10 +561,10 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _name_errata: bool = True, _type_errata: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _date: bool = True, _page_name: bool = True, _category: bool = False, _image_URL: bool = False):
+def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _category: bool = False, _image_URL: bool = False):
     if default is not None:
         default = default.lower() 
-    valid_default = {'spell', 'trap', 'st', 'monster', None}
+    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', None}
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default=='monster':
@@ -562,6 +583,39 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             _scale = False, 
             _link = False, 
             _arrows = False
+        )
+    elif default=='counter':
+        return card_query(
+            _primary = False,
+            _secondary = False,
+            _attribute = False, 
+            _monster_type = False, 
+            _property = False,
+            _stars = False, 
+            _atk = False, 
+            _def = False, 
+            _scale = False, 
+            _link = False, 
+            _arrows = False
+        )
+    elif default=='skill':
+        return card_query(
+            _password = False,
+            _primary = False,
+            _secondary = False,
+            _attribute = False, 
+            _monster_type = False, 
+            _stars = False, 
+            _atk = False, 
+            _def = False, 
+            _scale = False, 
+            _link = False, 
+            _arrows = False,
+            _effect_type = False,
+            _edited_artwork = False,
+            _alternate_artwork = False,
+            _ocg = False,
+            _speed = True
         )
     else:
         search_string = '|?English%20name=Name'
@@ -599,14 +653,12 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             search_string += '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks'
         if _edited_artwork:
             search_string += '|?Category:OCG/TCG%20cards%20with%20edited%20artworks'
-        if _name_errata:
-            search_string += '|?Category:Cards%20with%20name%20errata'
-        if _type_errata:
-            search_string += '|?Category:Cards%20with%20card%20type%20errata'
         if _tcg:
             search_string += '|?TCG%20status'
         if _ocg:
             search_string += '|?OCG%20status'
+        if _speed:
+            search_string += '|?TCG%20Speed%20Duel%20status'
         if _date:
             search_string += '|?Modification%20date'
         if _image_URL:
@@ -665,15 +717,19 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     return all_results
     
 # Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 5000, iterator=None, debug: bool = False):
+def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
     while not complete:
         if iterator is not None:
             iterator.set_postfix(it=i+1)
-
-        response = requests.get(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc', headers=http_headers)
+        
+        url = f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc'
+        if debug:
+            print(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc')
+        
+        response = requests.get(url, headers=http_headers)
         result = extract_results(response)
         formatted_df = format_df(result)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
@@ -689,7 +745,7 @@ def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 
     return df
 
 # Fetch spell or trap cards
-def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
@@ -701,6 +757,9 @@ def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000,
         concept=f'[[Concept:{cg.value}%20{st}%20Cards]]'
 
     print(f'Downloading {st}s')
+    if st_query is None:
+        st_query = card_query(default='st')
+        
     st_df = fetch_properties(
         concept, 
         st_query, 
@@ -717,7 +776,7 @@ def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000,
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, debug: bool = False):
     valid_cg = cg.value
     attributes = [
         'DIVINE', 
@@ -729,6 +788,9 @@ def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: 
         'WIND'
     ]
     print('Downloading monsters')
+    if monster_query is None:
+        monster_query = card_query(default='monster')
+        
     monster_df = pd.DataFrame()
     iterator = tqdm(attributes, leave = False, unit='attribute')
     for att in iterator:
@@ -737,6 +799,8 @@ def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: 
             tqdm.write(f"- {att}")
 
         concept = f'[[Concept:{valid_cg}%20monsters]][[Attribute::{att}]]'
+        if exclude_token:
+            concept += '[[Primary%20type::!Monster%20Token]]'
 
         temp_df = fetch_properties(
             concept, 
@@ -756,43 +820,119 @@ def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: 
 
     return monster_df
 
-def fetch_errata(errata: str = 'all', limit: int = 1000):
+# Fetch token cards
+def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False):
+    print('Downloading tokens')
+
+    concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
+    if token_query is None:
+        token_query = card_query(default='monster')
+    
+    token_df = fetch_properties(
+        concept, 
+        token_query, 
+        step=limit, 
+        limit=limit,  
+        debug=debug
+    )
+    
+    print(f'{len(token_df.index)} results\n')
+
+    return token_df
+
+# Fetch counter cards
+def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = False):
+    print('Downloading counters')
+
+    concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
+    if counter_query is None:
+        counter_query = card_query(default='counter')
+        
+    counter_df = fetch_properties(
+        concept, 
+        counter_query, 
+        step=limit, 
+        limit=limit,  
+        debug=debug
+    )
+
+    print(f'{len(counter_df.index)} results\n')
+
+    return counter_df
+
+# Fetch skill cards
+def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False):
+    print('Downloading skill cards')
+
+    concept = f'[[Category:Skill%20Cards]]'
+    if skill_query is None:
+        skill_query = card_query(default='skill')
+
+    skill_df = fetch_properties(
+        concept, 
+        skill_query, 
+        step=limit, 
+        limit=limit,  
+        debug=debug
+    )
+    
+    print(f'{len(skill_df.index)} results\n')
+
+    return skill_df
+
+# Fetch skill cards
+def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debug: bool = False):
+    print('Downloading Rush Duel cards')
+
+    concept = f'[[Category:Rush%20Duel%20cards]]'
+    if rush_query is None:
+        rush_query = card_query()
+
+    rush_df = fetch_properties(
+        concept, 
+        rush_query, 
+        step=step, 
+        limit=limit,  
+        debug=debug
+    )
+    
+    print(f'{len(rush_df.index)} results\n')
+
+    return rush_df
+
+# Fetch errata boolean table
+def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
     errata = errata.lower()
     valid = {'name', 'type', 'all', 'both'}
     if errata not in valid:
         raise ValueError("results: errata must be one of %r." % valid)
     elif errata == 'both' or errata=='all':
-        errata_list = ['name','type']
-    else:
-        errata_list = [errata]
+        errata='all'
+        condition = '[[Category:Cards%20with%20name%20errata||Cards%20with%20card%20type%20errata]]'
+        query = '|?Category:Cards%20with%20card%20type%20errata|?Category:Cards%20with%20name%20errata|?Card%20Errata%20page%20for=Name'
+    elif errata == 'type':
+        condition = '[[Category:Cards%20with%20card%20type%20errata]]'
+        query = '|?Category:Cards%20with%20card%20type%20errata|?Card%20Errata%20page%20for=Name'
+    elif errata == 'name':
+        condition = '[[Category:Cards%20with%20name%20errata]]'
+        query = '|?Category:Cards%20with%20name%20errata|?Card%20Errata%20page%20for=Name'
 
-    errata_df = pd.DataFrame()
-    for errata in errata_list:
-        if errata == 'type':
-            condition = '[[Category:Cards%20with%20card%20type%20errata]]'
-        if errata == 'name':
-            condition = '[[Category:Cards%20with%20name%20errata]]'
-
-        print(f'Downloading {errata} errata')  
-        errata_query_df = fetch_properties(
-            condition,
-            query='',
-            step=limit,
-            limit=limit
-        )
-
-        errata_index = [i.split('Card Errata:')[-1].strip() for i in errata_query_df['Page name'] if 'Card Errata:' in i]
-        errata_column = f'{errata.capitalize()} errata'
-        errata_series = pd.Series(True, index = errata_index, name=errata_column)
-        print(f'{len(errata_series)} results\n')
-
-        errata_df = pd.concat([errata_df, errata_series],axis=1).fillna(False)
+    print(f'Downloading {errata} errata')  
+    errata_df = fetch_properties(
+        condition,
+        query=query,
+        step=limit,
+        limit=limit,
+        debug=debug
+    )
+    errata_df = errata_df.set_index('Name').dropna()
+    print(f'{len(errata_df)} results\n')
 
     return errata_df
 
 # Sets
 ## Get title of set list pages
-def fetch_set_titles(cg: CG = CG.ALL, limit: int = 5000):
+def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
     valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -811,7 +951,7 @@ def fetch_set_titles(cg: CG = CG.ALL, limit: int = 5000):
 ## Fetch set lists from page titles
 def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     if debug:
-        print(f'{len(titles)} set lists requested')
+        print(f'{len(titles)} sets requested')
 
     titles = up.quote('|'.join(titles))
     rarity_dict = load_json('../assets/rarities.json')
@@ -825,12 +965,18 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     
     for content in contents:
         if 'revisions' in  content.keys():
-            temp = content['revisions'][0]['*']
-            parsed = wtp.parse(temp)
+            title = None
+            raw = content['revisions'][0]['*']
+            parsed = wtp.parse(raw)
             for template in parsed.templates:
+                if template.name == 'Set page header':
+                    for argument in template.arguments:
+                        if 'set=' in argument:
+                            title = argument.value
                 if template.name == 'Set list':
-                    title = content['title'].split('Lists:')[1]
                     set_df = pd.DataFrame(columns = set_lists_df.columns)
+                    if not title:
+                        title = content['title'].split('Lists:')[1]
 
                     region = None
                     rarity = None
@@ -842,27 +988,32 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
                     for argument in template.arguments:
                         if 'region=' in argument:
-                            region = argument.string.split('=')[-1]
+                            region = argument.value
+                            # if region = 'ES': # Remove second identifier for spanish
+                            #     region = 'SP'
                                 
                         elif 'rarities=' in argument:
                             rarity = tuple(
-                                rarity_dict.get( i.strip(), i.strip()) for i in (argument.string.split('=')[-1]).split(',')
+                                rarity_dict.get(
+                                    (i[0].upper() + i[1:] if i[0].islower() else i).strip(), # Correct lower case accronymns (Example: c->C for common)
+                                    i.strip()
+                                ) for i in (argument.value).split(',')
                             )
                             
                         elif 'print=' in argument:
-                            card_print = argument.string.split('=')[-1]
+                            card_print = argument.value
                             
                         elif 'qty=' in argument:
-                            qty = argument.string.split('=')[-1]
+                            qty = argument.value
                             
                         elif 'description=' in argument:
-                            desc = argument.string.split('=')[-1]
+                            desc = argument.value
                             
                         elif 'options=' in argument:
-                            opt = argument.string.split('=')[-1]
+                            opt = argument.value
                             
                         else:
-                            set_list = argument.string[2:-1]
+                            set_list = argument.value[1:-1]
                             lines = set_list.split('\n')
 
                             list_df = pd.DataFrame([x.split(';') for x in lines])
@@ -894,7 +1045,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                         elif qty:
                             set_df['Quantity'] = list_df[3-noabbr].apply(lambda x: x if x is not None else qty)
 
-                    set_df['Set'] = title.split("(")[0].strip()
+                    set_df['Set'] = re.sub(r'\(\w{3}-\w{2}\)\s*$','',title).strip()
                     set_df['Region'] = region.upper() 
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
@@ -905,14 +1056,14 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                 print(f"Error! No content for \"{content['title']}\"")
             
     if debug:
-        print(f'{success} set lists received - {error} errors')
+        print(f'{success} set lists received - {error} missing')
         print('-------------------------------------------------')
 
     return set_lists_df, success, error
 
 ## Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    keys = fetch_set_titles(cg) # Get list of sets
+    keys = fetch_set_list_pages(cg) # Get list of sets
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
     total_success = 0
@@ -927,19 +1078,22 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
         first = i*step
         last = (i+1)*step
 
-        set_lists_df, success, error = fetch_set_lists(keys[first:last])
+        set_lists_df, success, error = fetch_set_lists(keys[first:last], debug=debug)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success+=success
         total_error+=error
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
     all_set_lists_df.sort_values(by=['Set','Region','Card number']).reset_index(inplace = True)
-    print(f'{"Total:" if debug else ""}{total_success} set lists received - {total_error} errors')
+    print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing')
 
     return all_set_lists_df
 
 ## Fetch set info for list of sets
 def fetch_set_info(sets, step: int = 15, debug: bool = False):
+    if debug:
+        print(f'{len(titles)} sets requested')
+        
     regions_dict = load_json('../assets/regions.json')
     # Info to ask
     info = ['Series','Set type','Cover card','Modification date']
@@ -977,37 +1131,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
 ######################
 
 # Colors dictionary to associate to series and cards
-colors_dict = {
-    'Effect Monster': '#FF8B53', 
-    'Normal Monster': '#FDE68A', 
-    'Ritual Monster': '#9DB5CC', 
-    'Fusion Monster': '#A086B7', 
-    'Synchro Monster': '#CCCCCC', 
-    'Xyz Monster': '#000000', 
-    'Link Monster': '#00008B', 
-    'Pendulum Monster': 'r', 
-    'Monster Card': '#FF8B53', 
-    'Spell Card': '#1D9E74', 
-    'Trap Card': '#BC5A84', 
-    'Monster Token': '#C0C0C0', 
-    'FIRE': '#fd1b1b', 
-    'WATER': '#03a9e6', 
-    'EARTH': '#060d0a', 
-    'WIND': '#77bb58', 
-    'DARK': '#745ea5', 
-    'LIGHT': '#9d8047', 
-    'DIVINE': '#7e6537', 
-    'Level': '#f1a41f',
-    'First Series': '#FDE68A',
-    'Duel Monsters': '#FF8B53',
-    'GX': '#A086B7',
-    '5D\'s': '#CCCCCC',
-    'ZEXAL': '#000000',
-    'ARC-V': 'r',
-    'VRAINS': '#00008B',
-    'SEVENS': '#1D9E74',
-    'GO RUSH!!': '#BC5A84'
-}
+colors_dict = load_json('../assets/colors.json')
 
 def adjust_lightness(color: str, amount: float = 0.5):
     try:
