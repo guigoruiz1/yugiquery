@@ -561,10 +561,10 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _date: bool = True, _category: bool = False, _image_URL: bool = False):
+def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _category: bool = False, _image_URL: bool = False):
     if default is not None:
         default = default.lower() 
-    valid_default = {'spell', 'trap', 'st', 'monster', None}
+    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', None}
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default=='monster':
@@ -583,6 +583,39 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             _scale = False, 
             _link = False, 
             _arrows = False
+        )
+    elif default=='counter':
+        return card_query(
+            _primary = False,
+            _secondary = False,
+            _attribute = False, 
+            _monster_type = False, 
+            _property = False,
+            _stars = False, 
+            _atk = False, 
+            _def = False, 
+            _scale = False, 
+            _link = False, 
+            _arrows = False
+        )
+    elif default=='skill':
+        return card_query(
+            _password = False,
+            _primary = False,
+            _secondary = False,
+            _attribute = False, 
+            _monster_type = False, 
+            _stars = False, 
+            _atk = False, 
+            _def = False, 
+            _scale = False, 
+            _link = False, 
+            _arrows = False,
+            _effect_type = False,
+            _edited_artwork = False,
+            _alternate_artwork = False,
+            _ocg = False,
+            _speed = True
         )
     else:
         search_string = '|?English%20name=Name'
@@ -624,6 +657,8 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             search_string += '|?TCG%20status'
         if _ocg:
             search_string += '|?OCG%20status'
+        if _speed:
+            search_string += '|?TCG%20Speed%20Duel%20status'
         if _date:
             search_string += '|?Modification%20date'
         if _image_URL:
@@ -682,7 +717,7 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     return all_results
     
 # Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 5000, iterator=None, debug: bool = False):
+def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -710,7 +745,7 @@ def fetch_properties(condition: str, query: str, step: int = 5000, limit: int = 
     return df
 
 # Fetch spell or trap cards
-def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
@@ -722,6 +757,9 @@ def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000,
         concept=f'[[Concept:{cg.value}%20{st}%20Cards]]'
 
     print(f'Downloading {st}s')
+    if st_query is None:
+        st_query = card_query(default='st')
+        
     st_df = fetch_properties(
         concept, 
         st_query, 
@@ -738,7 +776,7 @@ def fetch_st(st_query: str, st: str = 'both', cg: CG = CG.ALL, step: int = 1000,
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, debug: bool = False):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, debug: bool = False):
     valid_cg = cg.value
     attributes = [
         'DIVINE', 
@@ -750,6 +788,9 @@ def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: 
         'WIND'
     ]
     print('Downloading monsters')
+    if monster_query is None:
+        monster_query = card_query(default='monster')
+        
     monster_df = pd.DataFrame()
     iterator = tqdm(attributes, leave = False, unit='attribute')
     for att in iterator:
@@ -780,11 +821,13 @@ def fetch_monster(monster_query: str, cg: CG = CG.ALL, step: int = 1000, limit: 
     return monster_df
 
 # Fetch token cards
-def fetch_token(token_query: str, limit: int = 5000, debug: bool = False):
+def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False):
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
-
+    if token_query is None:
+        token_query = card_query(default='monster')
+    
     token_df = fetch_properties(
         concept, 
         token_query, 
@@ -798,14 +841,16 @@ def fetch_token(token_query: str, limit: int = 5000, debug: bool = False):
     return token_df
 
 # Fetch counter cards
-def fetch_counter(limit: int = 5000, debug: bool = False):
+def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = False):
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
-
+    if counter_query is None:
+        counter_query = card_query(default='counter')
+        
     counter_df = fetch_properties(
         concept, 
-        '|?English%20name=Name|?Card%20type|?TCG%20status|?OCG%20status|?Modification%20date|?Archseries', 
+        counter_query, 
         step=limit, 
         limit=limit,  
         debug=debug
@@ -816,14 +861,16 @@ def fetch_counter(limit: int = 5000, debug: bool = False):
     return counter_df
 
 # Fetch skill cards
-def fetch_skill(limit: int = 5000, debug: bool = False):
+def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False):
     print('Downloading skill cards')
 
     concept = f'[[Category:Skill%20Cards]]'
+    if skill_query is None:
+        skill_query = card_query(default='skill')
 
     skill_df = fetch_properties(
         concept, 
-        '|?English%20name=Name|?Card%20type|?TCG%20Speed%20duel%20status|?OCG%20Speed%20duel%20status|?Modification%20date|?Archseries', 
+        skill_query, 
         step=limit, 
         limit=limit,  
         debug=debug
@@ -834,14 +881,16 @@ def fetch_skill(limit: int = 5000, debug: bool = False):
     return skill_df
 
 # Fetch skill cards
-def fetch_rush(query: str, setp: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debug: bool = False):
     print('Downloading Rush Duel cards')
 
     concept = f'[[Category:Rush%20Duel%20cards]]'
+    if rush_query is None:
+        rush_query = card_query()
 
     rush_df = fetch_properties(
         concept, 
-        query, 
+        rush_query, 
         step=step, 
         limit=limit,  
         debug=debug
@@ -883,7 +932,7 @@ def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
 
 # Sets
 ## Get title of set list pages
-def fetch_set_titles(cg: CG = CG.ALL, limit: int = 5000):
+def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
     valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -902,7 +951,7 @@ def fetch_set_titles(cg: CG = CG.ALL, limit: int = 5000):
 ## Fetch set lists from page titles
 def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     if debug:
-        print(f'{len(titles)} set lists requested')
+        print(f'{len(titles)} setas requested')
 
     titles = up.quote('|'.join(titles))
     rarity_dict = load_json('../assets/rarities.json')
@@ -1001,14 +1050,14 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                 print(f"Error! No content for \"{content['title']}\"")
             
     if debug:
-        print(f'{success} set lists received - {error} errors')
+        print(f'{success} set lists received - {error} missing')
         print('-------------------------------------------------')
 
     return set_lists_df, success, error
 
 ## Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    keys = fetch_set_titles(cg) # Get list of sets
+    keys = fetch_set_list_pages(cg) # Get list of sets
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
     total_success = 0
@@ -1023,14 +1072,14 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
         first = i*step
         last = (i+1)*step
 
-        set_lists_df, success, error = fetch_set_lists(keys[first:last])
+        set_lists_df, success, error = fetch_set_lists(keys[first:last], debug=debug)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success+=success
         total_error+=error
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
     all_set_lists_df.sort_values(by=['Set','Region','Card number']).reset_index(inplace = True)
-    print(f'{"Total:" if debug else ""}{total_success} set lists received - {total_error} errors')
+    print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} errors')
 
     return all_set_lists_df
 
