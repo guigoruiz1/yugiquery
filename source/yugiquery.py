@@ -6,34 +6,40 @@ __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
 
-
 ###########
 # Imports #
 ###########
+
+import os
+import subprocess
+import glob
+import string
+import calendar
+import warnings
+import colorsys
+import logging
+import io
+import hashlib
+import json
+import re
+import socket
+from enum import Enum
+from datetime import datetime, timezone
+from textwrap import wrap
+
+# Shorthand variables
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 
 loop = 0
 while True:
     try:
         import git
-        import subprocess
         import ipynbname
-        import glob
-        import os
-        import string
-        import calendar
-        import warnings
-        import colorsys
-        import logging
-        import io
         import nbformat
-        import hashlib
         import asyncio
         import aiohttp
         import requests
-        import socket
-        import json
-        import re
-        from enum import Enum
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -46,10 +52,8 @@ while True:
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from matplotlib.ticker import AutoMinorLocator, MaxNLocator, FixedLocator
         from matplotlib_venn import venn2
-        from datetime import datetime, timezone
         from ast import literal_eval
         from IPython.display import Markdown
-        from textwrap import wrap
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
         from dotenv import dotenv_values
@@ -65,10 +69,8 @@ while True:
             quit()
         
         loop+=1   
-        import subprocess
         print("Missing required packages. Trying to install now...")
-        subprocess.call(['sh', './install.sh'])
-
+        subprocess.call(['sh', os.path.join(SCRIPT_DIR,'./install.sh')])
 
 ###########      
 # Helpers #
@@ -92,7 +94,8 @@ def load_secrets(secrets_file, requested_secrets=[], required=False):
     
     else:
         raise FileNotFoundError(f'No such file or directory: {secrets_file}')
-        
+
+# Dictionaries
 def load_json(json_file):
     try:
         with open(json_file, 'r') as file:
@@ -101,7 +104,7 @@ def load_json(json_file):
     except:
         print(f'Error loading {json_file}. Ignoring...')
         return {}
-    
+
 # Validators
 def md5(file_name):
     hash_md5 = hashlib.md5()
@@ -128,10 +131,10 @@ arrows_dict = {
 }
 
 # Images
-async def download_images(file_name: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
+async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
     # Prepare URL from file names
-    file_name_md5 = file_name.apply(md5)
-    urls = file_name_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_name
+    file_names_md5 = file_names.apply(md5)
+    urls = file_names_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_names
     
     # Download image from URL
     async def download_image(session, url, save_folder, semaphore, pbar):
@@ -167,7 +170,7 @@ async def download_images(file_name: pd.DataFrame, save_folder: str = "../images
 
 # Data management
 def cleanup_data(dry_run: bool = False):
-    file_list = glob.glob('../data/*')
+    file_list = glob.glob(os.path.join(PARENT_DIR,'data/*'))
     df = pd.DataFrame(file_list, columns=['file'])
     df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
     df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
@@ -345,7 +348,7 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bo
 ## Sets
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
-        regions_dict = load_json('../assets/regions.json')
+        regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
         input_df['Release'] = pd.to_datetime(input_df['Release'].astype(str), errors='coerce') # Bug fix
         input_df = input_df.merge(input_info_df.loc[:,:'Modification date'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
@@ -425,7 +428,7 @@ def run_notebooks(which='all', progress_handler=None):
     # Initialize iterators
     try:
         required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
-        secrets_file = '../assets/secrets.env'
+        secrets_file = os.path.join(PARENT_DIR,'assets/secrets.env')
         secrets = load_secrets(secrets_file, required_secrets, required=True)
         from tqdm.contrib.discord import tqdm as discord_tqdm
         iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
@@ -495,18 +498,20 @@ def update_index(): # Handle paths properly
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
-        with open(f'../assets/index.md') as f:
+        with open(os.path.join(PARENT_DIR,'/assets/index.md')) as f:
             readme = f.read()
-            reports = sorted(glob.glob('../*.html'))
+            reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
+            rows=[]
             for report in reports:
-                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
-
+                rows.append(f"[{os.path.basename(report).rstrip('.html')}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
+                
+            readme = readme.replace(f'@REPORT_|_TIMESTAMP@', ' |\n| '.join(rows))
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-            with open(f'../{index_file_name}', 'w') as o:
+            with open(os.path.join(PARENT_DIR,index_file_name), 'w+') as o:
                 print(readme, file=o)
 
         try:
-            repo = git.Repo(f'../')
+            repo = git.Repo(PARENT_DIR)
             repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
         except:
             print('Failed to commit to git')
@@ -522,7 +527,7 @@ def header(name: str = None):
         except:
             name = ''
 
-    with open('../assets/header.md') as f:
+    with open(os.path.join(PARENT_DIR,'assets/header.md')) as f:
         header = f.read()
         header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
         header = header.replace('@NOTEBOOK@', name)
@@ -530,7 +535,7 @@ def header(name: str = None):
 
 # Generate Markdown footer
 def footer():
-    with open('../assets/footer.md') as f:
+    with open(os.path.join(PARENT_DIR,'assets/footer.md')) as f:
         footer = f.read()
         footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
         return Markdown(footer)
@@ -691,9 +696,8 @@ def check_API_status():
         return False
 
 # Fetch category members - still not used
-def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
-    params = {
-        'cmtitle': category, 
+def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, debug: bool = False):
+    params = { 
         'cmlimit': step, 
         'cmnamespace': namespace 
     }
@@ -703,9 +707,13 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     while True:
         params = params.copy()
         params.update(lastContinue)
-        result = requests.get(f'{base_url}{categorymembers_query_action}', params=params, headers=http_headers).json()
+        response = requests.get(f'{base_url}{categorymembers_query_action}{category}', params=params, headers=http_headers)
+        if debug:
+            print(response.url)
+            
+        result = response.json()
         if 'error' in result:
-            raise Error(result['error'])
+            raise Exception(result['error']['info'])
         if 'warnings' in result:
             print(result['warnings'])
         if 'query' in result:
@@ -941,12 +949,12 @@ def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
 
     df = fetch_properties(
         condition,
-        query='',
+        query='|?Modification date',
         step=limit,
         limit=limit
     )
 
-    return df['Page name']
+    return df
 
 ## Fetch set lists from page titles
 def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
@@ -954,8 +962,8 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
         print(f'{len(titles)} sets requested')
 
     titles = up.quote('|'.join(titles))
-    rarity_dict = load_json('../assets/rarities.json')
-    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
+    rarity_dict = load_json(os.path.join(PARENT_DIR,'assets/rarities.json'))
+    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region', 'Page name'])   
     success = 0
     error = 0
 
@@ -975,8 +983,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                             title = argument.value
                 if template.name == 'Set list':
                     set_df = pd.DataFrame(columns = set_lists_df.columns)
-                    if not title:
-                        title = content['title'].split('Lists:')[1]
+                    page_name = content['title']
 
                     region = None
                     rarity = None
@@ -1045,8 +1052,12 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                         elif qty:
                             set_df['Quantity'] = list_df[3-noabbr].apply(lambda x: x if x is not None else qty)
 
+                    if not title:
+                        title = page_name.split('Lists:')[1]
+                        
                     set_df['Set'] = re.sub(r'\(\w{3}-\w{2}\)\s*$','',title).strip()
                     set_df['Region'] = region.upper() 
+                    set_df['Page name'] = page_name
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
 
@@ -1063,7 +1074,8 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
 ## Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    keys = fetch_set_list_pages(cg) # Get list of sets
+    sets = fetch_set_list_pages(cg) # Get list of sets
+    keys = sets['Page name']
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
     total_success = 0
@@ -1079,6 +1091,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
         last = (i+1)*step
 
         set_lists_df, success, error = fetch_set_lists(keys[first:last], debug=debug)
+        set_lists_df = set_lists_df.merge(sets, on='Page name', how='left').drop('Page name', axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success+=success
         total_error+=error
@@ -1090,13 +1103,13 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
     return all_set_lists_df
 
 ## Fetch set info for list of sets
-def fetch_set_info(sets, step: int = 15, debug: bool = False):
+def fetch_set_info(sets, extra_info: list = [], step: int = 15, debug: bool = False):
     if debug:
         print(f'{len(titles)} sets requested')
         
-    regions_dict = load_json('../assets/regions.json')
+    regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
     # Info to ask
-    info = ['Series','Set type','Cover card','Modification date']
+    info = ['Series','Set type','Cover card']+extra_info
     # Release to ask
     release = [i+' release date' for i in set(regions_dict.values())]
     # Ask list
@@ -1131,7 +1144,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
 ######################
 
 # Colors dictionary to associate to series and cards
-colors_dict = load_json('../assets/colors.json')
+colors_dict = load_json(os.path.join(PARENT_DIR,'assets/colors.json'))
 
 def adjust_lightness(color: str, amount: float = 0.5):
     try:
@@ -1342,8 +1355,7 @@ def run(report = 'all', progress_handler = None):
 
 if __name__ == "__main__":
     # Change working directory to script location
-    path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(path)
+    os.chdir(SCRIPT_PATH)
     # Execute the complete workflow
     run()
     # Exit python

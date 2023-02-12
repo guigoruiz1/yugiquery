@@ -7,10 +7,7 @@ Jupyter notebook to query and display yugipedia data
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-|       [Cards](Cards.html) | @CARDS_TIMESTAMP@ |
-|         [Sets](Sets.html) | @SETS_TIMESTAMP@ |
-| [Timeline](Timeline.html) | @TIMELINE_TIMESTAMP@ |
-
+| @REPORT_|_TIMESTAMP@ |
 
 # Readme
 
