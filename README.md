@@ -1,15 +1,15 @@
 # Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 10/02/2023 22:19 UTC
+    Last execution: 12/02/2023 00:22 UTC
 
 ## Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-|       [Cards](Cards.html) | 10/02/2023 22:06 UTC |
-|         [Sets](Sets.html) | 10/02/2023 22:15 UTC |
-| [Timeline](Timeline.html) | 10/02/2023 22:19 UTC |
+|       [Cards](Cards.html) | 12/02/2023 00:07 UTC |
+|         [Sets](Sets.html) | 12/02/2023 00:18 UTC |
+| [Timeline](Timeline.html) | 12/02/2023 00:22 UTC |
 
 
 # Readme
