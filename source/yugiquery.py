@@ -282,7 +282,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     
     # Include other unspecified columns
     if include_all:
-        df = df.join(input_df[input_df.columns.difference(df.columns)])
+        df = df.join(input_df[input_df.columns.difference(df.columns)].applymap(extract_fulltext))
         
     return df
 
@@ -351,7 +351,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
         input_df['Release'] = pd.to_datetime(input_df['Release'].astype(str), errors='coerce') # Bug fix
-        input_df = input_df.merge(input_info_df.loc[:,:'Modification date'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
+        input_df = input_df.merge(input_info_df.loc[:,:'Cover card'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
         print('Set properties merged')
     else:
         print('Error! No \"Set\" and/or \"Region\" column(s) to join set info')
@@ -1109,7 +1109,7 @@ def fetch_set_info(sets, extra_info: list = [], step: int = 15, debug: bool = Fa
         
     regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
     # Info to ask
-    info = ['Series','Set type','Cover card']+extra_info
+    info = extra_info+['Series','Set type','Cover card']
     # Release to ask
     release = [i+' release date' for i in set(regions_dict.values())]
     # Ask list
@@ -1124,7 +1124,7 @@ def fetch_set_info(sets, extra_info: list = [], step: int = 15, debug: bool = Fa
         response = requests.get(f'{base_url}{askargs_query_action}{titles}&printouts={ask}', headers=http_headers)
         formatted_response = extract_results(response)
         formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(formatted_response)
+        formatted_df = format_df(formatted_response, include_all = (True if extra_info else True))
         if debug:
             tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
             tqdm.write('-------------------------------------------------')
