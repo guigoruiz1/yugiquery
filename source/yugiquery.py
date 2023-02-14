@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = "Guilherme Ruiz"
 __copyright__ = "Copyright 2023, Yugiquery"
 __license__ = "MIT"
@@ -144,7 +146,15 @@ async def download_images(file_names: pd.DataFrame, save_folder: str = "../image
                 if response.status != 200:
                     raise ValueError(f"URL {url} returned status code {response.status}")
                 total_size = int(response.headers.get("Content-Length", 0))
-                progress = tqdm(unit="B", total=total_size, unit_scale=True, unit_divisor=1024, desc=save_name, leave=False)
+                progress = tqdm(
+                    unit="B", 
+                    total=total_size, 
+                    unit_scale=True, 
+                    unit_divisor=1024, 
+                    desc=save_name, 
+                    leave=False, 
+                    disable=('PM_IN_EXECUTION' in os.environ)
+                )
                 if os.path.isfile(f'{save_folder}/{save_name}'):
                     os.remove(f'{save_folder}/{save_name}')
                 while True:
@@ -162,7 +172,7 @@ async def download_images(file_names: pd.DataFrame, save_folder: str = "../image
     async with aiohttp.ClientSession(base_url='https://ms.yugipedia.com/', headers=http_headers) as session:
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
-        with tqdm(total=len(urls), unit_scale=True, unit="file") as pbar:
+        with tqdm(total=len(urls), unit_scale=True, unit="file", disable=('PM_IN_EXECUTION' in os.environ)) as pbar:
             tasks = [download_image(session, url, save_folder, semaphore, pbar) for url in urls]
             for task in asyncio.as_completed(tasks):
                 pbar.update()
@@ -214,41 +224,39 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     
     # Cards
     if 'Name' in input_df.columns:
-        df['Name'] = input_df['Name'].dropna().apply(extract_fulltext)
+        df['Name'] = input_df['Name'].apply(extract_fulltext)
     if 'Password' in input_df.columns:
-        df['Password'] = input_df['Password'].dropna().apply(extract_fulltext)
+        df['Password'] = input_df['Password'].apply(extract_fulltext)
     if 'Card type' in input_df.columns:
-        df['Card type'] = input_df['Card type'].dropna().apply(extract_fulltext)
+        df['Card type'] = input_df['Card type'].apply(extract_fulltext)
     if 'Property' in input_df.columns:
-        df['Property'] = input_df['Property'].dropna().apply(extract_fulltext)
+        df['Property'] = input_df['Property'].apply(extract_fulltext)
     if 'Primary type' in input_df.columns:
-        df['Primary type'] = input_df['Primary type'].dropna().apply(extract_fulltext,multiple=True).apply(extract_primary_type)
+        df['Primary type'] = input_df['Primary type'].apply(extract_fulltext,multiple=True).apply(extract_primary_type)
     if 'Secondary type' in input_df.columns:
-        df['Secondary type'] = input_df['Secondary type'].dropna().apply(extract_fulltext,multiple=True)
+        df['Secondary type'] = input_df['Secondary type'].apply(extract_fulltext,multiple=True)
     if 'Attribute' in input_df.columns:
-        df['Attribute'] = input_df['Attribute'].dropna().apply(extract_fulltext)
+        df['Attribute'] = input_df['Attribute'].apply(extract_fulltext)
     if 'Monster type' in input_df.columns:
-        df['Monster type'] = input_df['Monster type'].dropna().apply(extract_fulltext)
+        df['Monster type'] = input_df['Monster type'].apply(extract_fulltext)
     if 'Level/Rank' in input_df.columns:
-        df['Level/Rank'] = input_df['Level/Rank'].dropna().apply(extract_fulltext)
-    if 'ATK' in input_df.columns:
-        df['ATK'] = input_df['ATK'].dropna().apply(extract_fulltext)
+        df['Level/Rank'] = input_df['Level/Rank'].apply(extract_fulltext)
     if 'DEF' in input_df.columns:
-        df['DEF'] = input_df['DEF'].dropna().apply(extract_fulltext)
+        df['DEF'] = input_df['DEF'].apply(extract_fulltext)
     if 'Pendulum Scale' in input_df.columns:
-        df['Pendulum Scale'] = input_df['Pendulum Scale'].dropna().apply(extract_fulltext)
+        df['Pendulum Scale'] = input_df['Pendulum Scale'].apply(extract_fulltext)
     if 'Link' in input_df.columns:
-        df['Link'] = input_df['Link'].dropna().apply(extract_fulltext)
+        df['Link'] = input_df['Link'].apply(extract_fulltext)
     if 'Link Arrows' in input_df.columns:
-        df['Link Arrows'] = input_df['Link Arrows'].dropna().apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
+        df['Link Arrows'] = input_df['Link Arrows'].apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
     if 'Effect type' in input_df.columns:
-        df['Effect type'] = input_df['Effect type'].dropna().apply(extract_fulltext,multiple=True)
+        df['Effect type'] = input_df['Effect type'].apply(extract_fulltext,multiple=True)
     if 'Archseries' in input_df.columns:
-        df['Archseries'] = input_df['Archseries'].dropna().apply(extract_fulltext,multiple=True)
+        df['Archseries'] = input_df['Archseries'].apply(extract_fulltext,multiple=True)
     if 'Card image' in input_df.columns:
         df['Card image'] = input_df['Card image'].apply(extract_fulltext)
     
-    # Sets
+    # Set specific columns
     if 'Series' in input_df.columns:
         df['Series'] = input_df['Series'].apply(extract_fulltext)
     if 'Set type' in input_df.columns:
@@ -258,8 +266,12 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         
     # Category
     if 'Category'in input_df.columns:
-        df['Category'] = input_df['Category'].dropna().apply(extract_fulltext,multiple=True)
+        df['Category'] = input_df['Category'].apply(extract_fulltext,multiple=True)
 
+    # ATK and MAXIMUM ATK columns
+    if len(input_df.filter(like='ATK').columns)>0:
+        df = df.join(input_df.filter(like='ATK').applymap(extract_fulltext))
+    
     # Status columns
     if len(input_df.filter(like=' status').columns)>0:
         df = df.join(input_df.filter(like=' status').applymap(extract_fulltext))
@@ -282,7 +294,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     
     # Include other unspecified columns
     if include_all:
-        df = df.join(input_df[input_df.columns.difference(df.columns)].applymap(extract_fulltext))
+        df = df.join(input_df[input_df.columns.difference(df.columns)].applymap(extract_fulltext,multiple=True))
         
     return df
 
@@ -311,11 +323,14 @@ def extract_category_bool(x):
 
 def format_artwork(row: pd.Series):
     result = tuple()
-    if 'OCG/TCG cards with alternate artworks' in row: 
-        if row['OCG/TCG cards with alternate artworks']:
+    index_str = row.index.str 
+    if index_str.endswith('alternate artworks').any():
+        col_name = row.index[index_str.endswith('alternate artworks')][0]
+        if row[col_name]:
             result += ('Alternate',)
-    if 'OCG/TCG cards with edited artworks' in row: 
-        if row['OCG/TCG cards with edited artworks']:
+    if index_str.endswith('edited artworks').any(): 
+        col_name = row.index[index_str.endswith('edited artworks')][0]
+        if row[col_name]:
             result += ('Edited',)
     if result == tuple():
         return np.nan
@@ -431,9 +446,20 @@ def run_notebooks(which='all', progress_handler=None):
         secrets_file = os.path.join(PARENT_DIR,'assets/secrets.env')
         secrets = load_secrets(secrets_file, required_secrets, required=True)
         from tqdm.contrib.discord import tqdm as discord_tqdm
-        iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+        iterator = discord_tqdm(
+            reports, 
+            desc="Completion", 
+            unit='report', 
+            unit_scale=True, 
+            token=secrets['DISCORD_TOKEN'], 
+            channel_id=secrets['DISCORD_CHANNEL_ID']
+        )
     except:
-        iterator = tqdm(reports, desc="Completion", unit='report')
+        iterator = tqdm(
+            reports, 
+            desc="Completion", 
+            unit='report'
+        )
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
@@ -471,12 +497,14 @@ def run_notebooks(which='all', progress_handler=None):
             external_pbar.set_postfix(report=report)
 
         # execute the notebook with papermill
+        os.environ['PM_IN_EXECUTION'] = 'True'
         pm.execute_notebook(
             report,
             report,
             log_output=True,
             progress_bar=True,
         );
+        os.environ.pop('PM_IN_EXECUTION', None)
 
     # Close the iterator
     iterator.close()
@@ -566,7 +594,7 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _category: bool = False, _image_URL: bool = False):
+def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _image_URL: bool = False, _category: bool = False):
     if default is not None:
         default = default.lower() 
     valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', None}
@@ -725,7 +753,7 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, de
     return all_results
     
 # Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, debug: bool = False):
+def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -739,7 +767,7 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
         
         response = requests.get(url, headers=http_headers)
         result = extract_results(response)
-        formatted_df = format_df(result)
+        formatted_df = format_df(result, include_all=include_all)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
         if debug:
@@ -753,7 +781,8 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
     return df
 
 # Fetch spell or trap cards
-def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
@@ -772,8 +801,8 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
         concept, 
         st_query, 
         step=step, 
-        limit=limit, 
-        debug=debug
+        limit=limit,
+        **kwargs
     )
 
     if debug:
@@ -784,7 +813,8 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, debug: bool = False):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, **kwargs):
+    debug = kwargs.get('debug', False)
     valid_cg = cg.value
     attributes = [
         'DIVINE', 
@@ -800,7 +830,12 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
         monster_query = card_query(default='monster')
         
     monster_df = pd.DataFrame()
-    iterator = tqdm(attributes, leave = False, unit='attribute')
+    iterator = tqdm(
+        attributes, 
+        leave = False, 
+        unit='attribute', 
+        disable=('PM_IN_EXECUTION' in os.environ)
+    )
     for att in iterator:
         iterator.set_description(att)
         if debug:
@@ -816,7 +851,7 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
             step=step, 
             limit=limit, 
             iterator=iterator, 
-            debug=debug
+            **kwargs
         )
 
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0) 
@@ -829,7 +864,7 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
     return monster_df
 
 # Fetch token cards
-def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
@@ -840,8 +875,8 @@ def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False)
         concept, 
         token_query, 
         step=limit, 
-        limit=limit,  
-        debug=debug
+        limit=limit,
+        **kwargs
     )
     
     print(f'{len(token_df.index)} results\n')
@@ -849,7 +884,7 @@ def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False)
     return token_df
 
 # Fetch counter cards
-def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_counter(counter_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
@@ -861,7 +896,7 @@ def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = Fa
         counter_query, 
         step=limit, 
         limit=limit,  
-        debug=debug
+        **kwargs
     )
 
     print(f'{len(counter_df.index)} results\n')
@@ -869,7 +904,7 @@ def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = Fa
     return counter_df
 
 # Fetch skill cards
-def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
 
     concept = f'[[Category:Skill%20Cards]]'
@@ -880,8 +915,8 @@ def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False)
         concept, 
         skill_query, 
         step=limit, 
-        limit=limit,  
-        debug=debug
+        limit=limit,   
+        **kwargs
     )
     
     print(f'{len(skill_df.index)} results\n')
@@ -889,7 +924,8 @@ def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False)
     return skill_df
 
 # Fetch skill cards
-def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
 
     concept = f'[[Category:Rush%20Duel%20cards]]'
@@ -901,7 +937,7 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debu
         rush_query, 
         step=step, 
         limit=limit,  
-        debug=debug
+        **kwargs
     )
     
     print(f'{len(rush_df.index)} results\n')
@@ -909,7 +945,8 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debu
     return rush_df
 
 # Fetch errata boolean table
-def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
+def fetch_errata(errata: str = 'all', limit: int = 2000, **kwargs):
+    debug = kwargs.get('debug', False)
     errata = errata.lower()
     valid = {'name', 'type', 'all', 'both'}
     if errata not in valid:
@@ -931,7 +968,7 @@ def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
         query=query,
         step=limit,
         limit=limit,
-        debug=debug
+        **kwargs
     )
     errata_df = errata_df.set_index('Name').dropna()
     print(f'{len(errata_df)} results\n')
@@ -940,7 +977,7 @@ def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
 
 # Sets
 ## Get title of set list pages
-def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
+def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000, **kwargs):
     valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -951,13 +988,15 @@ def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
         condition,
         query='|?Modification date',
         step=limit,
-        limit=limit
+        limit=limit, 
+        **kwargs
     )
 
     return df
 
 ## Fetch set lists from page titles
-def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
+def fetch_set_lists(titles, **kwargs):  # Separate formating function
+    debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
 
@@ -968,6 +1007,8 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     error = 0
 
     response = requests.get(f'{base_url}{revisions_query_action}{titles}', headers=http_headers)
+    if debug:
+        print(response.url)
     json = response.json()
     contents = json['query']['pages'].values()
     
@@ -1073,8 +1114,9 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
     return set_lists_df, success, error
 
 ## Fecth all set lists
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    sets = fetch_set_list_pages(cg) # Get list of sets
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
+    debug = kwargs.get('debug', False)
+    sets = fetch_set_list_pages(cg, **kwargs) # Get list of sets
     keys = sets['Page name']
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
@@ -1090,7 +1132,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
         first = i*step
         last = (i+1)*step
 
-        set_lists_df, success, error = fetch_set_lists(keys[first:last], debug=debug)
+        set_lists_df, success, error = fetch_set_lists(keys[first:last], **kwargs)
         set_lists_df = set_lists_df.merge(sets, on='Page name', how='left').drop('Page name', axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success+=success
@@ -1103,7 +1145,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
     return all_set_lists_df
 
 ## Fetch set info for list of sets
-def fetch_set_info(sets, extra_info: list = [], step: int = 15, debug: bool = False):
+def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
+    debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
         

@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+
+__author__ = "Guilherme Ruiz"
+__copyright__ = "Copyright 2023, Yugiquery"
+__license__ = "MIT"
+__version__ = "1.0.0"
+__maintainer__ = "Guilherme Ruiz"
+__email__ = "57478888+guigoruiz1@users.noreply.github.com"
+__status__ = "Development"
+
 import os
 import glob
 import random

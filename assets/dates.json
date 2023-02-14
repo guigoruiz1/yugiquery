@@ -1,1 +1,80 @@
-{"ZEXAL": {"type": "series", "begin": "11/04/2011", "end": "23/03/2014"}, "5D's": {"type": "series", "begin": "02/04/2008", "end": "30/03/2011"}, "ARC-V": {"type": "series", "begin": "06/04/2014", "end": "26/03/2017"}, "Capsule Monsters": {"type": "spinoff", "begin": "09/11/2006", "end": "25/11/2006"}, "GO RUSH!!": {"type": "series", "begin": "03/04/2022", "end": null}, "GX": {"type": "series", "begin": "06/10/2004", "end": "26/03/2008"}, "SEVENS": {"type": "series", "begin": "04/04/2020", "end": "27/03/2022"}, "VRAINS": {"type": "series", "begin": "10/03/2017", "end": "05/11/2019"}, "Duel Monsters": {"type": "series", "begin": "18/04/2000", "end": "29/09/2004"}, "First Series": {"type": "series", "begin": "04/04/1998", "end": "10/10/1998"}, "Official Rules": {"type": "rules", "begin": "23/01/1999", "end": "01/03/2000"}, "Expert Rules": {"type": "rules", "begin": "05/05/1999", "end": "01/03/2000"}, "New Expert Rules": {"type": "rules", "begin": "02/03/2000", "end": "14/03/2008"}, "Master Rules 1": {"type": "rules", "begin": "15/03/2008", "end": "18/03/2011"}, "Master Rules 2": {"type": "rules", "begin": "19/03/2011", "end": "20/03/2014"}, "Master Rules 3": {"type": "rules", "begin": "21/03/2014", "end": "24/03/2017"}, "Master Rules 4": {"type": "rules", "begin": "25/03/2017", "end": "31/03/2020"}, "Master Rules 5": {"type": "rules", "begin": "01/04/2020", "end": null}}
+{
+    "series": {
+        "ZEXAL": {
+            "begin": "11/04/2011",
+            "end": "23/03/2014"
+        },
+        "5D's": {
+            "begin": "02/04/2008",
+            "end": "30/03/2011"
+        },
+        "ARC-V": {
+            "begin": "06/04/2014",
+            "end": "26/03/2017"
+        },
+        "GO RUSH!!": {
+            "begin": "03/04/2022",
+            "end": null
+        },
+        "GX": {
+            "begin": "06/10/2004",
+            "end": "26/03/2008"
+        },
+        "SEVENS": {
+            "begin": "04/04/2020",
+            "end": "27/03/2022"
+        },
+        "VRAINS": {
+            "begin": "10/03/2017",
+            "end": "05/11/2019"
+        },
+        "Duel Monsters": {
+            "begin": "18/04/2000",
+            "end": "29/09/2004"
+        },
+        "First Series": {
+            "begin": "04/04/1998",
+            "end": "10/10/1998"
+        }
+    },
+    "rules": {
+        "Official Rules": {
+            "begin": "23/01/1999",
+            "end": "01/03/2000"
+        },
+        "Expert Rules": {
+            "begin": "05/05/1999",
+            "end": "01/03/2000"
+        },
+        "New Expert Rules": {
+            "begin": "02/03/2000",
+            "end": "14/03/2008"
+        },
+        "Master Rules 1": {
+            "begin": "15/03/2008",
+            "end": "18/03/2011"
+        },
+        "Master Rules 2": {
+            "begin": "19/03/2011",
+            "end": "20/03/2014"
+        },
+        "Master Rules 3": {
+            "begin": "21/03/2014",
+            "end": "24/03/2017"
+        },
+        "Master Rules 4": {
+            "begin": "25/03/2017",
+            "end": "31/03/2020"
+        },
+        "Master Rules 5": {
+            "begin": "01/04/2020",
+            "end": null
+        }
+    },
+    "spinoff": {
+        "Capsule Monsters": {
+            "begin": "09/11/2006",
+            "end": "25/11/2006"
+        }
+    }
+}
