@@ -255,7 +255,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         df['Archseries'] = input_df['Archseries'].apply(extract_fulltext,multiple=True)
     if 'Card image' in input_df.columns:
         df['Card image'] = input_df['Card image'].apply(extract_fulltext)
-    
+    if 'Character' in input_df.columns:
+        df['Character'] = input_df['Character'].apply(extract_fulltext)
+        
     # Set specific columns
     if 'Series' in input_df.columns:
         df['Series'] = input_df['Series'].apply(extract_fulltext)
@@ -263,7 +265,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         df['Set type'] = input_df['Set type'].apply(extract_fulltext)
     if 'Cover card' in input_df.columns:
         df['Cover card'] = input_df['Cover card'].apply(extract_fulltext,multiple=True)
-        
+    
     # Category
     if 'Category'in input_df.columns:
         df['Category'] = input_df['Category'].apply(extract_fulltext,multiple=True)
@@ -594,10 +596,10 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _image_URL: bool = False, _category: bool = False):
+def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _character = False, _date: bool = True, _image_URL: bool = False, _category: bool = False):
     if default is not None:
         default = default.lower() 
-    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', None}
+    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', 'speed', None}
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default=='monster':
@@ -648,7 +650,15 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             _edited_artwork = False,
             _alternate_artwork = False,
             _ocg = False,
-            _speed = True
+            _speed = True,
+            _character = True
+        )
+    elif default=='speed':
+        return card_query(
+            _speed=True, 
+            _scale=False, 
+            _link=False, 
+            _arrows=False
         )
     else:
         search_string = '|?English%20name=Name'
@@ -690,13 +700,19 @@ def card_query(default: str = None, _password: bool = True, _card_type: bool = T
             search_string += '|?TCG%20status'
         if _ocg:
             search_string += '|?OCG%20status'
-        if _speed:
-            search_string += '|?TCG%20Speed%20Duel%20status'
         if _date:
             search_string += '|?Modification%20date'
         if _image_URL:
             search_string += '|?Card%20image' 
-        if _category: # Deprecated - Use for debuging
+            
+        # Speed duel specific
+        if _speed:
+            search_string += '|?TCG%20Speed%20Duel%20status'
+        if _character:
+            search_string += '|?Character'
+        
+        # Deprecated - Use for debuging
+        if _category:
             search_string += '|?category' 
 
         return search_string
@@ -779,6 +795,8 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
             i+=1
 
     return df
+
+###### Cards ######
 
 # Fetch spell or trap cards
 def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, **kwargs):
@@ -863,6 +881,8 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
 
     return monster_df
 
+###### Non deck cards ###### 
+
 # Fetch token cards
 def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading tokens')
@@ -903,6 +923,31 @@ def fetch_counter(counter_query: str = None, limit: int = 5000, **kwargs):
 
     return counter_df
 
+###### Alternative formats ######
+
+# Fetch speed duel cards
+def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
+
+    print(f'Downloading Speed duel cards')
+    if speed_query is None:
+        speed_query = card_query(default='speed')
+        
+    speed_df = fetch_properties(
+        '[[Category:TCG Speed Duel cards]]', 
+        speed_query, 
+        step=step, 
+        limit=limit,
+        **kwargs
+    )
+
+    if debug:
+        print('- Total')
+
+    print(f'{len(speed_df.index)} results\n')
+
+    return speed_df
+
 # Fetch skill cards
 def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
@@ -923,7 +968,7 @@ def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
 
     return skill_df
 
-# Fetch skill cards
+# Fetch rush duel cards
 def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
     debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
@@ -943,6 +988,8 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kw
     print(f'{len(rush_df.index)} results\n')
 
     return rush_df
+
+### Extra properties ###
 
 # Fetch errata boolean table
 def fetch_errata(errata: str = 'all', limit: int = 2000, **kwargs):
@@ -975,8 +1022,9 @@ def fetch_errata(errata: str = 'all', limit: int = 2000, **kwargs):
 
     return errata_df
 
-# Sets
-## Get title of set list pages
+###### Sets ######
+
+# Get title of set list pages
 def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000, **kwargs):
     valid_cg = cg.value
     if valid_cg=='CG':
@@ -994,7 +1042,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000, **kwargs):
 
     return df
 
-## Fetch set lists from page titles
+# Fetch set lists from page titles
 def fetch_set_lists(titles, **kwargs):  # Separate formating function
     debug = kwargs.get('debug', False)
     if debug:
@@ -1113,7 +1161,7 @@ def fetch_set_lists(titles, **kwargs):  # Separate formating function
 
     return set_lists_df, success, error
 
-## Fecth all set lists
+# Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
     debug = kwargs.get('debug', False)
     sets = fetch_set_list_pages(cg, **kwargs) # Get list of sets
@@ -1144,7 +1192,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
 
     return all_set_lists_df
 
-## Fetch set info for list of sets
+# Fetch set info for list of sets
 def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
     debug = kwargs.get('debug', False)
     if debug:
