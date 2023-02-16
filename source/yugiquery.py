@@ -322,16 +322,18 @@ def extract_category_bool(x):
     
     return np.nan
 
+# Check if a row contains true bools for 'alternat artworks' or 'edited artworks' and form a tuple
 def format_artwork(row: pd.Series):
+    print(row)
     result = tuple()
     index_str = row.index.str 
     if index_str.endswith('alternate artworks').any():
-        col_name = row.index[index_str.endswith('alternate artworks')][0]
-        if row[col_name]:
+        matching_cols = row.index[index_str.endswith('alternate artworks')]
+        if row[matching_cols].any():
             result += ('Alternate',)
     if index_str.endswith('edited artworks').any(): 
-        col_name = row.index[index_str.endswith('edited artworks')][0]
-        if row[col_name]:
+        matching_cols = row.index[index_str.endswith('edited artworks')]
+        if row[matching_cols].any():
             result += ('Edited',)
     if result == tuple():
         return np.nan
@@ -638,7 +640,7 @@ def card_query(default: str = None, *args, **kwargs):
             '_def': False, 
             '_scale': False, 
             '_link': False, 
-            '_arrows': False
+            '_arrows': False,
         })
     elif default=='counter':
         prop_bool.update({
@@ -652,7 +654,7 @@ def card_query(default: str = None, *args, **kwargs):
             '_def': False, 
             '_scale': False, 
             '_link': False, 
-            '_arrows': False
+            '_arrows': False,
         })
     elif default=='skill':
         prop_bool.update({
@@ -672,14 +674,14 @@ def card_query(default: str = None, *args, **kwargs):
             '_alternate_artwork': False,
             '_ocg': False,
             '_speed': True,
-            '_character': True
+            '_character': True,
         })
     elif default=='speed':
         prop_bool.update({
             '_speed': True, 
             '_scale': False, 
             '_link': False, 
-            '_arrows': False
+            '_arrows': False,
         })
     elif default=='rush':
         prop_bool.update({
@@ -691,6 +693,10 @@ def card_query(default: str = None, *args, **kwargs):
             '_tcg': False,
             '_ocg': False,
             '_maximum_atk': True,
+             '_edited_artwork': False,
+            '_alternate_artwork': False,
+            '_rush_alt_artwork': True,
+            '_rush_edited_artwork': True,
         })
 
     # Card properties dictionary
@@ -720,7 +726,8 @@ def card_query(default: str = None, *args, **kwargs):
         '_speed': '|?TCG%20Speed%20Duel%20status',
         '_character': '|?Character', 
         # Rush duel specific
-        '_rush_alt_artwork': '|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks%20',
+        '_rush_alt_artwork': '|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks',
+        '_rush_edited_artwork': '|?Category:Rush%20Duel%20cards%20with%20edited%20artworks',
         '_maximum_atk': '|?MAXIMUM%20ATK',
         # Deprecated - Use for debuging
         '_category': '|?category'
