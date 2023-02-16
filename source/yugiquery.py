@@ -535,7 +535,7 @@ def update_index(): # Handle paths properly
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
-        with open(os.path.join(PARENT_DIR,'/assets/index.md')) as f:
+        with open(os.path.join(PARENT_DIR,'assets/index.md')) as f:
             readme = f.read()
             reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
             rows=[]
