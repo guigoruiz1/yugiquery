@@ -826,6 +826,8 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
             print(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc')
         
         response = requests.get(url, headers=http_headers)
+        if response.status_code!=200:
+            print(response.text)
         result = extract_results(response)
         formatted_df = format_df(result, include_all=include_all)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
