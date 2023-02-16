@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 __author__ = "Guilherme Ruiz"
 __copyright__ = "Copyright 2023, Yugiquery"
 __license__ = "MIT"
@@ -6,34 +8,40 @@ __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
 
-
 ###########
 # Imports #
 ###########
+
+import os
+import subprocess
+import glob
+import string
+import calendar
+import warnings
+import colorsys
+import logging
+import io
+import hashlib
+import json
+import re
+import socket
+from enum import Enum
+from datetime import datetime, timezone
+from textwrap import wrap
+
+# Shorthand variables
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 
 loop = 0
 while True:
     try:
         import git
-        import subprocess
         import ipynbname
-        import glob
-        import os
-        import string
-        import calendar
-        import warnings
-        import colorsys
-        import logging
-        import io
         import nbformat
-        import hashlib
         import asyncio
         import aiohttp
         import requests
-        import socket
-        import json
-        import re
-        from enum import Enum
         import pandas as pd
         import numpy as np
         import seaborn as sns
@@ -46,10 +54,8 @@ while True:
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from matplotlib.ticker import AutoMinorLocator, MaxNLocator, FixedLocator
         from matplotlib_venn import venn2
-        from datetime import datetime, timezone
         from ast import literal_eval
         from IPython.display import Markdown
-        from textwrap import wrap
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
         from dotenv import dotenv_values
@@ -65,10 +71,8 @@ while True:
             quit()
         
         loop+=1   
-        import subprocess
         print("Missing required packages. Trying to install now...")
-        subprocess.call(['sh', './install.sh'])
-
+        subprocess.call(['sh', os.path.join(SCRIPT_DIR,'./install.sh')])
 
 ###########      
 # Helpers #
@@ -92,7 +96,8 @@ def load_secrets(secrets_file, requested_secrets=[], required=False):
     
     else:
         raise FileNotFoundError(f'No such file or directory: {secrets_file}')
-        
+
+# Dictionaries
 def load_json(json_file):
     try:
         with open(json_file, 'r') as file:
@@ -101,7 +106,7 @@ def load_json(json_file):
     except:
         print(f'Error loading {json_file}. Ignoring...')
         return {}
-    
+
 # Validators
 def md5(file_name):
     hash_md5 = hashlib.md5()
@@ -128,10 +133,10 @@ arrows_dict = {
 }
 
 # Images
-async def download_images(file_name: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
+async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
     # Prepare URL from file names
-    file_name_md5 = file_name.apply(md5)
-    urls = file_name_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_name
+    file_names_md5 = file_names.apply(md5)
+    urls = file_names_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_names
     
     # Download image from URL
     async def download_image(session, url, save_folder, semaphore, pbar):
@@ -141,7 +146,15 @@ async def download_images(file_name: pd.DataFrame, save_folder: str = "../images
                 if response.status != 200:
                     raise ValueError(f"URL {url} returned status code {response.status}")
                 total_size = int(response.headers.get("Content-Length", 0))
-                progress = tqdm(unit="B", total=total_size, unit_scale=True, unit_divisor=1024, desc=save_name, leave=False)
+                progress = tqdm(
+                    unit="B", 
+                    total=total_size, 
+                    unit_scale=True, 
+                    unit_divisor=1024, 
+                    desc=save_name, 
+                    leave=False, 
+                    disable=('PM_IN_EXECUTION' in os.environ)
+                )
                 if os.path.isfile(f'{save_folder}/{save_name}'):
                     os.remove(f'{save_folder}/{save_name}')
                 while True:
@@ -159,7 +172,7 @@ async def download_images(file_name: pd.DataFrame, save_folder: str = "../images
     async with aiohttp.ClientSession(base_url='https://ms.yugipedia.com/', headers=http_headers) as session:
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
-        with tqdm(total=len(urls), unit_scale=True, unit="file") as pbar:
+        with tqdm(total=len(urls), unit_scale=True, unit="file", disable=('PM_IN_EXECUTION' in os.environ)) as pbar:
             tasks = [download_image(session, url, save_folder, semaphore, pbar) for url in urls]
             for task in asyncio.as_completed(tasks):
                 pbar.update()
@@ -167,7 +180,7 @@ async def download_images(file_name: pd.DataFrame, save_folder: str = "../images
 
 # Data management
 def cleanup_data(dry_run: bool = False):
-    file_list = glob.glob('../data/*')
+    file_list = glob.glob(os.path.join(PARENT_DIR,'data/*'))
     df = pd.DataFrame(file_list, columns=['file'])
     df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
     df['group'] = df['file'].apply(lambda x: x.split('/')[-1]).apply(lambda x: x[:x.rindex('_')])
@@ -209,77 +222,87 @@ def extract_fulltext(x, multiple=False):
 def format_df(input_df: pd.DataFrame, include_all: bool = False):
     df = pd.DataFrame(index=input_df.index)
     
-    # Cards
-    if 'Name' in input_df.columns:
-        df['Name'] = input_df['Name'].dropna().apply(extract_fulltext)
-    if 'Password' in input_df.columns:
-        df['Password'] = input_df['Password'].dropna().apply(extract_fulltext)
-    if 'Card type' in input_df.columns:
-        df['Card type'] = input_df['Card type'].dropna().apply(extract_fulltext)
-    if 'Property' in input_df.columns:
-        df['Property'] = input_df['Property'].dropna().apply(extract_fulltext)
-    if 'Primary type' in input_df.columns:
-        df['Primary type'] = input_df['Primary type'].dropna().apply(extract_fulltext,multiple=True).apply(extract_primary_type)
-    if 'Secondary type' in input_df.columns:
-        df['Secondary type'] = input_df['Secondary type'].dropna().apply(extract_fulltext,multiple=True)
-    if 'Attribute' in input_df.columns:
-        df['Attribute'] = input_df['Attribute'].dropna().apply(extract_fulltext)
-    if 'Monster type' in input_df.columns:
-        df['Monster type'] = input_df['Monster type'].dropna().apply(extract_fulltext)
-    if 'Level/Rank' in input_df.columns:
-        df['Level/Rank'] = input_df['Level/Rank'].dropna().apply(extract_fulltext)
-    if 'ATK' in input_df.columns:
-        df['ATK'] = input_df['ATK'].dropna().apply(extract_fulltext)
-    if 'DEF' in input_df.columns:
-        df['DEF'] = input_df['DEF'].dropna().apply(extract_fulltext)
-    if 'Pendulum Scale' in input_df.columns:
-        df['Pendulum Scale'] = input_df['Pendulum Scale'].dropna().apply(extract_fulltext)
-    if 'Link' in input_df.columns:
-        df['Link'] = input_df['Link'].dropna().apply(extract_fulltext)
+    # Column name: multiple values
+    individual_cols = {
+        'Name': False,
+        'Password': False,
+        'Card type': False,
+        'Property': False,
+        'Card image': False,
+        'Archseries': True,
+        'Category': True,
+        # Monster card specific columns
+        'Attribute': False,
+        'Primary type': True,
+        'Secondary type': True,
+        'Monster type': False,
+        'Effect type': True,
+        'Level/Rank': False,
+        'DEF': False,
+        'Pendulum Scale': False,
+        'Link': False,
+        # Skill card specific columns
+        'Character': False,
+        # Rush duel specific columns
+        'Misc': True,
+        # Set specific columns
+        'Series': False,
+        'Set type': False,
+        'Cover card': True,
+    }
+    for col, multi in individual_cols.items():
+        if col in input_df.columns:
+            df[col] = input_df[col].apply(extract_fulltext, multiple=multi)
+            # Primary type classification
+            if col == 'Primary type':
+                df[col] = df[col].apply(extract_primary_type)
+            # Rush specific - Separate in its own function
+            if col == 'Misc':
+                df['Legend'] = df[col].apply(lambda x: "Legend Card" in x if x is not np.nan else False)
+                df['Maximum mode'] = df[col].apply(lambda x: "Requires Maximum Mode" in x if x is not np.nan else False)
+                if not include_all:
+                    df.drop(col, axis=1, inplace=True)
+   
+    # Link arrows styling
     if 'Link Arrows' in input_df.columns:
-        df['Link Arrows'] = input_df['Link Arrows'].dropna().apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
-    if 'Effect type' in input_df.columns:
-        df['Effect type'] = input_df['Effect type'].dropna().apply(extract_fulltext,multiple=True)
-    if 'Archseries' in input_df.columns:
-        df['Archseries'] = input_df['Archseries'].dropna().apply(extract_fulltext,multiple=True)
-    if 'Card image' in input_df.columns:
-        df['Card image'] = input_df['Card image'].apply(extract_fulltext)
-    
-    # Sets
-    if 'Series' in input_df.columns:
-        df['Series'] = input_df['Series'].apply(extract_fulltext)
-    if 'Set type' in input_df.columns:
-        df['Set type'] = input_df['Set type'].apply(extract_fulltext)
-    if 'Cover card' in input_df.columns:
-        df['Cover card'] = input_df['Cover card'].apply(extract_fulltext,multiple=True)
+        df['Link Arrows'] = input_df['Link Arrows'].apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
         
-    # Category
-    if 'Category'in input_df.columns:
-        df['Category'] = input_df['Category'].dropna().apply(extract_fulltext,multiple=True)
+    # Columns with matching name pattern: extraction function
+    filter_cols = {
+        'ATK': True, 
+        ' status': True,
+        'Page ': False
+    }
+    for col, extract in filter_cols.items():
+        col_matches = input_df.filter(like=col).columns
+        if len(col_matches)>0:
+            df = df.join(input_df[col_matches].applymap(extract_fulltext if extract else lambda x: x))
 
-    # Status columns
-    if len(input_df.filter(like=' status').columns)>0:
-        df = df.join(input_df.filter(like=' status').applymap(extract_fulltext))
-        
-    # Artworks columns
-    if len(input_df.filter(like=' artwork').columns)>0:
-        df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
-    
-    # Errata columns
-    if len(input_df.filter(like=' errata').columns)>0:
-        df['Errata'] = input_df.filter(like=' errata').applymap(extract_category_bool).apply(format_errata, axis=1)
-    
-    # Page columns
-    if len(input_df.filter(like='Page ').columns)>0:
-        df = df.join(input_df.filter(like='Page '))
-    
-    # Date columns    
+    # Category boolean columns for merging into tuple
+    category_bool_cols = {
+        'Artwork': ' artwork',
+        'Errata': ' errata'
+    }
+    for col, cat in category_bool_cols.items():
+        col_matches = input_df.filter(like=cat).columns
+        if len(input_df.filter(like=cat).columns)>0:
+            cat_bool = input_df[col_matches].applymap(extract_category_bool)
+            # Artworks extraction
+            if col=='Artwork':
+                df[col] = cat_bool.apply(format_artwork, axis=1)
+            # Errata extraction
+            elif col=='Errata':
+                df[col] = cat_bool.apply(format_errata, axis=1)
+            else:
+                df[col] = cat_bool
+
+    # Date columns concatenation
     if len(input_df.filter(like=' date').columns)>0:
         df = df.join(input_df.filter(like=' date').applymap(lambda x:pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
     
     # Include other unspecified columns
     if include_all:
-        df = df.join(input_df[input_df.columns.difference(df.columns)])
+        df = df.join(input_df[input_df.columns.difference(df.columns)].applymap(extract_fulltext,multiple=True))
         
     return df
 
@@ -306,13 +329,17 @@ def extract_category_bool(x):
     
     return np.nan
 
+# Check if a row contains true bools for 'alternat artworks' or 'edited artworks' and form a tuple
 def format_artwork(row: pd.Series):
     result = tuple()
-    if 'OCG/TCG cards with alternate artworks' in row: 
-        if row['OCG/TCG cards with alternate artworks']:
+    index_str = row.index.str 
+    if index_str.endswith('alternate artworks').any():
+        matching_cols = row.index[index_str.endswith('alternate artworks')]
+        if row[matching_cols].any():
             result += ('Alternate',)
-    if 'OCG/TCG cards with edited artworks' in row: 
-        if row['OCG/TCG cards with edited artworks']:
+    if index_str.endswith('edited artworks').any(): 
+        matching_cols = row.index[index_str.endswith('edited artworks')]
+        if row[matching_cols].any():
             result += ('Edited',)
     if result == tuple():
         return np.nan
@@ -345,10 +372,10 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bo
 ## Sets
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ['Set', 'Region']]):
-        regions_dict = load_json('../assets/regions.json')
+        regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
         input_df['Release'] = pd.to_datetime(input_df['Release'].astype(str), errors='coerce') # Bug fix
-        input_df = input_df.merge(input_info_df.loc[:,:'Modification date'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
+        input_df = input_df.merge(input_info_df.loc[:,:'Cover card'], left_on = 'Set', right_index = True, how = 'outer', indicator = True).reset_index(drop=True) 
         print('Set properties merged')
     else:
         print('Error! No \"Set\" and/or \"Region\" column(s) to join set info')
@@ -425,12 +452,23 @@ def run_notebooks(which='all', progress_handler=None):
     # Initialize iterators
     try:
         required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
-        secrets_file = '../assets/secrets.env'
+        secrets_file = os.path.join(PARENT_DIR,'assets/secrets.env')
         secrets = load_secrets(secrets_file, required_secrets, required=True)
         from tqdm.contrib.discord import tqdm as discord_tqdm
-        iterator = discord_tqdm(reports, desc="Completion", unit='report', unit_scale=True, token=secrets['DISCORD_TOKEN'], channel_id=secrets['DISCORD_CHANNEL_ID'])
+        iterator = discord_tqdm(
+            reports, 
+            desc="Completion", 
+            unit='report', 
+            unit_scale=True, 
+            token=secrets['DISCORD_TOKEN'], 
+            channel_id=secrets['DISCORD_CHANNEL_ID']
+        )
     except:
-        iterator = tqdm(reports, desc="Completion", unit='report')
+        iterator = tqdm(
+            reports, 
+            desc="Completion", 
+            unit='report'
+        )
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
@@ -468,12 +506,14 @@ def run_notebooks(which='all', progress_handler=None):
             external_pbar.set_postfix(report=report)
 
         # execute the notebook with papermill
+        os.environ['PM_IN_EXECUTION'] = 'True'
         pm.execute_notebook(
             report,
             report,
             log_output=True,
             progress_bar=True,
         );
+        os.environ.pop('PM_IN_EXECUTION', None)
 
     # Close the iterator
     iterator.close()
@@ -495,18 +535,20 @@ def update_index(): # Handle paths properly
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
-        with open(f'../assets/index.md') as f:
+        with open(os.path.join(PARENT_DIR,'/assets/index.md')) as f:
             readme = f.read()
-            reports = sorted(glob.glob('../*.html'))
+            reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
+            rows=[]
             for report in reports:
-                readme = readme.replace(f'@{os.path.basename(report)[:-5].upper()}_TIMESTAMP@', pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime("%d/%m/%Y %H:%M %Z"))
-
+                rows.append(f"[{os.path.basename(report).rstrip('.html')}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
+                
+            readme = readme.replace(f'@REPORT_|_TIMESTAMP@', ' |\n| '.join(rows))
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-            with open(f'../{index_file_name}', 'w') as o:
+            with open(os.path.join(PARENT_DIR,index_file_name), 'w+') as o:
                 print(readme, file=o)
 
         try:
-            repo = git.Repo(f'../')
+            repo = git.Repo(PARENT_DIR)
             repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
         except:
             print('Failed to commit to git')
@@ -522,7 +564,7 @@ def header(name: str = None):
         except:
             name = ''
 
-    with open('../assets/header.md') as f:
+    with open(os.path.join(PARENT_DIR,'assets/header.md')) as f:
         header = f.read()
         header = header.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
         header = header.replace('@NOTEBOOK@', name)
@@ -530,7 +572,7 @@ def header(name: str = None):
 
 # Generate Markdown footer
 def footer():
-    with open('../assets/footer.md') as f:
+    with open(os.path.join(PARENT_DIR,'assets/footer.md')) as f:
         footer = f.read()
         footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
         return Markdown(footer)
@@ -561,112 +603,163 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _rush: bool = False, _date: bool = True, _category: bool = False, _image_URL: bool = False):
+def card_query(default: str = None, *args, **kwargs):
+     # Default card query
+    prop_bool = {
+        '_password':True, 
+        '_card_type':True, 
+        '_property':True, 
+        '_primary':True, 
+        '_secondary':True, 
+        '_attribute':True, 
+        '_monster_type':True, 
+        '_stars':True,
+        '_atk':True, 
+        '_def':True, 
+        '_scale':True, 
+        '_link':True, 
+        '_arrows':True,
+        '_effect_type':True, 
+        '_archseries':True, 
+        '_alternate_artwork':True, 
+        '_edited_artwork':True, 
+        '_tcg':True, 
+        '_ocg':True, 
+        '_date':True, 
+    }
+    
     if default is not None:
         default = default.lower() 
-    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', None}
+    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', 'speed', 'rush', None}
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default=='monster':
-        return card_query(
-            _property = False
-        )
+        prop_bool.update({'_property': False})
     elif default=='st' or default=='trap' or default=='spell':
-        return card_query(
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False
-        )
+        prop_bool.update({
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+        })
     elif default=='counter':
-        return card_query(
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _property = False,
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False
-        )
+        prop_bool.update({
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_property': False,
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+        })
     elif default=='skill':
-        return card_query(
-            _password = False,
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False,
-            _effect_type = False,
-            _edited_artwork = False,
-            _alternate_artwork = False,
-            _ocg = False,
-            _speed = True
-        )
-    else:
-        search_string = '|?English%20name=Name'
-        if _password:
-            search_string += '|?Password'
-        if _card_type:
-            search_string += '|?Card%20type'
-        if _property:    
-            search_string += '|?Property'
-        if _primary:
-            search_string += '|?Primary%20type'
-        if _secondary:
-            search_string += '|?Secondary%20type'
-        if _attribute:
-            search_string += '|?Attribute'
-        if _monster_type:
-            search_string += '|?Type=Monster%20type'
-        if _stars:
-            search_string += '|?Stars%20string=Level%2FRank%20'
-        if _atk:
-            search_string += '|?ATK%20string=ATK'
-        if _def:
-            search_string += '|?DEF%20string=DEF'
-        if _scale:
-            search_string += '|?Pendulum%20Scale'
-        if _link:
-            search_string += '|?Link%20Rating=Link'
-        if _arrows:
-            search_string += '|?Link%20Arrows'
-        if _effect_type:
-            search_string += '|?Effect%20type'
-        if _archseries:
-            search_string += '|?Archseries'
-        if _alternate_artwork:
-            search_string += '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks'
-        if _edited_artwork:
-            search_string += '|?Category:OCG/TCG%20cards%20with%20edited%20artworks'
-        if _tcg:
-            search_string += '|?TCG%20status'
-        if _ocg:
-            search_string += '|?OCG%20status'
-        if _speed:
-            search_string += '|?TCG%20Speed%20Duel%20status'
-        if _date:
-            search_string += '|?Modification%20date'
-        if _image_URL:
-            search_string += '|?Card%20image' 
-        if _category: # Deprecated - Use for debuging
-            search_string += '|?category' 
+        prop_bool.update({
+            '_password': False,
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+            '_effect_type': False,
+            '_edited_artwork': False,
+            '_alternate_artwork': False,
+            '_ocg': False,
+            '_speed': True,
+            '_character': True,
+        })
+    elif default=='speed':
+        prop_bool.update({
+            '_speed': True, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+        })
+    elif default=='rush':
+        prop_bool.update({
+            '_password': False,
+            '_secondary': False,
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+            '_tcg': False,
+            '_ocg': False,
+            '_maximum_atk': True,
+             '_edited_artwork': False,
+            '_alternate_artwork': False,
+            '_rush_alt_artwork': True,
+            '_rush_edited_artwork': True,
+            '_misc': True,
+        })
 
-        return search_string
+    # Card properties dictionary
+    prop_dict = {
+        '_password': '|?Password', 
+        '_card_type': '|?Card%20type', 
+        '_property': '|?Property', 
+        '_primary': '|?Primary%20type', 
+        '_secondary': '|?Secondary%20type', 
+        '_attribute': '|?Attribute', 
+        '_monster_type': '|?Type=Monster%20type', 
+        '_stars': '|?Stars%20string=Level%2FRank%20',
+        '_atk': '|?ATK%20string=ATK', 
+        '_def': '|?DEF%20string=DEF', 
+        '_scale': '|?Pendulum%20Scale', 
+        '_link': '|?Link%20Rating=Link', 
+        '_arrows': '|?Link%20Arrows',
+        '_effect_type': '|?Effect%20type', 
+        '_archseries': '|?Archseries', 
+        '_alternate_artwork': '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks', 
+        '_edited_artwork': '|?Category:OCG/TCG%20cards%20with%20edited%20artworks', 
+        '_tcg': '|?TCG%20status', 
+        '_ocg': '|?OCG%20status', 
+        '_date': '|?Modification%20date', 
+        '_image_URL': '|?Card%20image',
+        # Speed duel specific
+        '_speed': '|?TCG%20Speed%20Duel%20status',
+        '_character': '|?Character', 
+        # Rush duel specific
+        '_rush_alt_artwork': '|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks',
+        '_rush_edited_artwork': '|?Category:Rush%20Duel%20cards%20with%20edited%20artworks',
+        '_maximum_atk': '|?MAXIMUM%20ATK',
+        # Deprecated - Use for debuging
+        '_misc' : '|?Misc',
+        '_category': '|?category',
+    } 
+    # Change default values to kwargs values
+    prop_bool.update(kwargs)
+    # Initialize string
+    search_string = '|?English%20name=Name'
+    # Iterate default plus kwargs items
+    for arg, value in prop_bool.items():
+        # If property is true
+        if value:
+            # If property in the dictionary, get its value
+            if arg in prop_dict.keys():
+                search_string += f"{prop_dict[arg]}"
+            # If property is not in the dictionary, assume generic property
+            else:
+                print(f"Unrecognized property {arg}. Assuming |?{up.quote(arg)}.")
+                search_string += f"|?{up.quote(arg)}"
+                
+    for arg in args:
+        search_string+=f"|?{up.quote(arg)}"
+
+    return search_string
 
 # Check if API is live and responsive    
 def check_API_status():
@@ -691,9 +784,8 @@ def check_API_status():
         return False
 
 # Fetch category members - still not used
-def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
-    params = {
-        'cmtitle': category, 
+def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, debug: bool = False):
+    params = { 
         'cmlimit': step, 
         'cmnamespace': namespace 
     }
@@ -703,9 +795,13 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     while True:
         params = params.copy()
         params.update(lastContinue)
-        result = requests.get(f'{base_url}{categorymembers_query_action}', params=params, headers=http_headers).json()
+        response = requests.get(f'{base_url}{categorymembers_query_action}{category}', params=params, headers=http_headers)
+        if debug:
+            print(response.url)
+            
+        result = response.json()
         if 'error' in result:
-            raise Error(result['error'])
+            raise Exception(result['error']['info'])
         if 'warnings' in result:
             print(result['warnings'])
         if 'query' in result:
@@ -717,7 +813,7 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500):
     return all_results
     
 # Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, debug: bool = False):
+def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -731,7 +827,7 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
         
         response = requests.get(url, headers=http_headers)
         result = extract_results(response)
-        formatted_df = format_df(result)
+        formatted_df = format_df(result, include_all=include_all)
         df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
         if debug:
@@ -744,8 +840,11 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
 
     return df
 
+###### Cards ######
+
 # Fetch spell or trap cards
-def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, debug: bool = False):
+def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
     if st not in valid_st:
@@ -764,8 +863,8 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
         concept, 
         st_query, 
         step=step, 
-        limit=limit, 
-        debug=debug
+        limit=limit,
+        **kwargs
     )
 
     if debug:
@@ -776,7 +875,8 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, debug: bool = False):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, **kwargs):
+    debug = kwargs.get('debug', False)
     valid_cg = cg.value
     attributes = [
         'DIVINE', 
@@ -792,7 +892,12 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
         monster_query = card_query(default='monster')
         
     monster_df = pd.DataFrame()
-    iterator = tqdm(attributes, leave = False, unit='attribute')
+    iterator = tqdm(
+        attributes, 
+        leave = False, 
+        unit='attribute', 
+        disable=('PM_IN_EXECUTION' in os.environ)
+    )
     for att in iterator:
         iterator.set_description(att)
         if debug:
@@ -808,7 +913,7 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
             step=step, 
             limit=limit, 
             iterator=iterator, 
-            debug=debug
+            **kwargs
         )
 
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0) 
@@ -820,8 +925,10 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
 
     return monster_df
 
+###### Non deck cards ###### 
+
 # Fetch token cards
-def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
@@ -832,8 +939,8 @@ def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False)
         concept, 
         token_query, 
         step=limit, 
-        limit=limit,  
-        debug=debug
+        limit=limit,
+        **kwargs
     )
     
     print(f'{len(token_df.index)} results\n')
@@ -841,7 +948,7 @@ def fetch_token(token_query: str = None, limit: int = 5000, debug: bool = False)
     return token_df
 
 # Fetch counter cards
-def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_counter(counter_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
@@ -853,18 +960,43 @@ def fetch_counter(counter_query: str = None, limit: int = 5000, debug: bool = Fa
         counter_query, 
         step=limit, 
         limit=limit,  
-        debug=debug
+        **kwargs
     )
 
     print(f'{len(counter_df.index)} results\n')
 
     return counter_df
 
+###### Alternative formats ######
+
+# Fetch speed duel cards
+def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
+
+    print(f'Downloading Speed duel cards')
+    if speed_query is None:
+        speed_query = card_query(default='speed')
+        
+    speed_df = fetch_properties(
+        '[[Category:TCG Speed Duel cards]]', 
+        speed_query, 
+        step=step, 
+        limit=limit,
+        **kwargs
+    )
+
+    if debug:
+        print('- Total')
+
+    print(f'{len(speed_df.index)} results\n')
+
+    return speed_df
+
 # Fetch skill cards
-def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False):
+def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
 
-    concept = f'[[Category:Skill%20Cards]]'
+    concept = f'[[Category:Skill%20Cards]][[Card type::Skill Card]]'
     if skill_query is None:
         skill_query = card_query(default='skill')
 
@@ -872,16 +1004,17 @@ def fetch_skill(skill_query: str = None, limit: int = 5000, debug: bool = False)
         concept, 
         skill_query, 
         step=limit, 
-        limit=limit,  
-        debug=debug
+        limit=limit,   
+        **kwargs
     )
     
     print(f'{len(skill_df.index)} results\n')
 
     return skill_df
 
-# Fetch skill cards
-def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debug: bool = False):
+# Fetch rush duel cards
+def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+    debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
 
     concept = f'[[Category:Rush%20Duel%20cards]]'
@@ -893,15 +1026,18 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, debu
         rush_query, 
         step=step, 
         limit=limit,  
-        debug=debug
+        **kwargs
     )
     
     print(f'{len(rush_df.index)} results\n')
 
     return rush_df
 
+### Extra properties ###
+
 # Fetch errata boolean table
-def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
+def fetch_errata(errata: str = 'all', limit: int = 2000, **kwargs):
+    debug = kwargs.get('debug', False)
     errata = errata.lower()
     valid = {'name', 'type', 'all', 'both'}
     if errata not in valid:
@@ -923,16 +1059,17 @@ def fetch_errata(errata: str = 'all', limit: int = 2000, debug: bool = False):
         query=query,
         step=limit,
         limit=limit,
-        debug=debug
+        **kwargs
     )
     errata_df = errata_df.set_index('Name').dropna()
     print(f'{len(errata_df)} results\n')
 
     return errata_df
 
-# Sets
-## Get title of set list pages
-def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
+###### Sets ######
+
+# Get title of set list pages
+def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000, **kwargs):
     valid_cg = cg.value
     if valid_cg=='CG':
         condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
@@ -941,25 +1078,29 @@ def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000):
 
     df = fetch_properties(
         condition,
-        query='',
+        query='|?Modification date',
         step=limit,
-        limit=limit
+        limit=limit, 
+        **kwargs
     )
 
-    return df['Page name']
+    return df
 
-## Fetch set lists from page titles
-def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
+# Fetch set lists from page titles
+def fetch_set_lists(titles, **kwargs):  # Separate formating function
+    debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
 
     titles = up.quote('|'.join(titles))
-    rarity_dict = load_json('../assets/rarities.json')
-    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])   
+    rarity_dict = load_json(os.path.join(PARENT_DIR,'assets/rarities.json'))
+    set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region', 'Page name'])   
     success = 0
     error = 0
 
     response = requests.get(f'{base_url}{revisions_query_action}{titles}', headers=http_headers)
+    if debug:
+        print(response.url)
     json = response.json()
     contents = json['query']['pages'].values()
     
@@ -975,8 +1116,7 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                             title = argument.value
                 if template.name == 'Set list':
                     set_df = pd.DataFrame(columns = set_lists_df.columns)
-                    if not title:
-                        title = content['title'].split('Lists:')[1]
+                    page_name = content['title']
 
                     region = None
                     rarity = None
@@ -1045,8 +1185,12 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
                         elif qty:
                             set_df['Quantity'] = list_df[3-noabbr].apply(lambda x: x if x is not None else qty)
 
+                    if not title:
+                        title = page_name.split('Lists:')[1]
+                        
                     set_df['Set'] = re.sub(r'\(\w{3}-\w{2}\)\s*$','',title).strip()
                     set_df['Region'] = region.upper() 
+                    set_df['Page name'] = page_name
                     set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
                     success+=1
 
@@ -1061,9 +1205,11 @@ def fetch_set_lists(titles, debug: bool = False):  # Separate formating function
 
     return set_lists_df, success, error
 
-## Fecth all set lists
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
-    keys = fetch_set_list_pages(cg) # Get list of sets
+# Fecth all set lists
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
+    debug = kwargs.get('debug', False)
+    sets = fetch_set_list_pages(cg, **kwargs) # Get list of sets
+    keys = sets['Page name']
 
     all_set_lists_df = pd.DataFrame(columns = ['Set','Card number','Name','Rarity','Print','Quantity','Region'])
     total_success = 0
@@ -1078,7 +1224,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
         first = i*step
         last = (i+1)*step
 
-        set_lists_df, success, error = fetch_set_lists(keys[first:last], debug=debug)
+        set_lists_df, success, error = fetch_set_lists(keys[first:last], **kwargs)
+        set_lists_df = set_lists_df.merge(sets, on='Page name', how='left').drop('Page name', axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success+=success
         total_error+=error
@@ -1089,14 +1236,15 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, debug: bool = False):
 
     return all_set_lists_df
 
-## Fetch set info for list of sets
-def fetch_set_info(sets, step: int = 15, debug: bool = False):
+# Fetch set info for list of sets
+def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
+    debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
         
-    regions_dict = load_json('../assets/regions.json')
+    regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
     # Info to ask
-    info = ['Series','Set type','Cover card','Modification date']
+    info = extra_info+['Series','Set type','Cover card']
     # Release to ask
     release = [i+' release date' for i in set(regions_dict.values())]
     # Ask list
@@ -1111,7 +1259,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
         response = requests.get(f'{base_url}{askargs_query_action}{titles}&printouts={ask}', headers=http_headers)
         formatted_response = extract_results(response)
         formatted_response.drop('Page name', axis=1, inplace = True) # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(formatted_response)
+        formatted_df = format_df(formatted_response, include_all = (True if extra_info else True))
         if debug:
             tqdm.write(f'Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors')
             tqdm.write('-------------------------------------------------')
@@ -1131,7 +1279,7 @@ def fetch_set_info(sets, step: int = 15, debug: bool = False):
 ######################
 
 # Colors dictionary to associate to series and cards
-colors_dict = load_json('../assets/colors.json')
+colors_dict = load_json(os.path.join(PARENT_DIR,'assets/colors.json'))
 
 def adjust_lightness(color: str, amount: float = 0.5):
     try:
@@ -1342,8 +1490,7 @@ def run(report = 'all', progress_handler = None):
 
 if __name__ == "__main__":
     # Change working directory to script location
-    path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(path)
+    os.chdir(SCRIPT_PATH)
     # Execute the complete workflow
     run()
     # Exit python
