@@ -243,6 +243,8 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         'Link': False,
         # Skill card specific columns
         'Character': False,
+        # Rush duel specific columns
+        'Misc': True,
         # Set specific columns
         'Series': False,
         'Set type': False,
@@ -254,6 +256,12 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
             # Primary type classification
             if col == 'Primary type':
                 df[col] = df[col].apply(extract_primary_type)
+            # Rush specific - Separate in its own function
+            if col == 'Misc':
+                df['Legend'] = df[col].apply(lambda x: "Legend Card" in x if x is not np.nan else False)
+                df['Maximum mode'] = df[col].apply(lambda x: "Requires Maximum Mode" in x if x is not np.nan else False)
+                if not include_all:
+                    df.drop(col, axis=1, inplace=True)
    
     # Link arrows styling
     if 'Link Arrows' in input_df.columns:
@@ -287,7 +295,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
                 df[col] = cat_bool.apply(format_errata, axis=1)
             else:
                 df[col] = cat_bool
-            input_df.drop(col_matches, axis=1, inplace=True)
 
     # Date columns concatenation
     if len(input_df.filter(like=' date').columns)>0:
@@ -324,7 +331,6 @@ def extract_category_bool(x):
 
 # Check if a row contains true bools for 'alternat artworks' or 'edited artworks' and form a tuple
 def format_artwork(row: pd.Series):
-    print(row)
     result = tuple()
     index_str = row.index.str 
     if index_str.endswith('alternate artworks').any():
@@ -697,6 +703,7 @@ def card_query(default: str = None, *args, **kwargs):
             '_alternate_artwork': False,
             '_rush_alt_artwork': True,
             '_rush_edited_artwork': True,
+            '_misc': True,
         })
 
     # Card properties dictionary
@@ -730,7 +737,8 @@ def card_query(default: str = None, *args, **kwargs):
         '_rush_edited_artwork': '|?Category:Rush%20Duel%20cards%20with%20edited%20artworks',
         '_maximum_atk': '|?MAXIMUM%20ATK',
         # Deprecated - Use for debuging
-        '_category': '|?category'
+        '_misc' : '|?Misc',
+        '_category': '|?category',
     } 
     # Change default values to kwargs values
     prop_bool.update(kwargs)

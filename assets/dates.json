@@ -1,80 +1,162 @@
 {
-    "series": {
-        "ZEXAL": {
-            "begin": "11/04/2011",
-            "end": "23/03/2014"
-        },
-        "5D's": {
-            "begin": "02/04/2008",
-            "end": "30/03/2011"
-        },
-        "ARC-V": {
-            "begin": "06/04/2014",
-            "end": "26/03/2017"
-        },
-        "GO RUSH!!": {
-            "begin": "03/04/2022",
-            "end": null
-        },
-        "GX": {
-            "begin": "06/10/2004",
-            "end": "26/03/2008"
-        },
-        "SEVENS": {
-            "begin": "04/04/2020",
-            "end": "27/03/2022"
-        },
-        "VRAINS": {
-            "begin": "10/03/2017",
-            "end": "05/11/2019"
-        },
-        "Duel Monsters": {
-            "begin": "18/04/2000",
-            "end": "29/09/2004"
-        },
-        "First Series": {
-            "begin": "04/04/1998",
-            "end": "10/10/1998"
-        }
-    },
-    "rules": {
-        "Official Rules": {
-            "begin": "23/01/1999",
-            "end": "01/03/2000"
-        },
-        "Expert Rules": {
-            "begin": "05/05/1999",
-            "end": "01/03/2000"
-        },
-        "New Expert Rules": {
-            "begin": "02/03/2000",
-            "end": "14/03/2008"
-        },
-        "Master Rules 1": {
-            "begin": "15/03/2008",
-            "end": "18/03/2011"
-        },
-        "Master Rules 2": {
-            "begin": "19/03/2011",
-            "end": "20/03/2014"
-        },
-        "Master Rules 3": {
-            "begin": "21/03/2014",
-            "end": "24/03/2017"
-        },
-        "Master Rules 4": {
-            "begin": "25/03/2017",
-            "end": "31/03/2020"
-        },
-        "Master Rules 5": {
-            "begin": "01/04/2020",
-            "end": null
-        }
-    },
-    "spinoff": {
-        "Capsule Monsters": {
-            "begin": "09/11/2006",
-            "end": "25/11/2006"
-        }
-    }
+   "anime":{
+      "series":{
+         "First Series":{
+            "begin":"04/04/1998",
+            "end":"10/10/1998"
+         },
+         "Duel Monsters":{
+            "begin":"18/04/2000",
+            "end":"29/09/2004"
+         },
+         "GX":{
+            "begin":"06/10/2004",
+            "end":"26/03/2008"
+         },
+         "5D's":{
+            "begin":"02/04/2008",
+            "end":"30/03/2011"
+         },
+         "ZEXAL":{
+            "begin":"11/04/2011",
+            "end":"23/03/2014"
+         },
+         "ARC-V":{
+            "begin":"06/04/2014",
+            "end":"26/03/2017"
+         },
+         "VRAINS":{
+            "begin":"10/03/2017",
+            "end":"05/11/2019"
+         },
+         "SEVENS":{
+            "begin":"04/04/2020",
+            "end":"27/03/2022"
+         },
+         "GO RUSH!!":{
+            "begin":"03/04/2022",
+            "end":null
+         }
+      },
+      "spinoffs":{
+         "Capsule Monsters":{
+            "begin":"09/11/2006",
+            "end":"25/11/2006"
+         }
+      },
+      "films":{
+         "Toei film":{
+            "begin":"04/03/1999",
+            "end":"04/03/1999"
+         },
+         "Pyramid of Light":{
+            "begin":"13/08/2004",
+            "end":"13/08/2004"
+         },
+         "3D Bonds Beyond Time":{
+            "begin":"23/01/2010",
+            "end":"23/01/2010"
+         },
+         "The Dark Side of Dimensions":{
+            "begin":"23/04/2016",
+            "end":null
+         }
+      }
+   },
+   "manga":{
+      "series":{
+         "Duel monsters":{
+            "begin":"14/09/1996",
+            "end":"01/03/2004"
+         },
+         "R":{
+            "begin":"01/06/2004",
+            "end":"01/01/2008"
+         },
+         "GX":{
+            "begin":"17/12/2005",
+            "end":"19/03/2011"
+         },
+         "5D's":{
+            "begin":"21/08/2009",
+            "end":"21/01/2015"
+         },
+         "ZEXAL":{
+            "begin":"18/12/2010",
+            "end":"21/06/2015"
+         },
+         "ARC-V":{
+            "begin":"01/08/2015",
+            "end":"01/04/2019"
+         },
+         "GO RUSH!!":{
+            "begin":"21/04/2021",
+            "end":null
+         }
+      },
+      "spinoffs":{
+         "Yu-Gi-Oh! D Team ZEXAL":{
+            "begin":"03/04/2012",
+            "end":"03/04/2014"
+         },
+         "The Strongest Duelist Yuya!!":{
+            "begin":"03/04/2015",
+            "end":"03/08/2017"
+         },
+         "OCG Structures":{
+            "begin":"21/06/2019",
+            "end":null
+         },
+         "Luke! Explosive Supremacy Legend!!":{
+            "begin":"19/09/2020",
+            "end":"19/03/2022"
+         },
+         "Let's Go! Rush Duel!!":{
+            "begin":"04/05/2020",
+            "end":"04/05/2020"
+         },
+         "Rush Duel LP":{
+            "begin":"04/08/2021",
+            "end":"04/08/2021"
+         },
+         "OCG Stories":{
+            "begin":"21/04/2022",
+            "end":null
+         }
+      }
+   },
+   "rules":{
+      "Official Rules":{
+         "begin":"23/01/1999",
+         "end":"01/03/2000"
+      },
+      "Expert Rules":{
+         "begin":"05/05/1999",
+         "end":"01/03/2000"
+      },
+      "New Expert Rules":{
+         "begin":"02/03/2000",
+         "end":"14/03/2008"
+      },
+      "Master Rules 1":{
+         "begin":"15/03/2008",
+         "end":"18/03/2011"
+      },
+      "Master Rules 2":{
+         "begin":"19/03/2011",
+         "end":"20/03/2014"
+      },
+      "Master Rules 3":{
+         "begin":"21/03/2014",
+         "end":"24/03/2017"
+      },
+      "Master Rules 4":{
+         "begin":"25/03/2017",
+         "end":"31/03/2020"
+      },
+      "Master Rules 5":{
+         "begin":"01/04/2020",
+         "end":null
+      }
+   }
 }
