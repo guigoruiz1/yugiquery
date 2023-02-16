@@ -222,75 +222,74 @@ def extract_fulltext(x, multiple=False):
 def format_df(input_df: pd.DataFrame, include_all: bool = False):
     df = pd.DataFrame(index=input_df.index)
     
-    # Cards
-    if 'Name' in input_df.columns:
-        df['Name'] = input_df['Name'].apply(extract_fulltext)
-    if 'Password' in input_df.columns:
-        df['Password'] = input_df['Password'].apply(extract_fulltext)
-    if 'Card type' in input_df.columns:
-        df['Card type'] = input_df['Card type'].apply(extract_fulltext)
-    if 'Property' in input_df.columns:
-        df['Property'] = input_df['Property'].apply(extract_fulltext)
-    if 'Primary type' in input_df.columns:
-        df['Primary type'] = input_df['Primary type'].apply(extract_fulltext,multiple=True).apply(extract_primary_type)
-    if 'Secondary type' in input_df.columns:
-        df['Secondary type'] = input_df['Secondary type'].apply(extract_fulltext,multiple=True)
-    if 'Attribute' in input_df.columns:
-        df['Attribute'] = input_df['Attribute'].apply(extract_fulltext)
-    if 'Monster type' in input_df.columns:
-        df['Monster type'] = input_df['Monster type'].apply(extract_fulltext)
-    if 'Level/Rank' in input_df.columns:
-        df['Level/Rank'] = input_df['Level/Rank'].apply(extract_fulltext)
-    if 'DEF' in input_df.columns:
-        df['DEF'] = input_df['DEF'].apply(extract_fulltext)
-    if 'Pendulum Scale' in input_df.columns:
-        df['Pendulum Scale'] = input_df['Pendulum Scale'].apply(extract_fulltext)
-    if 'Link' in input_df.columns:
-        df['Link'] = input_df['Link'].apply(extract_fulltext)
+    # Column name: multiple values
+    individual_cols = {
+        'Name': False,
+        'Password': False,
+        'Card type': False,
+        'Property': False,
+        'Card image': False,
+        'Archseries': True,
+        'Category': True,
+        # Monster card specific columns
+        'Attribute': False,
+        'Primary type': True,
+        'Secondary type': True,
+        'Monster type': False,
+        'Effect type': True,
+        'Level/Rank': False,
+        'DEF': False,
+        'Pendulum Scale': False,
+        'Link': False,
+        # Skill card specific columns
+        'Character': False,
+        # Set specific columns
+        'Series': False,
+        'Set type': False,
+        'Cover card': True,
+    }
+    for col, multi in individual_cols.items():
+        if col in input_df.columns:
+            df[col] = input_df[col].apply(extract_fulltext, multiple=multi)
+            # Primary type classification
+            if col == 'Primary type':
+                df[col] = df[col].apply(extract_primary_type)
+   
+    # Link arrows styling
     if 'Link Arrows' in input_df.columns:
         df['Link Arrows'] = input_df['Link Arrows'].apply(lambda x: tuple([arrows_dict[i] for i in sorted(x)]) if len(x)>0 else np.nan)
-    if 'Effect type' in input_df.columns:
-        df['Effect type'] = input_df['Effect type'].apply(extract_fulltext,multiple=True)
-    if 'Archseries' in input_df.columns:
-        df['Archseries'] = input_df['Archseries'].apply(extract_fulltext,multiple=True)
-    if 'Card image' in input_df.columns:
-        df['Card image'] = input_df['Card image'].apply(extract_fulltext)
-    if 'Character' in input_df.columns:
-        df['Character'] = input_df['Character'].apply(extract_fulltext)
         
-    # Set specific columns
-    if 'Series' in input_df.columns:
-        df['Series'] = input_df['Series'].apply(extract_fulltext)
-    if 'Set type' in input_df.columns:
-        df['Set type'] = input_df['Set type'].apply(extract_fulltext)
-    if 'Cover card' in input_df.columns:
-        df['Cover card'] = input_df['Cover card'].apply(extract_fulltext,multiple=True)
-    
-    # Category
-    if 'Category'in input_df.columns:
-        df['Category'] = input_df['Category'].apply(extract_fulltext,multiple=True)
+    # Columns with matching name pattern: extraction function
+    filter_cols = {
+        'ATK': True, 
+        ' status': True,
+        'Page ': False
+    }
+    for col, extract in filter_cols.items():
+        col_matches = input_df.filter(like=col).columns
+        if len(col_matches)>0:
+            df = df.join(input_df[col_matches].applymap(extract_fulltext if extract else lambda x: x))
 
-    # ATK and MAXIMUM ATK columns
-    if len(input_df.filter(like='ATK').columns)>0:
-        df = df.join(input_df.filter(like='ATK').applymap(extract_fulltext))
-    
-    # Status columns
-    if len(input_df.filter(like=' status').columns)>0:
-        df = df.join(input_df.filter(like=' status').applymap(extract_fulltext))
-        
-    # Artworks columns
-    if len(input_df.filter(like=' artwork').columns)>0:
-        df['Artwork'] = input_df.filter(like=' artworks').applymap(extract_category_bool).apply(format_artwork, axis=1)
-    
-    # Errata columns
-    if len(input_df.filter(like=' errata').columns)>0:
-        df['Errata'] = input_df.filter(like=' errata').applymap(extract_category_bool).apply(format_errata, axis=1)
-    
-    # Page columns
-    if len(input_df.filter(like='Page ').columns)>0:
-        df = df.join(input_df.filter(like='Page '))
-    
-    # Date columns    
+    # Category boolean columns for merging into tuple
+    category_bool_cols = {
+        'Artwork': ' artwork',
+        'Errata': ' errata'
+    }
+    for col, cat in category_bool_cols.items():
+        col_matches = input_df.filter(like=cat).columns
+        if len(input_df.filter(like=cat).columns)>0:
+            cat_bool = input_df[col_matches].applymap(extract_category_bool)
+            # Artworks extraction
+            if col=='Artwork':
+                df[col] = cat_bool.apply(format_artwork, axis=1)
+            # Errata extraction
+            elif col=='Errata':
+                df[col] = cat_bool.apply(format_errata, axis=1)
+            else:
+                df[col] = cat_bool
+            input_df.drop(col_matches, axis=1, inplace=True)
+
+    # Date columns concatenation
     if len(input_df.filter(like=' date').columns)>0:
         df = df.join(input_df.filter(like=' date').applymap(lambda x:pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
     
@@ -596,126 +595,156 @@ def extract_results(response: requests.Response):
     return df
 
 # Cards Query arguments shortcut
-def card_query(default: str = None, _password: bool = True, _card_type: bool = True, _property: bool = True, _primary: bool = True, _secondary: bool = True, _attribute: bool = True, _monster_type: bool = True, _stars: bool = True, _atk: bool = True, _def: bool = True, _scale: bool = True, _link: bool = True, _arrows: bool = True, _effect_type: bool = True, _archseries: bool = True, _alternate_artwork: bool = True, _edited_artwork: bool = True, _tcg: bool = True, _ocg: bool = True, _speed: bool = False, _character = False, _date: bool = True, _image_URL: bool = False, _category: bool = False):
+def card_query(default: str = None, *args, **kwargs):
+     # Default card query
+    prop_bool = {
+        '_password':True, 
+        '_card_type':True, 
+        '_property':True, 
+        '_primary':True, 
+        '_secondary':True, 
+        '_attribute':True, 
+        '_monster_type':True, 
+        '_stars':True,
+        '_atk':True, 
+        '_def':True, 
+        '_scale':True, 
+        '_link':True, 
+        '_arrows':True,
+        '_effect_type':True, 
+        '_archseries':True, 
+        '_alternate_artwork':True, 
+        '_edited_artwork':True, 
+        '_tcg':True, 
+        '_ocg':True, 
+        '_date':True, 
+    }
+    
     if default is not None:
         default = default.lower() 
-    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', 'speed', None}
+    valid_default = {'spell', 'trap', 'st', 'monster', 'skill', 'counter', 'speed', 'rush', None}
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default=='monster':
-        return card_query(
-            _property = False
-        )
+        prop_bool.update({'_property': False})
     elif default=='st' or default=='trap' or default=='spell':
-        return card_query(
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False
-        )
+        prop_bool.update({
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False
+        })
     elif default=='counter':
-        return card_query(
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _property = False,
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False
-        )
+        prop_bool.update({
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_property': False,
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False
+        })
     elif default=='skill':
-        return card_query(
-            _password = False,
-            _primary = False,
-            _secondary = False,
-            _attribute = False, 
-            _monster_type = False, 
-            _stars = False, 
-            _atk = False, 
-            _def = False, 
-            _scale = False, 
-            _link = False, 
-            _arrows = False,
-            _effect_type = False,
-            _edited_artwork = False,
-            _alternate_artwork = False,
-            _ocg = False,
-            _speed = True,
-            _character = True
-        )
+        prop_bool.update({
+            '_password': False,
+            '_primary': False,
+            '_secondary': False,
+            '_attribute': False, 
+            '_monster_type': False, 
+            '_stars': False, 
+            '_atk': False, 
+            '_def': False, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+            '_effect_type': False,
+            '_edited_artwork': False,
+            '_alternate_artwork': False,
+            '_ocg': False,
+            '_speed': True,
+            '_character': True
+        })
     elif default=='speed':
-        return card_query(
-            _speed=True, 
-            _scale=False, 
-            _link=False, 
-            _arrows=False
-        )
-    else:
-        search_string = '|?English%20name=Name'
-        if _password:
-            search_string += '|?Password'
-        if _card_type:
-            search_string += '|?Card%20type'
-        if _property:    
-            search_string += '|?Property'
-        if _primary:
-            search_string += '|?Primary%20type'
-        if _secondary:
-            search_string += '|?Secondary%20type'
-        if _attribute:
-            search_string += '|?Attribute'
-        if _monster_type:
-            search_string += '|?Type=Monster%20type'
-        if _stars:
-            search_string += '|?Stars%20string=Level%2FRank%20'
-        if _atk:
-            search_string += '|?ATK%20string=ATK'
-        if _def:
-            search_string += '|?DEF%20string=DEF'
-        if _scale:
-            search_string += '|?Pendulum%20Scale'
-        if _link:
-            search_string += '|?Link%20Rating=Link'
-        if _arrows:
-            search_string += '|?Link%20Arrows'
-        if _effect_type:
-            search_string += '|?Effect%20type'
-        if _archseries:
-            search_string += '|?Archseries'
-        if _alternate_artwork:
-            search_string += '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks'
-        if _edited_artwork:
-            search_string += '|?Category:OCG/TCG%20cards%20with%20edited%20artworks'
-        if _tcg:
-            search_string += '|?TCG%20status'
-        if _ocg:
-            search_string += '|?OCG%20status'
-        if _date:
-            search_string += '|?Modification%20date'
-        if _image_URL:
-            search_string += '|?Card%20image' 
-            
-        # Speed duel specific
-        if _speed:
-            search_string += '|?TCG%20Speed%20Duel%20status'
-        if _character:
-            search_string += '|?Character'
-        
-        # Deprecated - Use for debuging
-        if _category:
-            search_string += '|?category' 
+        prop_bool.update({
+            '_speed': True, 
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False
+        })
+    elif default=='rush':
+        prop_bool.update({
+            '_password': False,
+            '_secondary': False,
+            '_scale': False, 
+            '_link': False, 
+            '_arrows': False,
+            '_tcg': False,
+            '_ocg': False,
+            '_maximum_atk': True,
+        })
 
-        return search_string
+    # Card properties dictionary
+    prop_dict = {
+        '_password': '|?Password', 
+        '_card_type': '|?Card%20type', 
+        '_property': '|?Property', 
+        '_primary': '|?Primary%20type', 
+        '_secondary': '|?Secondary%20type', 
+        '_attribute': '|?Attribute', 
+        '_monster_type': '|?Type=Monster%20type', 
+        '_stars': '|?Stars%20string=Level%2FRank%20',
+        '_atk': '|?ATK%20string=ATK', 
+        '_def': '|?DEF%20string=DEF', 
+        '_scale': '|?Pendulum%20Scale', 
+        '_link': '|?Link%20Rating=Link', 
+        '_arrows': '|?Link%20Arrows',
+        '_effect_type': '|?Effect%20type', 
+        '_archseries': '|?Archseries', 
+        '_alternate_artwork': '|?Category:OCG/TCG%20cards%20with%20alternate%20artworks', 
+        '_edited_artwork': '|?Category:OCG/TCG%20cards%20with%20edited%20artworks', 
+        '_tcg': '|?TCG%20status', 
+        '_ocg': '|?OCG%20status', 
+        '_date': '|?Modification%20date', 
+        '_image_URL': '|?Card%20image',
+        # Speed duel specific
+        '_speed': '|?TCG%20Speed%20Duel%20status',
+        '_character': '|?Character', 
+        # Rush duel specific
+        '_rush_alt_artwork': '|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks%20',
+        '_maximum_atk': '|?MAXIMUM%20ATK',
+        # Deprecated - Use for debuging
+        '_category': '|?category'
+    } 
+    # Change default values to kwargs values
+    prop_bool.update(kwargs)
+    # Initialize string
+    search_string = '|?English%20name=Name'
+    # Iterate default plus kwargs items
+    for arg, value in prop_bool.items():
+        # If property is true
+        if value:
+            # If property in the dictionary, get its value
+            if arg in prop_dict.keys():
+                search_string += f"{prop_dict[arg]}"
+            # If property is not in the dictionary, assume generic property
+            else:
+                print(f"Unrecognized property {arg}. Assuming |?{up.quote(arg)}.")
+                search_string += f"|?{up.quote(arg)}"
+                
+    for arg in args:
+        search_string+=f"|?{up.quote(arg)}"
+
+    return search_string
 
 # Check if API is live and responsive    
 def check_API_status():
@@ -952,7 +981,7 @@ def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **
 def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
 
-    concept = f'[[Category:Skill%20Cards]]'
+    concept = f'[[Category:Skill%20Cards]][[Card type::Skill Card]]'
     if skill_query is None:
         skill_query = card_query(default='skill')
 
