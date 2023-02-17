@@ -35,14 +35,12 @@ def load_secrets(secrets_file):
     exit()
 
 def init_reports_enum():
+    reports_dict = {'All': 'all'}
     reports = sorted(glob.glob('*.ipynb'))
-    if reports:
-        reports = {report[:-6].capitalize(): report for report in sorted(reports)}
-    else:
-        reports = {}
+    for report in reports:
+        reports_dict[report[:-6].capitalize()] = report
 
-    reports['All'] = 'all'
-    return  Enum('DynamicEnum', reports)
+    return  Enum('Reports', reports_dict)
 
 repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery"
 repository_url = 'https://github.com/guigoruiz1/yugiquery'

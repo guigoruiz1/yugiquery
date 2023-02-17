@@ -258,8 +258,11 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
                 df[col] = df[col].apply(extract_primary_type)
             # Rush specific - Separate in its own function
             if col == 'Misc':
-                df['Legend'] = df[col].apply(lambda x: "Legend Card" in x if x is not np.nan else False)
-                df['Maximum mode'] = df[col].apply(lambda x: "Requires Maximum Mode" in x if x is not np.nan else False)
+                df[['Legend', 'Maximum mode']] = df[col].apply(
+                    lambda x: pd.Series(
+                        [val in x if x is not np.nan else False for val in ["Legend Card", "Requires maximum mode"]]
+                    )
+                )
                 if not include_all:
                     df.drop(col, axis=1, inplace=True)
    
@@ -298,7 +301,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
 
     # Date columns concatenation
     if len(input_df.filter(like=' date').columns)>0:
-        df = df.join(input_df.filter(like=' date').applymap(lambda x:pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
+        df = df.join(input_df.filter(like=' date').applymap(lambda x: pd.to_datetime(x[0]['timestamp'], unit = 's', errors = 'coerce') if len(x)>0 else np.nan))
     
     # Include other unspecified columns
     if include_all:
