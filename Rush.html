@@ -14614,7 +14614,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Rush Duel - Execution started 17/02/2023 20:42 UTC <br>
+    Rush Duel - Execution started 17/02/2023 21:11 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -14669,9 +14669,81 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>Downloading Rush Duel cards
-1791 results
-
 </pre>
+</div>
+</div>
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">KeyError</span>                                  Traceback (most recent call last)
+File <span class="ansi-green-fg">/opt/conda/lib/python3.10/site-packages/pandas/core/indexes/base.py:3802</span>, in <span class="ansi-cyan-fg">Index.get_loc</span><span class="ansi-blue-fg">(self, key, method, tolerance)</span>
+<span class="ansi-green-intense-fg ansi-bold">   3801</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">-&gt; 3802</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">_engine</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">get_loc</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">casted_key</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   3803</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">KeyError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> err:
+
+File <span class="ansi-green-fg">/opt/conda/lib/python3.10/site-packages/pandas/_libs/index.pyx:138</span>, in <span class="ansi-cyan-fg">pandas._libs.index.IndexEngine.get_loc</span><span class="ansi-blue-fg">()</span>
+
+File <span class="ansi-green-fg">/opt/conda/lib/python3.10/site-packages/pandas/_libs/index.pyx:165</span>, in <span class="ansi-cyan-fg">pandas._libs.index.IndexEngine.get_loc</span><span class="ansi-blue-fg">()</span>
+
+File <span class="ansi-green-fg">pandas/_libs/hashtable_class_helper.pxi:5745</span>, in <span class="ansi-cyan-fg">pandas._libs.hashtable.PyObjectHashTable.get_item</span><span class="ansi-blue-fg">()</span>
+
+File <span class="ansi-green-fg">pandas/_libs/hashtable_class_helper.pxi:5753</span>, in <span class="ansi-cyan-fg">pandas._libs.hashtable.PyObjectHashTable.get_item</span><span class="ansi-blue-fg">()</span>
+
+<span class="ansi-red-fg">KeyError</span>: &#39;printouts&#39;
+
+The above exception was the direct cause of the following exception:
+
+<span class="ansi-red-fg">KeyError</span>                                  Traceback (most recent call last)
+Cell <span class="ansi-green-fg">In[3], line 2</span>
+<span class="ansi-green-intense-fg ansi-bold">      1</span> <span style="color: rgb(95,135,135)"># Fetch rush cards</span>
+<span class="ansi-green-fg">----&gt; 2</span> rush_df <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">fetch_rush</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">)</span>
+
+File <span class="ansi-green-fg">~/yugiquery-dev/source/yugiquery.py:1033</span>, in <span class="ansi-cyan-fg">fetch_rush</span><span class="ansi-blue-fg">(rush_query, step, limit, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1030</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> rush_query <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-intense-fg ansi-bold">   1031</span>     rush_query <span style="color: rgb(98,98,98)">=</span> card_query(default<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">rush</span><span style="color: rgb(175,0,0)">&#39;</span>)
+<span class="ansi-green-fg">-&gt; 1033</span> rush_df <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">fetch_properties</span><span class="ansi-yellow-bg">(</span>
+<span class="ansi-green-intense-fg ansi-bold">   1034</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">concept</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span>
+<span class="ansi-green-intense-fg ansi-bold">   1035</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">rush_query</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span>
+<span class="ansi-green-intense-fg ansi-bold">   1036</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">step</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">step</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg"> </span>
+<span class="ansi-green-intense-fg ansi-bold">   1037</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg">limit</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">=</span><span class="ansi-yellow-bg">limit</span><span class="ansi-yellow-bg">,</span><span class="ansi-yellow-bg">  </span>
+<span class="ansi-green-intense-fg ansi-bold">   1038</span> <span class="ansi-yellow-bg">    </span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">*</span><span class="ansi-yellow-bg">kwargs</span>
+<span class="ansi-green-intense-fg ansi-bold">   1039</span> <span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1041</span> <span style="color: rgb(0,135,0)">print</span>(<span style="color: rgb(175,0,0)">f</span><span style="color: rgb(175,0,0)">&#39;</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(rush_df<span style="color: rgb(98,98,98)">.</span>index)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span style="color: rgb(175,0,0)"> results</span><span class="ansi-bold" style="color: rgb(175,95,0)">\n</span><span style="color: rgb(175,0,0)">&#39;</span>)
+<span class="ansi-green-intense-fg ansi-bold">   1043</span> <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> rush_df
+
+File <span class="ansi-green-fg">~/yugiquery-dev/source/yugiquery.py:838</span>, in <span class="ansi-cyan-fg">fetch_properties</span><span class="ansi-blue-fg">(condition, query, step, limit, iterator, include_all, debug)</span>
+<span class="ansi-green-intense-fg ansi-bold">    836</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> response<span style="color: rgb(98,98,98)">.</span>status_code<span style="color: rgb(98,98,98)">!=</span><span style="color: rgb(98,98,98)">200</span>:
+<span class="ansi-green-intense-fg ansi-bold">    837</span>     <span style="color: rgb(0,135,0)">print</span>(response<span style="color: rgb(98,98,98)">.</span>text)
+<span class="ansi-green-fg">--&gt; 838</span> result <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg">extract_results</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">response</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    839</span> formatted_df <span style="color: rgb(98,98,98)">=</span> format_df(result, include_all<span style="color: rgb(98,98,98)">=</span>include_all)
+<span class="ansi-green-intense-fg ansi-bold">    840</span> df <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>concat([df, formatted_df], ignore_index<span style="color: rgb(98,98,98)">=</span><span class="ansi-bold" style="color: rgb(0,135,0)">True</span>, axis<span style="color: rgb(98,98,98)">=</span><span style="color: rgb(98,98,98)">0</span>)
+
+File <span class="ansi-green-fg">~/yugiquery-dev/source/yugiquery.py:606</span>, in <span class="ansi-cyan-fg">extract_results</span><span class="ansi-blue-fg">(response)</span>
+<span class="ansi-green-intense-fg ansi-bold">    604</span> json <span style="color: rgb(98,98,98)">=</span> response<span style="color: rgb(98,98,98)">.</span>json()
+<span class="ansi-green-intense-fg ansi-bold">    605</span> df <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>DataFrame(json[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">query</span><span style="color: rgb(175,0,0)">&#39;</span>][<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">results</span><span style="color: rgb(175,0,0)">&#39;</span>])<span style="color: rgb(98,98,98)">.</span>transpose()
+<span class="ansi-green-fg">--&gt; 606</span> df <span style="color: rgb(98,98,98)">=</span> pd<span style="color: rgb(98,98,98)">.</span>DataFrame(<span class="ansi-yellow-bg">df</span><span class="ansi-yellow-bg">[</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">&#39;</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">printouts</span><span class="ansi-yellow-bg" style="color: rgb(175,0,0)">&#39;</span><span class="ansi-yellow-bg">]</span><span style="color: rgb(98,98,98)">.</span>values<span style="color: rgb(98,98,98)">.</span>tolist(), index <span style="color: rgb(98,98,98)">=</span> df[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">printouts</span><span style="color: rgb(175,0,0)">&#39;</span>]<span style="color: rgb(98,98,98)">.</span>keys())
+<span class="ansi-green-intense-fg ansi-bold">    607</span> page_url<span style="color: rgb(98,98,98)">=</span>pd<span style="color: rgb(98,98,98)">.</span>DataFrame(json[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">query</span><span style="color: rgb(175,0,0)">&#39;</span>][<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">results</span><span style="color: rgb(175,0,0)">&#39;</span>])<span style="color: rgb(98,98,98)">.</span>transpose()[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">fullurl</span><span style="color: rgb(175,0,0)">&#39;</span>]<span style="color: rgb(98,98,98)">.</span>rename(<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">Page URL</span><span style="color: rgb(175,0,0)">&#39;</span>)
+<span class="ansi-green-intense-fg ansi-bold">    608</span> page_name<span style="color: rgb(98,98,98)">=</span>pd<span style="color: rgb(98,98,98)">.</span>DataFrame(json[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">query</span><span style="color: rgb(175,0,0)">&#39;</span>][<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">results</span><span style="color: rgb(175,0,0)">&#39;</span>])<span style="color: rgb(98,98,98)">.</span>transpose()[<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">fulltext</span><span style="color: rgb(175,0,0)">&#39;</span>]<span style="color: rgb(98,98,98)">.</span>rename(<span style="color: rgb(175,0,0)">&#39;</span><span style="color: rgb(175,0,0)">Page name</span><span style="color: rgb(175,0,0)">&#39;</span>) <span style="color: rgb(95,135,135)"># Not necessarily same as card name (Used to merge errata)</span>
+
+File <span class="ansi-green-fg">/opt/conda/lib/python3.10/site-packages/pandas/core/frame.py:3807</span>, in <span class="ansi-cyan-fg">DataFrame.__getitem__</span><span class="ansi-blue-fg">(self, key)</span>
+<span class="ansi-green-intense-fg ansi-bold">   3805</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>columns<span style="color: rgb(98,98,98)">.</span>nlevels <span style="color: rgb(98,98,98)">&gt;</span> <span style="color: rgb(98,98,98)">1</span>:
+<span class="ansi-green-intense-fg ansi-bold">   3806</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_getitem_multilevel(key)
+<span class="ansi-green-fg">-&gt; 3807</span> indexer <span style="color: rgb(98,98,98)">=</span> <span class="ansi-yellow-bg" style="color: rgb(0,135,0)">self</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">columns</span><span class="ansi-yellow-bg" style="color: rgb(98,98,98)">.</span><span class="ansi-yellow-bg">get_loc</span><span class="ansi-yellow-bg">(</span><span class="ansi-yellow-bg">key</span><span class="ansi-yellow-bg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   3808</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> is_integer(indexer):
+<span class="ansi-green-intense-fg ansi-bold">   3809</span>     indexer <span style="color: rgb(98,98,98)">=</span> [indexer]
+
+File <span class="ansi-green-fg">/opt/conda/lib/python3.10/site-packages/pandas/core/indexes/base.py:3804</span>, in <span class="ansi-cyan-fg">Index.get_loc</span><span class="ansi-blue-fg">(self, key, method, tolerance)</span>
+<span class="ansi-green-intense-fg ansi-bold">   3802</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">return</span> <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_engine<span style="color: rgb(98,98,98)">.</span>get_loc(casted_key)
+<span class="ansi-green-intense-fg ansi-bold">   3803</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">KeyError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> err:
+<span class="ansi-green-fg">-&gt; 3804</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">raise</span> <span class="ansi-bold" style="color: rgb(215,95,95)">KeyError</span>(key) <span class="ansi-bold" style="color: rgb(0,135,0)">from</span> <span class="ansi-bold" style="color: rgb(0,0,255)">err</span>
+<span class="ansi-green-intense-fg ansi-bold">   3805</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">TypeError</span>:
+<span class="ansi-green-intense-fg ansi-bold">   3806</span>     <span style="color: rgb(95,135,135)"># If we have a listlike key, _check_indexing_error will raise</span>
+<span class="ansi-green-intense-fg ansi-bold">   3807</span>     <span style="color: rgb(95,135,135)">#  InvalidIndexError. Otherwise we fall through and re-raise</span>
+<span class="ansi-green-intense-fg ansi-bold">   3808</span>     <span style="color: rgb(95,135,135)">#  the TypeError.</span>
+<span class="ansi-green-intense-fg ansi-bold">   3809</span>     <span style="color: rgb(0,135,0)">self</span><span style="color: rgb(98,98,98)">.</span>_check_indexing_error(key)
+
+<span class="ansi-red-fg">KeyError</span>: &#39;printouts&#39;</pre>
 </div>
 </div>
 
@@ -14689,23 +14761,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Data saved
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -14727,23 +14783,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>No older files
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -14755,23 +14795,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Skipped
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -14783,1459 +14807,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Name</th>
-      <th>Card type</th>
-      <th>Property</th>
-      <th>Archseries</th>
-      <th>Attribute</th>
-      <th>Primary type</th>
-      <th>Monster type</th>
-      <th>Effect type</th>
-      <th>Level/Rank</th>
-      <th>DEF</th>
-      <th>Legend</th>
-      <th>Maximum mode</th>
-      <th>ATK</th>
-      <th>MAXIMUM ATK</th>
-      <th>Page name</th>
-      <th>Page URL</th>
-      <th>Artwork</th>
-      <th>Modification date</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>1-Up</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1-Up</td>
-      <td>https://yugipedia.com/wiki/1-Up</td>
-      <td>NaN</td>
-      <td>2022-09-18 19:47:54</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>1/Infinity</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1/Infinity</td>
-      <td>https://yugipedia.com/wiki/1/Infinity</td>
-      <td>NaN</td>
-      <td>2021-12-19 01:15:37</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>1seg Wurm</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>(High Tech Dragon,)</td>
-      <td>LIGHT</td>
-      <td>Effect Monster</td>
-      <td>Dragon</td>
-      <td>NaN</td>
-      <td>1</td>
-      <td>1100</td>
-      <td>False</td>
-      <td>False</td>
-      <td>700</td>
-      <td>NaN</td>
-      <td>1seg Wurm</td>
-      <td>https://yugipedia.com/wiki/1seg_Wurm</td>
-      <td>NaN</td>
-      <td>2023-01-22 00:40:17</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>300 Light-Year Red Cloak</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>(Cosmic Urban Legend,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>300 Light-Year Red Cloak</td>
-      <td>https://yugipedia.com/wiki/300_Light-Year_Red_...</td>
-      <td>NaN</td>
-      <td>2022-11-17 12:07:53</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>7 Chance</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>7 Chance</td>
-      <td>https://yugipedia.com/wiki/7_Chance</td>
-      <td>NaN</td>
-      <td>2022-12-10 20:50:09</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>1786</th>
-      <td>Zero Drake</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>WATER</td>
-      <td>Normal Monster</td>
-      <td>Dragon</td>
-      <td>NaN</td>
-      <td>1</td>
-      <td>1500</td>
-      <td>False</td>
-      <td>False</td>
-      <td>0</td>
-      <td>NaN</td>
-      <td>Zero Drake</td>
-      <td>https://yugipedia.com/wiki/Zero_Drake</td>
-      <td>NaN</td>
-      <td>2023-02-05 22:13:12</td>
-    </tr>
-    <tr>
-      <th>1787</th>
-      <td>Zero-Sum Game</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Zero-Sum Game</td>
-      <td>https://yugipedia.com/wiki/Zero-Sum_Game</td>
-      <td>NaN</td>
-      <td>2023-02-03 00:56:44</td>
-    </tr>
-    <tr>
-      <th>1788</th>
-      <td>Zombie Carnival</td>
-      <td>Spell Card</td>
-      <td>Field Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Zombie Carnival</td>
-      <td>https://yugipedia.com/wiki/Zombie_Carnival</td>
-      <td>NaN</td>
-      <td>2023-01-05 23:00:01</td>
-    </tr>
-    <tr>
-      <th>1789</th>
-      <td>Zombie Fireworks</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>False</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Zombie Fireworks</td>
-      <td>https://yugipedia.com/wiki/Zombie_Fireworks</td>
-      <td>NaN</td>
-      <td>2022-10-20 06:57:57</td>
-    </tr>
-    <tr>
-      <th>1790</th>
-      <td>Zubaba Batter</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>(Baseball,)</td>
-      <td>FIRE</td>
-      <td>Normal Monster</td>
-      <td>Warrior</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>400</td>
-      <td>False</td>
-      <td>False</td>
-      <td>1500</td>
-      <td>NaN</td>
-      <td>Zubaba Batter</td>
-      <td>https://yugipedia.com/wiki/Zubaba_Batter</td>
-      <td>NaN</td>
-      <td>2022-12-10 20:57:10</td>
-    </tr>
-  </tbody>
-</table>
-<p>1791 rows × 18 columns</p>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="Misc">Misc<a class="anchor-link" href="#Misc">&#182;</a></h2>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Name</th>
-      <th>Card type</th>
-      <th>Property</th>
-      <th>Archseries</th>
-      <th>Attribute</th>
-      <th>Primary type</th>
-      <th>Monster type</th>
-      <th>Effect type</th>
-      <th>Level/Rank</th>
-      <th>DEF</th>
-      <th>Legend</th>
-      <th>Maximum mode</th>
-      <th>ATK</th>
-      <th>MAXIMUM ATK</th>
-      <th>Page name</th>
-      <th>Page URL</th>
-      <th>Artwork</th>
-      <th>Modification date</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>9</th>
-      <td>Abyss Soldier</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>WATER</td>
-      <td>Effect Monster</td>
-      <td>Aqua</td>
-      <td>(Effect,)</td>
-      <td>4</td>
-      <td>1300</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1800</td>
-      <td>NaN</td>
-      <td>Abyss Soldier (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Abyss_Soldier_(Rush...</td>
-      <td>NaN</td>
-      <td>2022-11-17 12:14:35</td>
-    </tr>
-    <tr>
-      <th>26</th>
-      <td>Alien Shocktrooper</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>EARTH</td>
-      <td>Normal Monster</td>
-      <td>Reptile</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>800</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1900</td>
-      <td>NaN</td>
-      <td>Alien Shocktrooper (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Alien_Shocktrooper_...</td>
-      <td>NaN</td>
-      <td>2022-10-10 09:06:48</td>
-    </tr>
-    <tr>
-      <th>70</th>
-      <td>Archfiend Soldier</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Normal Monster</td>
-      <td>Fiend</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>1500</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1900</td>
-      <td>NaN</td>
-      <td>Archfiend Soldier (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Archfiend_Soldier_(...</td>
-      <td>NaN</td>
-      <td>2022-12-21 09:03:19</td>
-    </tr>
-    <tr>
-      <th>113</th>
-      <td>Barrel Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Machine</td>
-      <td>(Effect,)</td>
-      <td>7</td>
-      <td>2200</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2600</td>
-      <td>NaN</td>
-      <td>Barrel Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Barrel_Dragon_(Rush...</td>
-      <td>(Edited,)</td>
-      <td>2023-01-31 21:13:20</td>
-    </tr>
-    <tr>
-      <th>146</th>
-      <td>Behemoth the King of All Animals</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>EARTH</td>
-      <td>Effect Monster</td>
-      <td>Beast</td>
-      <td>(Effect,)</td>
-      <td>7</td>
-      <td>1500</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2700</td>
-      <td>NaN</td>
-      <td>Behemoth the King of All Animals (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Behemoth_the_King_o...</td>
-      <td>NaN</td>
-      <td>2023-02-15 13:22:38</td>
-    </tr>
-    <tr>
-      <th>192</th>
-      <td>Blue-Eyes White Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Normal Monster</td>
-      <td>Dragon</td>
-      <td>NaN</td>
-      <td>8</td>
-      <td>2500</td>
-      <td>True</td>
-      <td>False</td>
-      <td>3000</td>
-      <td>NaN</td>
-      <td>Blue-Eyes White Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Blue-Eyes_White_Dra...</td>
-      <td>(Alternate,)</td>
-      <td>2023-01-31 16:37:12</td>
-    </tr>
-    <tr>
-      <th>225</th>
-      <td>Buster Blader</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>EARTH</td>
-      <td>Effect Monster</td>
-      <td>Warrior</td>
-      <td>(Continuous Effect,)</td>
-      <td>7</td>
-      <td>2300</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2600</td>
-      <td>NaN</td>
-      <td>Buster Blader (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Buster_Blader_(Rush...</td>
-      <td>NaN</td>
-      <td>2023-02-17 12:05:34</td>
-    </tr>
-    <tr>
-      <th>240</th>
-      <td>Card Destruction</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Card Destruction (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Card_Destruction_(R...</td>
-      <td>NaN</td>
-      <td>2022-09-12 09:32:04</td>
-    </tr>
-    <tr>
-      <th>329</th>
-      <td>The Creator</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Effect Monster</td>
-      <td>Thunder</td>
-      <td>(Effect,)</td>
-      <td>8</td>
-      <td>3000</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2300</td>
-      <td>NaN</td>
-      <td>The Creator (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/The_Creator_(Rush_D...</td>
-      <td>NaN</td>
-      <td>2022-09-21 05:55:48</td>
-    </tr>
-    <tr>
-      <th>357</th>
-      <td>Cyber-Tech Alligator</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>WIND</td>
-      <td>Normal Monster</td>
-      <td>Machine</td>
-      <td>NaN</td>
-      <td>5</td>
-      <td>1600</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2500</td>
-      <td>NaN</td>
-      <td>Cyber-Tech Alligator (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Cyber-Tech_Alligato...</td>
-      <td>NaN</td>
-      <td>2022-09-21 05:31:31</td>
-    </tr>
-    <tr>
-      <th>367</th>
-      <td>Dark Factory of Mass Production</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Dark Factory of Mass Production (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Dark_Factory_of_Mas...</td>
-      <td>NaN</td>
-      <td>2022-10-10 09:06:57</td>
-    </tr>
-    <tr>
-      <th>369</th>
-      <td>Dark Hole</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Dark Hole (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Dark_Hole_(Rush_Duel)</td>
-      <td>NaN</td>
-      <td>2022-11-26 13:57:42</td>
-    </tr>
-    <tr>
-      <th>371</th>
-      <td>Dark Magician</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Normal Monster</td>
-      <td>Spellcaster</td>
-      <td>NaN</td>
-      <td>7</td>
-      <td>2100</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2500</td>
-      <td>NaN</td>
-      <td>Dark Magician (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Dark_Magician_(Rush...</td>
-      <td>(Alternate,)</td>
-      <td>2023-01-31 20:13:42</td>
-    </tr>
-    <tr>
-      <th>382</th>
-      <td>Darklord Zerato</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Fairy</td>
-      <td>(Effect, Summoning condition)</td>
-      <td>8</td>
-      <td>2300</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2800</td>
-      <td>NaN</td>
-      <td>Darklord Zerato (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Darklord_Zerato_(Ru...</td>
-      <td>NaN</td>
-      <td>2023-02-04 14:27:22</td>
-    </tr>
-    <tr>
-      <th>610</th>
-      <td>Final Destiny</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Final Destiny (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Final_Destiny_(Rush...</td>
-      <td>NaN</td>
-      <td>2023-02-16 14:28:51</td>
-    </tr>
-    <tr>
-      <th>626</th>
-      <td>Flame Ruler</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>FIRE</td>
-      <td>Effect Monster</td>
-      <td>Pyro</td>
-      <td>(Continuous Effect,)</td>
-      <td>4</td>
-      <td>1600</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1500</td>
-      <td>NaN</td>
-      <td>Flame Ruler (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Flame_Ruler_(Rush_D...</td>
-      <td>NaN</td>
-      <td>2022-12-21 09:03:14</td>
-    </tr>
-    <tr>
-      <th>703</th>
-      <td>Gilford the Lightning</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Effect Monster</td>
-      <td>Warrior</td>
-      <td>(Effect,)</td>
-      <td>8</td>
-      <td>1400</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2800</td>
-      <td>NaN</td>
-      <td>Gilford the Lightning (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Gilford_the_Lightni...</td>
-      <td>NaN</td>
-      <td>2023-01-21 13:50:55</td>
-    </tr>
-    <tr>
-      <th>717</th>
-      <td>Graceful Charity</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Graceful Charity (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Graceful_Charity_(R...</td>
-      <td>(Alternate,)</td>
-      <td>2023-02-15 11:12:09</td>
-    </tr>
-    <tr>
-      <th>727</th>
-      <td>Great Maju Garzett</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Fiend</td>
-      <td>(Continuous Effect,)</td>
-      <td>6</td>
-      <td>0</td>
-      <td>True</td>
-      <td>False</td>
-      <td>0</td>
-      <td>NaN</td>
-      <td>Great Maju Garzett (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Great_Maju_Garzett_...</td>
-      <td>NaN</td>
-      <td>2023-02-01 11:44:20</td>
-    </tr>
-    <tr>
-      <th>779</th>
-      <td>Heavy Storm</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Heavy Storm (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Heavy_Storm_(Rush_D...</td>
-      <td>NaN</td>
-      <td>2022-12-02 08:58:42</td>
-    </tr>
-    <tr>
-      <th>852</th>
-      <td>Jinzo</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Machine</td>
-      <td>(Continuous Effect,)</td>
-      <td>6</td>
-      <td>1500</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2400</td>
-      <td>NaN</td>
-      <td>Jinzo (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Jinzo_(Rush_Duel)</td>
-      <td>NaN</td>
-      <td>2022-10-30 06:16:20</td>
-    </tr>
-    <tr>
-      <th>923</th>
-      <td>Levia-Dragon - Daedalus</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>WATER</td>
-      <td>Effect Monster</td>
-      <td>Sea Serpent</td>
-      <td>(Effect,)</td>
-      <td>7</td>
-      <td>1500</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2600</td>
-      <td>NaN</td>
-      <td>Levia-Dragon - Daedalus (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Levia-Dragon_-_Daed...</td>
-      <td>NaN</td>
-      <td>2022-09-21 06:16:26</td>
-    </tr>
-    <tr>
-      <th>944</th>
-      <td>Luster Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>WIND</td>
-      <td>Normal Monster</td>
-      <td>Dragon</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>1600</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1900</td>
-      <td>NaN</td>
-      <td>Luster Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Luster_Dragon_(Rush...</td>
-      <td>NaN</td>
-      <td>2022-10-05 21:23:47</td>
-    </tr>
-    <tr>
-      <th>951</th>
-      <td>Magic Cylinder</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Magic Cylinder (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Magic_Cylinder_(Rus...</td>
-      <td>NaN</td>
-      <td>2022-12-18 12:09:50</td>
-    </tr>
-    <tr>
-      <th>966</th>
-      <td>Magician's Valkyria</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Effect Monster</td>
-      <td>Spellcaster</td>
-      <td>(Continuous Effect,)</td>
-      <td>4</td>
-      <td>1800</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1600</td>
-      <td>NaN</td>
-      <td>Magician's Valkyria (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Magician%27s_Valkyr...</td>
-      <td>NaN</td>
-      <td>2022-12-02 08:58:55</td>
-    </tr>
-    <tr>
-      <th>977</th>
-      <td>Malevolent Catastrophe</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Malevolent Catastrophe (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Malevolent_Catastro...</td>
-      <td>NaN</td>
-      <td>2023-02-16 14:29:28</td>
-    </tr>
-    <tr>
-      <th>1026</th>
-      <td>Millennium Shield</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>EARTH</td>
-      <td>Normal Monster</td>
-      <td>Warrior</td>
-      <td>NaN</td>
-      <td>5</td>
-      <td>3000</td>
-      <td>True</td>
-      <td>False</td>
-      <td>0</td>
-      <td>NaN</td>
-      <td>Millennium Shield (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Millennium_Shield_(...</td>
-      <td>NaN</td>
-      <td>2022-02-09 03:11:05</td>
-    </tr>
-    <tr>
-      <th>1028</th>
-      <td>Mirage Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Effect Monster</td>
-      <td>Dragon</td>
-      <td>(Continuous Effect,)</td>
-      <td>4</td>
-      <td>600</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1600</td>
-      <td>NaN</td>
-      <td>Mirage Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Mirage_Dragon_(Rush...</td>
-      <td>NaN</td>
-      <td>2022-12-21 09:03:07</td>
-    </tr>
-    <tr>
-      <th>1029</th>
-      <td>Mirror Force</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Mirror Force (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Mirror_Force_(Rush_...</td>
-      <td>NaN</td>
-      <td>2022-08-17 09:41:26</td>
-    </tr>
-    <tr>
-      <th>1039</th>
-      <td>Monster Reborn</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Monster Reborn (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Monster_Reborn_(Rus...</td>
-      <td>(Alternate,)</td>
-      <td>2022-12-22 21:10:18</td>
-    </tr>
-    <tr>
-      <th>1040</th>
-      <td>Monster Reincarnation</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Monster Reincarnation (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Monster_Reincarnati...</td>
-      <td>NaN</td>
-      <td>2022-06-02 13:23:04</td>
-    </tr>
-    <tr>
-      <th>1060</th>
-      <td>Mystical Elf</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>LIGHT</td>
-      <td>Normal Monster</td>
-      <td>Spellcaster</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>2000</td>
-      <td>True</td>
-      <td>False</td>
-      <td>800</td>
-      <td>NaN</td>
-      <td>Mystical Elf (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Mystical_Elf_(Rush_...</td>
-      <td>NaN</td>
-      <td>2022-02-09 03:11:24</td>
-    </tr>
-    <tr>
-      <th>1151</th>
-      <td>Pitch-Black Warwolf</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Beast-Warrior</td>
-      <td>(Continuous Effect,)</td>
-      <td>4</td>
-      <td>600</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1600</td>
-      <td>NaN</td>
-      <td>Pitch-Black Warwolf (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Pitch-Black_Warwolf...</td>
-      <td>NaN</td>
-      <td>2022-10-30 06:15:42</td>
-    </tr>
-    <tr>
-      <th>1159</th>
-      <td>Polymerization</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Polymerization (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Polymerization_(Rus...</td>
-      <td>NaN</td>
-      <td>2023-01-18 11:28:33</td>
-    </tr>
-    <tr>
-      <th>1164</th>
-      <td>Pot of Avarice</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Pot of Avarice (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Pot_of_Avarice_(Rus...</td>
-      <td>NaN</td>
-      <td>2022-10-20 06:54:07</td>
-    </tr>
-    <tr>
-      <th>1165</th>
-      <td>Pot of Greed</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Pot of Greed (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Pot_of_Greed_(Rush_...</td>
-      <td>NaN</td>
-      <td>2022-10-30 07:41:12</td>
-    </tr>
-    <tr>
-      <th>1166</th>
-      <td>Power Bond</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Power Bond (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Power_Bond_(Rush_Duel)</td>
-      <td>NaN</td>
-      <td>2022-11-26 13:58:09</td>
-    </tr>
-    <tr>
-      <th>1230</th>
-      <td>Recurring Nightmare</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Recurring Nightmare (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Recurring_Nightmare...</td>
-      <td>NaN</td>
-      <td>2022-10-20 06:54:19</td>
-    </tr>
-    <tr>
-      <th>1237</th>
-      <td>Red-Eyes Black Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Normal Monster</td>
-      <td>Dragon</td>
-      <td>NaN</td>
-      <td>7</td>
-      <td>2000</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2400</td>
-      <td>NaN</td>
-      <td>Red-Eyes Black Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Red-Eyes_Black_Drag...</td>
-      <td>(Alternate,)</td>
-      <td>2023-02-17 12:04:32</td>
-    </tr>
-    <tr>
-      <th>1318</th>
-      <td>Sakuretsu Armor</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Sakuretsu Armor (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Sakuretsu_Armor_(Ru...</td>
-      <td>NaN</td>
-      <td>2022-02-09 03:11:43</td>
-    </tr>
-    <tr>
-      <th>1403</th>
-      <td>Shield &amp; Sword</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Shield &amp; Sword (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Shield_%26_Sword_(R...</td>
-      <td>NaN</td>
-      <td>2021-12-11 20:01:01</td>
-    </tr>
-    <tr>
-      <th>1443</th>
-      <td>Smashing Ground</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Smashing Ground (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Smashing_Ground_(Ru...</td>
-      <td>NaN</td>
-      <td>2022-09-25 03:01:09</td>
-    </tr>
-    <tr>
-      <th>1528</th>
-      <td>Summoned Skull</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Normal Monster</td>
-      <td>Fiend</td>
-      <td>NaN</td>
-      <td>6</td>
-      <td>1200</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2500</td>
-      <td>NaN</td>
-      <td>Summoned Skull (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Summoned_Skull_(Rus...</td>
-      <td>NaN</td>
-      <td>2023-02-16 14:26:48</td>
-    </tr>
-    <tr>
-      <th>1608</th>
-      <td>Torrential Tribute</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Torrential Tribute (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Torrential_Tribute_...</td>
-      <td>NaN</td>
-      <td>2022-12-21 09:03:30</td>
-    </tr>
-    <tr>
-      <th>1622</th>
-      <td>Trap Hole</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>(Trap Hole (archetype),)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Trap Hole (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Trap_Hole_(Rush_Duel)</td>
-      <td>NaN</td>
-      <td>2022-10-13 15:51:23</td>
-    </tr>
-    <tr>
-      <th>1631</th>
-      <td>Tribute to The Doomed</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Tribute to The Doomed (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Tribute_to_The_Doom...</td>
-      <td>NaN</td>
-      <td>2022-10-30 07:49:07</td>
-    </tr>
-    <tr>
-      <th>1648</th>
-      <td>Twin-Barrel Dragon</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Machine</td>
-      <td>(Effect,)</td>
-      <td>4</td>
-      <td>200</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1700</td>
-      <td>NaN</td>
-      <td>Twin-Barrel Dragon (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Twin-Barrel_Dragon_...</td>
-      <td>NaN</td>
-      <td>2023-02-04 23:09:42</td>
-    </tr>
-    <tr>
-      <th>1675</th>
-      <td>Upstart Goblin</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Upstart Goblin (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Upstart_Goblin_(Rus...</td>
-      <td>NaN</td>
-      <td>2022-10-30 07:49:45</td>
-    </tr>
-    <tr>
-      <th>1683</th>
-      <td>Vanity's Fiend</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Effect Monster</td>
-      <td>Fiend</td>
-      <td>(Continuous Effect,)</td>
-      <td>6</td>
-      <td>1200</td>
-      <td>True</td>
-      <td>False</td>
-      <td>2400</td>
-      <td>NaN</td>
-      <td>Vanity's Fiend (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Vanity%27s_Fiend_(R...</td>
-      <td>NaN</td>
-      <td>2023-02-16 14:28:02</td>
-    </tr>
-    <tr>
-      <th>1722</th>
-      <td>Vorse Raider</td>
-      <td>Monster Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>DARK</td>
-      <td>Normal Monster</td>
-      <td>Beast-Warrior</td>
-      <td>NaN</td>
-      <td>4</td>
-      <td>1200</td>
-      <td>True</td>
-      <td>False</td>
-      <td>1900</td>
-      <td>NaN</td>
-      <td>Vorse Raider (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Vorse_Raider_(Rush_...</td>
-      <td>NaN</td>
-      <td>2022-02-09 03:11:14</td>
-    </tr>
-    <tr>
-      <th>1726</th>
-      <td>The Warrior Returning Alive</td>
-      <td>Spell Card</td>
-      <td>Normal Spell Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>The Warrior Returning Alive (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/The_Warrior_Returni...</td>
-      <td>NaN</td>
-      <td>2022-04-23 01:16:41</td>
-    </tr>
-    <tr>
-      <th>1747</th>
-      <td>Widespread Ruin</td>
-      <td>Trap Card</td>
-      <td>Normal Trap Card</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>(Effect,)</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>True</td>
-      <td>False</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Widespread Ruin (Rush Duel)</td>
-      <td>https://yugipedia.com/wiki/Widespread_Ruin_(Ru...</td>
-      <td>(Alternate,)</td>
-      <td>2022-12-26 02:41:36</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16247,49 +14819,9 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>3</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-
-
-<div class="jp-RenderedImage jp-OutputArea-output ">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABbQAAAIOCAYAAABgVItKAAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjYuMywgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy/P9b71AAAACXBIWXMAAA9hAAAPYQGoP6dpAAA/6ElEQVR4nO3dfZyUdb3/8fcCy8JyJ8KRlcREw8LANDQSO4mHu7xDJdPCvM9I8obASFITPQZBKfyCjqWZchSlG6U8ZQRa3hCWSGlpZlZEmRCFxI3QssD8/vAwpxVUoMXlWp/Px4MHzDXfmfkM+9i9hhfXXFNRKpVKAQAAAACA3Vyzxh4AAAAAAAC2h6ANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAK/gF7/4Rc4555x07949rVq1Stu2bfPOd74zkydPzgsvvPC6zFBRUZHx48e/6prnn38+48ePz+OPP/66zAQAAI2lRWMPAAAAu6ObbropI0eOzFvf+tZ88pOfzEEHHZS6uro89thj+fKXv5xHHnkks2fPbuwxk7wUtK+++urst99+OeSQQxp7HAAA2GUEbQAAeJlHHnkkF1xwQQYNGpRvf/vbqaqqKl83aNCgjBkzJnPmzGmQx1q3bl2qq6sb5L4AAKCpc8oRAAB4mQkTJqSioiI33nhjvZi9RcuWLTN06NDy5a9//esZPHhw9t5777Ru3To9e/bMZZddlhdffLHe7c4+++y0bds2v/zlLzN48OC0a9cuAwYMSJKsXr06559/fjp16pS2bdvmfe97X37zm9+85qwPPPBADj/88CTJOeeck4qKivJpSm677bZUVFTkkUce2ep211xzTSorK/P8888nSfr3759evXrl4Ycfzrvf/e60bt06b3rTm3LllVdm06ZN9W67YcOGXHvttXnb296Wqqqq/Nu//VvOOeec/PWvf33NeQEA4F/hCG0AAPgnmzZtyg9/+MP06dMn3bp1267bPPvsszn22GMzatSotGnTJr/+9a8zadKkPProo/nhD39Yb+2GDRsydOjQjBgxIpdddlk2btyYUqmUk046KQsWLMhnPvOZHH744fnxj3+cY4455jUf+53vfGduueWWnHPOObniiity3HHHJUn22Wef7LXX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AAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABRCgwftjRs35oorrkj37t3TunXr7L///rnmmmuyefPm8ppSqZTx48ena9euad26dfr375+nnnqq3v3U1tbmoosuSufOndOmTZsMHTo0zz33XEOPCwAAAABAQTR40J40aVK+/OUvZ/r06Xn66aczefLkfP7zn8+0adPKayZPnpzrr78+06dPz8KFC1NTU5NBgwZlzZo15TWjRo3K7NmzM2vWrMyfPz9r167N8ccfn02bNjX0yAAAAAAAFECLhr7DRx55JCeeeGKOO+64JMl+++2XO++8M4899liSl47Onjp1ai6//PIMGzYsSTJjxox06dIld9xxR0aMGJFVq1bl5ptvzm233ZaBAwcmSW6//fZ069Yt9913X4YMGdLQYwMAAAAAsJtr8CO03/Oe9+T+++/Pb37zmyTJE088kfnz5+fYY49NkixevDjLli3L4MGDy7epqqrKUUcdlQULFiRJFi1alLq6unprunbtml69epXXAAAAAADwxtLgR2h/6lOfyqpVq/K2t70tzZs3z6ZNm/LZz342H/rQh5Iky5YtS5J06dKl3u26dOmSJUuWlNe0bNkyHTt23GrNltu/XG1tbWpra8uXV69enSSpq6tLXV1dwzw5GlezysaegAZUV9Hi/3738bRNg5+1AK+LLa9tvcYFgB1jHwq7rx35vmzwoP31r389t99+e+644468/e1vz+OPP55Ro0ala9euOeuss8rrKioq6t2uVCptte3lXm3NxIkTc/XVV2+1fe7cuamurt6JZ8Ju54APNvYE7ALz9j+lsUegodx7b2NPAPCGMm/evMYeAQAKyT4Udj/r1q3b7rUNHrQ/+clP5rLLLssHP/hSfOzdu3eWLFmSiRMn5qyzzkpNTU2Sl47C3nvvvcu3W758efmo7ZqammzYsCErV66sd5T28uXL069fv20+7rhx4zJ69Ojy5dWrV6dbt24ZPHhw2rdv39BPk8Yw7czGnoAGVFfRIvP2PyWDfv+tVJY2NvY4NISL/ruxJwB4Q6irq8u8efMyaNCgVFZ6BxsAbC/7UNh9bTnbxvZo8KC9bt26NGtW//wBzZs3z+bNm5Mk3bt3T01NTebNm5dDDz00SbJhw4Y8+OCDmTRpUpKkT58+qayszLx583LqqacmSZYuXZonn3wykydP3ubjVlVVpaqqaqvtlZWVfkg1FZu9JahJ+d8fE5Wljan0tW0a/KwFeF15nQsAO8c+FHY/O/I92eBB+4QTTshnP/vZ7Lvvvnn729+en//857n++utz7rnnJnnpVCOjRo3KhAkT0qNHj/To0SMTJkxIdXV1hg8fniTp0KFDzjvvvIwZMyadOnXKnnvumUsvvTS9e/fOwIEDG3pkAAAAAAAKoMGD9rRp03LllVdm5MiRWb58ebp27ZoRI0bkM5/5THnN2LFjs379+owcOTIrV65M3759M3fu3LRr1668ZsqUKWnRokVOPfXUrF+/PgMGDMitt96a5s2bN/TIAAAAAAAUQEWpVCo19hC7wurVq9OhQ4esWrXKObSbii/48MCmpK5ZZe494IM59neznHKkqbj0W409AcAbQl1dXe69994ce+yx3i4NADvAPhR2XzvScpu96rUAAAAAALCbELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKARBGwAAAACAQhC0AQAAAAAoBEEbAAAAAIBCELQBAAAAACgEQRsAAAAAgEIQtAEAAAAAKIRdErT//Oc/58Mf/nA6deqU6urqHHLIIVm0aFH5+lKplPHjx6dr165p3bp1+vfvn6eeeqrefdTW1uaiiy5K586d06ZNmwwdOjTPPffcrhgXAAAAAIACaPCgvXLlyhx55JGprKzM97///fzqV7/Kddddlz322KO8ZvLkybn++uszffr0LFy4MDU1NRk0aFDWrFlTXjNq1KjMnj07s2bNyvz587N27docf/zx2bRpU0OPDAAAAABAAbRo6DucNGlSunXrlltuuaW8bb/99iv/uVQqZerUqbn88sszbNiwJMmMGTPSpUuX3HHHHRkxYkRWrVqVm2++ObfddlsGDhyYJLn99tvTrVu33HfffRkyZEhDjw0AAAAAwG6uwYP2PffckyFDhuQDH/hAHnzwwbzpTW/KyJEjc/755ydJFi9enGXLlmXw4MHl21RVVeWoo47KggULMmLEiCxatCh1dXX11nTt2jW9evXKggULthm0a2trU1tbW768evXqJEldXV3q6uoa+mnSGJpVNvYENKC6ihb/97uz+TcNftYCvC62vLb1GhcAdox9KOy+duT7ssGD9u9///vccMMNGT16dD796U/n0UcfzcUXX5yqqqqceeaZWbZsWZKkS5cu9W7XpUuXLFmyJEmybNmytGzZMh07dtxqzZbbv9zEiRNz9dVXb7V97ty5qa6uboinRmM74IONPQG7wLz9T2nsEWgo997b2BMA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b701e+yxR2OPAcAbwNlnn52TTjqpfLl///4ZNWpUo82zLS+fEQB4dfad0HAEbWgCzj777FRUVORjH/vYVteNHDkyFRUVOfvss1+3eV6v+HvXXXelf//+6dChQ9q2bZuDDz4411xzTV544YVd/tgAvPEsX748I0aMyL777puqqqrU1NRkyJAheeSRRxp7tGzYsCGTJ0/OO97xjlRXV6dz58458sgjc8stt6Surq6xxwOAVFRUvOqv1/PfrIl9JxRZi8YeAGgY3bp1y6xZszJlypS0bt06SfKPf/wjd955Z/bdd99Gnm7nbNq0KRUVFWnWbOv/e7v88sszadKkfOITn8iECRPStWvXPPvss/nyl7+c2267LZdccslOPeaGDRvSsmXLf3V0AJqg97///amrq8uMGTOy//775y9/+Uvuv//+Rv+P1A0bNmTIkCF54okn8p//+Z858sgj0759+/zkJz/JF77whRx66KE55JBDduq+6+rqUllZ2bADA/CGtHTp0vKfv/71r+czn/lMnnnmmfK2Lf+O3WJX7oPsO6HYHKENTcQ73/nO7Lvvvrn77rvL2+6+++5069Ythx56aL21tbW1ufjii7PXXnulVatWec973pOFCxeWr3/ggQdSUVGR+++/P4cddliqq6vTr1+/ei82nnjiiRx99NFp165d2rdvnz59+uSxxx7LAw88kHPOOSerVq0q/0/7+PHjk7z0omHs2LF505velDZt2qRv37554IEHyve55cju7373uznooINSVVWVJUuWbPVcH3300UyYMCHXXXddPv/5z6dfv37Zb7/9MmjQoNx1110566yzkiS/+93vcuKJJ6ZLly5p27ZtDj/88Nx333317mu//fbLtddem7PPPjsdOnTI+eefX55l3333TXV1dU4++eSsWLFi574wADQJf//73zN//vxMmjQpRx99dN785jfnXe96V8aNG5fjjjuuvK6ioiI33HBDjjnmmLRu3Trdu3fPN7/5zXr39ec//zmnnXZaOnbsmE6dOuXEE0/MH/7wh52eberUqXnooYdy//335+Mf/3gOOeSQ7L///hk+fHh++tOfpkePHkmSOXPm5D3veU/22GOPdOrUKccff3x+97vfle/nD3/4QyoqKvKNb3wj/fv3T6tWrXL77bdn06ZNGT16dPl2Y8eOTalU2ul5AXhjqqmpKf/q0KFDKioqypf/8Y9/ZI899thqH7RixYp86EMfyj777JPq6ur07t07d955Z7377d+/fy688MJceOGF5X3VFVdc8ar7KvtOKDZBG5qQc845J7fcckv58te+9rWce+65W60bO3Zs7rrrrsyYMSM/+9nP8pa3vCVDhgzZ6gizyy+/PNddd10ee+yxtGjRot59nX766dlnn32ycOHCLFq0KJdddlkqKyvTr1+/TJ06Ne3bt8/SpUuzdOnSXHrppeX5fvzjH2fWrFn5xS9+kQ984AN53/vel2effbZ8v+vWrcvEiRPz1a9+NU899VT22muvreafOXNm2rZtm5EjR27z72HL6U7Wrl2bY489Nvfdd19+/vOfZ8iQITnhhBPyxz/+sd76z3/+8+nVq1cWLVqUK6+8Mj/96U9z7rnnZuTIkXn88cdz9NFH59prr32Nv30AmrK2bdumbdu2+fa3v53a2tpXXXvllVfm/e9/f5544ol8+MMfzoc+9KE8/fTTSV7azx199NFp27ZtHnroocyfPz9t27bN+973vmzYsGGnZps5c2YGDhy41X9gJ0llZWXatGmTJHnxxRczevToLFy4MPfff3+aNWuWk08+OZs3b653m0996lO5+OKL8/TTT2fIkCG57rrr8rWvfS0333xz5s+fnxdeeCGzZ8/eqVkB4NW8fB/0j3/8I3369Ml3v/vdPPnkk/noRz+aM844Iz/96U/r3W7GjBlp0aJFfvrTn+aLX/xipkyZkq9+9auv+Dj2nVBwJaDwzjrrrNKJJ55Y+utf/1qqqqoqLV68uPSHP/yh1KpVq9Jf//rX0oknnlg666yzSqVSqbR27dpSZWVlaebMmeXbb9iwodS1a9fS5MmTS6VSqfSjH/2olKR03333ldd873vfKyUprV+/vlQqlUrt2rUr3Xrrrduc55Zbbil16NCh3rbf/va3pYqKitKf//znetsHDBhQGjduXPl2SUqPP/74qz7fY445pnTwwQe/9l/MNhx00EGladOmlS+/+c1vLp100kn11nzoQx8qve9976u37bTTTtvqOQHwxvKtb32r1LFjx1KrVq1K/fr1K40bN670xBNP1FuTpPSxj32s3ra+ffuWLrjgglKpVCrdfPPNpbe+9a2lzZs3l6+vra0ttW7duvSDH/ygVCr93359i6OOOqp0ySWXvOJcrVu3Ll188cU7/HyWL19eSlL65S9/WSqVSqXFixeXkpSmTp1ab93ee+9d+tznPle+XFdXV9pnn33qzQgAO+Ll/2Z8pX3Qthx77LGlMWPGlC8fddRRpZ49e9bbt37qU58q9ezZ8xXvw74Tis0R2tCEdO7cOccdd1xmzJiRW265Jccdd1w6d+5cb83vfve71NXV5cgjjyxvq6yszLve9a7y0WNbHHzwweU/77333kle+kCsJBk9enQ+8pGPZODAgfnc5z5X721X2/Kzn/0spVIpBx54YPkot7Zt2+bBBx+sd9uWLVvWe9xtKZVKqaioeNU1yUv/mz527NgcdNBB2WOPPdK2bdv8+te/3uoI7cMOO6ze5aeffjpHHHFEvW0vvwzAG8/73//+PP/887nnnnsyZMiQPPDAA3nnO9+ZW2+9td66be1DtuxjFy1alN/+9rdp165deV+455575h//+Mdr7ktfyfbuF3/3u99l+PDh2X///dO+fft07949SV51v7hq1aosXbq03nNq0aLFVvtOAGgIL9+/bNq0KZ/97Gdz8MEHp1OnTmnbtm3mzp271b7r3e9+d7194RFHHJFnn302mzZt2ubj2HdCsflQSGhizj333Fx44YVJki996UtbXV/63/N2vXznva0d+j9/kMWW67a8tWr8+PEZPnx4vve97+X73/9+rrrqqsyaNSsnn3zyNufavHlzmjdvnkWLFqV58+b1rmvbtm35z61bt37NFxYHHnhg5s+f/5oftvHJT34yP/jBD/KFL3whb3nLW9K6deuccsopW72le8vbybYoObcZAK+gVatWGTRoUAYNGpTPfOYz+chHPpKrrroqZ5999qve7p/3o3369MnMmTO3WvNv//ZvOzXTgQceuNV/Sm/LCSeckG7duuWmm25K165ds3nz5vTq1es194sA8Hp5+T7ouuuuy5QpUzJ16tT07t07bdq0yahRo3b6NF1b2HdCsTlCG5qYLefg3PKpzS/3lre8JS1btsz8+fPL2+rq6vLYY4+lZ8+eO/RYBx54YD7xiU9k7ty5GTZsWPn83S1bttzqf8IPPfTQbNq0KcuXL89b3vKWer9qamp26HGHDx+etWvX5r/+67+2ef3f//73JMnDDz+cs88+OyeffHJ69+6dmpqa7frQrYMOOig/+clP6m17+WUASF7aZ7z44ov1tm1rH/K2t70tyUsf4vzss89mr7322mp/2KFDh52aYfjw4eXPi3i5jRs35sUXX8yKFSvy9NNP54orrsiAAQPSs2fPrFy58jXvu0OHDtl7773rPaeNGzdm0aJFOzUrAOyIhx9+OCeeeGI+/OEP5x3veEf233//ep/BtMW29r09evTY6mCqLew7odgEbWhimjdvnqeffjpPP/30Nnfebdq0yQUXXJBPfvKTmTNnTn71q1/l/PPPz7p163Leeedt12OsX78+F154YR544IEsWbIkP/7xj7Nw4cJyEN9vv/2ydu3a3H///fnb3/6WdevW5cADD8zpp5+eM888M3fffXcWL16chQsXZtKkSbn33nt36Dn27ds3Y8eOzZgxYzJ27Ng88sgjWbJkSe6///584AMfyIwZM5K8FO/vvvvuPP7443niiScyfPjwrT68Y1suvvjizJkzJ5MnT85vfvObTJ8+PXPmzNmhGQFoWlasWJH/+I//yO23355f/OIXWbx4cb75zW9m8uTJOfHEE+ut/eY3v5mvfe1r+c1vfpOrrroqjz76aPndU6effno6d+6cE088MQ8//HAWL16cBx98MJdcckmee+65nZpt1KhROfLIIzNgwIB86UtfyhNPPJHf//73+cY3vpG+ffvm2WefTceOHdOpU6fceOON+e1vf5sf/vCHGT169Hbd/yWXXJLPfe5zmT17dn79619n5MiR5f88BoBd6S1veUvmzZuXBQsW5Omnn86IESOybNmyrdb96U9/yujRo/PMM8/kzjvvzLRp03LJJZe84v3ad0KxOeUINEHt27d/1es/97nPZfPmzTnjjDOyZs2aHHbYYfnBD36Qjh07btf9N2/ePCtWrMiZZ56Zv/zlL+ncuXOGDRuWq6++OknSr1+/fOxjH8tpp52WFStW5Kqrrsr48eNzyy235Nprr82YMWPy5z//OZ06dcoRRxyRY489doef46RJk9KnT5986Utfype//OVs3rw5BxxwQE455ZScddZZSZIpU6bk3HPPTb9+/dK5c+d86lOfyurVq1/zvt/97nfnq1/9annugQMH5oorrsh//ud/7vCcADQNbdu2Td++fTNlypTy51F069Yt559/fj796U/XW3v11Vdn1qxZGTlyZGpqajJz5swcdNBBSZLq6uo89NBD+dSnPpVhw4ZlzZo1edOb3pQBAwa85v77lVRVVWXevHmZMmVKvvKVr+TSSy9NdXV1evbsmYsvvji9evVKs2bNMmvWrPLlt771rfniF7+Y/v37v+b9jxkzJkuXLs3ZZ5+dZs2a5dxzz83JJ5+cVatW7dS8ALC9rrzyyixevDhDhgxJdXV1PvrRj+akk07aah905plnZv369XnXu96V5s2b56KLLspHP/rRV7xf+04otoqSk8UCAECDqKioyOzZs3PSSSc19igA8IbQv3//HHLIIZk6dWpjjwK8TpxyBAAAAACAQhC0AQAAAAAoBKccAQAAAACgEByhDQAAAABAIQjaAAAAAAAUgqANAAAAAEAhCNoAAAAAABSCoA0AAAAAQCEI2gAAAAAAFIKgDQAAAABAIQjaAAAAAAAUgqANAAAAAEAh/H93tr4YMOfhiQAAAABJRU5ErkJggg==
-"
-class="
-"
->
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16301,52 +14833,9 @@ class="
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>7</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>LIGHT    284
-EARTH    229
-DARK     220
-FIRE     130
-WATER    115
-WIND      98
-???        9
-Name: Attribute, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16358,49 +14847,9 @@ Name: Attribute, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>4</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Effect Monster     605
-Normal Monster     368
-Fusion Monster      88
-Maximum Monster     30
-Name: Primary type, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16412,75 +14861,9 @@ Name: Primary type, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>30</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Dragon               104
-Warrior              100
-Machine               99
-Galaxy (Type)         71
-Spellcaster           68
-Fiend                 67
-Beast                 57
-Pyro                  54
-Psychic               53
-Aqua                  51
-Fairy                 35
-Plant                 33
-Beast-Warrior         33
-Reptile               28
-Wyrm                  27
-Dinosaur              24
-Zombie                23
-Thunder               23
-Insect                23
-Cyberse               22
-Winged Beast          21
-Sea Serpent           15
-Fish                  10
-???                    8
-Rock                   8
-Celestial Warrior      7
-High Dragon            7
-Cyborg                 5
-Omega Psychic          4
-Magical Knight         3
-Name: Monster type, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16492,61 +14875,9 @@ Name: Monster type, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>16</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>4      248
-7      179
-3      169
-1      104
-6       92
-8       80
-2       77
-5       65
-9       47
-10      13
-???     10
-12       2
-15       2
-81       1
-18       1
-99       1
-Name: Level/Rank, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16558,87 +14889,9 @@ Name: Level/Rank, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>42</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>2500     103
-0         87
-1500      83
-1000      82
-1200      71
-2400      57
-800       45
-1300      43
-1400      40
-1700      38
-1600      37
-500       35
-1100      33
-2300      32
-100       26
-1800      24
-2800      21
-2200      20
-2000      20
-900       20
-700       20
-400       20
-200       18
-300       17
-1900      16
-600       15
-2100      15
-3000      13
-2600      12
-2900      12
-2700       4
-3300       2
-89000      1
-44000      1
-3500       1
-25000      1
-???        1
-5000       1
-4000       1
-96000      1
-74000      1
-64000      1
-Name: ATK, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16650,83 +14903,9 @@ Name: ATK, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>38</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>0        224
-1000      87
-1500      80
-500       61
-1200      59
-2000      58
-200       45
-1400      39
-1600      37
-800       37
-400       35
-600       33
-1300      33
-100       32
-2500      31
-1800      26
-700       22
-900       21
-300       20
-2100      18
-1700      16
-1100      14
-2400      11
-???        9
-2200       8
-2300       6
-1900       6
-3000       6
-2600       6
-2800       3
-10         1
-96000      1
-5000       1
-2900       1
-51000      1
-25000      1
-44000      1
-80000      1
-Name: DEF, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16738,49 +14917,9 @@ Name: DEF, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>4</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Effect                 1026
-Continuous Effect        46
-Multi-Choice Effect      24
-Summoning condition      12
-Name: Effect type, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16792,56 +14931,9 @@ Name: Effect type, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>74</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Shadow Flower               36
-Royal Rebel&#39;s               29
-Psychic Musician            27
-Bubble Actress              26
-High Tech Dragon            23
-                            ..
-Blisstopia                   3
-Drone (Rush Duel series)     2
-Umi (series)                 2
-Fiendish Commander           1
-Celestial Warrior            1
-Name: Archseries, Length: 74, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16853,25 +14945,9 @@ Name: Archseries, Length: 74, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>52</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16883,107 +14959,13 @@ Name: Archseries, Length: 74, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>0</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Name</th>
-      <th>Card type</th>
-      <th>Property</th>
-      <th>Archseries</th>
-      <th>Attribute</th>
-      <th>Primary type</th>
-      <th>Monster type</th>
-      <th>Effect type</th>
-      <th>Level/Rank</th>
-      <th>DEF</th>
-      <th>Legend</th>
-      <th>Maximum mode</th>
-      <th>ATK</th>
-      <th>MAXIMUM ATK</th>
-      <th>Page name</th>
-      <th>Page URL</th>
-      <th>Artwork</th>
-      <th>Modification date</th>
-    </tr>
-  </thead>
-  <tbody>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>10</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -16995,48 +14977,9 @@ Name: Archseries, Length: 74, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>3</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>(Alternate,)           29
-(Edited,)              16
-(Alternate, Edited)     4
-Name: Artwork, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -17048,49 +14991,11 @@ Name: Artwork, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>4</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>Normal Spell Card    324
-Normal Trap Card     310
-Field Spell Card      39
-Equip Spell Card      26
-Name: Property, dtype: int64</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -17102,34 +15007,7 @@ Name: Property, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Execution took 0 days 00:01:18.194763
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
-<div align='right'>
-    Execution completed 17/02/2023 20:43 UTC
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
