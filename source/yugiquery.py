@@ -119,7 +119,7 @@ class CG(Enum):
     BOTH = CG
     TCG = 'TCG'
     OCG = 'OCG'
-
+    
 # Arrow unicode simbols dictionary
 arrows_dict = {
     'Middle-Left': '\u2190', 
@@ -131,6 +131,13 @@ arrows_dict = {
     'Bottom-Center': '\u2193', 
     'Bottom-Right': '\u2198'
 }
+
+# Benchmark
+def benchmark(timestamp: pd.Timestamp, report: str):
+    if timestamp is not None:
+        timedelta = now-timestamp.tz_localize('utc')
+        time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
+        print(f"Execution took {time_str}")
 
 # Images
 async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
@@ -260,7 +267,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
             if col == 'Misc':
                 df[['Legend', 'Maximum mode']] = df[col].apply(
                     lambda x: pd.Series(
-                        [val in x if x is not np.nan else False for val in ["Legend Card", "Requires maximum mode"]]
+                        [val in x if x is not np.nan else False for val in ["Legend Card", "Requires Maximum Mode"]]
                     )
                 )
                 if not include_all:
@@ -315,7 +322,7 @@ def extract_primary_type(x):
         if 'Monster Token' in x:
             return 'Monster Token' 
         else:
-            x=[z for z in x if z != 'Pendulum Monster']
+            x=[z for z in x if (z != 'Pendulum Monster') and (z != 'Maximum Monster')]
             if len(x)==1 and 'Effect Monster' in x:
                 return 'Effect Monster'
             elif len(x)>0:
@@ -543,6 +550,7 @@ def update_index(): # Handle paths properly
             reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
             rows=[]
             for report in reports:
+                print(os.path.basename(report).rstrip('.html'))
                 rows.append(f"[{os.path.basename(report).rstrip('.html')}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
                 
             readme = readme.replace(f'@REPORT_|_TIMESTAMP@', ' |\n| '.join(rows))
@@ -574,10 +582,12 @@ def header(name: str = None):
         return Markdown(header)
 
 # Generate Markdown footer
-def footer():
+def footer(timestamp: pd.Timestamp = None):
     with open(os.path.join(PARENT_DIR,'assets/footer.md')) as f:
         footer = f.read()
-        footer = footer.replace('@TIMESTAMP@', datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"))
+        now = datetime.now().astimezone(timezone.utc)
+        footer = footer.replace('@TIMESTAMP@', now.strftime("%d/%m/%Y %H:%M %Z"))
+        
         return Markdown(footer)
 
     
@@ -1022,9 +1032,9 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kw
     debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
 
-    concept = f'[[Category:Rush%20Duel%20cards]]'
+    concept = f'[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]'
     if rush_query is None:
-        rush_query = card_query()
+        rush_query = card_query(default='rush')
 
     rush_df = fetch_properties(
         concept, 
