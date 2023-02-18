@@ -133,12 +133,24 @@ arrows_dict = {
 }
 
 # Benchmark
-def benchmark(timestamp: pd.Timestamp, report: str):
-    if timestamp is not None:
-        timedelta = now-timestamp.tz_localize('utc')
-        time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
-        print(f"Execution took {time_str}")
-
+def benchmark(report: str, timestamp: pd.Timestamp):
+    now = datetime.now(timezone.utc)
+    timedelta = now-timestamp.tz_localize('utc')
+    time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
+    # print(f"Report execution took {time_str}")
+    with open(os.path.join(PARENT_DIR,'assets/benchmark.json'), 'r+') as file:
+        try:
+            data = json.load(file)
+        except:
+            data = {}
+        # Add the new data to the existing data
+        if report not in data:
+            data[report] = timedelta.total_seconds()
+        # Save new data to file  
+        file.seek(0)
+        json.dump(data,file)
+        file.truncate()
+    
 # Images
 async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
     # Prepare URL from file names
@@ -469,7 +481,8 @@ def run_notebooks(which='all', progress_handler=None):
             reports, 
             desc="Completion", 
             unit='report', 
-            unit_scale=True, 
+            unit_scale=True,
+            dynamic_ncols=True,
             token=secrets['DISCORD_TOKEN'], 
             channel_id=secrets['DISCORD_CHANNEL_ID']
         )
@@ -477,7 +490,9 @@ def run_notebooks(which='all', progress_handler=None):
         iterator = tqdm(
             reports, 
             desc="Completion", 
-            unit='report'
+            unit='report',
+            unit_scale=True,
+            dynamic_ncols=True
         )
 
     # Get papermill logger
@@ -550,8 +565,7 @@ def update_index(): # Handle paths properly
             reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
             rows=[]
             for report in reports:
-                print(os.path.basename(report).rstrip('.html'))
-                rows.append(f"[{os.path.basename(report).rstrip('.html')}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
+                rows.append(f"[{os.path.basename(report).split('.')[0]}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
                 
             readme = readme.replace(f'@REPORT_|_TIMESTAMP@', ' |\n| '.join(rows))
             readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
@@ -1505,7 +1519,7 @@ def run(report = 'all', progress_handler = None):
 
 if __name__ == "__main__":
     # Change working directory to script location
-    os.chdir(SCRIPT_PATH)
+    os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
     run()
     # Exit python
