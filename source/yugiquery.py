@@ -138,14 +138,19 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     timedelta = now-timestamp.tz_localize('utc')
     time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
     # print(f"Report execution took {time_str}")
-    with open(os.path.join(PARENT_DIR,'assets/benchmark.json'), 'r+') as file:
+    benchmark_file = os.path.join(PARENT_DIR,'assets/benchmark.json')
+    rw='r+' if os.path.exists(benchmark_file) else 'w+'
+    with open(benchmark_file, rw) as file:
         try:
             data = json.load(file)
         except:
             data = {}
         # Add the new data to the existing data
         if report not in data:
-            data[report] = timedelta.total_seconds()
+            data[report] = {}
+            if now.isoformat() not in data[report]:
+                data[report][now.isoformat()] = timedelta.total_seconds()
+                
         # Save new data to file  
         file.seek(0)
         json.dump(data,file)
@@ -256,7 +261,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         'Secondary type': True,
         'Monster type': False,
         'Effect type': True,
-        'Level/Rank': False,
+        # 'Level/Rank': False,
         'DEF': False,
         'Pendulum Scale': False,
         'Link': False,
@@ -265,9 +270,14 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         # Rush duel specific columns
         'Misc': True,
         # Set specific columns
+        'Set': False,
+        'Card number': False,
         'Series': False,
         'Set type': False,
         'Cover card': True,
+        # Bandai specific columns
+        'Ability': False,
+        'Rule': False,
     }
     for col, multi in individual_cols.items():
         if col in input_df.columns:
@@ -291,7 +301,8 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         
     # Columns with matching name pattern: extraction function
     filter_cols = {
-        'ATK': True, 
+        'ATK': True,
+        'Level': True,
         ' status': True,
         'Page ': False
     }
@@ -302,7 +313,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
 
     # Category boolean columns for merging into tuple
     category_bool_cols = {
-        'Artwork': '.*[aA]rtwork$',
+        'Artwork': '.*[aA]rtworks$',
         'Errata': '.*[eE]rrata$'
     }
     for col, cat in category_bool_cols.items():
@@ -369,20 +380,20 @@ def format_artwork(row: pd.Series):
         return result
 
 def format_errata(row: pd.Series):
-    result = tuple()
+    result = []
     if 'Cards with name errata' in row: 
         if row['Cards with name errata']:
-            result += ('Name',)
+            result.append('Name')
     if 'Cards with card type errata' in row:  
         if row['Cards with card type errata']:
-            result += ('Type',)
-    if 'Card Errata' in row:
+            result.append('Type')
+    if 'Card Errata' in row and not result:
         if row['Card Errata']:
-            result += ('Text',)
-    if result == tuple():
-        return np.nan
+            result.append('Any')
+    if result:
+        return tuple(sorted(result))
     else:
-        return result 
+        return np.nan
     
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bool = False):
     if 'Page name' in input_df.columns:
@@ -748,8 +759,8 @@ def card_query(default: str = None, *args, **kwargs):
         '_attribute': '|?Attribute', 
         '_monster_type': '|?Type=Monster%20type', 
         '_stars': '|?Stars%20string=Level%2FRank%20',
-        '_atk': '|?ATK%20string=ATK', 
-        '_def': '|?DEF%20string=DEF', 
+        '_atk': '|?ATK', 
+        '_def': '|?DEF', 
         '_scale': '|?Pendulum%20Scale', 
         '_link': '|?Link%20Rating=Link', 
         '_arrows': '|?Link%20Arrows',
