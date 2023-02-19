@@ -134,27 +134,21 @@ arrows_dict = {
 
 # Benchmark
 def benchmark(report: str, timestamp: pd.Timestamp):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc) # Make all timestamps UTC?
     timedelta = now-timestamp.tz_localize('utc')
     time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
     # print(f"Report execution took {time_str}")
     benchmark_file = os.path.join(PARENT_DIR,'assets/benchmark.json')
     rw='r+' if os.path.exists(benchmark_file) else 'w+'
-    with open(benchmark_file, rw) as file:
-        try:
-            data = json.load(file)
-        except:
-            data = {}
-        # Add the new data to the existing data
-        if report not in data:
-            data[report] = {}
-            if now.isoformat() not in data[report]:
-                data[report][now.isoformat()] = timedelta.total_seconds()
-                
-        # Save new data to file  
-        file.seek(0)
+    data = load_json(benchmark_file)
+    # Add the new data to the existing data
+    if report not in data:
+        data[report] = {}
+    if now.isoformat() not in data[report]:
+        data[report][now.isoformat()] = timedelta.total_seconds()
+    # Save new data to file  
+    with open(benchmark_file, 'w+') as file:
         json.dump(data,file)
-        file.truncate()
     
 # Images
 async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
@@ -314,7 +308,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     # Category boolean columns for merging into tuple
     category_bool_cols = {
         'Artwork': '.*[aA]rtworks$',
-        'Errata': '.*[eE]rrata$'
     }
     for col, cat in category_bool_cols.items():
         col_matches = input_df.filter(regex=cat).columns
@@ -323,9 +316,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
             # Artworks extraction
             if col=='Artwork':
                 df[col] = cat_bool.apply(format_artwork, axis=1)
-            # Errata extraction
-            elif col=='Errata':
-                df[col] = cat_bool.apply(format_errata, axis=1)
             else:
                 df[col] = cat_bool
 
@@ -395,13 +385,12 @@ def format_errata(row: pd.Series):
     else:
         return np.nan
     
-def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame, drop: bool = False):
-    if 'Page name' in input_df.columns:
-        input_df = input_df.merge(input_errata_df['Errata'], left_on = 'Page name', right_index = True, how='left', suffixes=('', ' errata'))
-        if drop:
-            input_df.drop('Page name', axis=1, inplace=True)
+def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
+    if 'Name' in input_df.columns:
+        errata_series = input_errata_df.apply(format_errata, axis=1).rename('Errata')
+        input_df = input_df.merge(errata_series, left_on = 'Name', right_index = True, how='left', suffixes=('', ' errata'))
     else:
-        print('Error! No \"page\" name column to join errata')
+        print('Error! No \"Name\" column to join errata')
     
     return input_df
 
@@ -630,7 +619,7 @@ media_url='https://ws.yugipedia.com/'
 revisions_query_action = '?action=query&format=json&prop=revisions&rvprop=content&titles='
 ask_query_action='?action=ask&format=json&query='
 askargs_query_action = '?action=askargs&format=json&conditions='
-categorymembers_query_action = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:'
+categorymembers_query_action = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle='
 redirects_query_action = '?action=query&format=json&redirects=True&titles='
 
 # Extract results from query response
@@ -827,7 +816,7 @@ def check_API_status():
         return False
 
 # Fetch category members - still not used
-def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, debug: bool = False):
+def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, iterator=None, debug: bool = False):
     params = { 
         'cmlimit': step, 
         'cmnamespace': namespace 
@@ -835,7 +824,10 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, de
 
     lastContinue = {}
     all_results = []
+    i=0
     while True:
+        if iterator is not None:
+            iterator.set_postfix(it=i+1)
         params = params.copy()
         params.update(lastContinue)
         response = requests.get(f'{base_url}{categorymembers_query_action}{category}', params=params, headers=http_headers)
@@ -852,6 +844,7 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, de
         if 'continue' not in result:
             break
         lastContinue = result['continue']
+        i+=1
     
     return all_results
     
@@ -1082,81 +1075,102 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kw
 ### Extra properties ###
 
 # Fetch errata boolean table
-def fetch_errata(card_names: pd.Series = None, errata: str = 'all', step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
     debug = kwargs.get('debug', False)
     errata = errata.lower()
-    valid = {'name', 'type', 'text', 'all'}
+    valid = {'name', 'type', 'all'}
+    categories = {
+        'all':'Category:Card%20Errata',
+        'type':'Category:Cards%20with%20card%20type%20errata',
+        'name':'Category:Cards%20with%20name%20errata'
+    }
     if errata not in valid:
         raise ValueError("results: errata must be one of %r." % valid)
     elif errata=='all':
         errata='all'
-        condition = '[[Category:Card%20Errata]]'
-        query = '|?Category:Cards%20with%20card%20type%20errata|?Category:Cards%20with%20name%20errata|?Category:Card%20Errata|?Card%20Errata%20page%20for=Name'
-    elif errata == 'type':
-        condition = '[[Category:Cards%20with%20card%20type%20errata]]'
-        query = '|?Category:Cards%20with%20card%20type%20errata|?Card%20Errata%20page%20for=Name'
-    elif errata == 'name':
-        condition = '[[Category:Cards%20with%20name%20errata]]'
-        query = '|?Category:Cards%20with%20name%20errata|?Card%20Errata%20page%20for=Name'
-    elif errata=='text':
-        condition = '[[Category:Card%20Errata]]'
-        query = '|?Category:Card%20Errata|?Card%20Errata%20page%20for=Name'
-
-    if card_names is None:
-        initials = '"'+string.ascii_uppercase+string.digits
+        categories = list(categories.values())
     else:
-        initials = card_names.apply(lambda x: x.strip()[0].upper()).unique()
-    
+        categories = list(categories['errata'])
+
     print(f'Downloading {errata} errata')  
     errata_df = pd.DataFrame()
     iterator = tqdm(
-        initials, 
+        categories, 
         leave = False, 
         unit='initial', 
         disable=('PM_IN_EXECUTION' in os.environ)
     )
-    for initial in iterator:
-        iterator.set_description(f'Initial={initial}')
+    for cat in iterator:
+        desc = up.unquote(cat.split('Category:')[-1])
+        iterator.set_description(desc)
         if debug:
-            tqdm.write(f"- {initial}")
+            tqdm.write(f"- {cat}")
         
-        temp_df = fetch_properties(
-            f'{condition}[[Card%20Errata%20page%20for::~{initial}*]]',
-            query=query,
-            step=step,
-            limit=limit,
+        temp = fetch_categorymembers(
+            cat,
+            namespace = 3010,
+            step = step,
             iterator=iterator,
-            **kwargs
+            debug = debug
         )
-        errata_df = pd.concat([errata_df, temp_df], ignore_index=True, axis=0)
+        errata_data = pd.DataFrame(temp)['title'].apply(lambda x: x.split('Card Errata:')[-1])
+        errata_series = pd.Series(data=True, index=errata_data, name = desc)
+        errata_df = pd.concat([errata_df, errata_series], axis=1).fillna(False).sort_index()
     
     if debug:
         print('- Total')
-        
-    errata_df = errata_df.drop_duplicates().set_index('Name').dropna()
+    
     print(f'{len(errata_df.index)} results\n')
-
     return errata_df
 
 ###### Sets ######
 
 # Get title of set list pages
-def fetch_set_list_pages(cg: CG = CG.ALL, limit: int = 5000, **kwargs):
+def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs):
+    debug = kwargs.get('debug',False)
     valid_cg = cg.value
     if valid_cg=='CG':
-        condition='[[Category:TCG%20Set%20Card%20Lists||OCG%20Set%20Card%20Lists]]'
+        category=['Category:TCG%20Set%20Card%20Lists','Category:OCG%20Set%20Card%20Lists']
     else:
-        category=f'[[Category:{valid_cg}%20Set%20Card%20Lists]]'
-
-    df = fetch_properties(
-        condition,
-        query='|?Modification date',
-        step=limit,
-        limit=limit, 
-        **kwargs
+        category=f'Category:{valid_cg}%20Set%20Card%20Lists'
+    
+    set_list_pages = pd.DataFrame()    
+    result=pd.DataFrame()
+    iterator = tqdm(
+        category, 
+        leave = False, 
+        unit='category', 
+        disable=('PM_IN_EXECUTION' in os.environ)
     )
+    for cat in iterator:
+        iterator.set_description(up.unquote(cat.split('Category:')[-1]))
+        temp = fetch_categorymembers(
+            cat,
+            namespace = None,
+            step = step,
+            iterator=iterator,
+            debug = debug
+        )
+        sub_categories = pd.DataFrame(temp)['title']
+        sub_iterator = tqdm(
+            sub_categories, 
+            leave = False, 
+            unit='subcategory', 
+            disable=('PM_IN_EXECUTION' in os.environ)
+        )
+        for sub_cat in sub_iterator:
+            sub_iterator.set_description(up.unquote(sub_cat.split('Category:')[-1]))
+            temp = fetch_properties(
+                f'[[{sub_cat}]]',
+                query='|?Modification date',
+                step=limit,
+                limit=limit,
+                iterator=sub_iterator,
+                **kwargs
+            )
+            set_list_pages = pd.concat([set_list_pages,pd.DataFrame(temp)])
 
-    return df
+    return set_list_pages
 
 # Fetch set lists from page titles
 def fetch_set_lists(titles, **kwargs):  # Separate formating function
