@@ -302,12 +302,12 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
 
     # Category boolean columns for merging into tuple
     category_bool_cols = {
-        'Artwork': ' artwork',
-        'Errata': ' errata'
+        'Artwork': '.*[aA]rtwork$',
+        'Errata': '.*[eE]rrata$'
     }
     for col, cat in category_bool_cols.items():
-        col_matches = input_df.filter(like=cat).columns
-        if len(input_df.filter(like=cat).columns)>0:
+        col_matches = input_df.filter(regex=cat).columns
+        if len(col_matches)>0:
             cat_bool = input_df[col_matches].applymap(extract_category_bool)
             # Artworks extraction
             if col=='Artwork':
@@ -376,6 +376,9 @@ def format_errata(row: pd.Series):
     if 'Cards with card type errata' in row:  
         if row['Cards with card type errata']:
             result += ('Type',)
+    if 'Card Errata' in row:
+        if row['Card Errata']:
+            result += ('Text',)
     if result == tuple():
         return np.nan
     else:
@@ -623,10 +626,12 @@ redirects_query_action = '?action=query&format=json&redirects=True&titles='
 def extract_results(response: requests.Response):
     json = response.json()
     df = pd.DataFrame(json['query']['results']).transpose()
-    df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
-    page_url=pd.DataFrame(json['query']['results']).transpose()['fullurl'].rename('Page URL')
-    page_name=pd.DataFrame(json['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
-    df = pd.concat([df,page_name,page_url],axis=1)
+    if 'printouts' in df:
+        df = pd.DataFrame(df['printouts'].values.tolist(), index = df['printouts'].keys())
+        page_url=pd.DataFrame(json['query']['results']).transpose()['fullurl'].rename('Page URL')
+        page_name=pd.DataFrame(json['query']['results']).transpose()['fulltext'].rename('Page name') # Not necessarily same as card name (Used to merge errata)
+        df = pd.concat([df,page_name,page_url],axis=1)
+        
     return df
 
 # Cards Query arguments shortcut
@@ -904,7 +909,7 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=False, **kwargs):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=True, **kwargs):
     debug = kwargs.get('debug', False)
     valid_cg = cg.value
     attributes = [
@@ -914,7 +919,8 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
         'WATER', 
         'EARTH', 
         'FIRE', 
-        'WIND'
+        'WIND',
+        '?'
     ]
     print('Downloading monsters')
     if monster_query is None:
@@ -957,7 +963,7 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
 ###### Non deck cards ###### 
 
 # Fetch token cards
-def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
+def fetch_token(token_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
@@ -967,7 +973,7 @@ def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
     token_df = fetch_properties(
         concept, 
         token_query, 
-        step=limit, 
+        step=step, 
         limit=limit,
         **kwargs
     )
@@ -977,7 +983,7 @@ def fetch_token(token_query: str = None, limit: int = 5000, **kwargs):
     return token_df
 
 # Fetch counter cards
-def fetch_counter(counter_query: str = None, limit: int = 5000, **kwargs):
+def fetch_counter(counter_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
@@ -987,7 +993,7 @@ def fetch_counter(counter_query: str = None, limit: int = 5000, **kwargs):
     counter_df = fetch_properties(
         concept, 
         counter_query, 
-        step=limit, 
+        step=step, 
         limit=limit,  
         **kwargs
     )
@@ -1022,7 +1028,7 @@ def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **
     return speed_df
 
 # Fetch skill cards
-def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
+def fetch_skill(skill_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
 
     concept = f'[[Category:Skill%20Cards]][[Card type::Skill Card]]'
@@ -1032,7 +1038,7 @@ def fetch_skill(skill_query: str = None, limit: int = 5000, **kwargs):
     skill_df = fetch_properties(
         concept, 
         skill_query, 
-        step=limit, 
+        step=step, 
         limit=limit,   
         **kwargs
     )
@@ -1065,33 +1071,59 @@ def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kw
 ### Extra properties ###
 
 # Fetch errata boolean table
-def fetch_errata(errata: str = 'all', limit: int = 2000, **kwargs):
+def fetch_errata(card_names: pd.Series = None, errata: str = 'all', step: int = 1000, limit: int = 5000, **kwargs):
     debug = kwargs.get('debug', False)
     errata = errata.lower()
-    valid = {'name', 'type', 'all', 'both'}
+    valid = {'name', 'type', 'text', 'all'}
     if errata not in valid:
         raise ValueError("results: errata must be one of %r." % valid)
-    elif errata == 'both' or errata=='all':
+    elif errata=='all':
         errata='all'
-        condition = '[[Category:Cards%20with%20name%20errata||Cards%20with%20card%20type%20errata]]'
-        query = '|?Category:Cards%20with%20card%20type%20errata|?Category:Cards%20with%20name%20errata|?Card%20Errata%20page%20for=Name'
+        condition = '[[Category:Card%20Errata]]'
+        query = '|?Category:Cards%20with%20card%20type%20errata|?Category:Cards%20with%20name%20errata|?Category:Card%20Errata|?Card%20Errata%20page%20for=Name'
     elif errata == 'type':
         condition = '[[Category:Cards%20with%20card%20type%20errata]]'
         query = '|?Category:Cards%20with%20card%20type%20errata|?Card%20Errata%20page%20for=Name'
     elif errata == 'name':
         condition = '[[Category:Cards%20with%20name%20errata]]'
         query = '|?Category:Cards%20with%20name%20errata|?Card%20Errata%20page%20for=Name'
+    elif errata=='text':
+        condition = '[[Category:Card%20Errata]]'
+        query = '|?Category:Card%20Errata|?Card%20Errata%20page%20for=Name'
 
+    if card_names is None:
+        initials = '"'+string.ascii_uppercase+string.digits
+    else:
+        initials = card_names.apply(lambda x: x.strip()[0].upper()).unique()
+    
     print(f'Downloading {errata} errata')  
-    errata_df = fetch_properties(
-        condition,
-        query=query,
-        step=limit,
-        limit=limit,
-        **kwargs
+    errata_df = pd.DataFrame()
+    iterator = tqdm(
+        initials, 
+        leave = False, 
+        unit='initial', 
+        disable=('PM_IN_EXECUTION' in os.environ)
     )
-    errata_df = errata_df.set_index('Name').dropna()
-    print(f'{len(errata_df)} results\n')
+    for initial in iterator:
+        iterator.set_description(f'Initial={initial}')
+        if debug:
+            tqdm.write(f"- {initial}")
+        
+        temp_df = fetch_properties(
+            f'{condition}[[Card%20Errata%20page%20for::~{initial}*]]',
+            query=query,
+            step=step,
+            limit=limit,
+            iterator=iterator,
+            **kwargs
+        )
+        errata_df = pd.concat([errata_df, temp_df], ignore_index=True, axis=0)
+    
+    if debug:
+        print('- Total')
+        
+    errata_df = errata_df.drop_duplicates().set_index('Name').dropna()
+    print(f'{len(errata_df.index)} results\n')
 
     return errata_df
 
