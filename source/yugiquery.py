@@ -878,6 +878,40 @@ def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 
 
     return df
 
+###### Bandai #####
+def fetch_bandai(limit: int=200, *args, **kwargs):
+    debug=kwargs.get('debug',False)
+    bandai_query = '|?English%20name=Name'
+    bandai_prop_dict = {
+        '_card_type': '|?Card%20type',
+        '_level': '|?Level',
+        '_atk' :'|?ATK',
+        '_def': '|?DEF',
+        '_number': '|?Bandai%20number=Card%20number',
+        '_type': '|?Type=Monster%20type',
+        '_rule': '|?Bandai%20rule=Rule',
+        '_sets': '|?Sets=Set',
+        '_rarity': '|?Rarity',
+        '_ability': '|?Ability'
+    }
+    for key, value in bandai_prop_dict.items():
+        if key in kwargs and not kwargs[key]:
+            continue
+        else:
+            bandai_query+=value
+            
+    for arg in args:
+        bandai_query+=f'|?{up.quote(arg)}'
+            
+    bandai_df = fetch_properties(
+        '[[Medium::Bandai]]',
+        bandai_query, 
+        step=limit, 
+        limit=limit, 
+        debug=debug
+    )
+    return bandai_df
+
 ###### Cards ######
 
 # Fetch spell or trap cards
@@ -1247,9 +1281,14 @@ def fetch_set_lists(titles, **kwargs):  # Separate formating function
                             list_df = list_df.applymap(lambda x: x.split('//')[0] if x is not None else x)
                             list_df = list_df.applymap(lambda x: x.strip() if x is not None else x)
                             list_df.replace(r'^\s*$|^@.*$', None, regex = True, inplace = True)
+                            
+                    if list_df is None:
+                        error+=1
+                        if debug:
+                            print(f"Error! Unable to parse template for \"{page_name}\"")
+                        continue
 
                     noabbr = (opt == 'noabbr')
-                    
                     set_df['Name'] = list_df[1-noabbr].apply(lambda x: x.strip('\u200e').split(' (')[0] if x is not None else x)
                     
                     if not noabbr and len(list_df.columns>1):
