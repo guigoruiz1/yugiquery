@@ -849,7 +849,7 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, it
     return all_results
     
 # Fetch properties from query and condition - should be called from parent functions
-def fetch_properties(condition: str, query: str, step: int = 1000, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
+def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -915,7 +915,7 @@ def fetch_bandai(limit: int=200, *args, **kwargs):
 ###### Cards ######
 
 # Fetch spell or trap cards
-def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 500, limit: int = 5000, **kwargs):
     debug = kwargs.get('debug', False)
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
@@ -947,7 +947,7 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
     return st_df
 
 # Fetch monster cards by splitting into attributes
-def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, limit: int = 5000, exclude_token=True, **kwargs):
+def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 500, limit: int = 5000, exclude_token=True, **kwargs):
     debug = kwargs.get('debug', False)
     valid_cg = cg.value
     attributes = [
@@ -1001,7 +1001,7 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 1000, 
 ###### Non deck cards ###### 
 
 # Fetch token cards
-def fetch_token(token_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
@@ -1021,7 +1021,7 @@ def fetch_token(token_query: str = None, step: int = 1000, limit: int = 5000, **
     return token_df
 
 # Fetch counter cards
-def fetch_counter(counter_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_counter(counter_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
@@ -1043,7 +1043,7 @@ def fetch_counter(counter_query: str = None, step: int = 1000, limit: int = 5000
 ###### Alternative formats ######
 
 # Fetch speed duel cards
-def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
     debug = kwargs.get('debug', False)
 
     print(f'Downloading Speed duel cards')
@@ -1066,7 +1066,7 @@ def fetch_speed(speed_query: str = None, step: int = 1000, limit: int = 5000, **
     return speed_df
 
 # Fetch skill cards
-def fetch_skill(skill_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
     print('Downloading skill cards')
 
     concept = f'[[Category:Skill%20Cards]][[Card type::Skill Card]]'
@@ -1086,7 +1086,7 @@ def fetch_skill(skill_query: str = None, step: int = 1000, limit: int = 5000, **
     return skill_df
 
 # Fetch rush duel cards
-def fetch_rush(rush_query: str = None, step: int = 1000, limit: int = 5000, **kwargs):
+def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
     debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
 
