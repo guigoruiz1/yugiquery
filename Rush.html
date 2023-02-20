@@ -3,7 +3,34 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Rush</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Rush</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
+(function() {
+  function addWidgetsRenderer() {
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var scriptElement = document.createElement('script');
+    
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        
+        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
+        
+      }
+    } catch(e) {}
+
+    scriptElement.src = widgetRendererSrc;
+    document.body.appendChild(scriptElement);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
 
 
 
@@ -14614,7 +14641,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Rush Duel - Execution started 20/02/2023 23:37 UTC <br>
+    Rush Duel - Execution started 20/02/2023 23:49 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -26630,7 +26657,7 @@ class="
 
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
 <div align='right'>
-    Execution completed 20/02/2023 23:38 UTC
+    Execution completed 20/02/2023 23:50 UTC
 </div>
 
 </div>
@@ -26678,6 +26705,10 @@ class="
 
 
 
+
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"3a89821187fb49a8b0db3f76e26fbaed": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "3bf2c57186b84a9f960b49911a1ae2b1": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}, "733344f1b9a24d38adff984a52965c5a": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}, "78e4304432f744b8a686b7f5c6b16f58": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_733344f1b9a24d38adff984a52965c5a", "sessions": "IPY_MODEL_3a89821187fb49a8b0db3f76e26fbaed", "shell": "IPY_MODEL_3bf2c57186b84a9f960b49911a1ae2b1", "version": ""}}}, "version_major": 2, "version_minor": 0}
+</script>
 
 
 </html>
