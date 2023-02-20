@@ -3,34 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
-(function() {
-  function addWidgetsRenderer() {
-    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-    var scriptElement = document.createElement('script');
-    
-    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-    
-    var widgetState;
-
-    // Fallback for older version:
-    try {
-      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        
-        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
-        
-      }
-    } catch(e) {}
-
-    scriptElement.src = widgetRendererSrc;
-    document.body.appendChild(scriptElement);
-  }
-
-  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
-}());
-</script>
+<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14641,7 +14614,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Bandai - Execution started 20/02/2023 12:06 UTC <br>
+    Bandai - Execution started 20/02/2023 16:24 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -15036,7 +15009,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
 <div align='right'>
-    Execution completed 20/02/2023 12:06 UTC
+    Execution completed 20/02/2023 16:24 UTC
 </div>
 
 </div>
@@ -15084,10 +15057,6 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 
 
 
-
-<script type="application/vnd.jupyter.widget-state+json">
-{"state": {"0b48b303e5324034b007340d296019c5": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}, "327052279d794aef99369a11989f5777": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "3ac3ccd0c9ef47daaf6f83718e785ab4": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_ccb0ccd4932643d09de5d076db27a621", "sessions": "IPY_MODEL_327052279d794aef99369a11989f5777", "shell": "IPY_MODEL_0b48b303e5324034b007340d296019c5", "version": ""}}, "ccb0ccd4932643d09de5d076db27a621": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}}, "version_major": 2, "version_minor": 0}
-</script>
 
 
 </html>
