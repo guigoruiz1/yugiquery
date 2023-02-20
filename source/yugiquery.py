@@ -1316,7 +1316,7 @@ def fetch_set_lists(titles, **kwargs):  # Separate formating function
                     set_df['Set'] = re.sub(r'\(\w{3}-\w{2}\)\s*$','',title).strip()
                     set_df['Region'] = region.upper() 
                     set_df['Page name'] = page_name
-                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True)
+                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True).fillna(np.nan)
                     success+=1
 
         else:
