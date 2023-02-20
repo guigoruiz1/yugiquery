@@ -3,34 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Rush</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
-(function() {
-  function addWidgetsRenderer() {
-    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-    var scriptElement = document.createElement('script');
-    
-    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-    
-    var widgetState;
-
-    // Fallback for older version:
-    try {
-      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        
-        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
-        
-      }
-    } catch(e) {}
-
-    scriptElement.src = widgetRendererSrc;
-    document.body.appendChild(scriptElement);
-  }
-
-  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
-}());
-</script>
+<title>Rush</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14641,7 +14614,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Rush Duel - Execution started 20/02/2023 12:15 UTC <br>
+    Rush Duel - Execution started 20/02/2023 18:30 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -14856,7 +14829,7 @@ Downloading all errata
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>File loaded
+<pre>No older files
 </pre>
 </div>
 </div>
@@ -14884,7 +14857,7 @@ Downloading all errata
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>No changes
+<pre>Skipped
 </pre>
 </div>
 </div>
@@ -14912,7 +14885,7 @@ Downloading all errata
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>No changes. New data not saved
+<pre>Data saved
 </pre>
 </div>
 </div>
@@ -26657,7 +26630,7 @@ class="
 
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
 <div align='right'>
-    Execution completed 20/02/2023 12:17 UTC
+    Execution completed 20/02/2023 18:32 UTC
 </div>
 
 </div>
@@ -26705,10 +26678,6 @@ class="
 
 
 
-
-<script type="application/vnd.jupyter.widget-state+json">
-{"state": {"436ce54c5a4f4867a18532f6f9563cf1": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_7eba40fb94fd4fed941c90e86697d8a6", "sessions": "IPY_MODEL_a4f70fefff8b4c8db2d197f352b12315", "shell": "IPY_MODEL_a5ddac842e154fa8bea65ec77535731a", "version": ""}}, "7eba40fb94fd4fed941c90e86697d8a6": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}, "a4f70fefff8b4c8db2d197f352b12315": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "a5ddac842e154fa8bea65ec77535731a": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}}, "version_major": 2, "version_minor": 0}
-</script>
 
 
 </html>
