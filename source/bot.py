@@ -16,6 +16,7 @@ import discord
 import asyncio
 import io
 import re
+import json
 import pandas as pd
 from enum import Enum
 import multiprocessing as mp
@@ -142,6 +143,45 @@ async def abort(ctx):
     except:
         await original_response.edit(content='Abort failed')
 
+@bot.hybrid_command(name='benchmark', description='Show average time each report takes to complete', with_app_command=True)
+async def benchmark(ctx): # Improve function
+    await ctx.defer()
+    try:
+        with open('../data/benchmark.json', 'r') as file:
+            data = json.load(file)
+    except:
+        await ctx.send('Unable to find benchmark records at this time. Try again later.')
+        return
+
+    embed = discord.Embed(
+        title='Benchmark', 
+        description='The average time each report takes to complete', 
+        color=discord.Colour.blue()
+    )
+    # Get benchmark
+    value=''
+    for key, values in data.items():
+        weighted_sum = 0
+        total_weight = 0
+        for entry in values:
+            weighted_sum+= entry['average']*entry['weight']
+            total_weight+= entry['weight']
+            
+        avg_time = pd.Timestamp(weighted_sum/total_weight, unit='s')
+        latest_time = pd.Timestamp(entry['average'], unit='s')
+        
+        avg_time_str = f"{avg_time.strftime('%-M')} minutes and {avg_time.strftime('%-S.%f')} seconds" if avg_time.minute > 0 else f"{avg_time.strftime('%-S.%f')} seconds"
+        latest_time_str = f"{latest_time.strftime('%-M')} minutes and {latest_time.strftime('%-S.%f')} seconds" if latest_time.minute > 0 else f"{latest_time.strftime('%-S.%f')} seconds"
+        
+        value = f"• Average: {avg_time_str}\n• Latest: {latest_time_str}"
+        embed.add_field(
+            name=key.capitalize(), 
+            value=value, 
+            inline=False
+        )
+        
+    await ctx.send(embed=embed)
+        
 @bot.hybrid_command(name='latest', description='Show latest time each report was generated', with_app_command=True)
 async def latest(ctx):
     await ctx.defer()
@@ -155,7 +195,7 @@ async def latest(ctx):
     # Get local files timestamps
     local_value=''
     for report in reports:
-        local_value += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+        local_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
     
     embed.add_field(
         name='Local:', 
@@ -169,7 +209,7 @@ async def latest(ctx):
         for report in reports:
             result = pd.read_json(f'{repository_api_url}/commits?path={os.path.basename(report)}')
             timestamp = pd.DataFrame(result.loc[0,'commit']).loc['date','author']
-            live_value += f'• {os.path.basename(report).rstrip(".html")}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         embed.add_field(
             name='Live:', 
@@ -237,16 +277,6 @@ async def data(ctx):
 async def ping(ctx):
     await ctx.send(
         content='🏓 Pong! {0}ms'.format(round(bot.latency*1000, 1)), 
-        ephemeral=True, 
-        delete_after=60
-    )
-
-@bot.hybrid_command(name='test', description='test', with_app_command=True)
-@commands.cooldown(1, 60, commands.BucketType.user)
-@commands.is_owner()
-async def test(ctx):
-    await ctx.send(
-        content=f'Teste efetuado, {ctx.author.name}', 
         ephemeral=True, 
         delete_after=60
     )
