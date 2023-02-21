@@ -3,34 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
-(function() {
-  function addWidgetsRenderer() {
-    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-    var scriptElement = document.createElement('script');
-    
-    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-    
-    var widgetState;
-
-    // Fallback for older version:
-    try {
-      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        
-        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
-        
-      }
-    } catch(e) {}
-
-    scriptElement.src = widgetRendererSrc;
-    document.body.appendChild(scriptElement);
-  }
-
-  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
-}());
-</script>
+<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -14641,7 +14614,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Bandai - Execution started 20/02/2023 23:44 UTC <br>
+    Bandai - Execution started 21/02/2023 00:12 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -14686,7 +14659,25 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
 
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Downloading bandai cards
+120 results
+
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
 
 </div>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -14717,7 +14708,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>No older files
+<pre>File loaded
 </pre>
 </div>
 </div>
@@ -14745,7 +14736,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Skipped
+<pre>No changes
 </pre>
 </div>
 </div>
@@ -14773,7 +14764,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Data saved
+<pre>No changes. New data not saved
 </pre>
 </div>
 </div>
@@ -17021,7 +17012,23 @@ Name: Monster type, dtype: int64</pre>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs jp-mod-noInput ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Error loading /home/jovyan/yugiquery-dev/data/benchmark.json. Ignoring...
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
 
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell  jp-mod-noInput ">
 
@@ -17035,7 +17042,7 @@ Name: Monster type, dtype: int64</pre>
 
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
 <div align='right'>
-    Execution completed 20/02/2023 23:44 UTC
+    Execution completed 21/02/2023 00:12 UTC
 </div>
 
 </div>
@@ -17083,10 +17090,6 @@ Name: Monster type, dtype: int64</pre>
 
 
 
-
-<script type="application/vnd.jupyter.widget-state+json">
-{"state": {"5c3ddaac90114481b97ad7ba992a927f": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}, "71d9f5e30b8d4ee79dbd4b7723925c03": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}, "dcbbb3e617954d1c8a70ea857b3a8fb3": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "fb4e297589c84b9fa42f85b5dbaa5b20": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_5c3ddaac90114481b97ad7ba992a927f", "sessions": "IPY_MODEL_dcbbb3e617954d1c8a70ea857b3a8fb3", "shell": "IPY_MODEL_71d9f5e30b8d4ee79dbd4b7723925c03", "version": ""}}}, "version_major": 2, "version_minor": 0}
-</script>
 
 
 </html>

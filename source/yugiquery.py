@@ -138,14 +138,14 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     timedelta = now-timestamp.tz_localize('utc')
     time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
     # print(f"Report execution took {time_str}")
-    benchmark_file = os.path.join(PARENT_DIR,'assets/benchmark.json')
+    benchmark_file = os.path.join(PARENT_DIR,'data/benchmark.json')
     rw='r+' if os.path.exists(benchmark_file) else 'w+'
     data = load_json(benchmark_file)
     # Add the new data to the existing data
     if report not in data:
         data[report] = {}
     if now.isoformat() not in data[report]:
-        data[report][now.isoformat()] = timedelta.total_seconds()
+        data[report][now.isoformat()] = {"average": timedelta.total_seconds(), "weight": 1}
     # Save new data to file  
     with open(benchmark_file, 'w+') as file:
         json.dump(data,file)
@@ -255,7 +255,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         'Secondary type': True,
         'Monster type': False,
         'Effect type': True,
-        # 'Level/Rank': False,
         'DEF': False,
         'Pendulum Scale': False,
         'Link': False,
@@ -748,8 +747,8 @@ def card_query(default: str = None, *args, **kwargs):
         '_attribute': '|?Attribute', 
         '_monster_type': '|?Type=Monster%20type', 
         '_stars': '|?Stars%20string=Level%2FRank%20',
-        '_atk': '|?ATK', 
-        '_def': '|?DEF', 
+        '_atk': '|?ATK%20string=ATK', 
+        '_def': '|?DEF%20string=DEF', 
         '_scale': '|?Pendulum%20Scale', 
         '_link': '|?Link%20Rating=Link', 
         '_arrows': '|?Link%20Arrows',
@@ -846,7 +845,8 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, it
         lastContinue = result['continue']
         i+=1
     
-    return all_results
+    results_df = pd.DataFrame(all_results)
+    return results_df
     
 # Fetch properties from query and condition - should be called from parent functions
 def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
@@ -902,7 +902,8 @@ def fetch_bandai(limit: int=200, *args, **kwargs):
             
     for arg in args:
         bandai_query+=f'|?{up.quote(arg)}'
-            
+    
+    print(f'Downloading bandai cards')   
     bandai_df = fetch_properties(
         '[[Medium::Bandai]]',
         bandai_query, 
@@ -910,6 +911,11 @@ def fetch_bandai(limit: int=200, *args, **kwargs):
         limit=limit, 
         debug=debug
     )
+    if debug:
+        print('- Total')
+
+    print(f'{len(bandai_df.index)} results\n')
+    
     return bandai_df
 
 ###### Cards ######
@@ -933,7 +939,7 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
         
     st_df = fetch_properties(
         concept, 
-        st_query, 
+        st_query,
         step=step, 
         limit=limit,
         **kwargs
@@ -1114,9 +1120,9 @@ def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
     errata = errata.lower()
     valid = {'name', 'type', 'all'}
     categories = {
-        'all':'Category:Card%20Errata',
-        'type':'Category:Cards%20with%20card%20type%20errata',
-        'name':'Category:Cards%20with%20name%20errata'
+        'all':'Category:Card Errata',
+        'type':'Category:Cards with card type errata',
+        'name':'Category:Cards with name errata'
     }
     if errata not in valid:
         raise ValueError("results: errata must be one of %r." % valid)
@@ -1135,7 +1141,7 @@ def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
         disable=('PM_IN_EXECUTION' in os.environ)
     )
     for cat in iterator:
-        desc = up.unquote(cat.split('Category:')[-1])
+        desc = cat.split('Category:')[-1]
         iterator.set_description(desc)
         if debug:
             tqdm.write(f"- {cat}")
@@ -1147,7 +1153,7 @@ def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
             iterator=iterator,
             debug = debug
         )
-        errata_data = pd.DataFrame(temp)['title'].apply(lambda x: x.split('Card Errata:')[-1])
+        errata_data = temp['title'].apply(lambda x: x.split('Card Errata:')[-1])
         errata_series = pd.Series(data=True, index=errata_data, name = desc)
         errata_df = pd.concat([errata_df, errata_series], axis=1).fillna(False).sort_index()
     
@@ -1164,7 +1170,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     debug = kwargs.get('debug',False)
     valid_cg = cg.value
     if valid_cg=='CG':
-        category=['Category:TCG%20Set%20Card%20Lists','Category:OCG%20Set%20Card%20Lists']
+        category=['Category:TCG Set Card Lists','Category:OCG Set Card Lists']
     else:
         category=f'Category:{valid_cg}%20Set%20Card%20Lists'
     
@@ -1177,7 +1183,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         disable=('PM_IN_EXECUTION' in os.environ)
     )
     for cat in iterator:
-        iterator.set_description(up.unquote(cat.split('Category:')[-1]))
+        iterator.set_description(cat.split('Category:')[-1])
         temp = fetch_categorymembers(
             cat,
             namespace = None,
@@ -1193,7 +1199,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             disable=('PM_IN_EXECUTION' in os.environ)
         )
         for sub_cat in sub_iterator:
-            sub_iterator.set_description(up.unquote(sub_cat.split('Category:')[-1]))
+            sub_iterator.set_description(sub_cat.split('Category:')[-1])
             temp = fetch_properties(
                 f'[[{sub_cat}]]',
                 query='|?Modification date',
