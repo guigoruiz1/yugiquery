@@ -142,9 +142,10 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     data = load_json(benchmark_file)
     # Add the new data to the existing data
     if report not in data:
-        data[report] = {}
-    if now.isoformat() not in data[report]:
-        data[report][now.isoformat()] = {"average": timedelta.total_seconds(), "weight": 1}
+        data[report] = []
+    data[report].append(
+        {'ts': now.isoformat(), "average": timedelta.total_seconds(), "weight": 1}
+    )
     # Save new data to file  
     with open(benchmark_file, 'w+') as file:
         json.dump(data,file)
