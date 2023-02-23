@@ -244,6 +244,7 @@ async def data(ctx):
         )
         
         files = pd.read_json(f'{repository_api_url}/contents/data')
+        files = files[files['name'].str.endswith('.csv')] # Remove .json files from lists
         files['Group'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(1))
         files['Timestamp'] = files['name'].apply(lambda x: re.search(r'(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv', x).group(3))
         files['Timestamp'] = pd.to_datetime(files['Timestamp'], utc=True)
