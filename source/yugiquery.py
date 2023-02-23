@@ -12,6 +12,7 @@ __status__ = "Development"
 # Imports #
 ###########
 
+# Native python packages
 import os
 import subprocess
 import glob
@@ -33,11 +34,11 @@ from textwrap import wrap
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 
+# PIP packages
 loop = 0
 while True:
     try:
         import git
-        import ipynbname
         import nbformat
         import asyncio
         import aiohttp
@@ -59,9 +60,7 @@ while True:
         from tqdm.auto import tqdm, trange
         from ipylab import JupyterFrontEnd
         from dotenv import dotenv_values
-        
-        # Defaults overrides
-        pd.set_option('display.max_columns', 40)
+        from halo import Halo
 
         break
 
@@ -73,6 +72,16 @@ while True:
         loop+=1   
         print("Missing required packages. Trying to install now...")
         subprocess.call(['sh', os.path.join(SCRIPT_DIR,'./install.sh')])
+
+# Overwrite packages with versions specific for jupyter notebook
+try:
+    if get_ipython() is not None:
+        from halo import HaloNotebook as Halo
+except:
+    pass
+
+# Default settings overrides
+pd.set_option('display.max_columns', 40)
 
 ###########      
 # Helpers #
@@ -589,7 +598,7 @@ def update_index(): # Handle paths properly
 def header(name: str = None):
     if name is None:
         try: 
-            name = ipynbname.name()
+            name = os.path.basename(os.environ['JPY_SESSION_NAME']).split('.')[0]
         except:
             name = ''
 
