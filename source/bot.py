@@ -8,6 +8,11 @@ __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
 
+# ======= #
+# Imports #
+# ======= #
+
+# native python packages
 import os
 import glob
 import random
@@ -17,6 +22,8 @@ import asyncio
 import io
 import re
 import json
+
+# PIP packages
 import pandas as pd
 from enum import Enum
 import multiprocessing as mp
@@ -25,6 +32,11 @@ from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
 
+# ======= #
+# Helpers #
+# ======= #
+
+# Data loaders
 def load_secrets(secrets_file):
     required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
     if os.path.isfile(secrets_file):
@@ -43,14 +55,29 @@ def init_reports_enum():
 
     return  Enum('Reports', reports_dict)
 
+# ========= #
+# Variables #
+# ========= #
+
+# URLs
 repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery"
 repository_url = 'https://github.com/guigoruiz1/yugiquery'
 webpage_url = 'https://guigoruiz1.github.io/yugiquery'
+
+# Secrets
 secrets = load_secrets('../assets/secrets.env')
+
+# Discord API
 intents = discord.Intents(messages=True, guilds=True, members=True)
 bot = commands.Bot(command_prefix='/', intents=intents)
+
+# Other
 Reports = init_reports_enum()
 process = None
+
+# ======== #
+# Commands #
+# ======== #
 
 @bot.hybrid_command(name='shutdown', description='Shutdown bot', with_app_command = True)
 @commands.is_owner()
@@ -281,7 +308,11 @@ async def ping(ctx):
         ephemeral=True, 
         delete_after=60
     )
-    
+
+# ====== #
+# Events #
+# ====== #
+
 @bot.event
 async def on_ready():
     print('You are logged as {0.user}'.format(bot))
@@ -311,5 +342,9 @@ async def on_command_error(ctx, error):
         await ctx.send(content=error)
     elif isinstance(error, commands.errors.CheckFailure):
         await ctx.send(content=error)
+
+# ========= #
+# Execution #
+# ========= #
 
 bot.run(secrets['DISCORD_TOKEN'])
