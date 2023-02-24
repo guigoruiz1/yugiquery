@@ -8,9 +8,9 @@ __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
 
-###########
+# ======= #
 # Imports #
-###########
+# ======= #
 
 # Native python packages
 import os
@@ -83,12 +83,49 @@ except:
 # Default settings overrides
 pd.set_option('display.max_columns', 40)
 
-###########      
+# ======= #      
 # Helpers #
-###########
+# ======= #
 
-# Secrets
-def load_secrets(secrets_file, requested_secrets=[], required=False):
+# Variables
+class CG(Enum):
+    CG = 'CG'
+    ALL = CG
+    BOTH = CG
+    TCG = 'TCG'
+    OCG = 'OCG'
+    
+arrows_dict = {
+    'Middle-Left': '\u2190', 
+    'Middle-Right': '\u2192', 
+    'Top-Left': '\u2196', 
+    'Top-Center': '\u2191', 
+    'Top-Right': '\u2197', 
+    'Bottom-Left': '\u2199', 
+    'Bottom-Center': '\u2193', 
+    'Bottom-Right': '\u2198'
+}
+
+# Functions
+
+## Data loaders
+
+def load_secrets(secrets_file: str, requested_secrets: list = [], required: bool = False):
+    """
+    Load secrets from a .env file.
+
+    Args:
+        secrets_file (str): The file path to the .env file.
+        requested_secrets (list, optional): A list of requested secrets from the .env file. Defaults to an empty list.
+        required (bool, optional): Whether or not the requested secrets are required. Defaults to False.
+
+    Raises:
+        FileNotFoundError: If the specified secrets file does not exist.
+        KeyError: If a requested secret is not found in the .env file and is required.
+
+    Returns:
+        dict: A dictionary containing the secrets requested.
+    """
     if os.path.isfile(secrets_file):
         secrets = dotenv_values(secrets_file)
         if not requested_secrets:
@@ -106,8 +143,16 @@ def load_secrets(secrets_file, requested_secrets=[], required=False):
     else:
         raise FileNotFoundError(f'No such file or directory: {secrets_file}')
 
-# Dictionaries
-def load_json(json_file):
+def load_json(json_file: str):
+    """
+    Load data from a JSON file.
+
+    Args:
+        json_file (str): The file path to the JSON file.
+
+    Returns:
+        dict: A dictionary containing the data from the JSON file. If the file does not exist, an empty dictionary is returned.
+    """
     try:
         with open(json_file, 'r') as file:
             data = json.load(file)
@@ -116,51 +161,33 @@ def load_json(json_file):
         print(f'Error loading {json_file}. Ignoring...')
         return {}
 
-# Validators
-def md5(file_name):
+## Validators
+
+def md5(name: str):
+    """
+    Generate the MD5 hash of a string.
+
+    Args:
+        name (str): The string to hash.
+
+    Returns:
+        str: The MD5 hash of the string.
+    """
     hash_md5 = hashlib.md5()
-    hash_md5.update(file_name.encode())
+    hash_md5.update(name.encode())
     return hash_md5.hexdigest()
 
-class CG(Enum):
-    CG = 'CG'
-    ALL = CG
-    BOTH = CG
-    TCG = 'TCG'
-    OCG = 'OCG'
-    
-# Arrow unicode simbols dictionary
-arrows_dict = {
-    'Middle-Left': '\u2190', 
-    'Middle-Right': '\u2192', 
-    'Top-Left': '\u2196', 
-    'Top-Center': '\u2191', 
-    'Top-Right': '\u2197', 
-    'Bottom-Left': '\u2199', 
-    'Bottom-Center': '\u2193', 
-    'Bottom-Right': '\u2198'
-}
-
-# Benchmark
-def benchmark(report: str, timestamp: pd.Timestamp):
-    now = datetime.now(timezone.utc) # Make all timestamps UTC?
-    timedelta = now-timestamp.tz_localize('utc')
-    time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
-    # print(f"Report execution took {time_str}")
-    benchmark_file = os.path.join(PARENT_DIR,'data/benchmark.json')
-    data = load_json(benchmark_file)
-    # Add the new data to the existing data
-    if report not in data:
-        data[report] = []
-    data[report].append(
-        {'ts': now.isoformat(), "average": timedelta.total_seconds(), "weight": 1}
-    )
-    # Save new data to file  
-    with open(benchmark_file, 'w+') as file:
-        json.dump(data,file)
-    
-# Images
+## Image handling
+        
 async def download_images(file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10):
+    """
+    Downloads a set of images given their names and saves them to a specified folder.
+
+    Args:
+    - file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
+    - save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "../images/".
+    - max_tasks (int): The maximum number of images to download at once. Defaults to 10.
+    """
     # Prepare URL from file names
     file_names_md5 = file_names.apply(md5)
     urls = file_names_md5.apply(lambda x: f'/{x[0]}/{x[0]}{x[1]}/')+file_names
@@ -205,8 +232,41 @@ async def download_images(file_names: pd.DataFrame, save_folder: str = "../image
                 pbar.update()
                 await task
 
-# Data management
+# =============== #
+# Data management #
+# =============== #
+
+def benchmark(report: str, timestamp: pd.Timestamp):
+    """
+    Records the execution time of a report and saves the data to a JSON file.
+
+    Args:
+    - report (str): The name of the report being benchmarked.
+    - timestamp (pandas.Timestamp): The timestamp when the report execution began.
+    """
+    now = datetime.now(timezone.utc) # Make all timestamps UTC?
+    timedelta = now-timestamp.tz_localize('utc')
+    time_str = (datetime.min + timedelta).strftime('%H:%M:%S')
+    # print(f"Report execution took {time_str}")
+    benchmark_file = os.path.join(PARENT_DIR,'data/benchmark.json')
+    data = load_json(benchmark_file)
+    # Add the new data to the existing data
+    if report not in data:
+        data[report] = []
+    data[report].append(
+        {'ts': now.isoformat(), "average": timedelta.total_seconds(), "weight": 1}
+    )
+    # Save new data to file  
+    with open(benchmark_file, 'w+') as file:
+        json.dump(data,file)
+
 def cleanup_data(dry_run: bool = False):
+    """
+    Cleans up data files in a specified directory, keeping only the most recent file from each month and week.
+
+    Args:
+    - dry_run (bool): If True, the function will only print the files that would be deleted without actually deleting them. Defaults to False.
+    """
     file_list = glob.glob(os.path.join(PARENT_DIR,'data/*'))
     df = pd.DataFrame(file_list, columns=['file'])
     df['timestamp'] = pd.to_datetime(df['file'].apply(os.path.getctime), unit='s')
@@ -228,8 +288,22 @@ def cleanup_data(dry_run: bool = False):
         else:
             os.remove(file)
             
-# Data formating functions
+# Data formating
+
 def extract_fulltext(x, multiple=False):
+     """
+    Extracts fulltext from a list of dictionaries or strings. 
+    If multiple is True, returns a sorted tuple of all fulltexts.
+    Otherwise, returns the first fulltext found, with leading/trailing whitespaces removed.
+    If the input list is empty, returns np.nan.
+    
+    Args:
+    - x (List[Union[Dict[str, Any], str]]): A list of dictionaries or strings to extract fulltext from.
+    - multiple (bool): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
+    
+    Returns:
+    - str or Tuple[str] or np.nan: The extracted fulltext(s).
+    """
     if len(x)>0:
         if isinstance(x[0], int):
             return str(x[0])
@@ -247,6 +321,17 @@ def extract_fulltext(x, multiple=False):
         return np.nan
     
 def format_df(input_df: pd.DataFrame, include_all: bool = False):
+    """
+    Formats a dataframe containing card information.
+    Returns a new dataframe with specific columns extracted and processed.
+    
+    Args:
+    - input_df (pd.DataFrame): The input dataframe to format.
+    - include_all (bool): If True, include all unspecified columns in the output dataframe. Default is False.
+    
+    Returns:
+    - pd.DataFrame: The formatted dataframe.
+    """
     df = pd.DataFrame(index=input_df.index)
     
     # Column name: multiple values
@@ -339,8 +424,22 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         
     return df
 
-## Cards 
+## Cards
+
 def extract_primary_type(x):
+    """
+    Extracts the primary type of a card.
+    If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
+    If the input is a list or tuple with only one element, returns that element.
+    If the input is a list or tuple with multiple elements, returns the first element that is not "Effect Monster".
+    Otherwise, returns the input.
+    
+    Args:
+    - x (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
+    
+    Returns:
+    - Union[str, List[str]]: The extracted primary type(s).
+    """
     if isinstance(x,list) or isinstance(x,tuple):
         if 'Monster Token' in x:
             return 'Monster Token' 
@@ -354,6 +453,18 @@ def extract_primary_type(x):
     return x
     
 def extract_category_bool(x):
+    """
+    Extracts a boolean value from a list of strings that represent a boolean value.
+    If the first string in the list is "t", returns True.
+    If the first string in the list is "f", returns False.
+    Otherwise, returns np.nan.
+    
+    Args:
+    - x (List[str]): The input list of strings to extract a boolean value from.
+    
+    Returns:
+    - Union[bool, np.nan]: The extracted boolean value.
+    """
     if len(x)>0:
         if x[0]=='f':
             return False
@@ -362,8 +473,19 @@ def extract_category_bool(x):
     
     return np.nan
 
-# Check if a row contains true bools for 'alternat artworks' or 'edited artworks' and form a tuple
 def format_artwork(row: pd.Series):
+    """
+    Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+    If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
+    If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
+    Returns the result tuple.
+    
+    Args:
+    - row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+    
+    Returns:
+    - Tuple[str]: The formatted row as a tuple.
+    """
     result = tuple()
     index_str = row.index.str 
     if index_str.endswith('alternate artworks').any():
@@ -380,6 +502,14 @@ def format_artwork(row: pd.Series):
         return result
 
 def format_errata(row: pd.Series):
+    """
+    Formats errata information from a pandas Series and returns a tuple of errata types.
+    Args:
+    row (pd.Series): A pandas Series containing errata information for a single card.
+
+    Returns:
+    Tuple of errata types (str) if any errata information is present in the input Series, otherwise np.nan.
+    """
     result = []
     if 'Cards with name errata' in row: 
         if row['Cards with name errata']:
@@ -396,6 +526,15 @@ def format_errata(row: pd.Series):
         return np.nan
     
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
+    """
+    Merges errata information from an input errata DataFrame into an input DataFrame based on card names.
+    Args:
+    input_df (pd.DataFrame): A pandas DataFrame containing card information.
+    input_errata_df (pd.DataFrame): A pandas DataFrame containing errata information.
+
+    Returns:
+    A pandas DataFrame with errata information merged into it.
+    """
     if 'Name' in input_df.columns:
         errata_series = input_errata_df.apply(format_errata, axis=1).rename('Errata')
         input_df = input_df.merge(errata_series, left_on = 'Name', right_index = True, how='left', suffixes=('', ' errata'))
@@ -405,7 +544,17 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
     return input_df
 
 ## Sets
+
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
+    """
+    Merges set information from an input set info DataFrame into an input set list DataFrame based on set and region.
+    Args:
+    input_df (pd.DataFrame): A pandas DataFrame containing set lists.
+    input_info_df (pd.DataFrame): A pandas DataFrame containing set information.
+
+    Returns:
+    A pandas DataFrame with set information merged into it.
+    """
     if all([col in input_df.columns for col in ['Set', 'Region']]):
         regions_dict = load_json(os.path.join(PARENT_DIR,'assets/regions.json'))
         input_df['Release'] = input_df[['Set','Region']].apply(lambda x: input_info_df[regions_dict[x['Region']]+' release date'][x['Set']] if (x['Region'] in regions_dict.keys() and x['Set'] in input_info_df.index) else np.nan, axis = 1)
@@ -418,11 +567,22 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     return input_df
 
 
-#############
+# ========= #
 # Changelog #
-#############
+# ========= #
 
 def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str):
+    """
+    Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
+
+    Args:
+        previous_df (pd.DataFrame): A DataFrame containing the previous version of the data.
+        current_df (pd.DataFrame): A DataFrame containing the current version of the data.
+        col (str): The name of the column to compare the DataFrames on.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the changes made between the previous and current versions of the data. The DataFrame will have the following columns: the specified column name, the modified data, and the indicator for whether the data is new or modified renamed as version (either "Old" or "New"). If there are no changes, the function will return a DataFrame with no rows.
+    """
     changelog = previous_df.merge(current_df, indicator = True, how='outer').loc[lambda x : x['_merge']!='both'].sort_values(col, ignore_index=True)
     changelog['_merge'].replace(['left_only','right_only'],['Old', 'New'], inplace = True)
     changelog.rename(columns={"_merge": "Version"}, inplace = True)
@@ -443,26 +603,50 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
     return changelog
 
 
-###########
+# ======= #
 # Styling #
-###########
+# ======= #
 
 def style_df(df: pd.DataFrame):
+    """
+    Formats a pandas DataFrame with HTML hyperlinks.
+
+    Args:
+    df (pd.DataFrame): The pandas DataFrame to be formatted.
+
+    Returns:
+    A styled version of the input DataFrame with HTML hyperlinks.
+    """
     return df.style.format(hyperlinks='html')
 
-#######################
+# =================== #
 # Notebook management #
-#######################
+# =================== #
 
-# Frontend shortcuts
-## Force saving the current notebook to disk
 def save_notebook():
+    """
+    Save the current notebook opened in JupyterLab to disk.
+
+    Parameters:
+    None
+
+    Returns:
+    None
+    """
     app = JupyterFrontEnd()
     app.commands.execute('docmanager:save')
     print("Notebook saved to disk")
 
-## Remove output from all notebooks in the source directory
 def clear_notebooks(which = 'all'):
+    """
+    Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
+
+    Parameters:
+    which (str or list of str): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
+
+    Returns:
+    None
+    """
     if which=='all':
         # Get reports
         reports = sorted(glob.glob('*.ipynb'))
@@ -471,8 +655,17 @@ def clear_notebooks(which = 'all'):
     if len(reports)>0:
         subprocess.call(['nbstripout']+reports)
 
-## Run all notebooks in the source directory
 def run_notebooks(which='all', progress_handler=None):  
+    """
+    Execute specified Jupyter notebooks in the source directory using Papermill.
+
+    Parameters:
+    which (str or list of str): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
+    progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
+
+    Returns:
+    None
+    """
     if which=='all':
         # Get reports
         reports = sorted(glob.glob('*.ipynb'))
@@ -564,12 +757,21 @@ def run_notebooks(which='all', progress_handler=None):
     logger.handlers.clear()
 
 
-####################
+# ================ #
 # Markdown editing #
-####################
+# ================ #
 
-# Update webpage index with timestamps
 def update_index(): # Handle paths properly
+    """
+    Update the README.md file with a table of links to all HTML reports in the parent directory.
+    Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
+    If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
+    If there is no index.md file in the assets directory, print an error message and abort.
+    
+    Raises:
+        FileNotFoundError: If the "index.md" file in "assets" is not found.
+    """
+    
     index_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
@@ -594,8 +796,16 @@ def update_index(): # Handle paths properly
     except:
         print('No "index.md" file in "assets". Aborting...')
 
-# Generate Markdown header
 def header(name: str = None):
+    """
+    Generates a Markdown header with a timestamp and the name of the notebook (if provided).
+    
+    Args:
+        name (str, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
+    
+    Returns:
+        Markdown: The generated Markdown header.
+    """
     if name is None:
         try: 
             name = os.path.basename(os.environ['JPY_SESSION_NAME']).split('.')[0]
@@ -608,8 +818,16 @@ def header(name: str = None):
         header = header.replace('@NOTEBOOK@', name)
         return Markdown(header)
 
-# Generate Markdown footer
 def footer(timestamp: pd.Timestamp = None):
+    """
+    Generates a Markdown footer with a timestamp.
+    
+    Args:
+        timestamp (pd.Timestamp, optional): The timestamp to use. If None, uses the current time. Defaults to None.
+    
+    Returns:
+        Markdown: The generated Markdown footer.
+    """
     with open(os.path.join(PARENT_DIR,'assets/footer.md')) as f:
         footer = f.read()
         now = datetime.now().astimezone(timezone.utc)
@@ -618,9 +836,9 @@ def footer(timestamp: pd.Timestamp = None):
         return Markdown(footer)
 
     
-######################
+# ================== #
 # API call functions #
-######################
+# ================== #
 
 # Variables
 http_headers = {'User-Agent': 'Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/'}
@@ -632,8 +850,17 @@ askargs_query_action = '?action=askargs&format=json&conditions='
 categorymembers_query_action = '?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle='
 redirects_query_action = '?action=query&format=json&redirects=True&titles='
 
-# Extract results from query response
+# Functions
 def extract_results(response: requests.Response):
+    """
+    Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
+    
+    Args:
+        response (requests.Response): The response object obtained from making a GET request to the Yu-Gi-Oh! Wiki API.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the relevant data extracted from the response object.
+    """
     json = response.json()
     df = pd.DataFrame(json['query']['results']).transpose()
     if 'printouts' in df:
@@ -644,8 +871,21 @@ def extract_results(response: requests.Response):
         
     return df
 
-# Cards Query arguments shortcut
 def card_query(default: str = None, *args, **kwargs):
+    """
+    Builds a string of arguments to be passed to the yugipedia Wiki API for a card search query.
+
+    Args:
+        default (str, optional): The default card type to build a query string for. Can be one of {'spell', 'trap', 'st', 'monster', 'skill', 'counter', 'speed', 'rush', None}. Defaults to None.
+        *args: Additional positional arguments to be passed to the API.
+        **kwargs: Additional keyword arguments to be passed to the API.
+
+    Raises:
+        ValueError: If default is not a valid card type.
+
+    Returns:
+        str: A string containing the arguments to be passed to the API for the card search query.
+    """
      # Default card query
     prop_bool = {
         '_password':True, 
@@ -803,8 +1043,13 @@ def card_query(default: str = None, *args, **kwargs):
 
     return search_string
 
-# Check if API is live and responsive    
 def check_API_status():
+    """
+    Checks if the API is running and reachable by making a query to retrieve site information. If the API is up and running, returns True. If the API is down or unreachable, returns False and prints an error message with details.
+
+    Returns:
+        bool: True if the API is up and running, False otherwise.
+    """
     params = {'action': 'query', 'meta': 'siteinfo', 'siprop': 'general', 'format': 'json'}
 
     try:
@@ -825,8 +1070,20 @@ def check_API_status():
 
         return False
 
-# Fetch category members - still not used
 def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, iterator=None, debug: bool = False):
+    """
+    Fetches members of a category from the API by making iterative requests with a specified step size until all members are retrieved. 
+
+    Args:
+        category (str): The category to retrieve members for.
+        namespace (int, optional): The namespace ID to filter the members by. Defaults to 0 (main namespace).
+        step (int, optional): The number of members to retrieve in each request. Defaults to 500.
+        iterator (tqdm.std.tqdm, optional): A tqdm iterator to display progress updates. Defaults to None.
+        debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the members of the category.
+    """
     params = { 
         'cmlimit': step, 
         'cmnamespace': namespace 
@@ -859,8 +1116,22 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, it
     results_df = pd.DataFrame(all_results)
     return results_df
     
-# Fetch properties from query and condition - should be called from parent functions
 def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5000, iterator=None, include_all: bool = False, debug: bool = False):
+    """
+    Fetches properties from the API by making iterative requests with a specified step size until a specified limit is reached. 
+
+    Args:
+        condition (str): The query condition to filter the properties by.
+        query (str): The query to retrieve the properties.
+        step (int, optional): The number of properties to retrieve in each request. Defaults to 500.
+        limit (int, optional): The maximum number of properties to retrieve. Defaults to 5000.
+        iterator (tqdm.std.tqdm, optional): A tqdm iterator to display progress updates. Defaults to None.
+        include_all (bool, optional): If True, includes all properties in the DataFrame. If False, includes only properties that have values. Defaults to False.
+        debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
+
+    Returns:
+        pandas.DataFrame: A DataFrame containing the properties matching the query and condition.
+    """
     df=pd.DataFrame()
     i = 0
     complete = False
@@ -889,7 +1160,8 @@ def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5
 
     return df
 
-###### Bandai #####
+## Bandai
+
 def fetch_bandai(limit: int=200, *args, **kwargs):
     debug=kwargs.get('debug',False)
     bandai_query = '|?English%20name=Name'
@@ -930,10 +1202,26 @@ def fetch_bandai(limit: int=200, *args, **kwargs):
     
     return bandai_df
 
-###### Cards ######
+## Cards
 
-# Fetch spell or trap cards
 def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetch spell or trap cards based on query and properties of the cards.
+
+    Args:
+        st_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        st (str, optional): A string representing the type of cards to fetch, either "spell", "trap", "both", or "all". Defaults to "both".
+        cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
+        step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched spell/trap cards.
+
+    Raises:
+        ValueError: Raised if the "st" argument is not one of "spell", "trap", "both", or "all".
+    """
     debug = kwargs.get('debug', False)
     st = st.capitalize()
     valid_st = {'Spell', 'Trap', 'Both', 'All'}
@@ -964,8 +1252,21 @@ def fetch_st(st_query: str = None, st: str = 'both', cg: CG = CG.ALL, step: int 
 
     return st_df
 
-# Fetch monster cards by splitting into attributes
 def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 500, limit: int = 5000, exclude_token=True, **kwargs):
+    """
+        Fetch monster cards based on query and properties of the cards.
+    
+    Args:
+        monster_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
+        step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
+        exclude_token (bool, optional): A boolean that determines whether to exclude Monster Tokens or not. Defaults to True.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched monster cards.
+    """
     debug = kwargs.get('debug', False)
     valid_cg = cg.value
     attributes = [
@@ -1015,10 +1316,22 @@ def fetch_monster(monster_query: str = None, cg: CG = CG.ALL, step: int = 500, l
 
     return monster_df
 
-###### Non deck cards ###### 
+### Non deck cards
 
-# Fetch token cards
 def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetch token cards based on query and properties of the cards.
+    
+    Args:
+        token_query (str, optional): A string representing a SWM query to search for. Defaults to None.
+        step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched token cards.
+
+    """
     print('Downloading tokens')
 
     concept = f'[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]'
@@ -1037,8 +1350,19 @@ def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **k
 
     return token_df
 
-# Fetch counter cards
 def fetch_counter(counter_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetch counter cards based on query and properties of the cards.
+    
+    Args:
+        counter_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched counter cards.
+    """
     print('Downloading counters')
 
     concept = f'[[Category:Counters]][[Page%20type::Card%20page]]'
@@ -1057,10 +1381,21 @@ def fetch_counter(counter_query: str = None, step: int = 500, limit: int = 5000,
 
     return counter_df
 
-###### Alternative formats ######
+### Alternative formats
 
-# Fetch speed duel cards
 def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetches TCG Speed Duel cards from the yugipedia Wiki API.
+
+    Args:
+        speed_query (str):  A string representing a SMW query to search for. Defaults to None.
+        step (int): The number of results to fetch in each API call. Defaults to 500.
+        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        A pandas DataFrame containing the fetched TCG Speed Duel cards.
+    """
     debug = kwargs.get('debug', False)
 
     print(f'Downloading Speed duel cards')
@@ -1082,8 +1417,19 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
 
     return speed_df
 
-# Fetch skill cards
 def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetches skill cards from the yugipedia Wiki API.
+
+    Args:
+    - skill_query (str): A string representing a SMW query to search for. Defaults to None.
+    - step (int): The number of results to fetch in each API call. Defaults to 500.
+    - limit (int): The maximum number of results to fetch. Defaults to 5000.
+    - **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+    - A pandas DataFrame containing the fetched skill cards.
+    """
     print('Downloading skill cards')
 
     concept = f'[[Category:Skill%20Cards]][[Card type::Skill Card]]'
@@ -1102,8 +1448,19 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
 
     return skill_df
 
-# Fetch rush duel cards
 def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+    """
+    Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
+
+    Args:
+        rush_query (str): A search query to filter the results. If not provided, it defaults to "rush".
+        step (int): The number of results to fetch in each API call. Defaults to 500.
+        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        A pandas DataFrame containing the fetched Rush Duel cards.
+    """
     debug = kwargs.get('debug', False)
     print('Downloading Rush Duel cards')
 
@@ -1123,10 +1480,20 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
 
     return rush_df
 
-### Extra properties ###
+### Extra properties
 
-# Fetch errata boolean table
 def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
+    """
+    Fetches errata information from the yuipedia Wiki API.
+
+    Args:
+        errata (str): The type of errata information to fetch. Valid values are 'name', 'type', and 'all'. Defaults to 'all'.
+        step (int): The number of results to fetch in each API call. Defaults to 500.
+        **kwargs: Additional keyword arguments to pass to fetch_categorymembers.
+
+    Returns:
+        A pandas DataFrame containing a boolean table indicating whether each card has errata information for the specified type.
+    """
     debug = kwargs.get('debug', False)
     errata = errata.lower()
     valid = {'name', 'type', 'all'}
@@ -1174,10 +1541,22 @@ def fetch_errata(errata: str = 'all', step: int = 500, **kwargs):
     print(f'{len(errata_df.index)} results\n')
     return errata_df
 
-###### Sets ######
+## Sets
 
-# Get title of set list pages
 def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs):
+    """
+    Fetches a list of 'Set Card Lists' pages from the yugipedia Wiki API.
+
+    Args:
+        cg (CG): A member of the CG enum representing the card game for which set lists are being fetched.
+        step (int): The number of pages to fetch in each API request.
+        limit (int): The maximum number of pages to fetch.
+        debug (bool): A flag indicating whether to print debug output.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the titles of the set list pages.
+
+    """
     debug = kwargs.get('debug',False)
     valid_cg = cg.value
     if valid_cg=='CG':
@@ -1224,8 +1603,17 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
 
     return set_list_pages
 
-# Fetch set lists from page titles
 def fetch_set_lists(titles, **kwargs):  # Separate formating function
+    """
+    Fetches card set lists from a list of page titles.
+
+    Args:
+        titles (list of str): A list of page titles from which to fetch set lists.
+        debug (bool): A flag indicating whether to print debug output.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the parsed card set lists.
+    """
     debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
@@ -1348,8 +1736,21 @@ def fetch_set_lists(titles, **kwargs):  # Separate formating function
 
     return set_lists_df, success, error
 
-# Fecth all set lists
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
+    """
+    Fetches all set lists for a given card game.
+
+    Args:
+        cg (CG, optional): The card game to fetch set lists for. Defaults to CG.ALL.
+        step (int, optional): The number of sets to fetch at once. Defaults to 50.
+        **kwargs: Additional keyword arguments to pass to fetch_set_list_pages() and fetch_set_lists().
+
+    Returns:
+        pd.DataFrame: A DataFrame containing all set lists for the specified card game.
+
+    Raises:
+        Any exceptions raised by fetch_set_list_pages() or fetch_set_lists().
+    """
     debug = kwargs.get('debug', False)
     sets = fetch_set_list_pages(cg, **kwargs) # Get list of sets
     keys = sets['Page name']
@@ -1379,8 +1780,22 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
 
     return all_set_lists_df
 
-# Fetch set info for list of sets
 def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
+    """
+    Fetches information for a list of sets.
+
+    Args:
+        sets (list): A list of set names to fetch information for.
+        extra_info (list, optional): A list of additional information to fetch for each set. Defaults to an empty list.
+        step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
+        **kwargs: Additional keyword arguments to pass to requests.get().
+
+    Returns:
+        pd.DataFrame: A DataFrame containing information for all sets in the list.
+
+    Raises:
+        Any exceptions raised by requests.get().
+    """
     debug = kwargs.get('debug', False)
     if debug:
         print(f'{len(titles)} sets requested')
@@ -1417,14 +1832,29 @@ def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
     return set_info_df
 
 
-######################
+# ================== #
 # Plotting functions #
-######################
+# ================== #
 
-# Colors dictionary to associate to series and cards
-colors_dict = load_json(os.path.join(PARENT_DIR,'assets/colors.json'))
+# Variables 
+colors_dict = load_json(os.path.join(PARENT_DIR,'assets/colors.json')) # Colors dictionary to associate to series and cards
+
+# Functions
 
 def adjust_lightness(color: str, amount: float = 0.5):
+    """Adjust the lightness of a given color by a specified amount.
+
+    Args:
+        color (str): The color to be adjusted, in string format.
+        amount (float): The amount by which to adjust the lightness of the color. Default value is 0.5.
+
+    Returns:
+        tuple: The adjusted color in RGB format.
+
+    Raises:
+        KeyError: If the specified color is not a valid Matplotlib color name.
+    """
+    
     try:
         c = mc.cnames[color]
     except:
@@ -1433,14 +1863,35 @@ def adjust_lightness(color: str, amount: float = 0.5):
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
 def align_yaxis(ax1, v1: float, ax2, v2: float):
-    """adjust ax2 ylimit so that v2 in ax2 is aligned to v1 in ax1"""
+    """
+    Adjust the y-axis of two subplots so that the specified values in each subplot are aligned.
+
+    Args:
+        ax1 (AxesSubplot): The first subplot.
+        v1 (float): The value in ax1 that should be aligned with v2 in ax2.
+        ax2 (AxesSubplot): The second subplot.
+        v2 (float): The value in ax2 that should be aligned with v1 in ax1.
+
+    Returns:
+        None
+    """
     _, y1 = ax1.transData.transform((0, v1))
     _, y2 = ax2.transData.transform((0, v2))
     adjust_yaxis(ax2,(y1-y2)/2,v2)
     adjust_yaxis(ax1,(y2-y1)/2,v1)
 
 def adjust_yaxis(ax, ydif: float, v: float):
-    """shift axis ax by ydiff, maintaining point v at the same location"""
+    """
+    Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
+
+    Args:
+        ax (AxesSubplot): The subplot whose y-axis is to be adjusted.
+        ydif (float): The amount by which to adjust the y-axis.
+        v (float): The location of the point whose position should remain unchanged.
+
+    Returns:
+        None
+    """
     inv = ax.transData.inverted()
     _, dy = inv.transform((0, 0)) - inv.transform((0, ydif))
     miny, maxy = ax.get_ylim()
@@ -1454,6 +1905,21 @@ def adjust_yaxis(ax, ydif: float, v: float):
     ax.set_ylim(nminy+v, nmaxy+v)
 
 def generate_rate_grid(dy: pd.DataFrame, ax, xlabel: str = 'Date', size: str = "150%", pad: int = 0, colors: list = None, cumsum: bool = True): 
+    """
+    Generate a grid of subplots displaying yearly and monthly rates from a Pandas DataFrame.
+
+    Args:
+        dy (pd.DataFrame): A Pandas DataFrame containing the data to be plotted.
+        ax (AxesSubplot): The subplot onto which to plot the grid.
+        xlabel (str): The label to be used for the x-axis. Default value is 'Date'.
+        size (str): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
+        pad (int): The amount of padding between the two subplots in pixels. Default value is 0.
+        colors (list): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
+        cumsum (bool): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
+
+    Returns:
+        None
+    """
     if colors is None:
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
@@ -1528,6 +1994,22 @@ def generate_rate_grid(dy: pd.DataFrame, ax, xlabel: str = 'Date', size: str = "
     return axes
 
 def rate_subplots(df: pd.DataFrame, figsize = None, title: str = '', xlabel: str = 'Date', colors: list = None, cumsum: bool = True, bg: pd.DataFrame = None, vlines: pd.DataFrame = None):
+    """
+    Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
+
+    Args:
+        df (pd.DataFrame): The pandas DataFrame containing the data to plot.
+        figsize (Tuple[int, int] or None): The size of the figure to create. If None, default size is (16, len(df.columns)*2*(1+cumsum)).
+        title (str): The title of the figure. Default is an empty string.
+        xlabel (str): The label of the x-axis. Default is 'Date'.
+        colors (list of str): The list of colors to use for the lines. If None, default colors are used.
+        cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
+        bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
+        vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
+
+    Returns:
+        None: Displays the generated plot.
+    """
     if figsize is None:
         figsize = (16, len(df.columns)*2*(1+cumsum))
 
@@ -1577,6 +2059,22 @@ def rate_subplots(df: pd.DataFrame, figsize = None, title: str = '', xlabel: str
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
 
 def rate_plot(dy: pd.DataFrame, figsize = (16,6), title: str = None, xlabel: str = 'Date', colors: list = None, cumsum=True, bg = None, vlines = None):
+    """
+    Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
+
+    Args:
+        dy (pd.DataFrame): The pandas DataFrame containing the data to plot.
+        figsize (Tuple[int, int]): The size of the figure to create. Default is (16, 6).
+        title (str): The title of the figure. Default is None.
+        xlabel (str): The label of the x-axis. Default is 'Date'.
+        colors (list of str): The list of colors to use for the lines. If None, default colors are used.
+        cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
+        bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
+        vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
+
+    Returns:
+        None: Displays the generated plot.
+    """
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
     fig.suptitle(f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}')
 
@@ -1607,11 +2105,23 @@ def rate_plot(dy: pd.DataFrame, figsize = (16,6), title: str = None, xlabel: str
 
     warnings.filterwarnings( "default", category = UserWarning, message = "This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.")
 
-###########################
+# ======================= #
 # Complete execution flow #
-###########################
+# ======================= #
 
 def run(report = 'all', progress_handler = None):
+    """
+    Executes all notebooks in the source directory that match the specified report, updates the page index
+    to reflect the last execution timestamp, clears notebooks after HTML reports have been created, and cleans up
+    redundant data files.
+
+    Args:
+        report (str, optional): The report to generate. Defaults to 'all'.
+        progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
+
+    Returns:
+        None: This function does not return a value.
+    """
     # Check API status
     if not check_API_status():
         if progress_handler:
@@ -1627,9 +2137,9 @@ def run(report = 'all', progress_handler = None):
     # cleanup_data()
 
 
-#############
+# ========= #
 # CLI usage #
-#############
+# ========= #
 
 if __name__ == "__main__":
     # Change working directory to script location
