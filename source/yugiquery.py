@@ -291,7 +291,7 @@ def cleanup_data(dry_run: bool = False):
 # Data formating
 
 def extract_fulltext(x, multiple=False):
-     """
+    """
     Extracts fulltext from a list of dictionaries or strings. 
     If multiple is True, returns a sorted tuple of all fulltexts.
     Otherwise, returns the first fulltext found, with leading/trailing whitespaces removed.
