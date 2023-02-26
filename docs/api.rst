@@ -1,7 +1,7 @@
 api.rst
 -------
 
-YugiQuery API Reference
+Yugiquery API Reference
 ========================
 
 .. automodule:: yugiquery

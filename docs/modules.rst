@@ -1,7 +1,7 @@
 modules.rst
 ------------
 
-YugiQuery Module
+Yugiquery Module
 =================
 
 .. automodule:: yugiquery
