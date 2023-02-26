@@ -763,38 +763,51 @@ def run_notebooks(which='all', progress_handler=None):
 
 def update_index(): # Handle paths properly
     """
-    Update the README.md file with a table of links to all HTML reports in the parent directory.
+    Update the index.md and README.md files with a table of links to all HTML reports in the parent directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
     If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
-    If there is no index.md file in the assets directory, print an error message and abort.
+    If there is no index.md or README.md files in the assets directory, print an error message and abort.
     
     Raises:
-        FileNotFoundError: If the "index.md" file in "assets" is not found.
+        FileNotFoundError: If the "index.md" or "README.md" files in "assets" are not found.
     """
     
-    index_file_name='README.md'
+    index_file_name='index.md'
+    readme_file_name='README.md'
     timestamp = datetime.now().astimezone(timezone.utc)
     try:
-        with open(os.path.join(PARENT_DIR,'assets/index.md')) as f:
+        with open(os.path.join(PARENT_DIR,'assets',index_file_name)) as f:
+            index = f.read()
+            
+        with open(os.path.join(PARENT_DIR,'assets',readme_file_name)) as f:
             readme = f.read()
-            reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
-            rows=[]
-            for report in reports:
-                rows.append(f"[{os.path.basename(report).split('.')[0]}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
-                
-            readme = readme.replace(f'@REPORT_|_TIMESTAMP@', ' |\n| '.join(rows))
-            readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-            with open(os.path.join(PARENT_DIR,index_file_name), 'w+') as o:
-                print(readme, file=o)
+            
+        reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
+        rows=[]
+        for report in reports:
+            rows.append(f"[{os.path.basename(report).split('.')[0]}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
+        table = ' |\n| '.join(rows)
+        
+        index = index.replace(f'@REPORT_|_TIMESTAMP@', table)
+        index = index.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+
+        with open(os.path.join(PARENT_DIR, index_file_name), 'w+') as o:
+            print(index, file=o)
+
+        readme = readme.replace(f'@REPORT_|_TIMESTAMP@', table)
+        readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+        
+        with open(os.path.join(PARENT_DIR, readme_file_name), 'w+') as o:
+            print(readme, file=o)
 
         try:
             repo = git.Repo(PARENT_DIR)
-            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}')
+            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}', f'{readme_file_name}')
         except:
             print('Failed to commit to git')
 
     except:
-        print('No "index.md" file in "assets". Aborting...')
+        print('Missing template files in "assets". Aborting...')
 
 def header(name: str = None):
     """
