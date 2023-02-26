@@ -761,7 +761,7 @@ def run_notebooks(which='all', progress_handler=None):
 # Markdown editing #
 # ================ #
 
-def update_index(): # Handle paths properly
+def update_index(): # Handle index and readme properly
     """
     Update the index.md and README.md files with a table of links to all HTML reports in the parent directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
@@ -781,33 +781,32 @@ def update_index(): # Handle paths properly
             
         with open(os.path.join(PARENT_DIR,'assets',readme_file_name)) as f:
             readme = f.read()
-            
-        reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
-        rows=[]
-        for report in reports:
-            rows.append(f"[{os.path.basename(report).split('.')[0]}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
-        table = ' |\n| '.join(rows)
-        
-        index = index.replace(f'@REPORT_|_TIMESTAMP@', table)
-        index = index.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-
-        with open(os.path.join(PARENT_DIR, index_file_name), 'w+') as o:
-            print(index, file=o)
-
-        readme = readme.replace(f'@REPORT_|_TIMESTAMP@', table)
-        readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-        
-        with open(os.path.join(PARENT_DIR, readme_file_name), 'w+') as o:
-            print(readme, file=o)
-
-        try:
-            repo = git.Repo(PARENT_DIR)
-            repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}', f'{readme_file_name}')
-        except:
-            print('Failed to commit to git')
-
     except:
         print('Missing template files in "assets". Aborting...')
+            
+    reports = sorted(glob.glob(os.path.join(PARENT_DIR,'*.html')))
+    rows=[]
+    for report in reports:
+        rows.append(f"[{os.path.basename(report).split('.')[0]}]({os.path.basename(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}")
+    table = ' |\n| '.join(rows)
+
+    index = index.replace(f'@REPORT_|_TIMESTAMP@', table)
+    index = index.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+
+    with open(os.path.join(PARENT_DIR, index_file_name), 'w+') as o:
+        print(index, file=o)
+
+    readme = readme.replace(f'@REPORT_|_TIMESTAMP@', table)
+    readme = readme.replace(f'@TIMESTAMP@', timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+
+    with open(os.path.join(PARENT_DIR, readme_file_name), 'w+') as o:
+        print(readme, file=o)
+
+    try:
+        repo = git.Repo(PARENT_DIR)
+        repo.git.commit('-m', f'index timestamp update-{timestamp.strftime("%d%m%Y")}', f'{index_file_name}', f'{readme_file_name}')
+    except:
+        print('Failed to commit to git')
 
 def header(name: str = None):
     """
