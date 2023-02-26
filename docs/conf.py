@@ -1,5 +1,9 @@
 # Configuration file for the Sphinx documentation builder.
 
+import sys, os
+
+sys.path.insert(0, os.path.abspath('../source'))
+
 # -- Project information
 
 project = 'Yugiquery'
