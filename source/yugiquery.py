@@ -1092,26 +1092,36 @@ def fetch_categorymembers(category: str, namespace: int = 0, step: int = 500, it
     lastContinue = {}
     all_results = []
     i=0
-    while True:
-        if iterator is not None:
-            iterator.set_postfix(it=i+1)
-        params = params.copy()
-        params.update(lastContinue)
-        response = requests.get(f'{base_url}{categorymembers_query_action}{category}', params=params, headers=http_headers)
-        if debug:
-            print(response.url)
-            
-        result = response.json()
-        if 'error' in result:
-            raise Exception(result['error']['info'])
-        if 'warnings' in result:
-            print(result['warnings'])
-        if 'query' in result:
-            all_results+=result['query']['categorymembers']
-        if 'continue' not in result:
-            break
-        lastContinue = result['continue']
-        i+=1
+    with Halo(text='', spinner='line', enabled=('PM_IN_EXECUTION' not in os.environ)) as spinner:
+        while True:
+            if iterator is None:
+                spinner.text = f'Iteration {i+1}'
+            else:
+                iterator.set_postfix(it=i+1)
+                
+            params = params.copy()
+            params.update(lastContinue)
+            response = requests.get(f'{base_url}{categorymembers_query_action}{category}', params=params, headers=http_headers)
+            if debug:
+                print(response.url)
+            if response.status_code != 200:
+                spinner.fail(f'HTTP error code {response.status_code}')
+                break
+
+            result = response.json()
+            if 'error' in result:
+                spinner.fail(result['error']['info'])
+                # raise Exception(result['error']['info'])
+            if 'warnings' in result:
+                spinner.warn(result['warnings'])
+                # print(result['warnings'])
+            if 'query' in result:
+                all_results+=result['query']['categorymembers']
+            if 'continue' not in result:
+                spinner.succeed()
+                break
+            lastContinue = result['continue']
+            i+=1
     
     results_df = pd.DataFrame(all_results)
     return results_df
@@ -1135,28 +1145,32 @@ def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5
     df=pd.DataFrame()
     i = 0
     complete = False
-    while not complete:
-        if iterator is not None:
-            iterator.set_postfix(it=i+1)
-        
-        url = f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc'
-        if debug:
-            print(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc')
-        
-        response = requests.get(url, headers=http_headers)
-        if response.status_code!=200:
-            print(response.text)
-        result = extract_results(response)
-        formatted_df = format_df(result, include_all=include_all)
-        df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
+    with Halo(text='', spinner='line', enabled=('PM_IN_EXECUTION' not in os.environ)) as spinner:
+        while not complete:
+            if iterator is None:
+                spinner.text = f'Iteration {i+1}'
+            else:
+                iterator.set_postfix(it=i+1)
 
-        if debug:
-            tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
+            response = requests.get(f'{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc', headers=http_headers)
+            if debug:
+                print(response.url)
+            if response.status_code!= 200:
+                spinner.fail(f'HTTP error code {response.status_code}')
+                break
+                
+            result = extract_results(response)
+            formatted_df = format_df(result, include_all=include_all)
+            df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
-        if len(formatted_df.index)<step or (i+1)*step>=limit:
-            complete = True
-        else:
-            i+=1
+            if debug:
+                tqdm.write(f'Iteration {i+1}: {len(formatted_df.index)} results')
+
+            if len(formatted_df.index)<step or (i+1)*step>=limit:
+                spinner.succeed()
+                complete = True
+            else:
+                i+=1
 
     return df
 
