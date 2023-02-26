@@ -23,6 +23,8 @@ extensions = [
     'sphinx.ext.intersphinx',
 ]
 
+napoleon_google_docstring = True
+
 autodoc_mock_imports = ['yugiquery']
 
 intersphinx_mapping = {
