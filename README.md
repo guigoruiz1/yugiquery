@@ -1,32 +1,25 @@
 # Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-<<<<<<< HEAD
-    Last execution: 22/02/2023 20:38 UTC
-=======
-    Last execution: 22/02/2023 22:45 UTC
->>>>>>> dev
+    Last execution: 26/02/2023 21:11 UTC
 
 ## Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-<<<<<<< HEAD
-| [Bandai](Bandai.html) | 22/02/2023 20:17 UTC |
-| [Cards](Cards.html) | 22/02/2023 20:20 UTC |
-| [Rush](Rush.html) | 22/02/2023 20:21 UTC |
-| [Sets](Sets.html) | 22/02/2023 20:34 UTC |
-| [Speed](Speed.html) | 22/02/2023 20:35 UTC |
-| [Timeline](Timeline.html) | 22/02/2023 20:38 UTC |
-=======
-| [Bandai](Bandai.html) | 22/02/2023 22:24 UTC |
-| [Cards](Cards.html) | 22/02/2023 22:27 UTC |
-| [Rush](Rush.html) | 22/02/2023 22:28 UTC |
-| [Sets](Sets.html) | 22/02/2023 22:40 UTC |
-| [Speed](Speed.html) | 22/02/2023 22:41 UTC |
-| [Timeline](Timeline.html) | 22/02/2023 22:45 UTC |
->>>>>>> dev
+| [Bandai](Bandai.html) | 26/02/2023 20:48 UTC |
+| [Cards](Cards.html) | 26/02/2023 20:52 UTC |
+| [Rush](Rush.html) | 26/02/2023 20:53 UTC |
+| [Sets](Sets.html) | 26/02/2023 21:06 UTC |
+| [Speed](Speed.html) | 26/02/2023 21:07 UTC |
+| [Timeline](Timeline.html) | 26/02/2023 21:11 UTC |
 
 # Readme
 
-###### tags: `Personal` `Public`
+
+---
+
+This page was generated at <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%B %d, %Y %I:%M %p %Z" }}</time>
+
+
+###### tags: `Personal` `Public` `yugioh` `python`
