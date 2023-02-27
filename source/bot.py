@@ -53,6 +53,10 @@ def load_secrets(secrets_file):
         SystemExit: If the secrets file is not found or if any of the required secrets are missing or empty.
     """
     required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
+    from os import listdir
+    print(os.listdir(os.getcwd()))
+    print(os.listdir(yq.PARENT_DIR))
+    print(os.path.isfile(secrets_file))
     if os.path.isfile(secrets_file):
         secrets=dotenv_values(secrets_file)
         if all(key in secrets.keys() for key in required_secrets) and all(secrets[key] for key in required_secrets):
