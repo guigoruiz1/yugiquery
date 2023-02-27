@@ -10,9 +10,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.10"
-
-before_build:
-  - bash ./source/install.sh
+  jobs:
+    pre_install:
+      - bash ./source/install.sh
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
