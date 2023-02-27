@@ -12,9 +12,7 @@ build:
     python: "3.10"
   jobs:
     pre_build:
-      - bash cd source
-      - bash ./install.sh
-      - bash cd ../
+      - bash cd source && ./install.sh
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
