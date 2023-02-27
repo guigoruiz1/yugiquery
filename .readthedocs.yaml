@@ -11,6 +11,8 @@ build:
   tools:
     python: "3.10"
 
+before_build:
+  - bash ./source/install.sh
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
