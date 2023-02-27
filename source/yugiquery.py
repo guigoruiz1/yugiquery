@@ -89,6 +89,9 @@ pd.set_option('display.max_columns', 40)
 
 # Variables
 class CG(Enum):
+    '''
+    Temp
+    '''
     CG = 'CG'
     ALL = CG
     BOTH = CG
@@ -184,9 +187,9 @@ async def download_images(file_names: pd.DataFrame, save_folder: str = "../image
     Downloads a set of images given their names and saves them to a specified folder.
 
     Args:
-    - file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
-    - save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "../images/".
-    - max_tasks (int): The maximum number of images to download at once. Defaults to 10.
+        file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
+        save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "../images/".
+        max_tasks (int): The maximum number of images to download at once. Defaults to 10.
     """
     # Prepare URL from file names
     file_names_md5 = file_names.apply(md5)
@@ -241,8 +244,8 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     Records the execution time of a report and saves the data to a JSON file.
 
     Args:
-    - report (str): The name of the report being benchmarked.
-    - timestamp (pandas.Timestamp): The timestamp when the report execution began.
+        report (str): The name of the report being benchmarked.
+        timestamp (pandas.Timestamp): The timestamp when the report execution began.
     """
     now = datetime.now(timezone.utc) # Make all timestamps UTC?
     timedelta = now-timestamp.tz_localize('utc')
@@ -265,7 +268,7 @@ def cleanup_data(dry_run: bool = False):
     Cleans up data files in a specified directory, keeping only the most recent file from each month and week.
 
     Args:
-    - dry_run (bool): If True, the function will only print the files that would be deleted without actually deleting them. Defaults to False.
+        dry_run (bool): If True, the function will only print the files that would be deleted without actually deleting them. Defaults to False.
     """
     file_list = glob.glob(os.path.join(PARENT_DIR,'data/*'))
     df = pd.DataFrame(file_list, columns=['file'])
@@ -298,11 +301,11 @@ def extract_fulltext(x, multiple=False):
     If the input list is empty, returns np.nan.
     
     Args:
-    - x (List[Union[Dict[str, Any], str]]): A list of dictionaries or strings to extract fulltext from.
-    - multiple (bool): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
+        x (List[Union[Dict[str, Any], str]]): A list of dictionaries or strings to extract fulltext from.
+        multiple (bool): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
     
     Returns:
-    - str or Tuple[str] or np.nan: The extracted fulltext(s).
+        str or Tuple[str] or np.nan: The extracted fulltext(s).
     """
     if len(x)>0:
         if isinstance(x[0], int):
@@ -326,11 +329,11 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     Returns a new dataframe with specific columns extracted and processed.
     
     Args:
-    - input_df (pd.DataFrame): The input dataframe to format.
-    - include_all (bool): If True, include all unspecified columns in the output dataframe. Default is False.
+        input_df (pd.DataFrame): The input dataframe to format.
+        include_all (bool): If True, include all unspecified columns in the output dataframe. Default is False.
     
     Returns:
-    - pd.DataFrame: The formatted dataframe.
+        pd.DataFrame: The formatted dataframe.
     """
     df = pd.DataFrame(index=input_df.index)
     
@@ -435,10 +438,10 @@ def extract_primary_type(x):
     Otherwise, returns the input.
     
     Args:
-    - x (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
+        x (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
     
     Returns:
-    - Union[str, List[str]]: The extracted primary type(s).
+        Union[str, List[str]]: The extracted primary type(s).
     """
     if isinstance(x,list) or isinstance(x,tuple):
         if 'Monster Token' in x:
@@ -460,10 +463,10 @@ def extract_category_bool(x):
     Otherwise, returns np.nan.
     
     Args:
-    - x (List[str]): The input list of strings to extract a boolean value from.
+        x (List[str]): The input list of strings to extract a boolean value from.
     
     Returns:
-    - Union[bool, np.nan]: The extracted boolean value.
+        Union[bool, np.nan]: The extracted boolean value.
     """
     if len(x)>0:
         if x[0]=='f':
@@ -481,10 +484,10 @@ def format_artwork(row: pd.Series):
     Returns the result tuple.
     
     Args:
-    - row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+        row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
     
     Returns:
-    - Tuple[str]: The formatted row as a tuple.
+        Tuple[str]: The formatted row as a tuple.
     """
     result = tuple()
     index_str = row.index.str 
@@ -1189,6 +1192,17 @@ def fetch_properties(condition: str, query: str, step: int = 500, limit: int = 5
 ## Bandai
 
 def fetch_bandai(limit: int=200, *args, **kwargs):
+    """
+    Fetch Bandai cards.
+
+    Args:
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
+        \*args: Additional arguments.
+        **kwargs: Additional keyword arguments.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
+    """
     debug=kwargs.get('debug',False)
     bandai_query = '|?English%20name=Name'
     bandai_prop_dict = {
