@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Guilherme Ruiz"
-__copyright__ = "Copyright 2023, Yugiquery"
+__copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
 __version__ = "1.0.0"
 __maintainer__ = "Guilherme Ruiz"
@@ -744,7 +744,7 @@ def run_notebooks(which='all', progress_handler=None):
         tqdm.write(f'Generating {report[:-6]} report')
         iterator.set_postfix(report=report)
         if external_pbar:
-            external_pbar.set_postfix(report=report)
+            external_pbar.set_postfix(report=report[:-6])
 
         # execute the notebook with papermill
         os.environ['PM_IN_EXECUTION'] = 'True'
