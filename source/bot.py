@@ -53,16 +53,11 @@ def load_secrets(secrets_file):
         SystemExit: If the secrets file is not found or if any of the required secrets are missing or empty.
     """
     required_secrets = ['DISCORD_TOKEN','DISCORD_CHANNEL_ID']
-    from os import listdir
-    print(os.listdir(os.getcwd()))
-    print(os.listdir(yq.PARENT_DIR))
-    print(os.path.isfile(secrets_file))
     if os.path.isfile(secrets_file):
         secrets=dotenv_values(secrets_file)
         if all(key in secrets.keys() for key in required_secrets) and all(secrets[key] for key in required_secrets):
             return secrets
-    print(secrets_file)
-    print(os.getcwd())
+
     print('Secrets not found. Exiting...')
     exit()
 
@@ -91,9 +86,6 @@ def init_reports_enum():
 repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery"
 repository_url = 'https://github.com/guigoruiz1/yugiquery'
 webpage_url = 'https://guigoruiz1.github.io/yugiquery'
-
-# Secrets
-secrets = load_secrets(os.path.join(yq.PARENT_DIR,'assets/secrets.env'))
 
 # Discord API
 intents = discord.Intents(messages=True, guilds=True, members=True)
@@ -462,4 +454,7 @@ async def on_command_error(ctx, error):
 # ========= #
 
 if __name__ == "__main__":
+    # Load secrets
+    secrets = load_secrets(os.path.join(yq.PARENT_DIR,'assets/secrets.env'))
+    # Run
     bot.run(secrets['DISCORD_TOKEN'])
