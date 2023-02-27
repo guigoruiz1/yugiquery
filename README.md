@@ -1,18 +1,18 @@
 # Yugiquery
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 25/02/2023 21:52 UTC
+    Last execution: 27/02/2023 19:43 UTC
 
 ## Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 25/02/2023 21:29 UTC |
-| [Cards](Cards.html) | 25/02/2023 21:33 UTC |
-| [Rush](Rush.html) | 25/02/2023 21:34 UTC |
-| [Sets](Sets.html) | 25/02/2023 21:47 UTC |
-| [Speed](Speed.html) | 25/02/2023 21:48 UTC |
-| [Timeline](Timeline.html) | 25/02/2023 21:52 UTC |
+| [Bandai](Bandai.html) | 27/02/2023 19:21 UTC |
+| [Cards](Cards.html) | 27/02/2023 19:25 UTC |
+| [Rush](Rush.html) | 27/02/2023 19:26 UTC |
+| [Sets](Sets.html) | 27/02/2023 19:39 UTC |
+| [Speed](Speed.html) | 27/02/2023 19:40 UTC |
+| [Timeline](Timeline.html) | 27/02/2023 19:43 UTC |
 
 # Readme
 
