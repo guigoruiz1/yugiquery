@@ -89,9 +89,16 @@ pd.set_option('display.max_columns', 40)
 
 # Variables
 class CG(Enum):
-    '''
-    Temp
-    '''
+    """
+    Enum representing the card game formats.
+
+    Attributes:
+        CG (str): Both TCG and OCG.
+        ALL (CG): Alias for CG, representing all card games.
+        BOTH (CG): Alias for CG, representing both card games.
+        TCG (str): The 'trading card game' type.
+        OCG (str): The 'official card game' type.
+    """
     CG = 'CG'
     ALL = CG
     BOTH = CG
@@ -1197,7 +1204,7 @@ def fetch_bandai(limit: int=200, *args, **kwargs):
 
     Args:
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
-        \*args: Additional arguments.
+        *args: Additional arguments.
         **kwargs: Additional keyword arguments.
 
     Returns:
@@ -1462,13 +1469,13 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     Fetches skill cards from the yugipedia Wiki API.
 
     Args:
-    - skill_query (str): A string representing a SMW query to search for. Defaults to None.
-    - step (int): The number of results to fetch in each API call. Defaults to 500.
-    - limit (int): The maximum number of results to fetch. Defaults to 5000.
-    - **kwargs: Additional keyword arguments to pass to fetch_properties.
+        skill_query (str): A string representing a SMW query to search for. Defaults to None.
+        step (int): The number of results to fetch in each API call. Defaults to 500.
+        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
-    - A pandas DataFrame containing the fetched skill cards.
+        A pandas DataFrame containing the fetched skill cards.
     """
     print('Downloading skill cards')
 

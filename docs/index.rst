@@ -6,15 +6,8 @@
 Welcome to Yugiquery's documentation!
 =====================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. automodule:: yugiquery
+   :members:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. automodule:: bot
+   :members:
