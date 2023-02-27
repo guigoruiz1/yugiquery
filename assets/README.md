@@ -1,4 +1,5 @@
 <div align='center'>
+    <br>
     <pre>
     ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ 
      ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  
@@ -8,8 +9,6 @@
                                       ▀▀                                     
     </pre>
 </div>
-
----
 
 [![License](https://img.shields.io/github/license/guigoruiz1/yugiquery)](https://github.com/guigoruiz1/yugiquery/blob/main/LICENSE.md)
 ![Code size](https://img.shields.io/github/repo-size/guigoruiz1/yugiquery)
