@@ -347,4 +347,5 @@ async def on_command_error(ctx, error):
 # Execution #
 # ========= #
 
-bot.run(secrets['DISCORD_TOKEN'])
+if __name__ == "__main__":
+    bot.run(secrets['DISCORD_TOKEN'])
