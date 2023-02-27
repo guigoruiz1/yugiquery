@@ -57,7 +57,8 @@ def load_secrets(secrets_file):
         secrets=dotenv_values(secrets_file)
         if all(key in secrets.keys() for key in required_secrets) and all(secrets[key] for key in required_secrets):
             return secrets
-    
+    print(secrets_file)
+    print(os.path.getcwd)
     print('Secrets not found. Exiting...')
     exit()
 
