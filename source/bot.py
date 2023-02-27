@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = "Guilherme Ruiz"
-__copyright__ = "Copyright 2023, Yugiquery"
+__copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
 __version__ = "1.0.0"
 __maintainer__ = "Guilherme Ruiz"
@@ -11,6 +11,8 @@ __status__ = "Development"
 # ======= #
 # Imports #
 # ======= #
+
+import yugiquery as yq
 
 # native python packages
 import os
@@ -27,7 +29,6 @@ import json
 import pandas as pd
 from enum import Enum
 import multiprocessing as mp
-import yugiquery as yq
 from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
