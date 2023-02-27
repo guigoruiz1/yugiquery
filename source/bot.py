@@ -58,7 +58,7 @@ def load_secrets(secrets_file):
         if all(key in secrets.keys() for key in required_secrets) and all(secrets[key] for key in required_secrets):
             return secrets
     print(secrets_file)
-    print(os.getcwd)
+    print(os.getcwd())
     print('Secrets not found. Exiting...')
     exit()
 
