@@ -18,7 +18,7 @@
 
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 28/02/2023 14:42 UTC
+    Last execution: 28/02/2023 14:48 UTC
 
 ## Reports
 
