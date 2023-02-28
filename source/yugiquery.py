@@ -343,7 +343,10 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     with open(benchmark_file, "w+") as file:
         json.dump(data, file)
 
-    commit([benchmark_file], f"{report} report benchmarked - {now.isoformat()}")
+    commit(
+        files=[benchmark_file],
+        commit_message=f"{report} report benchmarked - {now.isoformat()}",
+    )
 
 
 def cleanup_data(dry_run: bool = False):
@@ -726,6 +729,8 @@ def generate_changelog(
     Returns:
         pd.DataFrame: A DataFrame containing the changes made between the previous and current versions of the data. The DataFrame will have the following columns: the specified column name, the modified data, and the indicator for whether the data is new or modified renamed as version (either "Old" or "New"). If there are no changes, the function will return a DataFrame with no rows.
     """
+    if isinstance(col, str):
+        col = [col]
     changelog = (
         previous_df.merge(current_df, indicator=True, how="outer")
         .loc[lambda x: x["_merge"] != "both"]
@@ -736,19 +741,22 @@ def generate_changelog(
     )
     changelog.rename(columns={"_merge": "Version"}, inplace=True)
     nunique = changelog.groupby(col).nunique(dropna=False)
-    cols_to_drop = nunique[nunique < 2].dropna(axis=1).columns
+    cols_to_drop = (
+        nunique[nunique < 2]
+        .dropna(axis=1)
+        .columns.difference(["Modification date", "Version"])
+    )
     changelog.drop(cols_to_drop, axis=1, inplace=True)
     changelog = changelog.set_index(col)
 
-    if all(col in changelog.columns for col in ["Modification date", "Version"]):
-        true_changes = (
-            changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
-            .dropna(axis=0, how="all")
-            .index
-        )
-        new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
-        rows_to_keep = true_changes.union(new_entries).unique()
-        changelog = changelog.loc[rows_to_keep].sort_values([col, "Version"])
+    true_changes = (
+        changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
+        .dropna(axis=0, how="all")
+        .index
+    )
+    new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
+    rows_to_keep = true_changes.union(new_entries).unique()
+    changelog = changelog.loc[rows_to_keep].sort_values(BY=[*col, "Version"])
 
     if changelog.empty:
         print("No changes")
@@ -811,6 +819,8 @@ def clear_notebooks(which: Union[str, List[str]] = "all"):
         reports = [str(which)] if not isinstance(which, list) else which
     if len(reports) > 0:
         subprocess.call(["nbstripout"] + reports)
+
+        commit(files=reports, commit_message=f"Cleaning {which} notebook outputs")
 
 
 def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
@@ -972,8 +982,8 @@ def update_index():  # Handle index and readme properly
         print(readme, file=o)
 
     commit(
-        [index_file_name, readme_file_name],
-        f"index and readme timestamp update - {timestamp.isoformat()}",
+        files=[index_file_name, readme_file_name],
+        commit_message=f"index and readme timestamp update - {timestamp.isoformat()}",
     )
 
 

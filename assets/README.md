@@ -1,6 +1,6 @@
 <div align='center'>
-    <br>
     <pre>
+        <br>
     ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ 
      ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  
       ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   
@@ -10,10 +10,10 @@
     </pre>
 </div>
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/guigoruiz1/yugiquery)](https://github.com/guigoruiz1/yugiquery/blob/main/LICENSE.md)
-![Code size](https://img.shields.io/github/repo-size/guigoruiz1/yugiquery)
-![Size](https://img.shields.io/github/languages/code-size/guigoruiz1/yugiquery)
+![Repo size](https://img.shields.io/github/repo-size/guigoruiz1/yugiquery)
+![Code size](https://img.shields.io/github/languages/code-size/guigoruiz1/yugiquery)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Read the Docs](https://img.shields.io/readthedocs/yugiquery/latest)](https://yugiquery.readthedocs.io/en/latest/)
 [![Pages-build-deployment](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment)
 
