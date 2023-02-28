@@ -29,6 +29,7 @@ import socket
 from enum import Enum
 from datetime import datetime, timezone
 from textwrap import wrap
+from typing import List, Tuple, Dict, Union, Callable, Any
 
 # Shorthand variables
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -125,7 +126,7 @@ arrows_dict = {
 
 
 def load_secrets(
-    secrets_file: str, requested_secrets: list = [], required: bool = False
+    secrets_file: str, requested_secrets: List[str] = [], required: bool = False
 ):
     """
     Load secrets from a .env file.
@@ -214,6 +215,9 @@ async def download_images(
         file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
         save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "../images/".
         max_tasks (int): The maximum number of images to download at once. Defaults to 10.
+
+    Returns:
+        None
     """
     # Prepare URL from file names
     file_names_md5 = file_names.apply(md5)
@@ -277,6 +281,41 @@ async def download_images(
 # =============== #
 
 
+def commit(files: Union[str, List[str]], commit_message: str = None):
+    """
+    Commits the specified files to the git repository.
+
+    Args:
+        files (Union[str, List[str]]): A list of file paths to be committed.
+        commit_message (str, optional): The commit message. If not provided, a default message will be used.
+
+    Raises:
+        git.InvalidGitRepositoryError: If the PARENT_DIR is not a git repository.
+        git.GitCommandError: If an error occurs while committing the changes.
+        Exception: For any other unexpected errors.
+
+    Returns:
+        None
+    """
+    if commit_message is None:
+        commit_message = f"Commit - {datetime.now(timezone.utc).isoformat()}"
+    if isinstance(files, str):
+        files = [files]
+    try:
+        with git.Repo(PARENT_DIR) as repo:
+            repo.git.commit(message=commit_message, *files)
+
+    except git.InvalidGitRepositoryError as e:
+        print(f"{PARENT_DIR} is not a git repository: {e}")
+        raise
+    except git.GitCommandError as e:
+        print(f"Failed to commit changes: {e}")
+        raise
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        raise
+
+
 def benchmark(report: str, timestamp: pd.Timestamp):
     """
     Records the execution time of a report and saves the data to a JSON file.
@@ -284,6 +323,9 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     Args:
         report (str): The name of the report being benchmarked.
         timestamp (pandas.Timestamp): The timestamp when the report execution began.
+
+    Returns:
+        None
     """
     now = datetime.now(timezone.utc)  # Make all timestamps UTC?
     timedelta = now - timestamp.tz_localize("utc")
@@ -301,6 +343,8 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     with open(benchmark_file, "w+") as file:
         json.dump(data, file)
 
+    commit([benchmark_file], f"{report} report benchmarked - {now.isoformat()}")
+
 
 def cleanup_data(dry_run: bool = False):
     """
@@ -308,6 +352,9 @@ def cleanup_data(dry_run: bool = False):
 
     Args:
         dry_run (bool): If True, the function will only print the files that would be deleted without actually deleting them. Defaults to False.
+
+    Returns:
+        None
     """
     file_list = glob.glob(os.path.join(PARENT_DIR, "data/*"))
     df = pd.DataFrame(file_list, columns=["file"])
@@ -338,7 +385,7 @@ def cleanup_data(dry_run: bool = False):
 # Data formating
 
 
-def extract_fulltext(x, multiple=False):
+def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False):
     """
     Extracts fulltext from a list of dictionaries or strings.
     If multiple is True, returns a sorted tuple of all fulltexts.
@@ -492,7 +539,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
 ## Cards
 
 
-def extract_primary_type(x):
+def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
     """
     Extracts the primary type of a card.
     If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
@@ -519,7 +566,7 @@ def extract_primary_type(x):
     return x
 
 
-def extract_category_bool(x):
+def extract_category_bool(x: List[str]):
     """
     Extracts a boolean value from a list of strings that represent a boolean value.
     If the first string in the list is "t", returns True.
@@ -665,14 +712,16 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
 # ========= #
 
 
-def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str):
+def generate_changelog(
+    previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]
+):
     """
     Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
 
     Args:
         previous_df (pd.DataFrame): A DataFrame containing the previous version of the data.
         current_df (pd.DataFrame): A DataFrame containing the current version of the data.
-        col (str): The name of the column to compare the DataFrames on.
+        col (Union[str, List[str]]): The name of the column to compare the DataFrames on.
 
     Returns:
         pd.DataFrame: A DataFrame containing the changes made between the previous and current versions of the data. The DataFrame will have the following columns: the specified column name, the modified data, and the indicator for whether the data is new or modified renamed as version (either "Old" or "New"). If there are no changes, the function will return a DataFrame with no rows.
@@ -717,10 +766,10 @@ def style_df(df: pd.DataFrame):
     Formats a pandas DataFrame with HTML hyperlinks.
 
     Args:
-    df (pd.DataFrame): The pandas DataFrame to be formatted.
+        df (pd.DataFrame): The pandas DataFrame to be formatted.
 
     Returns:
-    A styled version of the input DataFrame with HTML hyperlinks.
+        A styled version of the input DataFrame with HTML hyperlinks.
     """
     return df.style.format(hyperlinks="html")
 
@@ -734,26 +783,26 @@ def save_notebook():
     """
     Save the current notebook opened in JupyterLab to disk.
 
-    Parameters:
-    None
+    Args:
+        None
 
     Returns:
-    None
+        None
     """
     app = JupyterFrontEnd()
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
 
 
-def clear_notebooks(which="all"):
+def clear_notebooks(which: Union[str, List[str]] = "all"):
     """
     Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
 
-    Parameters:
-    which (str or list of str): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
+    Args:
+        which (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
 
     Returns:
-    None
+        None
     """
     if which == "all":
         # Get reports
@@ -764,16 +813,16 @@ def clear_notebooks(which="all"):
         subprocess.call(["nbstripout"] + reports)
 
 
-def run_notebooks(which="all", progress_handler=None):
+def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
     """
     Execute specified Jupyter notebooks in the source directory using Papermill.
 
-    Parameters:
-    which (str or list of str): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
-    progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
+    Args:
+        which (Union[str, List[str]]): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
+        progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
 
     Returns:
-    None
+        None
     """
     if which == "all":
         # Get reports
@@ -846,7 +895,7 @@ def run_notebooks(which="all", progress_handler=None):
 
         # Update postfix
         tqdm.write(f"Generating {report[:-6]} report")
-        iterator.set_postfix(report=report)
+        iterator.set_postfix(report=report[:-6])
         if external_pbar:
             external_pbar.set_postfix(report=report[:-6])
 
@@ -885,6 +934,9 @@ def update_index():  # Handle index and readme properly
 
     Raises:
         FileNotFoundError: If the "index.md" or "README.md" files in "assets" are not found.
+
+    Returns:
+        None
     """
 
     index_file_name = "index.md"
@@ -919,16 +971,10 @@ def update_index():  # Handle index and readme properly
     with open(os.path.join(PARENT_DIR, readme_file_name), "w+") as o:
         print(readme, file=o)
 
-    try:
-        repo = git.Repo(PARENT_DIR)
-        repo.git.commit(
-            "-m",
-            f'index timestamp update-{timestamp.strftime("%d%m%Y")}',
-            f"{index_file_name}",
-            f"{readme_file_name}",
-        )
-    except:
-        print("Failed to commit to git")
+    commit(
+        [index_file_name, readme_file_name],
+        f"index and readme timestamp update - {timestamp.isoformat()}",
+    )
 
 
 def header(name: str = None):
@@ -1816,12 +1862,12 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     return set_list_pages
 
 
-def fetch_set_lists(titles, **kwargs):  # Separate formating function
+def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
     Args:
-        titles (list of str): A list of page titles from which to fetch set lists.
+        titles (List[str]): A list of page titles from which to fetch set lists.
         debug (bool): A flag indicating whether to print debug output.
 
     Returns:
@@ -2050,13 +2096,15 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
     return all_set_lists_df
 
 
-def fetch_set_info(sets, extra_info: list = [], step: int = 15, **kwargs):
+def fetch_set_info(
+    sets: List[str], extra_info: List[str] = [], step: int = 15, **kwargs
+):
     """
     Fetches information for a list of sets.
 
     Args:
-        sets (list): A list of set names to fetch information for.
-        extra_info (list, optional): A list of additional information to fetch for each set. Defaults to an empty list.
+        sets (List[str]): A list of set names to fetch information for.
+        extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
         **kwargs: Additional keyword arguments to pass to requests.get().
 
@@ -2147,7 +2195,7 @@ def adjust_lightness(color: str, amount: float = 0.5):
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
 
-def align_yaxis(ax1, v1: float, ax2, v2: float):
+def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float):
     """
     Adjust the y-axis of two subplots so that the specified values in each subplot are aligned.
 
@@ -2166,7 +2214,7 @@ def align_yaxis(ax1, v1: float, ax2, v2: float):
     adjust_yaxis(ax1, (y2 - y1) / 2, v1)
 
 
-def adjust_yaxis(ax, ydif: float, v: float):
+def adjust_yaxis(ax: plt.Axes, ydif: float, v: float):
     """
     Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
 
@@ -2193,11 +2241,11 @@ def adjust_yaxis(ax, ydif: float, v: float):
 
 def generate_rate_grid(
     dy: pd.DataFrame,
-    ax,
+    ax: plt.Axes,
     xlabel: str = "Date",
     size: str = "150%",
     pad: int = 0,
-    colors: list = None,
+    colors: List[str] = None,
     cumsum: bool = True,
 ):
     """
@@ -2209,7 +2257,7 @@ def generate_rate_grid(
         xlabel (str): The label to be used for the x-axis. Default value is 'Date'.
         size (str): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
         pad (int): The amount of padding between the two subplots in pixels. Default value is 0.
-        colors (list): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
+        colors (List[str]): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
         cumsum (bool): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
 
     Returns:
@@ -2312,10 +2360,10 @@ def generate_rate_grid(
 
 def rate_subplots(
     df: pd.DataFrame,
-    figsize=None,
+    figsize: Tuple[int, int] = None,
     title: str = "",
     xlabel: str = "Date",
-    colors: list = None,
+    colors: List[str] = None,
     cumsum: bool = True,
     bg: pd.DataFrame = None,
     vlines: pd.DataFrame = None,
@@ -2328,7 +2376,7 @@ def rate_subplots(
         figsize (Tuple[int, int] or None): The size of the figure to create. If None, default size is (16, len(df.columns)*2*(1+cumsum)).
         title (str): The title of the figure. Default is an empty string.
         xlabel (str): The label of the x-axis. Default is 'Date'.
-        colors (list of str): The list of colors to use for the lines. If None, default colors are used.
+        colors (List[str]): The list of colors to use for the lines. If None, default colors are used.
         cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
         bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
         vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
@@ -2435,13 +2483,13 @@ def rate_subplots(
 
 def rate_plot(
     dy: pd.DataFrame,
-    figsize=(16, 6),
+    figsize: Tuple[int, int] = (16, 6),
     title: str = None,
     xlabel: str = "Date",
-    colors: list = None,
-    cumsum=True,
-    bg=None,
-    vlines=None,
+    colors: List[str] = None,
+    cumsum: bool = True,
+    bg: pd.DataFrame = None,
+    vlines: pd.DataFrame = None,
 ):
     """
     Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
@@ -2451,7 +2499,7 @@ def rate_plot(
         figsize (Tuple[int, int]): The size of the figure to create. Default is (16, 6).
         title (str): The title of the figure. Default is None.
         xlabel (str): The label of the x-axis. Default is 'Date'.
-        colors (list of str): The list of colors to use for the lines. If None, default colors are used.
+        colors (List[str]): The list of colors to use for the lines. If None, default colors are used.
         cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
         bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
         vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
@@ -2529,7 +2577,7 @@ def rate_plot(
 # ======================= #
 
 
-def run(report="all", progress_handler=None):
+def run(report: Union[str, List[str]] = "all", progress_handler=None):
     """
     Executes all notebooks in the source directory that match the specified report, updates the page index
     to reflect the last execution timestamp, clears notebooks after HTML reports have been created, and cleans up

@@ -39,7 +39,7 @@ from tqdm.contrib.discord import tqdm as discord_pbar
 
 
 # Data loaders
-def load_secrets(secrets_file):
+def load_secrets(secrets_file: str):
     """
     Loads secrets from the specified file using dotenv_values.
     If the file is not found, or if any of the required secrets are missing or empty, the function exits the program.
