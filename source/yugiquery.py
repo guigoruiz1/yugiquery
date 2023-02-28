@@ -749,14 +749,15 @@ def generate_changelog(
     changelog.drop(cols_to_drop, axis=1, inplace=True)
     changelog = changelog.set_index(col)
 
-    true_changes = (
-        changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
-        .dropna(axis=0, how="all")
-        .index
-    )
-    new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
-    rows_to_keep = true_changes.union(new_entries).unique()
-    changelog = changelog.loc[rows_to_keep].sort_values(BY=[*col, "Version"])
+    if all(col in changelog.columns for col in ["Modification date", "Version"]):
+        true_changes = (
+            changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
+            .dropna(axis=0, how="all")
+            .index
+        )
+        new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
+        rows_to_keep = true_changes.union(new_entries).unique()
+        changelog = changelog.loc[rows_to_keep].sort_values(BY=[*col, "Version"])
 
     if changelog.empty:
         print("No changes")
