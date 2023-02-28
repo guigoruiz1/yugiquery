@@ -10,7 +10,6 @@
     </pre>
 </div>
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/guigoruiz1/yugiquery)](https://github.com/guigoruiz1/yugiquery/blob/main/LICENSE.md)
 ![Code size](https://img.shields.io/github/repo-size/guigoruiz1/yugiquery)
 ![Size](https://img.shields.io/github/languages/code-size/guigoruiz1/yugiquery)
@@ -19,18 +18,18 @@
 
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 28/02/2023 16:11 UTC
+    Last execution: 28/02/2023 22:35 UTC
 
 ## Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 28/02/2023 15:35 UTC |
-| [Cards](Cards.html) | 28/02/2023 15:44 UTC |
-| [Rush](Rush.html) | 28/02/2023 15:46 UTC |
-| [Sets](Sets.html) | 28/02/2023 16:07 UTC |
-| [Speed](Speed.html) | 28/02/2023 16:08 UTC |
-| [Timeline](Timeline.html) | 28/02/2023 16:11 UTC |
+| [Bandai](Bandai.html) | 28/02/2023 22:03 UTC |
+| [Cards](Cards.html) | 28/02/2023 22:11 UTC |
+| [Rush](Rush.html) | 28/02/2023 22:12 UTC |
+| [Sets](Sets.html) | 28/02/2023 22:29 UTC |
+| [Speed](Speed.html) | 28/02/2023 22:31 UTC |
+| [Timeline](Timeline.html) | 28/02/2023 22:34 UTC |
 
 # Readme
 
