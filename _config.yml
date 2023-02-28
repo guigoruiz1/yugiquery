@@ -1,0 +1,7 @@
+title: YugiQuery
+description: test
+show_downloads: False
+google_analytics:
+theme: jekyll-theme-cayman
+plugins:
+- jekyll-remote-theme
