@@ -24,8 +24,10 @@ import asyncio
 import io
 import re
 import json
+from datetime import datetime, timezone
 
 # PIP packages
+import git
 import pandas as pd
 from enum import Enum
 import multiprocessing as mp
@@ -105,9 +107,9 @@ def init_reports_enum():
 # Repository
 (author, repo) = load_repo_vars()
 ## URLs
-repository_api_url = f"https://api.github.com/repos/{user}/{repo}"
-repository_url = f"https://github.com/{user}/{repo}"
-webpage_url = f"https://{user}.github.io/{repo}"
+repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
+repository_url = f"https://github.com/{author}/{repo}"
+webpage_url = f"https://{author}.github.io/{repo}"
 
 # Discord API
 intents = discord.Intents(messages=True, guilds=True, members=True)
@@ -136,19 +138,19 @@ async def shutdown(ctx):
 
 
 @bot.hybrid_command(
-    name="run", description="Run full Yugiquery workflow", with_app_command=True
+    name="run", description="Run full YugiQuery workflow", with_app_command=True
 )
 @commands.is_owner()
 @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
 async def run(ctx, report: Reports):
     """
-    Runs a Yugiquery workflow by launching a separate process and monitoring its progress.
+    Runs a YugiQuery workflow by launching a separate process and monitoring its progress.
     The progress is reported back to the Discord channel where the command was issued.
     The command has a cooldown period of 12 hours per user.
 
     Args:
         ctx (commands.Context): The context of the command.
-        report (Reports): An Enum value indicating which Yugiquery report to run.
+        report (Reports): An Enum value indicating which YugiQuery report to run.
 
     Raises:
         discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -220,12 +222,12 @@ async def run(ctx, report: Reports):
 
 
 @bot.hybrid_command(
-    name="abort", description="Abort running Yugiquery workflow", with_app_command=True
+    name="abort", description="Abort running YugiQuery workflow", with_app_command=True
 )
 @commands.is_owner()
 async def abort(ctx):
     """
-    Aborts a running Yugiquery workflow by terminating the process.
+    Aborts a running YugiQuery workflow by terminating the process.
 
     Args:
         ctx (commands.Context): The context of the command.
@@ -269,7 +271,8 @@ async def benchmark(ctx):  # Improve function
     embed = discord.Embed(
         title="Benchmark",
         description="The average time each report takes to complete",
-        color=discord.Colour.blue(),
+        color=discord.Colour.gold(),
+        timestamp=datetime.now(timezone.utc),
     )
     # Get benchmark
     value = ""
@@ -321,11 +324,12 @@ async def latest(ctx):
         None
     """
     await ctx.defer()
-    reports = sorted(glob.glob(yq.PARENT_DIR))
+    reports = sorted(glob.glob(os.path.join(yq.PARENT_DIR,"*.html")))
     embed = discord.Embed(
         title="Latest reports generated",
         description="The live reports may not always be up to date with the local reports",
-        color=discord.Colour.blue(),
+        color=discord.Colour.orange(),
+        timestamp=datetime.now(timezone.utc),
     )
 
     # Get local files timestamps
@@ -353,11 +357,11 @@ async def latest(ctx):
 
 
 @bot.hybrid_command(
-    name="links", description="Show Yugiquery links", with_app_command=True
+    name="links", description="Show YugiQuery links", with_app_command=True
 )
 async def links(ctx):
     """
-    Displays the links to the Yugiquery webpage, repository, and data. Returns the links as an embedded message in
+    Displays the links to the YugiQuery webpage, repository, and data. Returns the links as an embedded message in
     the channel.
 
     Args:
@@ -367,9 +371,10 @@ async def links(ctx):
         None
     """
     embed = discord.Embed(
-        title="Yugiquery links",
+        title="YugiQuery links",
         description=f"[Webpage]({webpage_url}) • [Repository]({repository_url}) • [Data]({repository_url}/tree/main/data)",
-        color=discord.Colour.blue(),
+        color=discord.Colour.green(),
+        timestamp=datetime.now(timezone.utc),
     )
 
     await ctx.send(embed=embed)
@@ -394,7 +399,8 @@ async def data(ctx):
         embed = discord.Embed(
             title="Latest data files",
             description="Direct links to download files from GitHub.",
-            color=discord.Colour.blue(),
+            color=discord.Colour.magenta(),
+            timestamp=datetime.now(timezone.utc),
         )
 
         files = pd.read_json(f"{repository_api_url}/contents/data")
