@@ -13,18 +13,18 @@
 
 Jupyter notebook to query and display yugipedia data
 
-    Last execution: 28/02/2023 22:35 UTC
+    Last execution: 01/03/2023 00:54 UTC
 
 ## Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 28/02/2023 22:03 UTC |
-| [Cards](Cards.html) | 28/02/2023 22:11 UTC |
-| [Rush](Rush.html) | 28/02/2023 22:12 UTC |
-| [Sets](Sets.html) | 28/02/2023 22:29 UTC |
-| [Speed](Speed.html) | 28/02/2023 22:31 UTC |
-| [Timeline](Timeline.html) | 28/02/2023 22:34 UTC |
+| [Bandai](Bandai.html) | 01/03/2023 00:28 UTC |
+| [Cards](Cards.html) | 01/03/2023 00:33 UTC |
+| [Rush](Rush.html) | 01/03/2023 00:35 UTC |
+| [Sets](Sets.html) | 01/03/2023 00:49 UTC |
+| [Speed](Speed.html) | 01/03/2023 00:50 UTC |
+| [Timeline](Timeline.html) | 01/03/2023 00:54 UTC |
 
 # Readme
 
