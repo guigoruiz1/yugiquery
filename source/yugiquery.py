@@ -757,7 +757,7 @@ def generate_changelog(
         )
         new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
         rows_to_keep = true_changes.union(new_entries).unique()
-        changelog = changelog.loc[rows_to_keep].sort_values(BY=[*col, "Version"])
+        changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
 
     if changelog.empty:
         print("No changes")
@@ -1463,6 +1463,7 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
         "_sets": "|?Sets=Set",
         "_rarity": "|?Rarity",
         "_ability": "|?Ability",
+        "_date": "|?Modification%20date",
     }
     for key, value in bandai_prop_dict.items():
         if key in kwargs and not kwargs[key]:
