@@ -302,11 +302,11 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
     if isinstance(files, str):
         files = [files]
     try:
-        with git.Repo(PARENT_DIR) as repo:
+        with git.Repo(SCRIPT_DIR, search_parent_directories=True) as repo:
             repo.git.commit(message=commit_message, *files)
 
     except git.InvalidGitRepositoryError as e:
-        print(f"{PARENT_DIR} is not a git repository: {e}")
+        print(f"Unable to find a git repository: {e}")
         raise
     except git.GitCommandError as e:
         print(f"Failed to commit changes: {e}")
@@ -815,7 +815,7 @@ def clear_notebooks(which: Union[str, List[str]] = "all"):
     """
     if which == "all":
         # Get reports
-        reports = sorted(glob.glob("*.ipynb"))
+        reports = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
     else:
         reports = [str(which)] if not isinstance(which, list) else which
     if len(reports) > 0:
@@ -952,12 +952,18 @@ def update_index():  # Handle index and readme properly
 
     index_file_name = "index.md"
     readme_file_name = "README.md"
-    timestamp = datetime.now().astimezone(timezone.utc)
+
+    index_input_path = os.path.join(PARENT_DIR, "assets", index_file_name)
+    readme_input_path = os.path.join(PARENT_DIR, "assets", readme_file_name)
+    index_output_path = os.path.join(PARENT_DIR, "assets", index_file_name)
+    readme_output_path = os.path.join(PARENT_DIR, "assets", readme_file_name)
+
+    timestamp = datetime.now(timezone.utc)
     try:
-        with open(os.path.join(PARENT_DIR, "assets", index_file_name)) as f:
+        with open(index_input_path) as f:
             index = f.read()
 
-        with open(os.path.join(PARENT_DIR, "assets", readme_file_name)) as f:
+        with open(readme_input_path) as f:
             readme = f.read()
     except:
         print('Missing template files in "assets". Aborting...')
@@ -973,17 +979,17 @@ def update_index():  # Handle index and readme properly
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
     index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(os.path.join(PARENT_DIR, index_file_name), "w+") as o:
+    with open(index_output_path, "w+") as o:
         print(index, file=o)
 
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
     readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(os.path.join(PARENT_DIR, readme_file_name), "w+") as o:
+    with open(readme_output_path, "w+") as o:
         print(readme, file=o)
 
     commit(
-        files=[index_file_name, readme_file_name],
+        files=[index_output_path, readme_output_path],
         commit_message=f"index and readme timestamp update - {timestamp.isoformat()}",
     )
 
@@ -1008,7 +1014,7 @@ def header(name: str = None):
         header = f.read()
         header = header.replace(
             "@TIMESTAMP@",
-            datetime.now().astimezone(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"),
+            datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"),
         )
         header = header.replace("@NOTEBOOK@", name)
         return Markdown(header)
@@ -1026,7 +1032,7 @@ def footer(timestamp: pd.Timestamp = None):
     """
     with open(os.path.join(PARENT_DIR, "assets/footer.md")) as f:
         footer = f.read()
-        now = datetime.now().astimezone(timezone.utc)
+        now = datetime.now(timezone.utc)
         footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
 
         return Markdown(footer)
