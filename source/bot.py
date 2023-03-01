@@ -65,6 +65,22 @@ def load_secrets(secrets_file: str):
     exit()
 
 
+def load_repo_vars():
+    # Open the repository
+    repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+
+    # Get the remote repository
+    remote = repo.remote()
+    remote_url = remote.url
+
+    # Extract the GitHub page URL from the remote URL
+    # by removing the ".git" suffix and splitting the URL
+    # by the "/" character
+    remote_url_parts = remote_url[:-4].split("/")
+
+    return remote_url_parts[-2:]
+
+
 def init_reports_enum():
     """
     Initializes and returns an Enum object containing the available reports.
@@ -77,7 +93,6 @@ def init_reports_enum():
     reports_dict = {"All": "all"}
     reports = sorted(glob.glob(os.path.join(yq.SCRIPT_DIR, "*.ipynb")))
     for report in reports:
-        report = os.path.basename(report)
         reports_dict[report[:-6].capitalize()] = report
 
     return Enum("Reports", reports_dict)
@@ -87,10 +102,12 @@ def init_reports_enum():
 # Variables #
 # ========= #
 
-# URLs
-repository_api_url = "https://api.github.com/repos/guigoruiz1/yugiquery"
-repository_url = "https://github.com/guigoruiz1/yugiquery"
-webpage_url = "https://guigoruiz1.github.io/yugiquery"
+# Repository
+(author, repo) = load_repo_vars()
+## URLs
+repository_api_url = f"https://api.github.com/repos/{user}/{repo}"
+repository_url = f"https://github.com/{user}/{repo}"
+webpage_url = f"https://{user}.github.io/{repo}"
 
 # Discord API
 intents = discord.Intents(messages=True, guilds=True, members=True)
