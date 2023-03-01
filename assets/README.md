@@ -37,3 +37,4 @@ Jupyter notebook to query and display yugipedia data
 
 ###### tags: `Personal` `Public` `yugioh` `python`
 
+
