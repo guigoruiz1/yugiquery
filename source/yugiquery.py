@@ -956,8 +956,8 @@ def update_index():  # Handle index and readme properly
 
     index_input_path = os.path.join(PARENT_DIR, "assets", index_file_name)
     readme_input_path = os.path.join(PARENT_DIR, "assets", readme_file_name)
-    index_output_path = os.path.join(PARENT_DIR, "assets", index_file_name)
-    readme_output_path = os.path.join(PARENT_DIR, "assets", readme_file_name)
+    index_output_path = os.path.join(PARENT_DIR, index_file_name)
+    readme_output_path = os.path.join(PARENT_DIR, readme_file_name)
 
     timestamp = datetime.now(timezone.utc)
     try:
