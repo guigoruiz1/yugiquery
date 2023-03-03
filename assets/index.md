@@ -10,13 +10,11 @@
     </pre>
 </div>
 
----
-
 Jupyter notebook to query and display yugipedia data
 
     Last execution: 01/03/2023 19:05 UTC
 
-## Reports
+# Reports
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
@@ -27,8 +25,12 @@ Jupyter notebook to query and display yugipedia data
 | [Speed](Speed.html) | 01/03/2023 19:01 UTC |
 | [Timeline](Timeline.html) | 01/03/2023 19:04 UTC |
 
-# Readme
+# Documentation
+
+The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/).
 
 ---
 
 This page was generated at <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>
+
+---

@@ -19,21 +19,22 @@ import os
 import glob
 import random
 import subprocess
-import discord
 import asyncio
 import io
 import re
 import json
+from enum import Enum
 from datetime import datetime, timezone
 
-# PIP packages
+# PIP packages - installed by yugiquery
+import discord
 import git
 import pandas as pd
-from enum import Enum
 import multiprocessing as mp
 from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
+
 
 # ======= #
 # Helpers #
@@ -324,7 +325,7 @@ async def latest(ctx):
         None
     """
     await ctx.defer()
-    reports = sorted(glob.glob(os.path.join(yq.PARENT_DIR,"*.html")))
+    reports = sorted(glob.glob(os.path.join(yq.PARENT_DIR, "*.html")))
     embed = discord.Embed(
         title="Latest reports generated",
         description="The live reports may not always be up to date with the local reports",
@@ -337,7 +338,7 @@ async def latest(ctx):
     for report in reports:
         local_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
-    embed.add_field(name="Local:", value=local_value, inline=False)
+    embed.add_field(name="Local", value=local_value, inline=False)
 
     # Get live files timestamps
     try:
@@ -349,7 +350,7 @@ async def latest(ctx):
             timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
             live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
-        embed.add_field(name="Live:", value=live_value, inline=False)
+        embed.add_field(name="Live", value=live_value, inline=False)
     except:
         pass
 
@@ -429,8 +430,8 @@ async def data(ctx):
             else:
                 data_value += f'• [{file["name"]}]({file["download_url"]})\n'
 
-        embed.add_field(name="Data:", value=data_value, inline=False)
-        embed.add_field(name="Changelog:", value=changelog_value, inline=False)
+        embed.add_field(name="Data", value=data_value, inline=False)
+        embed.add_field(name="Changelog", value=changelog_value, inline=False)
         await ctx.send(embed=embed)
 
     except:

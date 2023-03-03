@@ -26,6 +26,7 @@ import hashlib
 import json
 import re
 import socket
+import time
 from enum import Enum
 from datetime import datetime, timezone
 from textwrap import wrap
@@ -1339,12 +1340,14 @@ def fetch_categorymembers(
     all_results = []
     i = 0
     with Halo(
-        text="", spinner="line", enabled=("PM_IN_EXECUTION" not in os.environ)
+        text="Fetching category members...",
+        spinner="line",
+        enabled=("PM_IN_EXECUTION" not in os.environ),
     ) as spinner:
         try:
             while True:
                 if iterator is None:
-                    spinner.text = f"Iteration {i+1}"
+                    spinner.text = f"Fetching category members... Iteration {i+1}"
                 else:
                     iterator.set_postfix(it=i + 1)
 
@@ -1371,13 +1374,21 @@ def fetch_categorymembers(
                 if "query" in result:
                     all_results += result["query"]["categorymembers"]
                 if "continue" not in result:
-                    spinner.succeed()
+                    spinner.succeed("Fetch completed")
                     break
                 lastContinue = result["continue"]
                 i += 1
 
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+            raise
+
+        spinner.output.close()
 
     results_df = pd.DataFrame(all_results)
     return results_df
@@ -1411,12 +1422,15 @@ def fetch_properties(
     i = 0
     complete = False
     with Halo(
-        text="", spinner="line", enabled=("PM_IN_EXECUTION" not in os.environ)
+        text="Fetching properties...",
+        spinner="line",
+        enabled=("PM_IN_EXECUTION" not in os.environ),
     ) as spinner:
         try:
             while not complete:
                 if iterator is None:
-                    spinner.text = f"Iteration {i+1}"
+                    # spinner.clear()
+                    spinner.text = f"Fetching properties... Iteration {i+1}"
                 else:
                     iterator.set_postfix(it=i + 1)
 
@@ -1438,13 +1452,21 @@ def fetch_properties(
                     tqdm.write(f"Iteration {i+1}: {len(formatted_df.index)} results")
 
                 if len(formatted_df.index) < step or (i + 1) * step >= limit:
-                    spinner.succeed()
+                    spinner.succeed("Fetch completed")
                     complete = True
                 else:
                     i += 1
 
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+            raise
+
+        spinner.output.close()
 
     return df
 
@@ -1603,7 +1625,7 @@ def fetch_monster(
         )
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
 
-    if exclude_token:
+    if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[
             monster_df["Primary type"] != "Monster Token"
         ].reset_index(drop=True)
