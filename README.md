@@ -32,7 +32,7 @@ Below are listed all the available reports and their execution timestamp.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 03/03/2023 16:05 UTC |
+| [Bandai](Bandai.html) | 03/03/2023 22:20 UTC |
 | [Cards](Cards.html) | 03/03/2023 16:09 UTC |
 | [Rush](Rush.html) | 03/03/2023 16:10 UTC |
 | [Sets](Sets.html) | 03/03/2023 16:23 UTC |
@@ -42,7 +42,7 @@ Below are listed all the available reports and their execution timestamp.
 
 The full YugiQuery flow was last executed at 
 
-    03/03/2023 16:28 UTC
+    03/03/2023 22:20 UTC
 
 ## Installation
 
