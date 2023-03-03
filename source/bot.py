@@ -96,7 +96,7 @@ def init_reports_enum():
     reports_dict = {"All": "all"}
     reports = sorted(glob.glob(os.path.join(yq.SCRIPT_DIR, "*.ipynb")))
     for report in reports:
-        reports_dict[report[:-6].capitalize()] = report
+        reports_dict[os.path.basename(report)[:-6].capitalize()] = report
 
     return Enum("Reports", reports_dict)
 
