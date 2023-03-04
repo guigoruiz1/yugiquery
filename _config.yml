@@ -1,18 +1,25 @@
-header_pages:
+header_pages: 
+    - Cards.html
+    - README.md
+    - LICENSE.md
 
 title: YugiQuery
-author:
-  name: Guilherme Ruiz
-  email: 57478888+guigoruiz1@users.noreply.github.com
+author: Guilherme Ruiz
+email: "57478888+guigoruiz1@users.noreply.github.com"
 
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
 description: >
-  This page was generated at <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>
+  Test
   
 # Build settings
+show_excerpts: false
 
 theme: minima
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
 
 minima:
   skin: auto
