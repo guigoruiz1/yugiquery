@@ -273,7 +273,6 @@ async def benchmark(ctx):  # Improve function
         title="Benchmark",
         description="The average time each report takes to complete",
         color=discord.Colour.gold(),
-        timestamp=datetime.now(timezone.utc),
     )
     # Get benchmark
     value = ""
@@ -330,7 +329,6 @@ async def latest(ctx):
         title="Latest reports generated",
         description="The live reports may not always be up to date with the local reports",
         color=discord.Colour.orange(),
-        timestamp=datetime.now(timezone.utc),
     )
 
     # Get local files timestamps
@@ -375,7 +373,6 @@ async def links(ctx):
         title="YugiQuery links",
         description=f"[Webpage]({webpage_url}) • [Repository]({repository_url}) • [Data]({repository_url}/tree/main/data)",
         color=discord.Colour.green(),
-        timestamp=datetime.now(timezone.utc),
     )
 
     await ctx.send(embed=embed)
@@ -401,7 +398,6 @@ async def data(ctx):
             title="Latest data files",
             description="Direct links to download files from GitHub.",
             color=discord.Colour.magenta(),
-            timestamp=datetime.now(timezone.utc),
         )
 
         files = pd.read_json(f"{repository_api_url}/contents/data")

@@ -8,7 +8,7 @@ author:
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
 description: >
-  Temp.
+  This page was generated at <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>
   
 # Build settings
 
