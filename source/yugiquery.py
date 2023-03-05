@@ -1332,10 +1332,8 @@ def check_API_status():
         try:
             socket.create_connection((domain, port), timeout=2)
             print(f"{domain} is reachable")
-        except socket.timeout:
-            print(f"{domain} is not reachable")
-        except:
-            print(f"{domain} is not reachable")
+        except OSError as err:
+            print(f"{domain} is not reachable: {err}")
 
         return False
 

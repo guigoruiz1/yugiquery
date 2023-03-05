@@ -193,11 +193,12 @@ async def run(ctx, report: Reports):
     async def await_result():
         while process.is_alive():
             await asyncio.sleep(1)
+        API_error = False
         while not queue.empty():
             API_error = not queue.get()
-        return (process.exitcode, API_error)
+        return process.exitcode, API_error
 
-    (exitcode, API_error) = await await_result()
+    exitcode, API_error = await await_result()
     process.close()
     process = None
         
