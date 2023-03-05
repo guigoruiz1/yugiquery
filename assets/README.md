@@ -1,7 +1,3 @@
----
-tags: Personal, Public, yugioh, python
----
-
 <div align='center'>
     <pre>
         <br>
@@ -97,3 +93,5 @@ Ideally, files in the *assets* directory should be read-only files for reference
 ## Documentation
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
+
+###### tags: `Personal` `Public` `yugioh` `python`
