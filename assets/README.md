@@ -1,3 +1,7 @@
+---
+tags: Personal, Public, yugioh, python
+---
+
 <div align='center'>
     <pre>
         <br>
@@ -16,8 +20,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Read the Docs](https://img.shields.io/readthedocs/yugiquery/latest)](https://yugiquery.readthedocs.io/en/latest/)
 [![Pages-build-deployment](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment)
-
----
+<!-- [![hackmd-github-sync-badge](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA/badge)](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA) -->
 
 # What is it?
 
@@ -94,7 +97,3 @@ Ideally, files in the *assets* directory should be read-only files for reference
 ## Documentation
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
-
----
-
-###### tags: `Personal` `Public` `yugioh` `python`
