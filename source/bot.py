@@ -190,7 +190,6 @@ async def run(ctx, report: Reports):
     except:
         await original_response.edit(content="Initialization failed!")
 
-    API_error = False
     async def await_result():
         while process.is_alive():
             await asyncio.sleep(1)
