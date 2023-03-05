@@ -1334,6 +1334,8 @@ def check_API_status():
             print(f"{domain} is reachable")
         except socket.timeout:
             print(f"{domain} is not reachable")
+        except:
+            print(f"{domain} is not reachable")
 
         return False
 
@@ -2667,6 +2669,7 @@ def run(report: Union[str, List[str]] = "all", progress_handler=None):
         if progress_handler:
             progress_handler(API_status=False)
         return
+
     # Execute all notebooks in the source directory
     run_notebooks(which=report, progress_handler=progress_handler)
     # Update page index to reflect last execution timestamp
