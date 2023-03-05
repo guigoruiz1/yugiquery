@@ -1,7 +1,6 @@
-header_pages: 
-    - Cards.html
-    - README.md
-    - LICENSE.md
+header_pages:
+  - README.md
+  - LICENSE.md
 
 title: YugiQuery
 author: Guilherme Ruiz
@@ -10,16 +9,12 @@ email: "57478888+guigoruiz1@users.noreply.github.com"
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
 description: >
-  Test
+  Under construction
   
 # Build settings
-show_excerpts: false
+show_excerpts: true
 
 theme: minima
-
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
 
 minima:
   skin: auto

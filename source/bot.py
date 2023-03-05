@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 
-__author__ = "Guilherme Ruiz"
-__copyright__ = "2023, Guilherme Ruiz"
-__license__ = "MIT"
-__version__ = "1.0.0"
-__maintainer__ = "Guilherme Ruiz"
-__email__ = "57478888+guigoruiz1@users.noreply.github.com"
-__status__ = "Development"
-
 # ======= #
 # Imports #
 # ======= #
 
 import yugiquery as yq
 
-# native python packages
+__author__ = yq.__author__
+__copyright__ = yq.__copyright__
+__license__ = yq.__license__
+__version__ = yq.__version__
+__maintainer__ = yq.__maintainer__
+__email__ = yq.__email__
+__status__ = yq.__status__
+
+# from yugiquery import os, glob, subprocess, io, re, json, Enum, datetime, timezone, git, pd, dotenv_values
+
+# Native python packages
 import os
 import glob
 import random
@@ -27,11 +29,11 @@ from enum import Enum
 from datetime import datetime, timezone
 
 # PIP packages - installed by yugiquery
-import discord
 import git
+import discord
+from discord.ext import commands
 import pandas as pd
 import multiprocessing as mp
-from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
 
@@ -169,9 +171,9 @@ async def run(ctx, report: Reports):
         content="Initializing...", ephemeral=True, delete_after=60
     )
 
-    API_error = False
-
-    def progress_handler(iterable=None, API_status=None, **kwargs):
+    queue = mp.Queue()
+    def progress_handler(iterable = None, API_status: bool = True, **kwargs):
+        queue.put(API_status)
         if iterable and ctx.channel.id != int(secrets["DISCORD_CHANNEL_ID"]):
             return discord_pbar(
                 iterable,
@@ -180,10 +182,6 @@ async def run(ctx, report: Reports):
                 file=io.StringIO(),
                 **kwargs,
             )
-        elif API_status is not None:
-            nonlocal API_error
-            API_error = not API_status
-            return
 
     try:
         process = mp.Process(target=yq.run, args=[report.value, progress_handler])
@@ -192,15 +190,18 @@ async def run(ctx, report: Reports):
     except:
         await original_response.edit(content="Initialization failed!")
 
+    API_error = False
     async def await_result():
         while process.is_alive():
             await asyncio.sleep(1)
-        return process.exitcode
+        while not queue.empty():
+            API_error = not queue.get()
+        return (process.exitcode, API_error)
 
-    exitcode = await await_result()
+    (exitcode, API_error) = await await_result()
     process.close()
     process = None
-
+        
     if API_error:
         await ctx.channel.send(
             content="Unable to comunicate to the API. Try again later."

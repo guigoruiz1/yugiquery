@@ -444,6 +444,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         "Archseries": True,
         "Misc": True,
         "Category": True,
+        "Summoning": True,
         # Monster card specific columns
         "Attribute": False,
         "Primary type": True,
@@ -468,23 +469,15 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     }
     for col, multi in individual_cols.items():
         if col in input_df.columns:
-            df[col] = input_df[col].apply(extract_fulltext, multiple=multi)
+            extracted_col = input_df[col].apply(extract_fulltext, multiple=multi)
             # Primary type classification
             if col == "Primary type":
-                df[col] = df[col].apply(extract_primary_type)
+                df[col] = extracted_col.apply(extract_primary_type)
             if col == "Misc":
-                # Rush specific - Separate in its own function
-                df[["Legend", "Maximum mode"]] = df[col].apply(
-                    lambda x: pd.Series(
-                        [
-                            val in x if x is not np.nan else False
-                            for val in ["Legend Card", "Requires Maximum Mode"]
-                        ]
-                    )
-                )
-                # Other usages for misc - Separate in its own function
-                if not include_all:
-                    df.drop(col, axis=1, inplace=True)
+                # Rush specific
+                df = df.join(extracted_col.apply(extract_misc))
+            else:
+                df[col] = extracted_col
 
     # Link arrows styling
     if "Link Arrows" in input_df.columns:
@@ -495,15 +488,25 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
         )
 
     # Columns with matching name pattern: extraction function
-    filter_cols = {"ATK": True, "Level": True, " status": True, "Page ": False}
+    filter_cols = {
+        "ATK": True,
+        "Level": True,
+        " status": True,
+        " Material": True,
+        "Page ": False,
+    }
     for col, extract in filter_cols.items():
         col_matches = input_df.filter(like=col).columns
         if len(col_matches) > 0:
-            df = df.join(
-                input_df[col_matches].applymap(
-                    extract_fulltext if extract else lambda x: x
-                )
+            extracted_cols = input_df[col_matches].applymap(
+                extract_fulltext if extract else lambda x: x
             )
+            if col == " Material":
+                df["Materials"] = extracted_cols.apply(
+                    lambda x: tuple(elem for tup in row for elem in tup), axis=1
+                )
+            else:
+                df = df.join(extracted_cols)
 
     # Category boolean columns for merging into tuple
     category_bool_cols = {
@@ -568,6 +571,26 @@ def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
                 return [z for z in x if z != "Effect Monster"][0]
 
     return x
+
+
+def extract_misc(x: Union[str, List[str], Tuple[str]]):
+    """
+    Extracts the misc properties of a card.
+    Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
+
+    Args:
+        x (Union[str, List[str], Tuple[str]]): The Misc values to generate the boolean table from.
+
+    Returns:
+        pd.Series: A pandas Series of boolean values indicating whether "Legend Card" and "Requires Maximum Mode" are present in the input.
+    """
+    # if isinstance(x, list) or isinstance(x, tuple):
+    return pd.Series(
+            [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
+            index=["Legend", "Maximum mode"],
+        )
+    # else:
+        # return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
 def extract_category_bool(x: List[str]):
@@ -1247,6 +1270,7 @@ def card_query(default: str = None, *args, **kwargs):
         "_date": "|?Modification%20date",
         "_image_URL": "|?Card%20image",
         "_misc": "|?Misc",
+        "_summoning": "|?Summoning",
         # Speed duel specific
         "_speed": "|?TCG%20Speed%20Duel%20status",
         "_character": "|?Character",
