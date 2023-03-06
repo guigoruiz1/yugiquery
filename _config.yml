@@ -1,5 +1,5 @@
-#header_pages:
-#  - LICENSE.md
+header_pages:
+  - LICENSE.md
 
 title: YugiQuery
 author: Guilherme Ruiz
@@ -13,9 +13,9 @@ description: >
   Jupyter notebook to query and display yugipedia data.
 
 # social links
-linkedin_username: jekyllrb
-github_username:  guigoruiz1
-rss: rss
+# linkedin_username: guigoruiz1
+# github_username:  guigoruiz1
+# rss: rss
 
 # Build settings
 show_excerpts: false
@@ -25,6 +25,6 @@ theme: minima
 minima:
   skin: auto
   
-plugins:
- - jekyll-feed
- - jekyll-seo-tag
+# plugins:
+#  - jekyll-feed
+#  - jekyll-seo-tag
