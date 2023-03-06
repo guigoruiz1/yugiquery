@@ -11,8 +11,6 @@ email: "57478888+guigoruiz1@users.noreply.github.com"
 description: >
   Under construction.
   
-  This site was last updated on {{ site.time | date_to_string }}
-  
 # Build settings
 show_excerpts: true
 
