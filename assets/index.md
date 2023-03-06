@@ -1,8 +1,4 @@
 <link rel="shortcut icon" type="image/x-icon" href="assets/favicon.ico">
-<script>
-  document.querySelector("meta[name='description']").setAttribute("content", "This site was last updated on " + new Date().toLocaleDateString());
-</script>
-
 
 <div align='center'>
     <pre>
