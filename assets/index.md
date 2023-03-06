@@ -25,4 +25,4 @@ Below are listed all the available reports and their execution timestamps.
 
 The full YugiQuery flow was last executed at `@TIMESTAMP@`
 
-This page was generated at `{{ site.time | date_to_string }}`
+This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
