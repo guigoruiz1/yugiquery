@@ -10,27 +10,26 @@
     </pre>
 </div>
 
-Jupyter notebook to query and display yugipedia data
+# What is it?
 
-    04/03/2023 17:59 UTC
+YugiQuery is a Python script to query and display Yu-Gi-Oh! data extracted from the [yugipedia](http://yugipedia.com) database. It is entirely built on Jupyter notebooks and Git. The notebooks are rendered as HTML reports and can be displayed as an "always up to date" static web page by laveraging on GitHub pages. The raw data is kept as CSV files with timestamps and changelogs for a thorough record of the game's history. Every operation is recorded on git with a descriptive commit message. 
 
 # Reports
 
+Below are listed all the available reports and their execution timestamps. 
+
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 04/03/2023 17:30 UTC |
-| [Cards](Cards.html) | 04/03/2023 17:37 UTC |
-| [Rush](Rush.html) | 04/03/2023 17:38 UTC |
-| [Sets](Sets.html) | 04/03/2023 17:54 UTC |
-| [Speed](Speed.html) | 04/03/2023 17:55 UTC |
-| [Timeline](Timeline.html) | 04/03/2023 17:59 UTC |
+| [Bandai](Bandai.html) | 04/03/2023 23:06 UTC |
+| [Cards](Cards.html) | 04/03/2023 23:06 UTC |
+| [Rush](Rush.html) | 04/03/2023 23:06 UTC |
+| [Sets](Sets.html) | 04/03/2023 23:06 UTC |
+| [Speed](Speed.html) | 04/03/2023 23:06 UTC |
+| [Timeline](Timeline.html) | 04/03/2023 23:06 UTC |
 
-# Documentation
 
-The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/).
+The full YugiQuery flow was last executed at `05/03/2023 20:09 UTC`
 
----
+<!-- ---
 
-This page was generated at <time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>
-
----
+This page was generated at `<time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>` -->
