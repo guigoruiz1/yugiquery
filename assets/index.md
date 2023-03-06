@@ -27,6 +27,4 @@ Below are listed all the available reports and their execution timestamps.
 
 The full YugiQuery flow was last executed at `@TIMESTAMP@`
 
-<!-- ---
-
-This page was generated at `<time datetime="{{ site.time | date_to_xmlschema }}">{{ site.time | date: "%d/%m/%Y %H:%M %Z" }}</time>` -->
+This page was generated at {{ site.time | date_to_string }}
