@@ -1,4 +1,3 @@
-<link rel="shortcut icon" type="image/x-icon" href="./assets/favicon.ico?">
 <div align='center'>
     <pre>
     <br>
