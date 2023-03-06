@@ -1,4 +1,8 @@
-# MIT License
+---
+title: license
+---
+
+MIT License
 
 Copyright (c) 2023 Guilherme Ruiz
 

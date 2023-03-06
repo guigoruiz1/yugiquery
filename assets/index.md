@@ -1,4 +1,4 @@
-<link rel="shortcut icon" type="image/x-icon" href="assets/favicon.ico">
+<link rel="shortcut icon" type="image/x-icon" href="assets/favicon.ico?">
 
 <div align='center'>
     <pre>
