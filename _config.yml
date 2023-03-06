@@ -7,11 +7,13 @@ email: "57478888+guigoruiz1@users.noreply.github.com"
 
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
-{% capture description %}This site was last updated on {{ site.time | date_to_string }}{% endcapture %}
-description: "{{ description }}"
+description:
+  Under construction.
+  
+  Jupyter notebook to query and display yugipedia data.
   
 # Build settings
-show_excerpts: true
+show_excerpts: false
 
 theme: minima
 

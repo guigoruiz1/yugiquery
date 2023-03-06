@@ -95,4 +95,6 @@ Ideally, files in the *assets* directory should be read-only files for reference
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
 
+---
+
 ###### tags: `Personal` `Public` `yugioh` `python`
