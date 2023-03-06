@@ -30,14 +30,14 @@ Below are listed all the available reports and their execution timestamps.
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
 | [Bandai](Bandai.html) | 04/03/2023 23:06 UTC |
-| [Cards](Cards.html) | 04/03/2023 23:06 UTC |
+| [Cards](Cards.html) | 06/03/2023 20:47 UTC |
 | [Rush](Rush.html) | 04/03/2023 23:06 UTC |
 | [Sets](Sets.html) | 04/03/2023 23:06 UTC |
 | [Speed](Speed.html) | 04/03/2023 23:06 UTC |
 | [Timeline](Timeline.html) | 04/03/2023 23:06 UTC |
 
 
-The full YugiQuery flow was last executed at `05/03/2023 20:09 UTC`
+The full YugiQuery flow was last executed at `06/03/2023 21:30 UTC`
 
 # Usage
 
@@ -99,5 +99,7 @@ Ideally, files in the *assets* directory should be read-only files for reference
 ## Documentation
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
+
+---
 
 ###### tags: `Personal` `Public` `yugioh` `python`

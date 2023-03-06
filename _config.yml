@@ -1,6 +1,5 @@
-header_pages:
-  - README.md
-  - LICENSE.md
+# header_pages:
+#   - LICENSE.md
 
 title: YugiQuery
 author: Guilherme Ruiz
@@ -11,12 +10,22 @@ email: "57478888+guigoruiz1@users.noreply.github.com"
 description: >
   Under construction.
   
-  This site was last updated on {{ site.time | date_to_string }}
-  
+  Jupyter notebook to query and display yugipedia data.
+
+# social links
+# linkedin_username: guigoruiz1
+github_username:  guigoruiz1
+# rss: rss
+
 # Build settings
-show_excerpts: true
+show_excerpts: false
 
 theme: minima
+#remote_theme: daattali/beautiful-jekyll
 
 minima:
   skin: auto
+  
+# plugins:
+#  - jekyll-feed
+#  - jekyll-seo-tag
