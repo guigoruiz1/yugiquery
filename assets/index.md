@@ -1,5 +1,3 @@
-<link rel="shortcut icon" type="image/x-icon" href="assets/favicon.ico?">
-
 <div align='center'>
     <pre>
     <br>
@@ -27,4 +25,4 @@ Below are listed all the available reports and their execution timestamps.
 
 The full YugiQuery flow was last executed at `@TIMESTAMP@`
 
-This page was generated at {{ site.time | date_to_string }}
+This page was generated at `{{ site.time | date_to_string }}`
