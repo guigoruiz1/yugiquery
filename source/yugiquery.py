@@ -111,14 +111,14 @@ class CG(Enum):
 
 
 arrows_dict = {
-    "Middle-Left": "\u2190",
-    "Middle-Right": "\u2192",
-    "Top-Left": "\u2196",
-    "Top-Center": "\u2191",
-    "Top-Right": "\u2197",
-    "Bottom-Left": "\u2199",
-    "Bottom-Center": "\u2193",
-    "Bottom-Right": "\u2198",
+    "Middle-Left": "←",
+    "Middle-Right": "→",
+    "Top-Left": "↖",
+    "Top-Center": "↑",
+    "Top-Right": "↗",
+    "Bottom-Left": "↙",
+    "Bottom-Center": "↓",
+    "Bottom-Right": "↘",
 }
 
 # Functions
@@ -586,11 +586,11 @@ def extract_misc(x: Union[str, List[str], Tuple[str]]):
     """
     # if isinstance(x, list) or isinstance(x, tuple):
     return pd.Series(
-            [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
-            index=["Legend", "Maximum mode"],
-        )
+        [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
+        index=["Legend", "Maximum mode"],
+    )
     # else:
-        # return pd.Series([False, False], index=["Legend", "Maximum mode"])
+    # return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
 def extract_category_bool(x: List[str]):
@@ -2544,7 +2544,7 @@ def rate_subplots(
     )
 
     fig.tight_layout()
-    plt.show()
+    fig.show()
 
     warnings.filterwarnings(
         "default",
@@ -2579,7 +2579,8 @@ def rate_plot(
     Returns:
         None: Displays the generated plot.
     """
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.subplot(sharey=True, sharex=True)
     fig.suptitle(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
@@ -2635,13 +2636,64 @@ def rate_plot(
     )
 
     fig.tight_layout()
-    plt.show()
+    fig.show()
 
     warnings.filterwarnings(
         "default",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
+
+
+def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
+    """
+    Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
+
+    Args:
+        arrows (pandas.Series): A pandas Series containing arrow symbols as string data type.
+        figsize (Tuple[int, int], optional): The width and height of the figure. Defaults to (6, 6).
+        **kwargs: Additional keyword arguments to be passed to the bar() method.
+
+    Returns:
+        None: Displays the generated plot.
+    """
+    # Count the frequency of each arrow direction
+    counts = arrows.value_counts().sort_index()
+
+    # Map the arrows to angles
+    angle_map = {
+        "→": 0,
+        "↗": np.pi / 4,
+        "↑": np.pi / 2,
+        "↖": 3 * np.pi / 4,
+        "←": np.pi,
+        "↙": 5 * np.pi / 4,
+        "↓": 3 * np.pi / 2,
+        "↘": 7 * np.pi / 4,
+    }
+    angles = counts.index.map(angle_map)
+
+    # Create a polar plot
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(polar=True)
+    ax.bar(angles, counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
+
+    # Set the label for each arrow
+    ax.set_xticks(list(angle_map.values()))
+    ax.set_xticklabels(["▶","◥","▲","◤","◀","◣","▼","◢"], fontsize=18)
+
+    # Set radius grid location
+    ax.yaxis.set_major_locator(MaxNLocator(5))
+    ticks = ax.get_yticks()
+    ax.yaxis.set_major_locator(FixedLocator(ticks[1:]))
+    ax.set_rorigin(-5)
+
+    # Set the title of the plot
+    ax.set_title("Link Arrows")
+
+    # Display the plot
+    fig.tight_layout()
+    fig.show()
 
 
 # ======================= #

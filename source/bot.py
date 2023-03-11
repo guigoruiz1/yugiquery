@@ -455,6 +455,77 @@ async def ping(ctx):
     )
 
 
+@bot.hybrid_command(
+    name="battle", description="Simulate a battle of all monster cards", with_app_command=True
+)
+@commands.is_owner()
+async def battle(ctx):
+    """
+    Under construction.
+
+    Args:
+        ctx (commands.Context): The context of the command.
+    """
+    content = "Under construction..."
+    original_response = await ctx.send(
+        content=content, ephemeral=True, delete_after=60
+    )
+    
+    MONSTER_STATS = ["Name", "ATK", "DEF"]
+    weights = [4, 1]
+    cards = pd.read_csv(
+        sorted(
+            glob.glob(os.path.join(PARENT_DIR, "data/all_cards_*.csv")),
+            key=os.path.getmtime,
+        )[0]
+    )
+    monsters = cards[
+        (cards["Card type"] == "Monster Card") & (cards["Primary type"] != "Token Monster")
+    ][MONSTER_STATS].set_index("Name")
+    monsters = monsters.applymap(lambda x: x if x!="?" else random.randrange(0, 51) * 100)
+    monsters = monsters.applymap(pd.to_numeric, errors="coerce").fillna(0).reset_index()
+
+    # Shuffle the monsters and select the first one as the initial winner
+    monsters = monsters.sample(frac=1).reset_index(drop=True)
+    winner = (monsters.iloc[0], 0)
+    longest = (monsters.iloc[0], 0)
+
+    content += f'\n\nFirst monster: {winner[0]["Name"]} (ATK={winner[0]["ATK"]}, DEF={winner[0]["DEF"]})'
+
+    iterator = trange(1, len(monsters), desc="Battle")
+    for i in iterator:
+        current_winner = (winner[0].copy(), winner[1])
+        next_monster = monsters.iloc[i].copy()
+        chosen_stat = random.choices(MONSTER_STATS[1:], weights=weights)[0]
+        iterator.set_postfix(winner=current_winner[0]["Name"])
+        not_chosen_stat = [stat for stat in MONSTER_STATS[1:] if stat != chosen_stat][0]
+        if next_monster[chosen_stat] > current_winner[0][chosen_stat]:
+            next_monster[chosen_stat] -= current_winner[0][chosen_stat]
+            if current_winner[1] > longest[1]:
+                longest = current_winner
+            current_winner = (next_monster, 0)
+        elif next_monster[chosen_stat] < current_winner[0][chosen_stat]:
+            current_winner[0][chosen_stat] -= next_monster[chosen_stat]
+        elif next_monster[chosen_stat] == current_winner[0][chosen_stat]:
+            if next_monster[not_chosen_stat] > current_winner[0][not_chosen_stat]:
+                next_monster[not_chosen_stat] -= current_winner[0][not_chosen_stat]
+                if current_winner[1] > longest[1]:
+                    longest = current_winner
+                current_winner = (next_monster, 0)
+            elif next_monster[not_chosen_stat] < current_winner[0][not_chosen_stat]:
+                current_winner[0][not_chosen_stat] -= next_monster[not_chosen_stat]
+
+        winner = (current_winner[0], current_winner[1] + 1)
+
+    content += f'''
+        \n\nWinner: {winner[0]["Name"]} (ATK={winner[0]["ATK"]}, DEF={winner[0]["DEF"]}), Wins={winner[1]}
+        
+        Longest streak: {longest[0]["Name"]} (ATK={longest[0]["ATK"]}, DEF={longest[0]["DEF"]}), Wins={longest[1]}
+    '''
+    
+    await original_response.edit(content=content)
+
+    
 # ====== #
 # Events #
 # ====== #
