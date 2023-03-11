@@ -466,6 +466,7 @@ async def battle(ctx):
     Args:
         ctx (commands.Context): The context of the command.
     """
+    await ctx.defer()
     content = "Under construction..."
     original_response = await ctx.send(
         content=content, ephemeral=True, delete_after=60
@@ -475,7 +476,7 @@ async def battle(ctx):
     weights = [4, 1]
     cards = pd.read_csv(
         sorted(
-            glob.glob(os.path.join(PARENT_DIR, "data/all_cards_*.csv")),
+            glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
             key=os.path.getmtime,
         )[0]
     )
