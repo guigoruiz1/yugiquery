@@ -36,6 +36,7 @@ import pandas as pd
 import multiprocessing as mp
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
+from tqdm.auto import trange
 
 
 # ======= #
