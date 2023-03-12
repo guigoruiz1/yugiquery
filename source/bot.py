@@ -479,12 +479,15 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
 
     MONSTER_STATS = ["Name", "ATK", "DEF"]
     weights = [atk_weight, def_weight]
+    cards_files = sorted(glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")), key=os.path.getmtime)
+    if not cards_files:
+        await ctx.send(content="Cards data not found... Try again later.", ephemeral=True, delete_after=60)
+        return
+        
     cards = pd.read_csv(
-        sorted(
-            glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
-            key=os.path.getmtime,
-        )[0]
+        cards_files[0]
     )
+
     monsters = cards[
         (cards["Card type"] == "Monster Card")
         & (cards["Primary type"] != "Token Monster")
