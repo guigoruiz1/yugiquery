@@ -2580,7 +2580,7 @@ def rate_plot(
         None: Displays the generated plot.
     """
     fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(sharey=True, sharex=True)
+    ax = fig.add_subplot()
     fig.suptitle(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
