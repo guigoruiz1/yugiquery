@@ -2580,7 +2580,7 @@ def rate_plot(
         None: Displays the generated plot.
     """
     fig = plt.figure(figsize=figsize)
-    ax = fig.subplot(sharey=True, sharex=True)
+    ax = fig.add_subplot(sharey=True, sharex=True)
     fig.suptitle(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
@@ -2680,7 +2680,7 @@ def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
 
     # Set the label for each arrow
     ax.set_xticks(list(angle_map.values()))
-    ax.set_xticklabels(["▶","◥","▲","◤","◀","◣","▼","◢"], fontsize=18)
+    ax.set_xticklabels(["▶", "◥", "▲", "◤", "◀", "◣", "▼", "◢"], fontsize=18)
 
     # Set radius grid location
     ax.yaxis.set_major_locator(MaxNLocator(5))
@@ -2692,6 +2692,45 @@ def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
     ax.set_title("Link Arrows")
 
     # Display the plot
+    fig.tight_layout()
+    fig.show()
+
+
+def boxplot(df, mean=True, **kwargs):
+    """
+    Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
+
+    Args:
+        df (pandas.DataFrame): The input DataFrame containing the Release dates and another numeric column.
+        mean (bool, optional): If True, plots a line representing the mean of each box. Defaults to True.
+        **kwargs: Additional keyword arguments to pass to seaborn.boxplot().
+
+    Returns:
+        None
+
+    Raises:
+        ValueError: If the DataFrame has no Release column.
+    """
+    df = df.dropna().copy()
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot()
+    col = df.columns.difference(["Release"])[0]
+    df["year"] = df["Release"].dt.strftime("%Y")
+    df[col] = df[col].apply(pd.to_numeric, errors="coerce")
+
+    sns.boxplot(ax=ax, data=df, y=col, x="year", width=0.5, **kwargs)
+    if mean:
+        df.groupby("year").mean(numeric_only=True).plot(
+            ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False
+        )
+
+    if df[col].max() < 5000:
+        ax.set_yticks(np.arange(0, df[col].max() + 1, 1))
+    elif df[col].max() == 5000:
+        ax.set_yticks(np.arange(0, 5500, 500))
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    plt.xticks(rotation=30)
     fig.tight_layout()
     fig.show()
 
