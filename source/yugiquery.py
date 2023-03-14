@@ -127,43 +127,51 @@ arrows_dict = {
 
 
 def load_secrets(
-    secrets_file: str, requested_secrets: List[str] = [], required: bool = False
+    requested_secrets: List[str] = [], secrets_file: str = None,  required: bool = False
 ):
     """
-    Load secrets from a .env file.
+    Load secrets from environment variables and/or a .env file.
+    
+    The secrets can be specified by name using the `requested_secrets` argument, which should be a list of strings. If `requested_secrets` is not specified, all available secrets will be returned.
+
+    The `secrets_file` argument is the path to a .env file containing additional secrets to load. If `secrets_file` is specified and the file exists, the function will load the secrets from the file and merge them with the secrets loaded from the environment variables giving priority to secrets obtained from the .env file.
+
+    The `required` argument is a boolean or list of booleans indicating whether each requested secret is required to be present. If `required` is True, a KeyError will be raised if the secret is not found. If `required` is False or not specified, missing secrets will be skipped.
 
     Args:
-        secrets_file (str): The file path to the .env file.
-        requested_secrets (list, optional): A list of requested secrets from the .env file. Defaults to an empty list.
-        required (bool, optional): Whether or not the requested secrets are required. Defaults to False.
-
-    Raises:
-        FileNotFoundError: If the specified secrets file does not exist.
-        KeyError: If a requested secret is not found in the .env file and is required.
+        requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
+        secrets_file (str, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
-        dict: A dictionary containing the secrets requested.
-    """
-    if os.path.isfile(secrets_file):
-        secrets = dotenv_values(secrets_file)
-        if not requested_secrets:
-            return secrets
+        Dict[str, str]: A dictionary containing the requested secrets as key-value pairs.
 
+    Raises:
+        KeyError: If a required secret is not found in the environment variables or .env file.
+
+    """
+    secrets = {}
+    for secret in requested_secrets:
+        secrets[secret] = os.environ.get(secret)
+
+    if secrets_file and os.path.isfile(secrets_file):
+        secrets = secrets | dotenv_values(secrets_file)
+
+    if not requested_secrets:
+        return secrets
+    else:
         found_secrets = {
             key: secrets[key]
             for key in requested_secrets
             if key in secrets.keys() and secrets[key]
         }
-        if required:
-            for i, key in enumerate(requested_secrets):
-                check = required if isinstance(required, bool) else required[i]
-                if check and key not in found_secrets.keys():
-                    raise KeyError(f'Secret "{requested_secrets[i]}" not found')
+    if required:
+        for i, key in enumerate(requested_secrets):
+            check = required if isinstance(required, bool) else required[i]
+            if check and key not in found_secrets.keys():
+                raise KeyError(f'Secret "{requested_secrets[i]}" not found')
 
-        return found_secrets
-
-    else:
-        raise FileNotFoundError(f"No such file or directory: {secrets_file}")
+    return found_secrets
 
 
 def load_json(json_file: str):
