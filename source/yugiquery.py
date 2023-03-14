@@ -127,11 +127,11 @@ arrows_dict = {
 
 
 def load_secrets(
-    requested_secrets: List[str] = [], secrets_file: str = None,  required: bool = False
+    requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False
 ):
     """
     Load secrets from environment variables and/or a .env file.
-    
+
     The secrets can be specified by name using the `requested_secrets` argument, which should be a list of strings. If `requested_secrets` is not specified, all available secrets will be returned.
 
     The `secrets_file` argument is the path to a .env file containing additional secrets to load. If `secrets_file` is specified and the file exists, the function will load the secrets from the file and merge them with the secrets loaded from the environment variables giving priority to secrets obtained from the .env file.
@@ -884,7 +884,9 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
     try:
         required_secrets = ["DISCORD_TOKEN", "DISCORD_CHANNEL_ID"]
         secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
-        secrets = load_secrets(secrets_file, required_secrets, required=True)
+        secrets = load_secrets(
+            required_secrets, secrets_file=secrets_file, required=True
+        )
         from tqdm.contrib.discord import tqdm as discord_tqdm
 
         iterator = discord_tqdm(
@@ -896,14 +898,34 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
             token=secrets["DISCORD_TOKEN"],
             channel_id=secrets["DISCORD_CHANNEL_ID"],
         )
+
     except:
-        iterator = tqdm(
-            reports,
-            desc="Completion",
-            unit="report",
-            unit_scale=True,
-            dynamic_ncols=True,
-        )
+        try:
+            required_secrets = ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]
+            secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
+            secrets = load_secrets(
+                required_secrets, secrets_file=secrets_file, required=True
+            )
+            from tqdm.contrib.telegram import tqdm as telegram_tqdm
+
+            iterator = telegram_tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                token=secrets["DISCORD_TOKEN"],
+                channel_id=secrets["DISCORD_CHANNEL_ID"],
+            )
+
+        except:
+            iterator = tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+            )
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
