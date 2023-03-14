@@ -36,6 +36,7 @@ import pandas as pd
 import multiprocessing as mp
 from dotenv import dotenv_values
 from tqdm.contrib.discord import tqdm as discord_pbar
+from tqdm.auto import tqdm, trange
 
 
 # ======= #
@@ -172,7 +173,8 @@ async def run(ctx, report: Reports):
     )
 
     queue = mp.Queue()
-    def progress_handler(iterable = None, API_status: bool = True, **kwargs):
+
+    def progress_handler(iterable=None, API_status: bool = True, **kwargs):
         queue.put(API_status)
         if iterable and ctx.channel.id != int(secrets["DISCORD_CHANNEL_ID"]):
             return discord_pbar(
@@ -201,7 +203,7 @@ async def run(ctx, report: Reports):
     exitcode, API_error = await await_result()
     process.close()
     process = None
-        
+
     if API_error:
         await ctx.channel.send(
             content="Unable to comunicate to the API. Try again later."
@@ -453,6 +455,110 @@ async def ping(ctx):
         ephemeral=True,
         delete_after=60,
     )
+
+
+@bot.hybrid_command(
+    name="battle",
+    description="Simulate a battle of all monster cards",
+    with_app_command=True,
+)
+@commands.is_owner()
+async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
+    """
+    This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
+
+    Args:
+        ctx (commands.Context): The context of the command that triggered the function.
+        atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
+        def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
+
+    Returns:
+        None
+    """
+    await ctx.defer()
+
+    MONSTER_STATS = ["Name", "ATK", "DEF"]
+    weights = [atk_weight, def_weight]
+    cards_files = sorted(
+        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
+        key=os.path.getmtime,
+    )
+    if not cards_files:
+        await ctx.send(
+            content="Cards data not found... Try again later.",
+            ephemeral=True,
+            delete_after=60,
+        )
+        return
+
+    cards = pd.read_csv(cards_files[0])
+
+    monsters = cards[
+        (cards["Card type"] == "Monster Card")
+        & (cards["Primary type"] != "Token Monster")
+    ][MONSTER_STATS].set_index("Name")
+    monsters = monsters.applymap(
+        lambda x: x if x != "?" else random.randrange(0, 51) * 100
+    )
+    monsters = monsters.applymap(pd.to_numeric, errors="coerce").fillna(0).reset_index()
+
+    # Shuffle the monsters and select the first one as the initial winner
+    monsters = monsters.sample(frac=1).reset_index(drop=True)
+    winner = (monsters.iloc[0], 0)
+    longest = (monsters.iloc[0], 0)
+
+    embed = discord.Embed(
+        title="Battle",
+        description="Simulate a battle of all monster cards",
+        color=discord.Colour.purple(),
+    )
+
+    embed.add_field(name="First contestant", value=winner[0]["Name"], inline=False)
+    embed.set_footer(text="Still battling... ⏳")
+    original_response = await ctx.send(embed=embed)
+
+    iterator = trange(1, len(monsters), desc="Battle")
+    for i in iterator:
+        current_winner = (winner[0].copy(), winner[1])
+        next_monster = monsters.iloc[i].copy()
+        chosen_stat = random.choices(MONSTER_STATS[1:], weights=weights)[0]
+        iterator.set_postfix(winner=current_winner[0]["Name"])
+        not_chosen_stat = [stat for stat in MONSTER_STATS[1:] if stat != chosen_stat][0]
+        if next_monster[chosen_stat] > current_winner[0][chosen_stat]:
+            next_monster[chosen_stat] -= current_winner[0][chosen_stat]
+            if current_winner[1] > longest[1]:
+                longest = current_winner
+            current_winner = (next_monster, 0)
+        elif next_monster[chosen_stat] < current_winner[0][chosen_stat]:
+            current_winner[0][chosen_stat] -= next_monster[chosen_stat]
+        elif next_monster[chosen_stat] == current_winner[0][chosen_stat]:
+            if next_monster[not_chosen_stat] > current_winner[0][not_chosen_stat]:
+                next_monster[not_chosen_stat] -= current_winner[0][not_chosen_stat]
+                if current_winner[1] > longest[1]:
+                    longest = current_winner
+                current_winner = (next_monster, 0)
+            elif next_monster[not_chosen_stat] < current_winner[0][not_chosen_stat]:
+                current_winner[0][not_chosen_stat] -= next_monster[not_chosen_stat]
+
+        winner = (current_winner[0], current_winner[1] + 1)
+
+    embed.add_field(name="Winner", value=winner[0]["Name"], inline=True)
+    embed.add_field(name="Wins", value=winner[1], inline=True)
+    embed.add_field(
+        name="Stats remaining",
+        value=f'ATK={winner[0]["ATK"]}, DEF={winner[0]["DEF"]}',
+        inline=True,
+    )
+
+    embed.add_field(name="Longest streak", value=longest[0]["Name"], inline=True)
+    embed.add_field(name="Wins", value=longest[1], inline=True)
+    embed.add_field(
+        name="Stats when defeated",
+        value=f'ATK={longest[0]["ATK"]}, DEF={longest[0]["DEF"]}',
+        inline=True,
+    )
+    embed.remove_footer()
+    await original_response.edit(embed=embed)
 
 
 # ====== #

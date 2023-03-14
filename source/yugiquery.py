@@ -111,14 +111,14 @@ class CG(Enum):
 
 
 arrows_dict = {
-    "Middle-Left": "\u2190",
-    "Middle-Right": "\u2192",
-    "Top-Left": "\u2196",
-    "Top-Center": "\u2191",
-    "Top-Right": "\u2197",
-    "Bottom-Left": "\u2199",
-    "Bottom-Center": "\u2193",
-    "Bottom-Right": "\u2198",
+    "Middle-Left": "←",
+    "Middle-Right": "→",
+    "Top-Left": "↖",
+    "Top-Center": "↑",
+    "Top-Right": "↗",
+    "Bottom-Left": "↙",
+    "Bottom-Center": "↓",
+    "Bottom-Right": "↘",
 }
 
 # Functions
@@ -127,43 +127,51 @@ arrows_dict = {
 
 
 def load_secrets(
-    secrets_file: str, requested_secrets: List[str] = [], required: bool = False
+    requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False
 ):
     """
-    Load secrets from a .env file.
+    Load secrets from environment variables and/or a .env file.
+
+    The secrets can be specified by name using the `requested_secrets` argument, which should be a list of strings. If `requested_secrets` is not specified, all available secrets will be returned.
+
+    The `secrets_file` argument is the path to a .env file containing additional secrets to load. If `secrets_file` is specified and the file exists, the function will load the secrets from the file and merge them with the secrets loaded from the environment variables giving priority to secrets obtained from the .env file.
+
+    The `required` argument is a boolean or list of booleans indicating whether each requested secret is required to be present. If `required` is True, a KeyError will be raised if the secret is not found. If `required` is False or not specified, missing secrets will be skipped.
 
     Args:
-        secrets_file (str): The file path to the .env file.
-        requested_secrets (list, optional): A list of requested secrets from the .env file. Defaults to an empty list.
-        required (bool, optional): Whether or not the requested secrets are required. Defaults to False.
-
-    Raises:
-        FileNotFoundError: If the specified secrets file does not exist.
-        KeyError: If a requested secret is not found in the .env file and is required.
+        requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
+        secrets_file (str, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
-        dict: A dictionary containing the secrets requested.
-    """
-    if os.path.isfile(secrets_file):
-        secrets = dotenv_values(secrets_file)
-        if not requested_secrets:
-            return secrets
+        Dict[str, str]: A dictionary containing the requested secrets as key-value pairs.
 
+    Raises:
+        KeyError: If a required secret is not found in the environment variables or .env file.
+
+    """
+    secrets = {}
+    for secret in requested_secrets:
+        secrets[secret] = os.environ.get(secret)
+
+    if secrets_file and os.path.isfile(secrets_file):
+        secrets = secrets | dotenv_values(secrets_file)
+
+    if not requested_secrets:
+        return secrets
+    else:
         found_secrets = {
             key: secrets[key]
             for key in requested_secrets
             if key in secrets.keys() and secrets[key]
         }
-        if required:
-            for i, key in enumerate(requested_secrets):
-                check = required if isinstance(required, bool) else required[i]
-                if check and key not in found_secrets.keys():
-                    raise KeyError(f'Secret "{requested_secrets[i]}" not found')
+    if required:
+        for i, key in enumerate(requested_secrets):
+            check = required if isinstance(required, bool) else required[i]
+            if check and key not in found_secrets.keys():
+                raise KeyError(f'Secret "{requested_secrets[i]}" not found')
 
-        return found_secrets
-
-    else:
-        raise FileNotFoundError(f"No such file or directory: {secrets_file}")
+    return found_secrets
 
 
 def load_json(json_file: str):
@@ -586,11 +594,11 @@ def extract_misc(x: Union[str, List[str], Tuple[str]]):
     """
     # if isinstance(x, list) or isinstance(x, tuple):
     return pd.Series(
-            [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
-            index=["Legend", "Maximum mode"],
-        )
+        [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
+        index=["Legend", "Maximum mode"],
+    )
     # else:
-        # return pd.Series([False, False], index=["Legend", "Maximum mode"])
+    # return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
 def extract_category_bool(x: List[str]):
@@ -876,7 +884,9 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
     try:
         required_secrets = ["DISCORD_TOKEN", "DISCORD_CHANNEL_ID"]
         secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
-        secrets = load_secrets(secrets_file, required_secrets, required=True)
+        secrets = load_secrets(
+            required_secrets, secrets_file=secrets_file, required=True
+        )
         from tqdm.contrib.discord import tqdm as discord_tqdm
 
         iterator = discord_tqdm(
@@ -888,14 +898,34 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
             token=secrets["DISCORD_TOKEN"],
             channel_id=secrets["DISCORD_CHANNEL_ID"],
         )
+
     except:
-        iterator = tqdm(
-            reports,
-            desc="Completion",
-            unit="report",
-            unit_scale=True,
-            dynamic_ncols=True,
-        )
+        try:
+            required_secrets = ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]
+            secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
+            secrets = load_secrets(
+                required_secrets, secrets_file=secrets_file, required=True
+            )
+            from tqdm.contrib.telegram import tqdm as telegram_tqdm
+
+            iterator = telegram_tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                token=secrets["DISCORD_TOKEN"],
+                channel_id=secrets["DISCORD_CHANNEL_ID"],
+            )
+
+        except:
+            iterator = tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+            )
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
@@ -2544,7 +2574,7 @@ def rate_subplots(
     )
 
     fig.tight_layout()
-    plt.show()
+    fig.show()
 
     warnings.filterwarnings(
         "default",
@@ -2579,7 +2609,8 @@ def rate_plot(
     Returns:
         None: Displays the generated plot.
     """
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True, sharex=True)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot()
     fig.suptitle(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
@@ -2635,13 +2666,103 @@ def rate_plot(
     )
 
     fig.tight_layout()
-    plt.show()
+    fig.show()
 
     warnings.filterwarnings(
         "default",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
+
+
+def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
+    """
+    Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
+
+    Args:
+        arrows (pandas.Series): A pandas Series containing arrow symbols as string data type.
+        figsize (Tuple[int, int], optional): The width and height of the figure. Defaults to (6, 6).
+        **kwargs: Additional keyword arguments to be passed to the bar() method.
+
+    Returns:
+        None: Displays the generated plot.
+    """
+    # Count the frequency of each arrow direction
+    counts = arrows.value_counts().sort_index()
+
+    # Map the arrows to angles
+    angle_map = {
+        "→": 0,
+        "↗": np.pi / 4,
+        "↑": np.pi / 2,
+        "↖": 3 * np.pi / 4,
+        "←": np.pi,
+        "↙": 5 * np.pi / 4,
+        "↓": 3 * np.pi / 2,
+        "↘": 7 * np.pi / 4,
+    }
+    angles = counts.index.map(angle_map)
+
+    # Create a polar plot
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(polar=True)
+    ax.bar(angles, counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
+
+    # Set the label for each arrow
+    ax.set_xticks(list(angle_map.values()))
+    ax.set_xticklabels(["▶", "◥", "▲", "◤", "◀", "◣", "▼", "◢"], fontsize=18)
+
+    # Set radius grid location
+    ax.yaxis.set_major_locator(MaxNLocator(5))
+    ticks = ax.get_yticks()
+    ax.yaxis.set_major_locator(FixedLocator(ticks[1:]))
+    ax.set_rorigin(-5)
+
+    # Set the title of the plot
+    ax.set_title("Link Arrows")
+
+    # Display the plot
+    fig.tight_layout()
+    fig.show()
+
+
+def boxplot(df, mean=True, **kwargs):
+    """
+    Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
+
+    Args:
+        df (pandas.DataFrame): The input DataFrame containing the Release dates and another numeric column.
+        mean (bool, optional): If True, plots a line representing the mean of each box. Defaults to True.
+        **kwargs: Additional keyword arguments to pass to seaborn.boxplot().
+
+    Returns:
+        None
+
+    Raises:
+        ValueError: If the DataFrame has no Release column.
+    """
+    df = df.dropna().copy()
+    fig = plt.figure(figsize=(10, 5))
+    ax = fig.add_subplot()
+    col = df.columns.difference(["Release"])[0]
+    df["year"] = df["Release"].dt.strftime("%Y")
+    df[col] = df[col].apply(pd.to_numeric, errors="coerce")
+
+    sns.boxplot(ax=ax, data=df, y=col, x="year", width=0.5, **kwargs)
+    if mean:
+        df.groupby("year").mean(numeric_only=True).plot(
+            ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False
+        )
+
+    if df[col].max() < 5000:
+        ax.set_yticks(np.arange(0, df[col].max() + 1, 1))
+    elif df[col].max() == 5000:
+        ax.set_yticks(np.arange(0, 5500, 500))
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    plt.xticks(rotation=30)
+    fig.tight_layout()
+    fig.show()
 
 
 # ======================= #
