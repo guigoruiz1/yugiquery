@@ -495,7 +495,7 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
 
     monsters = cards[
         (cards["Card type"] == "Monster Card")
-        & (cards["Primary type"] != "Token Monster")
+        & (cards["Primary type"] != "Monster Token")
     ][MONSTER_STATS].set_index("Name")
     monsters = monsters.applymap(
         lambda x: x if x != "?" else random.randrange(0, 51) * 100
