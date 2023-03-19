@@ -21,10 +21,6 @@
 			"installTools": true,
 			"installJupyterlab": true,
 			"version": "os-provided"
-		},
-		"ghcr.io/devcontainers/features/rust:1": {
-			"version": "latest",
-			"profile": "minimal"
 		}
 	},
 
@@ -32,7 +28,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "cd source && bash install.sh",
+	"postCreateCommand": "bash source/install.sh",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
