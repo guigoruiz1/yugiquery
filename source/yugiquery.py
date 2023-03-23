@@ -835,25 +835,25 @@ def save_notebook():
     print("Notebook saved to disk")
 
 
-def clear_notebooks(which: Union[str, List[str]] = "all"):
-    """
-    Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
+# def clear_notebooks(which: Union[str, List[str]] = "all"):
+#     """
+#     Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
 
-    Args:
-        which (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
+#     Args:
+#         which (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
 
-    Returns:
-        None
-    """
-    if which == "all":
-        # Get reports
-        reports = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
-    else:
-        reports = [str(which)] if not isinstance(which, list) else which
-    if len(reports) > 0:
-        subprocess.call(["nbstripout"] + reports)
+#     Returns:
+#         None
+#     """
+#     if which == "all":
+#         # Get reports
+#         reports = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
+#     else:
+#         reports = [str(which)] if not isinstance(which, list) else which
+#     if len(reports) > 0:
+#         subprocess.call(["nbstripout"] + reports)
 
-        commit(files=reports, commit_message=f"Cleaning {which} notebook outputs")
+#         commit(files=reports, commit_message=f"Cleaning {which} notebook outputs")
 
 
 def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
@@ -2794,7 +2794,7 @@ def run(report: Union[str, List[str]] = "all", progress_handler=None):
     # Update page index to reflect last execution timestamp
     update_index()
     # Clear notebooks after HTML reports have been created
-    clear_notebooks(which=report)
+    # clear_notebooks(which=report)
     # Cleanup redundant data files
     # cleanup_data()
 
