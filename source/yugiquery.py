@@ -1610,13 +1610,13 @@ def fetch_st(
     debug = kwargs.get("debug", False)
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
+    concept = f"[[Concept:{cg.value}%20non-monster%20cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
-        concept = f"[[Concept:{cg.value}%20Spell%20Cards]]OR[[Concept:{cg.value}%20Trap%20Cards]]"
         st = "Spells and Trap"
     else:
-        concept = f"[[Concept:{cg.value}%20{st}%20Cards]]"
+        concept += f"[[Card type::{st}]]"
 
     print(f"Downloading {st}s")
     if st_query is None:

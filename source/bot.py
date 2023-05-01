@@ -17,6 +17,7 @@ __status__ = yq.__status__
 # from yugiquery import os, glob, subprocess, io, re, json, Enum, datetime, timezone, git, pd, dotenv_values
 
 # Native python packages
+import argparse
 import os
 import glob
 import random
@@ -45,31 +46,31 @@ from tqdm.auto import tqdm, trange
 
 
 # Data loaders
-def load_secrets(secrets_file: str):
+def load_secrets_with_args():
     """
-    Loads secrets from the specified file using dotenv_values.
-    If the file is not found, or if any of the required secrets are missing or empty, the function exits the program.
-
-    Args:
-        secrets_file (str): Path to the secrets file.
+    Load secrets from command-line arguments, and update them with values from
+    environment variables or a .env file if necessary.
 
     Returns:
         dict: A dictionary containing the loaded secrets.
 
     Raises:
-        SystemExit: If the secrets file is not found or if any of the required secrets are missing or empty.
+        KeyError: If a required secret is not found in the loaded secrets.
     """
-    required_secrets = ["DISCORD_TOKEN", "DISCORD_CHANNEL_ID"]
-    if os.path.isfile(secrets_file):
-        secrets = dotenv_values(secrets_file)
-        if all(key in secrets.keys() for key in required_secrets) and all(
-            secrets[key] for key in required_secrets
-        ):
-            return secrets
-
-    print("Secrets not found. Exiting...")
-    exit()
-
+    secrets = vars(args)
+    missing = [value==None for value in secrets.values()]
+    if any(missing):
+        try:
+            loaded_secrets = yq.load_secrets(secrets.keys(), os.path.join(yq.PARENT_DIR, "assets/secrets.env"), missing)
+        except:
+            print("Secrets not found. Exiting...")
+            exit()
+            
+        for key,value in secrets.items():
+            if value is None:
+                secrets[key] = loaded_secrets[key]
+    
+    return secrets
 
 def load_repo_vars():
     # Open the repository
@@ -616,7 +617,11 @@ async def on_command_error(ctx, error):
 # ========= #
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--token", dest="DISCORD_TOKEN", type=str, help="Discord API token")
+    parser.add_argument("-c", "--channel", dest="DISCORD_CHANNEL_ID", type=int, help="Discord channel id")
+    args = parser.parse_args()
     # Load secrets
-    secrets = load_secrets(os.path.join(yq.PARENT_DIR, "assets/secrets.env"))
+    secrets = load_secrets_with_args()
     # Run
     bot.run(secrets["DISCORD_TOKEN"])
