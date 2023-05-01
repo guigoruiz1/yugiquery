@@ -481,7 +481,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
             # Primary type classification
             if col == "Primary type":
                 df[col] = extracted_col.apply(extract_primary_type)
-            if col == "Misc":
+            elif col == "Misc":
                 # Rush specific
                 df = df.join(extracted_col.apply(extract_misc))
             else:
