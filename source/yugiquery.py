@@ -1610,14 +1610,16 @@ def fetch_st(
     debug = kwargs.get("debug", False)
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
-    concept = f"[[Concept:{cg.value}%20non-monster%20cards]]"
+    valid_cg = cg.value
+    concept = f"[[Concept:CG%20non-monster%20cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
         st = "Spells and Trap"
     else:
         concept += f"[[Card type::{st}]]"
-
+    if valid_cg!="CG":
+        concept += f"[[Medium::{valid_cg}]]"
     print(f"Downloading {st}s")
     if st_query is None:
         st_query = card_query(default="st")
@@ -1673,7 +1675,11 @@ def fetch_monster(
         if debug:
             tqdm.write(f"- {att}")
 
-        concept = f"[[Concept:{valid_cg}%20monsters]][[Attribute::{att}]]"
+        concept = f"[[Concept:CG%20monsters]][[Attribute::{att}]]"
+        
+        if valid_cg!="CG":
+            concept += f"[[Medium::{valid_cg}]]"
+            
         temp_df = fetch_properties(
             concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs
         )
@@ -1695,7 +1701,7 @@ def fetch_monster(
 ### Non deck cards
 
 
-def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_token(token_query: str = None, cg = CG.ALL, step: int = 500, limit: int = 5000, **kwargs):
     """
     Fetch token cards based on query and properties of the cards.
 
@@ -1709,9 +1715,15 @@ def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **k
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched token cards.
 
     """
+    valid_cg = cg.value
     print("Downloading tokens")
 
-    concept = f"[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]"
+    concept = f"[[Category:Tokens]]"
+    if valid_cg!="CG":
+        concept += f"[[Medium::{valid_cg}]]"
+    else:
+        concept += "[[Category:TCG%20cards||OCG%20cards]]"
+        
     if token_query is None:
         token_query = card_query(default="monster")
 
@@ -1723,7 +1735,7 @@ def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **k
 
 
 def fetch_counter(
-    counter_query: str = None, step: int = 500, limit: int = 5000, **kwargs
+    counter_query: str = None, cg = CG.ALL, step: int = 500, limit: int = 5000, **kwargs
 ):
     """
     Fetch counter cards based on query and properties of the cards.
@@ -1737,9 +1749,13 @@ def fetch_counter(
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched counter cards.
     """
+    valid_cg = cg.value
     print("Downloading counters")
 
     concept = f"[[Category:Counters]][[Page%20type::Card%20page]]"
+    if valid_cg!="CG":
+        concept += f"[[Medium::{valid_cg}]]"
+        
     if counter_query is None:
         counter_query = card_query(default="counter")
 
