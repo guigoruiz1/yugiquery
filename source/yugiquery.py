@@ -733,7 +733,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
             left_on="Set",
             right_index=True,
             how="outer",
-            indicator=True,
+            indicator=False,
         ).reset_index(drop=True)
         print("Set properties merged")
     else:
@@ -1944,7 +1944,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     else:
         category = f"Category:{valid_cg}%20Set%20Card%20Lists"
 
-    print("Download list of 'Set Card Lists' pages")
+    print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
     result = pd.DataFrame()
     iterator = tqdm(
@@ -2017,7 +2017,10 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     )
     if debug:
         print(response.url)
-    json = response.json()
+    try:
+        json = response.json()
+    except:
+        print(response.url)
     contents = json["query"]["pages"].values()
 
     for content in contents:
@@ -2159,7 +2162,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     return set_lists_df, success, error
 
 
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 45, **kwargs):
     """
     Fetches all set lists for a given card game.
 
