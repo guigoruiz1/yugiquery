@@ -592,13 +592,13 @@ def extract_misc(x: Union[str, List[str], Tuple[str]]):
     Returns:
         pd.Series: A pandas Series of boolean values indicating whether "Legend Card" and "Requires Maximum Mode" are present in the input.
     """
-    # if isinstance(x, list) or isinstance(x, tuple):
-    return pd.Series(
-        [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
-        index=["Legend", "Maximum mode"],
-    )
-    # else:
-    # return pd.Series([False, False], index=["Legend", "Maximum mode"])
+    if isinstance(x, list) or isinstance(x, tuple):
+        return pd.Series(
+            [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
+            index=["Legend", "Maximum mode"],
+        )
+    else:
+        return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
 def extract_category_bool(x: List[str]):
