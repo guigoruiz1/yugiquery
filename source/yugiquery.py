@@ -486,7 +486,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
                 df = df.join(extracted_col.apply(extract_misc))
             else:
                 df[col] = extracted_col
-    
+
     # Link arrows styling
     if "Link Arrows" in input_df.columns:
         df["Link Arrows"] = input_df["Link Arrows"].apply(
@@ -1619,7 +1619,7 @@ def fetch_st(
         st = "Spells and Trap"
     else:
         concept += f"[[Card type::{st}]]"
-    if valid_cg!="CG":
+    if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
     print(f"Downloading {st}s")
     if st_query is None:
@@ -1677,10 +1677,10 @@ def fetch_monster(
             tqdm.write(f"- {att}")
 
         concept = f"[[Concept:CG%20monsters]][[Attribute::{att}]]"
-        
-        if valid_cg!="CG":
+
+        if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
-            
+
         temp_df = fetch_properties(
             concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs
         )
@@ -1702,7 +1702,9 @@ def fetch_monster(
 ### Non deck cards
 
 
-def fetch_token(token_query: str = None, cg = CG.ALL, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_token(
+    token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
+):
     """
     Fetch token cards based on query and properties of the cards.
 
@@ -1720,11 +1722,11 @@ def fetch_token(token_query: str = None, cg = CG.ALL, step: int = 500, limit: in
     print("Downloading tokens")
 
     concept = f"[[Category:Tokens]]"
-    if valid_cg!="CG":
+    if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
     else:
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
-        
+
     if token_query is None:
         token_query = card_query(default="monster")
 
@@ -1736,7 +1738,7 @@ def fetch_token(token_query: str = None, cg = CG.ALL, step: int = 500, limit: in
 
 
 def fetch_counter(
-    counter_query: str = None, cg = CG.ALL, step: int = 500, limit: int = 5000, **kwargs
+    counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
 ):
     """
     Fetch counter cards based on query and properties of the cards.
@@ -1754,9 +1756,9 @@ def fetch_counter(
     print("Downloading counters")
 
     concept = f"[[Category:Counters]][[Page%20type::Card%20page]]"
-    if valid_cg!="CG":
+    if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
-        
+
     if counter_query is None:
         counter_query = card_query(default="counter")
 
@@ -2023,7 +2025,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     except:
         print(response.url)
         return
-    
+
     contents = json["query"]["pages"].values()
 
     for content in contents:

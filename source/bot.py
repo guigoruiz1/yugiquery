@@ -58,19 +58,24 @@ def load_secrets_with_args():
         KeyError: If a required secret is not found in the loaded secrets.
     """
     secrets = vars(args)
-    missing = [value==None for value in secrets.values()]
+    missing = [value == None for value in secrets.values()]
     if any(missing):
         try:
-            loaded_secrets = yq.load_secrets(secrets.keys(), os.path.join(yq.PARENT_DIR, "assets/secrets.env"), missing)
+            loaded_secrets = yq.load_secrets(
+                secrets.keys(),
+                os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                missing,
+            )
         except:
             print("Secrets not found. Exiting...")
             exit()
-            
-        for key,value in secrets.items():
+
+        for key, value in secrets.items():
             if value is None:
                 secrets[key] = loaded_secrets[key]
-    
+
     return secrets
+
 
 def load_repo_vars():
     # Open the repository
@@ -618,8 +623,16 @@ async def on_command_error(ctx, error):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--token", dest="DISCORD_TOKEN", type=str, help="Discord API token")
-    parser.add_argument("-c", "--channel", dest="DISCORD_CHANNEL_ID", type=int, help="Discord channel id")
+    parser.add_argument(
+        "-t", "--token", dest="DISCORD_TOKEN", type=str, help="Discord API token"
+    )
+    parser.add_argument(
+        "-c",
+        "--channel",
+        dest="DISCORD_CHANNEL_ID",
+        type=int,
+        help="Discord channel id",
+    )
     args = parser.parse_args()
     # Load secrets
     secrets = load_secrets_with_args()
