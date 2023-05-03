@@ -949,6 +949,7 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
         iterator.n = i
         iterator.last_print_n = i
         iterator.refresh()
+        report_name = os.path.basename(report)[:-6]
 
         with open(report) as f:
             nb = nbformat.read(f, nbformat.NO_CONVERT)
@@ -959,10 +960,10 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
         stream_handler.flush = update_pbar
 
         # Update postfix
-        tqdm.write(f"Generating {report[:-6]} report")
-        iterator.set_postfix(report=report[:-6])
+        tqdm.write(f"Generating {report_name} report")
+        iterator.set_postfix(report=report_name)
         if external_pbar:
-            external_pbar.set_postfix(report=report[:-6])
+            external_pbar.set_postfix(report=report_name)
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = "True"

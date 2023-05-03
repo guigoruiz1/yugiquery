@@ -147,7 +147,7 @@ async def shutdown(ctx):
 )
 @commands.is_owner()
 @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
-async def run(ctx, report: Reports):
+async def run(ctx, report: Reports = Reports.All):
     """
     Runs a YugiQuery workflow by launching a separate process and monitoring its progress.
     The progress is reported back to the Discord channel where the command was issued.
