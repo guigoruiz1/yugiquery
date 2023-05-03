@@ -2021,6 +2021,8 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
         json = response.json()
     except:
         print(response.url)
+        return
+    
     contents = json["query"]["pages"].values()
 
     for content in contents:
@@ -2162,7 +2164,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     return set_lists_df, success, error
 
 
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 45, **kwargs):
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
     """
     Fetches all set lists for a given card game.
 
