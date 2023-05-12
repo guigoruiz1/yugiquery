@@ -1723,7 +1723,7 @@ def fetch_token(
 
     concept = f"[[Category:Tokens]]"
     if valid_cg != "CG":
-        concept += f"[[Medium::{valid_cg}]]"
+        concept += f"[[Category:{valid_cg}%20cards]]"
     else:
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
 
