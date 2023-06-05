@@ -534,7 +534,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if len(input_df.filter(like=" date").columns) > 0:
         df = df.join(
             input_df.filter(like=" date").applymap(
-                lambda x: pd.to_datetime(x[0]["timestamp"], unit="s", errors="coerce")
+                lambda x: pd.to_datetime(pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce")
                 if len(x) > 0
                 else np.nan
             )
@@ -1723,7 +1723,7 @@ def fetch_token(
 
     concept = f"[[Category:Tokens]]"
     if valid_cg != "CG":
-        concept += f"[[Medium::{valid_cg}]]"
+        concept += f"[[Category:{valid_cg}%20cards]]"
     else:
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
 
