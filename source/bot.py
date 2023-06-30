@@ -17,10 +17,12 @@ __status__ = yq.__status__
 # from yugiquery import os, glob, subprocess, io, re, json, Enum, datetime, timezone, git, pd, dotenv_values
 
 # Native python packages
+import argparse
 import os
 import glob
 import random
 import subprocess
+import platform
 import asyncio
 import io
 import re
@@ -45,30 +47,35 @@ from tqdm.auto import tqdm, trange
 
 
 # Data loaders
-def load_secrets(secrets_file: str):
+def load_secrets_with_args():
     """
-    Loads secrets from the specified file using dotenv_values.
-    If the file is not found, or if any of the required secrets are missing or empty, the function exits the program.
-
-    Args:
-        secrets_file (str): Path to the secrets file.
+    Load secrets from command-line arguments, and update them with values from
+    environment variables or a .env file if necessary.
 
     Returns:
         dict: A dictionary containing the loaded secrets.
 
     Raises:
-        SystemExit: If the secrets file is not found or if any of the required secrets are missing or empty.
+        KeyError: If a required secret is not found in the loaded secrets.
     """
-    required_secrets = ["DISCORD_TOKEN", "DISCORD_CHANNEL_ID"]
-    if os.path.isfile(secrets_file):
-        secrets = dotenv_values(secrets_file)
-        if all(key in secrets.keys() for key in required_secrets) and all(
-            secrets[key] for key in required_secrets
-        ):
-            return secrets
+    secrets = vars(args)
+    missing = [value == None for value in secrets.values()]
+    if any(missing):
+        try:
+            loaded_secrets = yq.load_secrets(
+                secrets.keys(),
+                os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                missing,
+            )
+        except:
+            print("Secrets not found. Exiting...")
+            exit()
 
-    print("Secrets not found. Exiting...")
-    exit()
+        for key, value in secrets.items():
+            if value is None:
+                secrets[key] = loaded_secrets[key]
+
+    return secrets
 
 
 def load_repo_vars():
@@ -146,7 +153,7 @@ async def shutdown(ctx):
 )
 @commands.is_owner()
 @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
-async def run(ctx, report: Reports):
+async def run(ctx, report: Reports = Reports.All):
     """
     Runs a YugiQuery workflow by launching a separate process and monitoring its progress.
     The progress is reported back to the Discord channel where the command was issued.
@@ -560,7 +567,51 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     embed.remove_footer()
     await original_response.edit(embed=embed)
 
+@bot.hybrid_command(
+    name="status",
+    description="Display bot status and system information",
+    with_app_command=True,
+)
+async def status(ctx):
+    '''
+    Displays information about the bot, including uptime, guilds, users, channels, available commands,
+    bot version, discord.py version, python version, and operating system.
 
+    Args:
+        ctx (commands.Context): The context of the command that triggered the function.
+
+    Returns:
+        None
+    '''
+    uptime = datetime.now() - bot.start_time
+    
+    appInfo = await bot.application_info()
+    admin = appInfo.owner
+    users = 0
+    channels = 0
+    guilds = len(bot.guilds)
+    for guild in bot.guilds:
+        users += len(guild.members)
+        channels += len(guild.channels)
+        
+    if len(bot.commands):
+        commandsInfo = '\n'.join(sorted([i.name for i in bot.commands]))
+
+    embed = discord.Embed(color=ctx.me.colour)
+    embed.set_footer(text='Time to duel!')
+    embed.set_thumbnail(url=ctx.me.avatar)
+    embed.add_field(name='Admin', value=admin, inline=False)
+    embed.add_field(name='Uptime', value=uptime, inline=False)
+    embed.add_field(name='Guilds', value=guilds, inline=True)    
+    embed.add_field(name='Users', value=users, inline=True)
+    embed.add_field(name='Channels', value=channels, inline=True)
+    embed.add_field(name='Available Commands', value=commandsInfo, inline=True)
+    embed.add_field(name='Bot Version', value=__version__, inline=True)
+    embed.add_field(name='Discord.py Version', value=discord.__version__, inline=True)
+    embed.add_field(name='Python Version', value=platform.python_version(), inline=True)
+    embed.add_field(name='Operating System', value=f'System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}', inline=False)
+    await ctx.send('**:information_source:** Information about this bot:', embed=embed)
+        
 # ====== #
 # Events #
 # ====== #
@@ -572,6 +623,7 @@ async def on_ready():
     Event that runs when the bot is ready to start receiving events and commands.
     Prints out the bot's username and the guilds it's connected to.
     """
+    bot.start_time = datetime.now()
     print("You are logged as {0.user}".format(bot))
     await bot.tree.sync()
 
@@ -616,7 +668,19 @@ async def on_command_error(ctx, error):
 # ========= #
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-t", "--token", dest="DISCORD_TOKEN", type=str, help="Discord API token"
+    )
+    parser.add_argument(
+        "-c",
+        "--channel",
+        dest="DISCORD_CHANNEL_ID",
+        type=int,
+        help="Discord channel id",
+    )
+    args = parser.parse_args()
     # Load secrets
-    secrets = load_secrets(os.path.join(yq.PARENT_DIR, "assets/secrets.env"))
+    secrets = load_secrets_with_args()
     # Run
     bot.run(secrets["DISCORD_TOKEN"])

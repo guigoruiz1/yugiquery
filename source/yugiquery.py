@@ -534,7 +534,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if len(input_df.filter(like=" date").columns) > 0:
         df = df.join(
             input_df.filter(like=" date").applymap(
-                lambda x: pd.to_datetime(x[0]["timestamp"], unit="s", errors="coerce")
+                lambda x: pd.to_datetime(pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce")
                 if len(x) > 0
                 else np.nan
             )
@@ -733,7 +733,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
             left_on="Set",
             right_index=True,
             how="outer",
-            indicator=True,
+            indicator=False,
         ).reset_index(drop=True)
         print("Set properties merged")
     else:
@@ -949,6 +949,7 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
         iterator.n = i
         iterator.last_print_n = i
         iterator.refresh()
+        report_name = os.path.basename(report)[:-6]
 
         with open(report) as f:
             nb = nbformat.read(f, nbformat.NO_CONVERT)
@@ -959,10 +960,10 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
         stream_handler.flush = update_pbar
 
         # Update postfix
-        tqdm.write(f"Generating {report[:-6]} report")
-        iterator.set_postfix(report=report[:-6])
+        tqdm.write(f"Generating {report_name} report")
+        iterator.set_postfix(report=report_name)
         if external_pbar:
-            external_pbar.set_postfix(report=report[:-6])
+            external_pbar.set_postfix(report=report_name)
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = "True"
@@ -1610,14 +1611,16 @@ def fetch_st(
     debug = kwargs.get("debug", False)
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
+    valid_cg = cg.value
+    concept = f"[[Concept:CG%20non-monster%20cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
-        concept = f"[[Concept:{cg.value}%20Spell%20Cards]]OR[[Concept:{cg.value}%20Trap%20Cards]]"
         st = "Spells and Trap"
     else:
-        concept = f"[[Concept:{cg.value}%20{st}%20Cards]]"
-
+        concept += f"[[Card type::{st}]]"
+    if valid_cg != "CG":
+        concept += f"[[Medium::{valid_cg}]]"
     print(f"Downloading {st}s")
     if st_query is None:
         st_query = card_query(default="st")
@@ -1673,7 +1676,11 @@ def fetch_monster(
         if debug:
             tqdm.write(f"- {att}")
 
-        concept = f"[[Concept:{valid_cg}%20monsters]][[Attribute::{att}]]"
+        concept = f"[[Concept:CG%20monsters]][[Attribute::{att}]]"
+
+        if valid_cg != "CG":
+            concept += f"[[Medium::{valid_cg}]]"
+
         temp_df = fetch_properties(
             concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs
         )
@@ -1695,7 +1702,9 @@ def fetch_monster(
 ### Non deck cards
 
 
-def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_token(
+    token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
+):
     """
     Fetch token cards based on query and properties of the cards.
 
@@ -1709,9 +1718,15 @@ def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **k
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched token cards.
 
     """
+    valid_cg = cg.value
     print("Downloading tokens")
 
-    concept = f"[[Category:Tokens]][[Category:TCG%20cards||OCG%20cards]]"
+    concept = f"[[Category:Tokens]]"
+    if valid_cg != "CG":
+        concept += f"[[Category:{valid_cg}%20cards]]"
+    else:
+        concept += "[[Category:TCG%20cards||OCG%20cards]]"
+
     if token_query is None:
         token_query = card_query(default="monster")
 
@@ -1723,7 +1738,7 @@ def fetch_token(token_query: str = None, step: int = 500, limit: int = 5000, **k
 
 
 def fetch_counter(
-    counter_query: str = None, step: int = 500, limit: int = 5000, **kwargs
+    counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
 ):
     """
     Fetch counter cards based on query and properties of the cards.
@@ -1737,9 +1752,13 @@ def fetch_counter(
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched counter cards.
     """
+    valid_cg = cg.value
     print("Downloading counters")
 
     concept = f"[[Category:Counters]][[Page%20type::Card%20page]]"
+    if valid_cg != "CG":
+        concept += f"[[Medium::{valid_cg}]]"
+
     if counter_query is None:
         counter_query = card_query(default="counter")
 
@@ -1928,7 +1947,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     else:
         category = f"Category:{valid_cg}%20Set%20Card%20Lists"
 
-    print("Download list of 'Set Card Lists' pages")
+    print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
     result = pd.DataFrame()
     iterator = tqdm(
@@ -2001,7 +2020,12 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     )
     if debug:
         print(response.url)
-    json = response.json()
+    try:
+        json = response.json()
+    except:
+        print(response.url)
+        return
+
     contents = json["query"]["pages"].values()
 
     for content in contents:
@@ -2143,7 +2167,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     return set_lists_df, success, error
 
 
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 50, **kwargs):
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
     """
     Fetches all set lists for a given card game.
 

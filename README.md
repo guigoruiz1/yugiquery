@@ -14,8 +14,10 @@
 ![Repo size](https://img.shields.io/github/repo-size/guigoruiz1/yugiquery)
 ![Code size](https://img.shields.io/github/languages/code-size/guigoruiz1/yugiquery)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 [![Read the Docs](https://img.shields.io/readthedocs/yugiquery/latest)](https://yugiquery.readthedocs.io/en/latest/)
 [![Pages-build-deployment](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment)
+[![Codespaces Prebuilds](https://github.com/guigoruiz1/yugiquery/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/codespaces/create_codespaces_prebuilds)
 [![CodeQL](https://github.com/guigoruiz1/yugiquery/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/github-code-scanning/codeql)
 <!-- [![hackmd-github-sync-badge](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA/badge)](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA) -->
 
@@ -29,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 04/03/2023 23:06 UTC |
-| [Cards](Cards.html) | 06/03/2023 20:47 UTC |
-| [Rush](Rush.html) | 04/03/2023 23:06 UTC |
-| [Sets](Sets.html) | 04/03/2023 23:06 UTC |
-| [Speed](Speed.html) | 04/03/2023 23:06 UTC |
-| [Timeline](Timeline.html) | 04/03/2023 23:06 UTC |
+| [Bandai](Bandai.html) | 22/05/2023 04:01 UTC |
+| [Cards](Cards.html) | 22/05/2023 04:04 UTC |
+| [Rush](Rush.html) | 22/05/2023 04:05 UTC |
+| [Sets](Sets.html) | 22/05/2023 04:16 UTC |
+| [Speed](Speed.html) | 22/05/2023 04:17 UTC |
+| [Timeline](Timeline.html) | 22/05/2023 04:21 UTC |
 
 
-The full YugiQuery flow was last executed at `06/03/2023 21:30 UTC`
+The full YugiQuery flow was last executed at `22/05/2023 04:21 UTC`
 
 # Usage
 
