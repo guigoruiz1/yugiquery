@@ -1,0 +1,26 @@
+Name,Archseries,Attribute,Primary type,Monster type,Effect type,DEF,ATK,Level/Rank,Artwork,Modification date,Errata,Version
+Abysslayer Apsaras,,DARK,Effect Monster,Sea Serpent,"('Effect',)",1500,2500,7,,2023-04-12 15:55:30,,Old
+Abysslayer Apsaras,"('Abysslayer',)",DARK,Effect Monster,Sea Serpent,"('Effect',)",1500,2500,7,,2023-06-29 13:58:35,,New
+Abysslayer Cetus,,DARK,Effect Monster,Sea Serpent,"('Effect',)",0,1100,3,,2023-04-12 15:59:53,,Old
+Abysslayer Cetus,"('Abysslayer',)",DARK,Effect Monster,Sea Serpent,"('Effect',)",0,1100,3,,2023-06-29 13:58:22,,New
+Abysslayer Leviaknight,,DARK,Effect Monster,Sea Serpent,"('Continuous Effect',)",2000,2500,8,,2023-06-24 23:39:47,,Old
+Abysslayer Leviaknight,"('Abysslayer',)",DARK,Effect Monster,Sea Serpent,"('Continuous Effect',)",2000,2500,8,,2023-06-26 23:26:08,,New
+Abysslayer Makara,,DARK,Effect Monster,Sea Serpent,"('Effect',)",1000,1500,5,,2023-04-12 14:27:20,,Old
+Abysslayer Makara,"('Abysslayer',)",DARK,Effect Monster,Sea Serpent,"('Effect',)",1000,1500,5,,2023-06-29 13:58:44,,New
+Abysslayer Vodyanoy,,DARK,Effect Monster,Sea Serpent,"('Effect',)",400,1000,3,,2023-04-11 23:28:21,,Old
+Abysslayer Vodyanoy,"('Abysslayer',)",DARK,Effect Monster,Sea Serpent,"('Effect',)",400,1000,3,,2023-06-29 13:58:58,,New
+Boton the Music Princess,"('Music Princess',)",WIND,Normal Monster,Warrior,,500,0,1,,2023-06-30 11:24:12,,New
+Constructor Driver Soldier Trailon,"('Constructor',)",EARTH,Effect Monster,Wyrm,"('Effect',)",0,1000,4,,2023-07-01 23:40:46,,New
+Demolition Soldier High Kanko,"('Demolition',)",FIRE,Normal Monster,Wyrm,,1500,1200,4,,2023-06-30 11:24:54,,New
+Dragon Tribe Fusion,"('Fusion (archetype)',)",,,,"('Effect',)",,,,,2023-03-18 14:37:56,,Old
+Dragon Tribe Fusion,"('Fusion (archetype)',)",,,,"('Effect',)",,,,"('Alternate',)",2023-07-01 00:12:31,,New
+Jointech Fighter,"('Jointech',)",EARTH,Fusion Monster,Machine,"('Effect',)",2600,2600,6,,2023-06-29 17:35:06,,New
+Jointech Hero,"('Jointech',)",EARTH,Effect Monster,Machine,"('Effect',)",1500,2500,7,,2023-06-29 17:29:29,,New
+Jointech Ignition,"('Jointech',)",,,,"('Effect',)",,,,,2023-06-29 17:27:17,,New
+Legend Strike,,,,,"('Effect',)",,,,,2023-06-29 17:37:56,,New
+Lesser Dragon,,WIND,Normal Monster,Dragon,,1000,1200,4,,2023-03-19 12:36:52,,Old
+Lesser Dragon,,WIND,Normal Monster,Dragon,,1000,1200,4,,2023-03-19 12:36:52,"('Type',)",New
+Spike Seadra,,WATER,Normal Monster,Sea Serpent,,1300,1600,5,,2023-05-11 06:21:50,,Old
+Spike Seadra,,WATER,Normal Monster,Sea Serpent,,1300,1600,5,,2023-05-11 06:21:50,"('Type',)",New
+Steel Soldier Gale Vinary,,???,,,,???,???,???,,2023-06-03 10:51:29,,Old
+Steel Soldier Gale Vinary,,EARTH,Effect Monster,Machine,"('Effect',)",1000,1200,3,,2023-07-01 20:50:12,,New
