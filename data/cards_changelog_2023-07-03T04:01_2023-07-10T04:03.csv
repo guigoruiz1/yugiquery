@@ -1,0 +1,51 @@
+Name,Archseries,Effect type,Modification date,Errata,Monster type,DEF,ATK,Version
+"""The Tainted Treasure Hunter Fiend""","('Tainted Treasure',)","('Condition', 'Effect', 'Ignition-like Effect')",2023-07-06 11:30:15,,,,,New
+Arcana Force EX - The Dark Ruler,"('Arcana Force',)","('Continuous Effect', 'Summoning condition', 'Trigger Effect')",2023-03-18 01:58:14,"('Name',)",Fairy,4000,4000,Old
+Arcana Force EX - The Dark Ruler,"('Arcana Force',)","('Continuous Effect', 'Summoning condition', 'Trigger Effect', 'Unclassified effect')",2023-07-03 14:53:12,"('Name',)",Fairy,4000,4000,New
+Armored Lizard,,,2023-05-14 21:32:36,,Reptile,1200,1500,Old
+Armored Lizard,,,2023-05-14 21:32:36,"('Type',)",Reptile,1200,1500,New
+Berfomet the Phantom Beast Dark Ruler,"('Chimera (series)', 'Phantom Beast')","('Condition', 'Quick Effect', 'Trigger Effect', 'Unclassified effect')",2023-07-06 11:16:24,,Fiend,600,2400,New
+Big Eye,,"('Trigger Effect',)",2023-06-19 04:10:31,"('Name',)",Fiend,1000,1200,Old
+Big Eye,,"('Trigger Effect',)",2023-06-19 04:10:31,"('Name', 'Type')",Fiend,1000,1200,New
+"Brionac, the Dragon of Icy Malevolence",,,2023-06-16 22:49:24,,,???,???,Old
+"Brionac, the Dragon of Icy Malevolence",,"('Condition', 'Trigger Effect')",2023-07-07 11:54:57,,Sea Serpent,1400,2300,New
+Corrupted Gem of Rebellion - Snake Eye,,"('Condition', 'Effect')",2023-04-22 12:27:07,,,,,Old
+Crawling Dragon,,,2023-05-14 21:30:15,,Dragon,1400,1600,Old
+Crawling Dragon,,,2023-05-14 21:30:15,"('Type',)",Dragon,1400,1600,New
+Diabellestarr the Dark Witch,"('Diabellestarr',)","('Condition', 'Trigger Effect', 'Unclassified effect')",2023-07-06 11:25:01,,Spellcaster,2000,2500,New
+Doma The Angel of Silence,,,2023-05-14 21:10:39,"('Name',)",Fairy,1400,1600,Old
+Doma The Angel of Silence,,,2023-05-14 21:10:39,"('Name', 'Type')",Fairy,1400,1600,New
+Earthbound Servant Geo Grasha,"('Earthbound',)","('Condition', 'Summoning condition', 'Trigger Effect')",2023-06-11 11:47:37,,Fiend,1800,3000,Old
+Earthbound Servant Geo Grasha,"('Earthbound', 'Earthbound Servant')","('Condition', 'Summoning condition', 'Trigger Effect')",2023-07-10 01:32:41,,Fiend,1800,3000,New
+Earthbound Servant Geo Gremlin,"('Earthbound',)","('Condition', 'Quick Effect')",2023-06-11 11:48:05,,Fiend,1000,2000,Old
+Earthbound Servant Geo Gremlin,"('Earthbound', 'Earthbound Servant')","('Condition', 'Quick Effect')",2023-07-10 01:32:46,,Fiend,1000,2000,New
+Earthbound Servant Geo Gremlina,"('Earthbound', 'Earthbound Servant')","('Condition', 'Ignition Effect', 'Trigger Effect')",2023-07-10 01:31:19,,Fiend,1000,2000,New
+Earthbound Servant Geo Gryphon,"('Earthbound',)","('Condition', 'Quick Effect', 'Trigger Effect')",2023-06-28 13:42:37,,Fiend,1500,2500,Old
+Earthbound Servant Geo Gryphon,"('Earthbound', 'Earthbound Servant')","('Condition', 'Quick Effect', 'Trigger Effect')",2023-07-10 01:32:51,,Fiend,1500,2500,New
+Earthbound Servant Geo Kraken,"('Earthbound',)","('Condition', 'Trigger Effect')",2023-06-11 11:47:44,,Fiend,1200,2800,Old
+Earthbound Servant Geo Kraken,"('Earthbound', 'Earthbound Servant')","('Condition', 'Trigger Effect')",2023-07-10 01:32:33,,Fiend,1200,2800,New
+Fire Recovery,,"('Condition', 'Effect', 'Ignition-like Effect')",2023-07-08 16:31:07,,,,,New
+Gravity Behemoth,,"('Ignition Effect', 'Unclassified effect')",2023-03-18 22:23:25,,Beast,2000,2300,Old
+Gravity Behemoth,,"('Condition', 'Ignition Effect', 'Unclassified effect')",2023-07-07 11:16:48,,Beast,2000,2300,New
+Harpie Lady,"('Harpie',)",,2023-06-19 18:41:23,"('Any',)",Winged Beast,1400,1300,Old
+Harpie Lady,"('Harpie',)",,2023-06-19 18:41:23,"('Type',)",Winged Beast,1400,1300,New
+Killer Needle,,,2023-05-14 21:32:27,,Insect,1000,1200,Old
+Killer Needle,,,2023-05-14 21:32:27,"('Type',)",Insect,1000,1200,New
+Kojikocy,,,2023-06-17 06:31:45,,Warrior,1200,1500,Old
+Kojikocy,,,2023-06-17 06:31:45,"('Type',)",Warrior,1200,1500,New
+"Mementoral Tectolica, the Netherskull Dragon","('Memento',)",,2023-07-10 04:03:33,,Wyrm,5000,5000,New
+Shinobaron Shade Peacock,"('Shinobird',)","('Condition', 'Ignition Effect', 'Trigger Effect', 'Unclassified effect')",2023-07-07 17:54:28,,Winged Beast,1500,2000,New
+Shinobaroness Shade Peacock,"('Shinobird',)","('Condition', 'Trigger Effect', 'Unclassified effect')",2023-07-07 17:53:48,,Winged Beast,2000,1500,New
+Snake-Eye Excel,"('Snake-Eye',)","('Condition', 'Ignition Effect', 'Trigger Effect')",2023-07-06 13:10:37,,Pyro,1000,800,New
+Snake-Eye Oark,"('Snake-Eye',)","('Condition', 'Ignition Effect', 'Trigger Effect')",2023-07-06 13:23:15,,Pyro,200,900,New
+Snake-Eye Wight Birch,"('Snake-Eye',)","('Condition', 'Quick Effect', 'Unclassified effect')",2023-07-06 13:26:04,,Pyro,2100,0,New
+Snake-Eyes Flamberge Dragon,"('-Eyes Dragon', 'Snake-Eye')","('Condition', 'Ignition Effect', 'Quick Effect', 'Trigger Effect')",2023-07-06 13:37:15,,Dragon,2500,3000,New
+Superheavy Samurai Constable,"('Superheavy Samurai',)","('Condition', 'Ignition Effect', 'Trigger Effect')",2023-03-20 11:24:02,,Machine,1500,500,Old
+Superheavy Samurai Security,"('Superheavy Samurai',)","('Condition', 'Ignition Effect', 'Trigger Effect')",2023-07-09 22:16:19,,Machine,1500,500,New
+Tainted Treasure of Betrayal - Silvia,"('Tainted Treasure',)","('Condition', 'Effect', 'Quick-like Effect')",2023-07-06 11:42:01,,,,,New
+Tainted Treasure of Doom - Luciela,"('Tainted Treasure',)","('Condition', 'Effect')",2023-07-06 11:38:22,,,,,New
+Tainted Treasure of Treason - Snake-Eye,"('Snake-Eye', 'Tainted Treasure')","('Condition', 'Effect')",2023-07-06 08:25:51,,,,,New
+The Glaring Ruler Snake-Eyes,"('Snake-Eye',)","('Condition', 'Effect')",2023-07-06 14:11:05,,,,,New
+The Himorogi where Stars Align,,"('Ignition-like Effect', 'Trigger Effect')",2023-07-07 18:03:11,,,,,New
+The Original Tainted Treasure - Snake-Eye,"('Snake-Eye', 'Tainted Treasure')","('Condition', 'Effect', 'Ignition-like Effect')",2023-07-06 14:03:28,,,,,New
+The Shrine of Serpentine Sight - Snake-Eye,"('Snake-Eye',)","('Condition', 'Continuous-like Effect', 'Effect', 'Trigger Effect')",2023-07-06 13:56:51,,,,,New
