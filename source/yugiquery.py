@@ -13,6 +13,7 @@ __status__ = "Development"
 # ======= #
 
 # Native python packages
+import argparse
 import os
 import subprocess
 import glob
@@ -150,28 +151,25 @@ def load_secrets(
         KeyError: If a required secret is not found in the environment variables or .env file.
 
     """
-    secrets = {}
-    for secret in requested_secrets:
-        secrets[secret] = os.environ.get(secret)
-
+    secrets = {key: os.environ.get(key) for key in requested_secrets}
     if secrets_file and os.path.isfile(secrets_file):
         secrets = secrets | dotenv_values(secrets_file)
 
-    if not requested_secrets:
-        return secrets
-    else:
-        found_secrets = {
-            key: secrets[key]
-            for key in requested_secrets
-            if key in secrets.keys() and secrets[key]
-        }
+        if not requested_secrets:
+            return secrets
+        else:
+            secrets = {
+                key: secrets[key]
+                for key in requested_secrets
+                if key in secrets.keys() and secrets[key]
+            }
     if required:
         for i, key in enumerate(requested_secrets):
             check = required if isinstance(required, bool) else required[i]
-            if check and key not in found_secrets.keys():
+            if check and key not in secrets.keys():
                 raise KeyError(f'Secret "{requested_secrets[i]}" not found')
 
-    return found_secrets
+    return secrets
 
 
 def load_json(json_file: str):
@@ -534,7 +532,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if len(input_df.filter(like=" date").columns) > 0:
         df = df.join(
             input_df.filter(like=" date").applymap(
-                lambda x: pd.to_datetime(pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce")
+                lambda x: pd.to_datetime(
+                    pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce"
+                )
                 if len(x) > 0
                 else np.nan
             )
@@ -835,43 +835,47 @@ def save_notebook():
     print("Notebook saved to disk")
 
 
-# def clear_notebooks(which: Union[str, List[str]] = "all"):
+# def clear_notebooks(reports: Union[str, List[str]] = "all"):
 #     """
 #     Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
 
 #     Args:
-#         which (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
+#         reports (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
 
 #     Returns:
 #         None
 #     """
-#     if which == "all":
+#     if reports == "all":
 #         # Get reports
 #         reports = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
 #     else:
-#         reports = [str(which)] if not isinstance(which, list) else which
+#         reports = [str(reports)] if not isinstance(reports, list) else reports
 #     if len(reports) > 0:
 #         subprocess.call(["nbstripout"] + reports)
 
-#         commit(files=reports, commit_message=f"Cleaning {which} notebook outputs")
+#         commit(files=reports, commit_message=f"Cleaning {reports} notebook outputs")
 
 
-def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
+def run_notebooks(
+    reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs
+):
     """
     Execute specified Jupyter notebooks in the source directory using Papermill.
 
     Args:
-        which (Union[str, List[str]]): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
+        reports (Union[str, List[str]]): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
         progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
-
+        **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
+        
     Returns:
         None
     """
-    if which == "all":
+    debug = kwargs.pop("debug", False)
+    if reports == "all":
         # Get reports
         reports = sorted(glob.glob("*.ipynb"))
     else:
-        reports = [str(which)] if not isinstance(which, list) else which
+        reports = [str(reports)] if not isinstance(reports, list) else reports
 
     if progress_handler:
         external_pbar = progress_handler(
@@ -881,51 +885,46 @@ def run_notebooks(which: Union[str, List[str]] = "all", progress_handler=None):
         external_pbar = None
 
     # Initialize iterators
-    try:
-        required_secrets = ["DISCORD_TOKEN", "DISCORD_CHANNEL_ID"]
-        secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
-        secrets = load_secrets(
-            required_secrets, secrets_file=secrets_file, required=True
-        )
-        from tqdm.contrib.discord import tqdm as discord_tqdm
-
-        iterator = discord_tqdm(
-            reports,
-            desc="Completion",
-            unit="report",
-            unit_scale=True,
-            dynamic_ncols=True,
-            token=secrets["DISCORD_TOKEN"],
-            channel_id=secrets["DISCORD_CHANNEL_ID"],
-        )
-
-    except:
+    iterator = tqdm(
+        reports,
+        desc="Completion",
+        unit="report",
+        unit_scale=True,
+        dynamic_ncols=True,
+    )
+            
+    secrets = {key: value for key, value in kwargs.items() if value is not None}
+    missing = [key for key, value in kwargs.items() if value is None]
+    secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
+    for contrib in ["DISCORD", "TELEGRAM"]:
+        required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key in missing]
         try:
-            required_secrets = ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]
-            secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
-            secrets = load_secrets(
+            loaded_secrets = load_secrets(
                 required_secrets, secrets_file=secrets_file, required=True
             )
-            from tqdm.contrib.telegram import tqdm as telegram_tqdm
+            secrets = secrets | loaded_secrets
+            channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
+            token = secrets.get(f"{contrib}_TOKEN")
+            
+            if contrib == "DISCORD":
+                from tqdm.contrib.discord import tqdm as contrib_tqdm
 
-            iterator = telegram_tqdm(
+            elif contrib == "TELEGRAM":
+                from tqdm.contrib.telegram import tqdm as contrib_tqdm
+
+            iterator = contrib_tqdm(
                 reports,
                 desc="Completion",
                 unit="report",
                 unit_scale=True,
                 dynamic_ncols=True,
-                token=secrets["DISCORD_TOKEN"],
-                channel_id=secrets["DISCORD_CHANNEL_ID"],
+                token=token,
+                channel_id=channel_id,
             )
-
+            
+            break
         except:
-            iterator = tqdm(
-                reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
-            )
+            pass
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
@@ -1536,7 +1535,7 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
     Args:
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
         *args: Additional arguments.
-        **kwargs: Additional keyword arguments.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
@@ -1567,7 +1566,7 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
 
     print(f"Downloading bandai cards")
     bandai_df = fetch_properties(
-        "[[Medium::Bandai]]", bandai_query, step=limit, limit=limit, debug=debug
+        "[[Medium::Bandai]]", bandai_query, step=limit, limit=limit, **kwargs
     )
     bandai_df["Monster type"] = (
         bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
@@ -1600,7 +1599,7 @@ def fetch_st(
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
-        **kwargs: Additional keyword arguments.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched spell/trap cards.
@@ -1652,7 +1651,7 @@ def fetch_monster(
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         exclude_token (bool, optional): A boolean that determines whether to exclude Monster Tokens or not. Defaults to True.
-        **kwargs: Additional keyword arguments.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched monster cards.
@@ -1712,7 +1711,7 @@ def fetch_token(
         token_query (str, optional): A string representing a SWM query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
-        **kwargs: Additional keyword arguments.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched token cards.
@@ -1747,7 +1746,7 @@ def fetch_counter(
         counter_query (str, optional): A string representing a SMW query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
-        **kwargs: Additional keyword arguments.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched counter cards.
@@ -1934,7 +1933,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         cg (CG): A member of the CG enum representing the card game for which set lists are being fetched.
         step (int): The number of pages to fetch in each API request.
         limit (int): The maximum number of pages to fetch.
-        debug (bool): A flag indicating whether to print debug output.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pd.DataFrame: A DataFrame containing the titles of the set list pages.
@@ -1989,7 +1988,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 
     Args:
         titles (List[str]): A list of page titles from which to fetch set lists.
-        debug (bool): A flag indicating whether to print debug output.
+        **kwargs: Additional keyword arguments.
 
     Returns:
         pd.DataFrame: A DataFrame containing the parsed card set lists.
@@ -2174,7 +2173,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
     Args:
         cg (CG, optional): The card game to fetch set lists for. Defaults to CG.ALL.
         step (int, optional): The number of sets to fetch at once. Defaults to 50.
-        **kwargs: Additional keyword arguments to pass to fetch_set_list_pages() and fetch_set_lists().
+        **kwargs: Additional keyword arguments to pass to fetch_set_list_pages and fetch_set_lists.
 
     Returns:
         pd.DataFrame: A DataFrame containing all set lists for the specified card game.
@@ -2232,7 +2231,7 @@ def fetch_set_info(
         sets (List[str]): A list of set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
-        **kwargs: Additional keyword arguments to pass to requests.get().
+        **kwargs: Additional keyword arguments.
 
     Returns:
         pd.DataFrame: A DataFrame containing information for all sets in the list.
@@ -2794,15 +2793,16 @@ def boxplot(df, mean=True, **kwargs):
 # ======================= #
 
 
-def run(report: Union[str, List[str]] = "all", progress_handler=None):
+def run(reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs):
     """
     Executes all notebooks in the source directory that match the specified report, updates the page index
     to reflect the last execution timestamp, clears notebooks after HTML reports have been created, and cleans up
     redundant data files.
 
     Args:
-        report (str, optional): The report to generate. Defaults to 'all'.
+        reports (str, optional): The report to generate. Defaults to 'all'.
         progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
+        **kwargs: Additional keyword arguments to pass to run_notebook.
 
     Returns:
         None: This function does not return a value.
@@ -2814,11 +2814,11 @@ def run(report: Union[str, List[str]] = "all", progress_handler=None):
         return
 
     # Execute all notebooks in the source directory
-    run_notebooks(which=report, progress_handler=progress_handler)
+    run_notebooks(reports=reports, progress_handler=progress_handler, **kwargs)
     # Update page index to reflect last execution timestamp
     update_index()
     # Clear notebooks after HTML reports have been created
-    # clear_notebooks(which=report)
+    clear_notebooks(reports=reports)
     # Cleanup redundant data files
     # cleanup_data()
 
@@ -2828,9 +2828,50 @@ def run(report: Union[str, List[str]] = "all", progress_handler=None):
 # ========= #
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-r",
+        "--reports",
+        dest="reports",
+        default="all",
+        type=str,
+        required=False,
+        help="The report(s) to be generated",
+    )
+    parser.add_argument(
+        "-t",
+        "--telegram-token",
+        dest="telegram_token",
+        type=str,
+        required=False,
+        help="Telegram API token",
+    )
+    parser.add_argument(
+        "-d",
+        "--discord-token",
+        dest="discord_token",
+        type=str,
+        required=False,
+        help="Discord API token",
+    )
+    parser.add_argument(
+        "-c",
+        "--channel",
+        dest="channel_id",
+        type=int,
+        required=False,
+        help="Discord or Telegram Channel ID",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
+    args = parser.parse_args()
     # Change working directory to script location
     os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
-    run()
+    run(**vars(args))
     # Exit python
     quit()

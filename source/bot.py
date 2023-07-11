@@ -47,10 +47,13 @@ from tqdm.auto import tqdm, trange
 
 
 # Data loaders
-def load_secrets_with_args():
+def load_secrets_with_args(args):
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file if necessary.
+
+    Args:
+        args: 
 
     Returns:
         dict: A dictionary containing the loaded secrets.
@@ -58,22 +61,20 @@ def load_secrets_with_args():
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
     """
-    secrets = vars(args)
-    missing = [value == None for value in secrets.values()]
-    if any(missing):
+    secrets = {key: value for key, value in args.items() if value is not None}
+    missing = [key for key, value in args.items() if value is None]
+    if len(missing)>0:
         try:
             loaded_secrets = yq.load_secrets(
-                secrets.keys(),
-                os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
-                missing,
+                requested_secrets=missing,
+                secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                required=True
             )
         except:
             print("Secrets not found. Exiting...")
             exit()
-
-        for key, value in secrets.items():
-            if value is None:
-                secrets[key] = loaded_secrets[key]
+            
+        secrets = secrets | loaded_secrets
 
     return secrets
 
@@ -679,8 +680,16 @@ if __name__ == "__main__":
         type=int,
         help="Discord channel id",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
+    args = vars(parser.parse_args())
+    debug = args.pop("debug", False)
+
     # Load secrets
-    secrets = load_secrets_with_args()
+    secrets = load_secrets_with_args(args)
     # Run
     bot.run(secrets["DISCORD_TOKEN"])
