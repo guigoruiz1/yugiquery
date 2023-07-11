@@ -413,16 +413,16 @@ async def data(ctx):
 
         files = pd.read_json(f"{repository_api_url}/contents/data")
         files = files[
-            files["name"].str.endswith(".csv")
+            files["name"].str.endswith(".bz2")
         ]  # Remove .json files from lists
         files["Group"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(1)
         )
         files["Timestamp"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(3)
         )
         files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
@@ -488,7 +488,7 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     MONSTER_STATS = ["Name", "ATK", "DEF"]
     weights = [atk_weight, def_weight]
     cards_files = sorted(
-        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
+        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.bz2")),
         key=os.path.getmtime,
     )
     if not cards_files:
