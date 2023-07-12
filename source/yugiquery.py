@@ -894,10 +894,9 @@ def run_notebooks(
     )
             
     secrets = {key: value for key, value in kwargs.items() if value is not None}
-    missing = [key for key, value in kwargs.items() if value is None]
     secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
     for contrib in ["DISCORD", "TELEGRAM"]:
-        required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key in missing]
+        required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key not in secrets]
         try:
             loaded_secrets = load_secrets(
                 required_secrets, secrets_file=secrets_file, required=True
