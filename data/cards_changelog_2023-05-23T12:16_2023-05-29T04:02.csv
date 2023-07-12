@@ -1,0 +1,60 @@
+Name,Password,Effect type,TCG status,OCG status,Modification date,Errata,Version
+Absolute Powerforce,,"('Effect',)",,Not yet released,2023-05-28 12:26:40,,New
+Appointer of the Red Lotus,43262273,"('Cost', 'Effect')",Semi-Limited,Unlimited,2023-03-15 01:25:20,"('Any',)",Old
+Appointer of the Red Lotus,43262273,"('Cost', 'Effect')",Limited,Unlimited,2023-03-15 01:25:20,"('Any',)",New
+Archfiend General,48675364,"('Continuous Effect', 'Ignition Effect')",Unlimited,Unlimited,2023-04-08 22:43:12,,Old
+Archfiend General,48675364,"('Continuous Effect', 'Ignition Effect')",Unlimited,Unlimited,2023-04-08 22:43:12,"('Any',)",New
+Battlin' Boxer Chief Second,,"('Condition', 'Continuous Effect', 'Trigger Effect')",,Not yet released,2023-04-13 15:51:28,,Old
+Battlin' Boxer Chief Second,47921178,"('Condition', 'Continuous Effect', 'Trigger Effect')",,Unlimited,2023-05-27 11:09:52,,New
+Battlin' Boxer King Dempsey,,"('Condition', 'Quick Effect', 'Trigger Effect')",,Not yet released,2023-04-13 16:10:40,,Old
+Battlin' Boxer King Dempsey,46804536,"('Condition', 'Quick Effect', 'Trigger Effect')",,Unlimited,2023-05-27 11:14:08,,New
+Battlin' Boxer Promoter,,"('Condition', 'Ignition Effect')",,Not yet released,2023-04-13 15:53:36,,Old
+Battlin' Boxer Promoter,83315222,"('Condition', 'Ignition Effect')",,Unlimited,2023-05-27 11:09:52,,New
+Battlin' Boxer Uppercutter,,"('Condition', 'Trigger Effect')",,Not yet released,2023-04-13 15:38:40,,Old
+Battlin' Boxer Uppercutter,11522479,"('Condition', 'Trigger Effect')",,Unlimited,2023-05-27 11:07:44,,New
+Battlin' Boxing Cross Counter,,"('Condition', 'Effect')",,Not yet released,2023-04-13 16:42:40,,Old
+Battlin' Boxing Cross Counter,19688343,"('Condition', 'Effect')",,Unlimited,2023-05-27 11:18:24,,New
+Battlin' Boxing Spirits,36916401,"('Condition', 'Cost', 'Effect')",Unlimited,Unlimited,2023-04-06 12:22:24,,Old
+Battlin' Boxing Spirits,36916401,"('Condition', 'Effect')",Unlimited,Unlimited,2023-05-27 15:51:28,,New
+Curse of Aging,41398771,"('Effect',)",Unlimited,Unlimited,2023-04-08 22:41:04,,Old
+Curse of Aging,41398771,"('Effect',)",Unlimited,Unlimited,2023-04-08 22:41:04,"('Any',)",New
+D-Boyz,79279397,"('Flip effect',)",Unlimited,Unlimited,2023-04-07 20:07:28,,Old
+D-Boyz,79279397,"('Flip effect',)",Unlimited,Unlimited,2023-04-07 20:07:28,"('Type',)",New
+D.D. Destroyer,44792253,"('Trigger Effect',)",Unlimited,Unlimited,2023-04-08 22:41:04,,Old
+D.D. Destroyer,44792253,"('Trigger Effect',)",Unlimited,Unlimited,2023-04-08 22:41:04,"('Any',)",New
+Fire Ejection,,"('Condition', 'Effect')",,Not yet released,2023-04-14 17:42:24,,Old
+Fire Ejection,11654067,"('Condition', 'Effect')",,Unlimited,2023-05-27 10:54:56,,New
+Fire Formation - Tenki,57103969,"('Condition', 'Continuous-like Effect', 'Effect')",Semi-Limited,Semi-Limited,2023-05-23 00:36:16,"('Any',)",Old
+Fire Formation - Tenki,57103969,"('Condition', 'Continuous-like Effect', 'Effect')",Unlimited,Semi-Limited,2023-05-23 00:36:16,"('Any',)",New
+Gravitic Orb,29216198,"('Flip effect',)",Unlimited,Unlimited,2023-04-07 20:07:28,"('Any',)",Old
+Gravitic Orb,29216198,"('Flip effect',)",Unlimited,Unlimited,2023-04-07 20:07:28,"('Type',)",New
+Number C79: Battlin' Boxer Commander Caesar,,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')",,Not yet released,2023-04-13 16:08:32,,Old
+Number C79: Battlin' Boxer Commander Caesar,10300821,"('Condition', 'Continuous Effect', 'Quick Effect', 'Trigger Effect')",,Unlimited,2023-05-27 11:12:00,,New
+Salamangreat Burst Gryphon,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,Not yet released,2023-05-11 16:36:16,,Old
+Salamangreat Burst Gryphon,10140443,"('Condition', 'Ignition Effect', 'Trigger Effect')",,Unlimited,2023-05-27 10:25:04,,New
+Salamangreat Charge,,"('Condition', 'Effect')",,Not yet released,2023-05-10 02:25:04,,Old
+Salamangreat Charge,83533296,"('Condition', 'Effect')",,Unlimited,2023-05-27 10:29:20,,New
+Salamangreat Raging Phoenix,,"('Condition', 'Trigger Effect')",,Not yet released,2023-05-11 16:53:20,,Old
+Salamangreat Raging Phoenix,57134592,"('Condition', 'Trigger Effect')",,Unlimited,2023-05-27 10:27:12,,New
+Salamangreat Revive,,"('Condition', 'Effect', 'Quick-like Effect')",,Not yet released,2023-05-10 02:27:12,,Old
+Salamangreat Revive,19027895,"('Condition', 'Effect', 'Quick-like Effect')",,Unlimited,2023-05-27 10:29:20,,New
+Salamangreat Teeger,,"('Condition', 'Ignition Effect', 'Unclassified effect')",,Not yet released,2023-05-10 01:48:48,,Old
+Salamangreat Teeger,84755744,"('Condition', 'Ignition Effect', 'Unclassified effect')",,Unlimited,2023-05-27 10:22:56,,New
+Salamangreat Wheesel,,"('Condition', 'Ignition Effect', 'Trigger Effect')",,Not yet released,2023-05-10 01:36:00,,Old
+Salamangreat Wheesel,57357130,"('Condition', 'Ignition Effect', 'Trigger Effect')",,Unlimited,2023-05-27 10:22:56,,New
+Salamangreat of Fire,,"('Condition', 'Trigger Effect')",,Not yet released,2023-05-23 12:09:36,,Old
+Salamangreat of Fire,11962031,"('Condition', 'Trigger Effect')",,Unlimited,2023-05-27 10:20:48,,New
+Seventh Force,,"('Effect',)",,Not yet released,2023-05-10 15:25:52,,Old
+Seventh Force,83293635,"('Effect',)",,Unlimited,2023-05-27 11:16:16,,New
+Volcanic Blaze Accelerator,,"('Cost', 'Ignition-like Effect', 'Unclassified effect')",,Not yet released,2023-04-14 17:31:44,,Old
+Volcanic Blaze Accelerator,85250352,"('Cost', 'Ignition-like Effect', 'Unclassified effect')",,Unlimited,2023-05-27 10:52:48,,New
+Volcanic Emission,,"('Condition', 'Effect')",,Not yet released,2023-05-17 00:59:44,,Old
+Volcanic Emission,58143766,"('Condition', 'Effect')",,Unlimited,2023-05-27 10:54:56,,New
+Volcanic Emperor,,"('Condition', 'Continuous Effect', 'Summoning condition', 'Trigger Effect')",,Not yet released,2023-04-14 16:59:44,,Old
+Volcanic Emperor,46412900,"('Condition', 'Continuous Effect', 'Summoning condition', 'Trigger Effect')",,Unlimited,2023-05-27 10:48:32,,New
+Volcanic Inferno,,"('Condition', 'Quick-like Effect')",,Not yet released,2023-04-14 17:46:40,,Old
+Volcanic Inferno,84138874,"('Condition', 'Quick-like Effect')",,Unlimited,2023-05-27 10:57:04,,New
+Volcanic Rimfire,,"('Trigger Effect',)",,Not yet released,2023-04-14 17:23:12,,Old
+Volcanic Rimfire,59805313,"('Condition', 'Trigger Effect')",,Unlimited,2023-05-27 10:50:40,,New
+Volcanic Trooper,,"('Condition', 'Trigger Effect')",,Not yet released,2023-04-14 17:06:08,,Old
+Volcanic Trooper,22411609,"('Condition', 'Ignition Effect', 'Trigger Effect')",,Unlimited,2023-05-27 10:50:40,,New
