@@ -31,7 +31,7 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 13/07/2023 14:08 UTC |
+| [Bandai](Bandai.html) | 13/07/2023 14:56 UTC |
 | [Cards](Cards.html) | 13/07/2023 14:11 UTC |
 | [Rush](Rush.html) | 13/07/2023 14:12 UTC |
 | [Sets](Sets.html) | 13/07/2023 14:23 UTC |
@@ -39,7 +39,7 @@ Below are listed all the available reports and their execution timestamps.
 | [Timeline](Timeline.html) | 13/07/2023 14:28 UTC |
 
 
-The full YugiQuery flow was last executed at `13/07/2023 14:28 UTC`
+The full YugiQuery flow was last executed at `13/07/2023 15:01 UTC`
 
 # Usage
 
