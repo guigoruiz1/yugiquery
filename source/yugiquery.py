@@ -871,6 +871,9 @@ def run_notebooks(
         None
     """
     debug = kwargs.pop("debug", False)
+    telegram_first = kwargs.pop("telegram-first", False)
+    suppress = kwargs.pop("suppress-contribs", False)
+    
     if reports == "all":
         # Get reports
         reports = sorted(glob.glob("*.ipynb"))
@@ -892,38 +895,41 @@ def run_notebooks(
         unit_scale=True,
         dynamic_ncols=True,
     )
-            
-    secrets = {key: value for key, value in kwargs.items() if value is not None}
-    secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
-    for contrib in ["DISCORD", "TELEGRAM"]:
-        required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key not in secrets]
-        try:
-            loaded_secrets = load_secrets(
-                required_secrets, secrets_file=secrets_file, required=True
-            )
-            secrets = secrets | loaded_secrets
-            channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
-            token = secrets.get(f"{contrib}_TOKEN")
-            
-            if contrib == "DISCORD":
-                from tqdm.contrib.discord import tqdm as contrib_tqdm
+    
+    if not suppress:
+        contribs = ["DISCORD", "TELEGRAM"]
+        if telegram_first: contribs = contribs[::-1]
+        secrets = {key: value for key, value in kwargs.items() if value is not None}
+        secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
+        for contrib in contribs:
+            required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key not in secrets]
+            try:
+                loaded_secrets = load_secrets(
+                    required_secrets, secrets_file=secrets_file, required=True
+                )
+                secrets = secrets | loaded_secrets
+                channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
+                token = secrets.get(f"{contrib}_TOKEN")
 
-            elif contrib == "TELEGRAM":
-                from tqdm.contrib.telegram import tqdm as contrib_tqdm
+                if contrib == "DISCORD":
+                    from tqdm.contrib.discord import tqdm as contrib_tqdm
 
-            iterator = contrib_tqdm(
-                reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
-                token=token,
-                channel_id=channel_id,
-            )
-            
-            break
-        except:
-            pass
+                elif contrib == "TELEGRAM":
+                    from tqdm.contrib.telegram import tqdm as contrib_tqdm
+
+                iterator = contrib_tqdm(
+                    reports,
+                    desc="Completion",
+                    unit="report",
+                    unit_scale=True,
+                    dynamic_ncols=True,
+                    token=token,
+                    channel_id=channel_id,
+                )
+
+                break
+            except:
+                pass
 
     # Get papermill logger
     logger = logging.getLogger("papermill")
@@ -2817,7 +2823,7 @@ def run(reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs)
     # Update page index to reflect last execution timestamp
     update_index()
     # Clear notebooks after HTML reports have been created
-    clear_notebooks(reports=reports)
+    # clear_notebooks(reports=reports)
     # Cleanup redundant data files
     # cleanup_data()
 
@@ -2860,6 +2866,20 @@ if __name__ == "__main__":
         type=int,
         required=False,
         help="Discord or Telegram Channel ID",
+    )
+    parser.add_argument(
+        "-s",
+        "--suppress-contribs",
+        action="store_true",
+        required=False,
+        help="Disables using TQDM contribs entirely",
+    )
+    parser.add_argument(
+        "-f",
+        "--telegram-first",
+        action="store_true",
+        required=False,
+        help="Force TQDM contribs to try using Telegram before Discord",
     )
     parser.add_argument(
         "--debug",
