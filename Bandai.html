@@ -3,7 +3,34 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
+(function() {
+  function addWidgetsRenderer() {
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var scriptElement = document.createElement('script');
+    
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        
+        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
+        
+      }
+    } catch(e) {}
+
+    scriptElement.src = widgetRendererSrc;
+    document.body.appendChild(scriptElement);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
 
 
 
@@ -15236,7 +15263,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
     </pre>
 </div>
 <div align='right'>
-    Bandai - Execution started 13/07/2023 16:13 UTC <br>
+    Bandai - Execution started 13/07/2023 19:28 UTC <br>
     By <b>Guilherme Ruiz</b>
 </div>
 
@@ -17559,7 +17586,7 @@ class="
 
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown">
 <div align='right'>
-    Execution completed 13/07/2023 16:14 UTC
+    Execution completed 13/07/2023 19:29 UTC
 </div>
 
 
@@ -17608,6 +17635,10 @@ class="
 
 
 
+
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"1bec189b74c74d0da8bddf9d4ce99c09": {"model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "model_name": "OutputModel", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_95221569484b4d409557343a47714def", "msg_id": "", "outputs": [], "tabbable": null, "tooltip": null}}, "3d1c199e0072464598d3c69a3ebfd325": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_d2c0cbe2b9d84a7ead89aabb34157674", "sessions": "IPY_MODEL_4c94b33a20a2415d93da91a23ba59898", "shell": "IPY_MODEL_de8575df8e4145b69035fbedb706c3b1", "version": ""}}, "4c94b33a20a2415d93da91a23ba59898": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "95221569484b4d409557343a47714def": {"model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "model_name": "LayoutModel", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "d2c0cbe2b9d84a7ead89aabb34157674": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}, "de8575df8e4145b69035fbedb706c3b1": {"model_module": "ipylab", "model_module_version": "^0.6.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^0.6.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}}, "version_major": 2, "version_minor": 0}
+</script>
 
 
 </html>
