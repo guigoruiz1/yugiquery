@@ -834,28 +834,6 @@ def save_notebook():
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
 
-
-# def clear_notebooks(reports: Union[str, List[str]] = "all"):
-#     """
-#     Remove all output cells from specified Jupyter notebooks or from all notebooks in the source directory.
-
-#     Args:
-#         reports (Union[str, List[str]]): List of notebooks to clean or 'all' to clean all notebooks in the source directory. Default is 'all'.
-
-#     Returns:
-#         None
-#     """
-#     if reports == "all":
-#         # Get reports
-#         reports = sorted(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
-#     else:
-#         reports = [str(reports)] if not isinstance(reports, list) else reports
-#     if len(reports) > 0:
-#         subprocess.call(["nbstripout"] + reports)
-
-#         commit(files=reports, commit_message=f"Cleaning {reports} notebook outputs")
-
-
 def run_notebooks(
     reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs
 ):
@@ -2822,8 +2800,6 @@ def run(reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs)
     run_notebooks(reports=reports, progress_handler=progress_handler, **kwargs)
     # Update page index to reflect last execution timestamp
     update_index()
-    # Clear notebooks after HTML reports have been created
-    # clear_notebooks(reports=reports)
     # Cleanup redundant data files
     # cleanup_data()
 
