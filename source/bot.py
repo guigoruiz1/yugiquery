@@ -47,10 +47,13 @@ from tqdm.auto import tqdm, trange
 
 
 # Data loaders
-def load_secrets_with_args():
+def load_secrets_with_args(args):
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file if necessary.
+
+    Args:
+        args: 
 
     Returns:
         dict: A dictionary containing the loaded secrets.
@@ -58,22 +61,20 @@ def load_secrets_with_args():
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
     """
-    secrets = vars(args)
-    missing = [value == None for value in secrets.values()]
-    if any(missing):
+    secrets = {key: value for key, value in args.items() if value is not None}
+    missing = [key for key, value in args.items() if value is None]
+    if len(missing)>0:
         try:
             loaded_secrets = yq.load_secrets(
-                secrets.keys(),
-                os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
-                missing,
+                requested_secrets=missing,
+                secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                required=True
             )
         except:
             print("Secrets not found. Exiting...")
             exit()
-
-        for key, value in secrets.items():
-            if value is None:
-                secrets[key] = loaded_secrets[key]
+            
+        secrets = secrets | loaded_secrets
 
     return secrets
 
@@ -412,16 +413,16 @@ async def data(ctx):
 
         files = pd.read_json(f"{repository_api_url}/contents/data")
         files = files[
-            files["name"].str.endswith(".csv")
+            files["name"].str.endswith(".bz2")
         ]  # Remove .json files from lists
         files["Group"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(1)
         )
         files["Timestamp"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(3)
         )
         files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
@@ -487,7 +488,7 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     MONSTER_STATS = ["Name", "ATK", "DEF"]
     weights = [atk_weight, def_weight]
     cards_files = sorted(
-        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
+        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.bz2")),
         key=os.path.getmtime,
     )
     if not cards_files:
@@ -679,8 +680,16 @@ if __name__ == "__main__":
         type=int,
         help="Discord channel id",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
+    args = vars(parser.parse_args())
+    debug = args.pop("debug", False)
+
     # Load secrets
-    secrets = load_secrets_with_args()
+    secrets = load_secrets_with_args(args)
     # Run
     bot.run(secrets["DISCORD_TOKEN"])

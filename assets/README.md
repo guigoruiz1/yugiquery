@@ -97,6 +97,10 @@ Ideally, files in the *assets* directory should be read-only files for reference
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
 
+## Known limitations
+
+At present, python<3.11 is needed to install all dependencies. This will be fixed once `TQDM` changes its Discord integration from the deprecated `disco-py` to `discord.py`
+
 ---
 
 ###### tags: `Personal` `Public` `yugioh` `python`
