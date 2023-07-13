@@ -850,7 +850,7 @@ def run_notebooks(
     """
     debug = kwargs.pop("debug", False)
     telegram_first = kwargs.pop("telegram-first", False)
-    suppress = kwargs.pop("suppress-contribs", False)
+    suppress = kwargs.pop("suppress_contribs", False)
     
     if reports == "all":
         # Get reports
@@ -873,7 +873,7 @@ def run_notebooks(
         unit_scale=True,
         dynamic_ncols=True,
     )
-    
+
     if not suppress:
         contribs = ["DISCORD", "TELEGRAM"]
         if telegram_first: contribs = contribs[::-1]
