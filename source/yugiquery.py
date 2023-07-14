@@ -151,7 +151,7 @@ def load_secrets(
         KeyError: If a required secret is not found in the environment variables or .env file.
 
     """
-    secrets = {key: os.environ.get(key) for key in requested_secrets}
+    secrets = {key: os.environ.get(key, os.environ.get(f"TQDM_{key}")) for key in requested_secrets}
     if secrets_file and os.path.isfile(secrets_file):
         secrets = secrets | dotenv_values(secrets_file)
 
@@ -834,8 +834,13 @@ def save_notebook():
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
 
+
 def run_notebooks(
-    reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs
+    reports: Union[str, List[str]] = "all",
+    progress_handler = None,
+    telegram_first: bool = False,
+    suppress_contribs: bool = False,
+    **kwargs,
 ):
     """
     Execute specified Jupyter notebooks in the source directory using Papermill.
@@ -843,15 +848,15 @@ def run_notebooks(
     Args:
         reports (Union[str, List[str]]): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
         progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
+        telegram_first (bool, optional): Default is False.
+        suppress_contribs (bool, optional): Default is False.
         **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
-        
+
     Returns:
         None
     """
     debug = kwargs.pop("debug", False)
-    telegram_first = kwargs.pop("telegram-first", False)
-    suppress = kwargs.pop("suppress_contribs", False)
-    
+
     if reports == "all":
         # Get reports
         reports = sorted(glob.glob("*.ipynb"))
@@ -874,26 +879,35 @@ def run_notebooks(
         dynamic_ncols=True,
     )
 
-    if not suppress:
+    if not suppress_contribs:
         contribs = ["DISCORD", "TELEGRAM"]
-        if telegram_first: contribs = contribs[::-1]
+        if telegram_first:
+            contribs = contribs[::-1]
         secrets = {key: value for key, value in kwargs.items() if value is not None}
         secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
         for contrib in contribs:
-            required_secrets = [f"{contrib}_"+key if key=="CHANNEL_ID" else key for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"] if key not in secrets]
+            required_secrets = [
+                f"{contrib}_" + key if key == "CHANNEL_ID" else key
+                for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"]
+                if key not in secrets
+            ]
             try:
                 loaded_secrets = load_secrets(
                     required_secrets, secrets_file=secrets_file, required=True
                 )
                 secrets = secrets | loaded_secrets
-                channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
+                
                 token = secrets.get(f"{contrib}_TOKEN")
-
+                channel_id = secrets.get(
+                    f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID")
+                )
                 if contrib == "DISCORD":
                     from tqdm.contrib.discord import tqdm as contrib_tqdm
+                    channel_id_dict = {"channel_id": channel_id} 
 
                 elif contrib == "TELEGRAM":
                     from tqdm.contrib.telegram import tqdm as contrib_tqdm
+                    channel_id_dict = {"chat_id": channel_id}
 
                 iterator = contrib_tqdm(
                     reports,
@@ -902,7 +916,7 @@ def run_notebooks(
                     unit_scale=True,
                     dynamic_ncols=True,
                     token=token,
-                    channel_id=channel_id,
+                    **channel_id_dict, # Needed to handle Telegram using chat_ID instaed of channel_ID. Will change once TQDM implements using webhook for Discord.
                 )
 
                 break
@@ -2776,15 +2790,23 @@ def boxplot(df, mean=True, **kwargs):
 # ======================= #
 
 
-def run(reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs):
+def run(
+    reports: Union[str, List[str]] = "all",
+    progress_handler = None,
+    telegram_first: bool = False,
+    suppress_contribs: bool = False,
+    **kwargs,
+):
     """
     Executes all notebooks in the source directory that match the specified report, updates the page index
-    to reflect the last execution timestamp, clears notebooks after HTML reports have been created, and cleans up
+    to reflect the last execution timestamp, and cleans up
     redundant data files.
 
     Args:
         reports (str, optional): The report to generate. Defaults to 'all'.
         progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
+        telegram_first (bool, optional): Defaults to False.
+        suppress_contribs (bool, optional): Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 
     Returns:
@@ -2797,7 +2819,13 @@ def run(reports: Union[str, List[str]] = "all", progress_handler=None, **kwargs)
         return
 
     # Execute all notebooks in the source directory
-    run_notebooks(reports=reports, progress_handler=progress_handler, **kwargs)
+    run_notebooks(
+        reports=reports,
+        progress_handler=progress_handler,
+        telegram_first=telegram_first,
+        suppress_contribs=suppress_contribs,
+        **kwargs,
+    )
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files

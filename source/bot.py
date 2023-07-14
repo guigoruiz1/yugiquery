@@ -53,7 +53,7 @@ def load_secrets_with_args(args):
     environment variables or a .env file if necessary.
 
     Args:
-        args: 
+        args:
 
     Returns:
         dict: A dictionary containing the loaded secrets.
@@ -63,17 +63,17 @@ def load_secrets_with_args(args):
     """
     secrets = {key: value for key, value in args.items() if value is not None}
     missing = [key for key, value in args.items() if value is None]
-    if len(missing)>0:
+    if len(missing) > 0:
         try:
             loaded_secrets = yq.load_secrets(
                 requested_secrets=missing,
                 secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
-                required=True
+                required=True,
             )
         except:
             print("Secrets not found. Exiting...")
             exit()
-            
+
         secrets = secrets | loaded_secrets
 
     return secrets
@@ -568,13 +568,14 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     embed.remove_footer()
     await original_response.edit(embed=embed)
 
+
 @bot.hybrid_command(
     name="status",
     description="Display bot status and system information",
     with_app_command=True,
 )
 async def status(ctx):
-    '''
+    """
     Displays information about the bot, including uptime, guilds, users, channels, available commands,
     bot version, discord.py version, python version, and operating system.
 
@@ -583,9 +584,9 @@ async def status(ctx):
 
     Returns:
         None
-    '''
+    """
     uptime = datetime.now() - bot.start_time
-    
+
     appInfo = await bot.application_info()
     admin = appInfo.owner
     users = 0
@@ -594,25 +595,30 @@ async def status(ctx):
     for guild in bot.guilds:
         users += len(guild.members)
         channels += len(guild.channels)
-        
+
     if len(bot.commands):
-        commandsInfo = '\n'.join(sorted([i.name for i in bot.commands]))
+        commandsInfo = "\n".join(sorted([i.name for i in bot.commands]))
 
     embed = discord.Embed(color=ctx.me.colour)
-    embed.set_footer(text='Time to duel!')
+    embed.set_footer(text="Time to duel!")
     embed.set_thumbnail(url=ctx.me.avatar)
-    embed.add_field(name='Admin', value=admin, inline=False)
-    embed.add_field(name='Uptime', value=uptime, inline=False)
-    embed.add_field(name='Guilds', value=guilds, inline=True)    
-    embed.add_field(name='Users', value=users, inline=True)
-    embed.add_field(name='Channels', value=channels, inline=True)
-    embed.add_field(name='Available Commands', value=commandsInfo, inline=True)
-    embed.add_field(name='Bot Version', value=__version__, inline=True)
-    embed.add_field(name='Discord.py Version', value=discord.__version__, inline=True)
-    embed.add_field(name='Python Version', value=platform.python_version(), inline=True)
-    embed.add_field(name='Operating System', value=f'System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}', inline=False)
-    await ctx.send('**:information_source:** Information about this bot:', embed=embed)
-        
+    embed.add_field(name="Admin", value=admin, inline=False)
+    embed.add_field(name="Uptime", value=uptime, inline=False)
+    embed.add_field(name="Guilds", value=guilds, inline=True)
+    embed.add_field(name="Users", value=users, inline=True)
+    embed.add_field(name="Channels", value=channels, inline=True)
+    embed.add_field(name="Available Commands", value=commandsInfo, inline=True)
+    embed.add_field(name="Bot Version", value=__version__, inline=True)
+    embed.add_field(name="Discord.py Version", value=discord.__version__, inline=True)
+    embed.add_field(name="Python Version", value=platform.python_version(), inline=True)
+    embed.add_field(
+        name="Operating System",
+        value=f"System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}",
+        inline=False,
+    )
+    await ctx.send("**:information_source:** Information about this bot:", embed=embed)
+
+
 # ====== #
 # Events #
 # ====== #
