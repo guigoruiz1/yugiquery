@@ -28,6 +28,6 @@ Below are listed all the available reports and their execution timestamps.
 | [Timeline](Timeline.html) | 14/07/2023 11:39 UTC |
 
 
-The full YugiQuery flow was last executed at `14/07/2023 11:39 UTC`
+The full YugiQuery flow was last executed at `14/07/2023 13:13 UTC`
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
