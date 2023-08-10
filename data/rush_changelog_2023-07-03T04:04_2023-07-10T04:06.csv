@@ -1,0 +1,17 @@
+Name,Card type,Property,Archseries,Attribute,Primary type,Monster type,Effect type,DEF,ATK,Level/Rank,Modification date,Errata,Version
+Amusi Annoyance,???,???,,,,,"('Effect',)",,,,2023-06-10 12:28:56,,Old
+Amusi Annoyance,Trap Card,Normal Trap Card,"('Psychic Musician',)",,,,"('Effect',)",,,,2023-07-04 18:24:37,,New
+Armored Lizard,Monster Card,,,EARTH,Normal Monster,Reptile,,1200,1500,4,2023-03-18 02:42:12,,Old
+Armored Lizard,Monster Card,,,EARTH,Normal Monster,Reptile,,1200,1500,4,2023-03-18 02:42:12,"('Type',)",New
+Big Umi,Spell Card,Field Spell Card,"('Umi (series)',)",,,,"('Effect',)",,,,2023-06-19 04:20:25,,Old
+Big Umi,Spell Card,Field Spell Card,,,,,"('Effect',)",,,,2023-07-05 03:10:52,,New
+Crawling Dragon,Monster Card,,,EARTH,Normal Monster,Dragon,,1400,1600,5,2023-03-18 09:13:51,,Old
+Crawling Dragon,Monster Card,,,EARTH,Normal Monster,Dragon,,1400,1600,5,2023-03-18 09:13:51,"('Type',)",New
+Fusionic Revivern,Monster Card,,,LIGHT,Effect Monster,Dragon,"('Effect',)",0,0,1,2023-07-03 17:43:10,,New
+Galacterial Ore,Monster Card,,,LIGHT,Effect Monster,Galaxy (Type),"('Effect',)",1300,1000,4,2023-07-10 03:21:16,,New
+Harpie Cielo,Monster Card,,"('Harpie (Rush Duel series)',)",WIND,,Winged Beast,"('Effect',)",???,???,???,2023-07-05 12:03:33,,New
+Harpie Lady,Monster Card,,"('Harpie (Rush Duel series)',)",WIND,Normal Monster,Winged Beast,,1400,1300,4,2023-06-24 12:01:19,"('Any',)",Old
+Harpie Lady,Monster Card,,"('Harpie (Rush Duel series)',)",WIND,Normal Monster,Winged Beast,,1400,1300,4,2023-06-24 12:01:19,"('Type',)",New
+Rising Light Angel Esser,Monster Card,,,???,,,,???,???,???,2023-06-15 00:05:27,,Old
+Rising Light Angel Esser,Monster Card,,,LIGHT,Effect Monster,Fairy,"('Effect',)",1000,1000,4,2023-07-07 23:13:42,,New
+Time Wizard,Monster Card,,,LIGHT,Effect Monster,Spellcaster,"('Effect',)",400,500,2,2023-07-05 12:03:55,"('Type',)",New

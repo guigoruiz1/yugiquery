@@ -1,0 +1,30 @@
+Name,Archseries,Attribute,Primary type,Monster type,Effect type,DEF,ATK,Level/Rank,Artwork,Modification date,Errata,Version
+Automatic Accident Prevention,,,,,"('Effect',)",,,,,2023-07-11 17:29:33,,New
+Change Slime - Dragon Champion Mode,"('Gaia (series)',)",WATER,Effect Monster,Aqua,"('Effect',)",600,1100,4,,2023-07-13 18:44:28,,New
+Chemicalize Despise,"('Chemistry',)",,,,"('Effect',)",,,,,2023-07-16 22:50:36,,New
+Dark Battle Grounds,"('Gaia (series)',)",,,,"('Effect',)",,,,,2023-07-13 18:33:48,,New
+Dragoncurse Magician,"('Gaia (series)',)",DARK,Effect Monster,Spellcaster,"('Effect',)",1100,1100,4,,2023-07-13 17:17:46,,New
+Elite Secret Investigator Mystery,"('Secret Investigator',)",LIGHT,Effect Monster,Reptile,"('Effect',)",1000,2300,7,,2023-07-14 19:06:13,,New
+Gaia The Fierce Knight,"('Gaia (series)',)",EARTH,Normal Monster,Warrior,,2100,2300,7,,2023-06-19 21:24:06,"('Name', 'Type')",Old
+Gaia The Fierce Knight,"('Gaia (series)',)",EARTH,Normal Monster,Warrior,,2100,2300,7,"('Alternate',)",2023-07-13 16:53:52,"('Name', 'Type')",New
+Gaia the Battle Ruler,"('Gaia (series)',)",WIND,,Dragon,,???,???,???,,2023-06-03 10:48:33,,Old
+Gaia the Battle Ruler,"('Gaia (series)',)",WIND,Fusion Monster,Magical Knight,"('Multi-Choice Effect',)",2100,2600,7,,2023-07-13 18:18:27,,New
+Ground Attacker Bugroth,,EARTH,Normal Monster,Machine,,1000,1500,4,,2023-03-18 22:38:36,,Old
+Ground Attacker Bugroth,,EARTH,Normal Monster,Machine,,1000,1500,4,,2023-03-18 22:38:36,"('Type',)",New
+Intercepting Gaia,"('Gaia (series)',)",,,,"('Effect',)",,,,,2023-07-13 18:41:39,,New
+Launcher Catapult Turtle,,???,,,,???,???,???,,2023-06-07 12:05:38,,Old
+Launcher Catapult Turtle,"('Gaia (series)',)",WATER,Effect Monster,Aqua,"('Effect',)",2000,1000,5,,2023-07-13 17:25:32,,New
+Monster Convocation,"('Gaia (series)',)",,,,"('Effect',)",,,,,2023-07-13 18:30:09,,New
+Negate Attack,,,,,"('Effect',)",,,,,2023-07-17 10:07:12,"('Name',)",New
+Secret File 33 - Noble Death of Resentment,"('Secret Investigator',)",,,,"('Effect',)",,,,,2023-07-14 19:39:28,,New
+Secret Investigator Miscast,"('Secret Investigator',)",LIGHT,Effect Monster,Reptile,"('Effect',)",300,300,3,,2023-07-14 18:33:28,,New
+Secret Investigator Mislead,"('Secret Investigator',)",LIGHT,Effect Monster,Reptile,"('Effect',)",300,1300,3,,2023-07-14 18:52:46,,New
+Secret Investigator Mismatch,"('Secret Investigator',)",LIGHT,Effect Monster,Reptile,"('Effect',)",300,1300,3,,2023-07-14 18:44:03,,New
+Secret Investigator Mistake,"('Secret Investigator',)",LIGHT,Effect Monster,Reptile,"('Effect',)",300,1300,3,,2023-07-13 19:15:09,,New
+Snake Princess of Purity,,???,,,,???,???,???,,2023-06-07 12:03:30,,Old
+Snake Princess of Purity,,LIGHT,Effect Monster,Reptile,"('Effect',)",1500,2500,7,,2023-07-14 19:19:29,,New
+Veteran Curse of Dragon,"('Gaia (series)',)",DARK,,Dragon,,???,???,???,,2023-06-03 10:41:10,,Old
+Veteran Curse of Dragon,"('Gaia (series)',)",DARK,Effect Monster,Dragon,"('Effect',)",1500,2000,5,,2023-07-13 18:47:25,,New
+Veteran Gaia the Fierce Knight,"('Gaia (series)',)",EARTH,,Warrior,,???,???,???,,2023-06-03 10:44:11,,Old
+Veteran Gaia the Fierce Knight,"('Gaia (series)',)",WIND,Effect Monster,Warrior,"('Effect',)",2100,2300,7,,2023-07-13 19:07:12,,New
+Worm Drake,,EARTH,Normal Monster,Reptile,,1500,1400,4,,2023-07-15 17:32:56,,New
