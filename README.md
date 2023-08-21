@@ -31,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 14/08/2023 04:02 UTC |
-| [Cards](Cards.html) | 14/08/2023 04:06 UTC |
-| [Rush](Rush.html) | 14/08/2023 04:07 UTC |
-| [Sets](Sets.html) | 14/08/2023 04:21 UTC |
-| [Speed](Speed.html) | 14/08/2023 04:22 UTC |
-| [Timeline](Timeline.html) | 14/08/2023 04:27 UTC |
+| [Bandai](Bandai.html) | 21/08/2023 04:01 UTC |
+| [Cards](Cards.html) | 21/08/2023 04:04 UTC |
+| [Rush](Rush.html) | 21/08/2023 04:05 UTC |
+| [Sets](Sets.html) | 21/08/2023 04:18 UTC |
+| [Speed](Speed.html) | 21/08/2023 04:19 UTC |
+| [Timeline](Timeline.html) | 21/08/2023 04:24 UTC |
 
 
-The full YugiQuery flow was last executed at `14/08/2023 04:27 UTC`
+The full YugiQuery flow was last executed at `21/08/2023 04:24 UTC`
 
 # Usage
 
