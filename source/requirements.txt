@@ -1,6 +1,6 @@
 aiohttp==3.8.5
 discord.py==2.1.1
-GitPython==3.1.31
+GitPython==3.1.32
 halo==0.0.31
 ipylab==0.6.0
 ipython==8.10.0
