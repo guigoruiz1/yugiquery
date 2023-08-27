@@ -31,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 17/07/2023 10:20 UTC |
-| [Cards](Cards.html) | 17/07/2023 10:24 UTC |
-| [Rush](Rush.html) | 17/07/2023 10:25 UTC |
-| [Sets](Sets.html) | 17/07/2023 10:39 UTC |
-| [Speed](Speed.html) | 17/07/2023 10:41 UTC |
-| [Timeline](Timeline.html) | 17/07/2023 10:45 UTC |
+| [Bandai](Bandai.html) | 11/08/2023 13:55 UTC |
+| [Cards](Cards.html) | 10/08/2023 20:18 UTC |
+| [Rush](Rush.html) | 10/08/2023 20:18 UTC |
+| [Sets](Sets.html) | 10/08/2023 20:18 UTC |
+| [Speed](Speed.html) | 10/08/2023 20:18 UTC |
+| [Timeline](Timeline.html) | 10/08/2023 20:18 UTC |
 
 
-The full YugiQuery flow was last executed at `17/07/2023 10:45 UTC`
+The full YugiQuery flow was last executed at `11/08/2023 13:55 UTC`
 
 # Usage
 
@@ -101,6 +101,10 @@ Ideally, files in the *assets* directory should be read-only files for reference
 ## Documentation
 
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
+
+## Known limitations
+
+At present, python<3.11 is needed to install all dependencies. This will be fixed once `TQDM` changes its Discord integration from the deprecated `disco-py` to `discord.py`
 
 ---
 
