@@ -18,28 +18,27 @@ __status__ = yq.__status__
 
 # Native python packages
 import argparse
-import os
-import glob
-import random
-import subprocess
-import platform
 import asyncio
+import glob
 import io
-import re
 import json
-from enum import Enum
+import multiprocessing as mp
+import os
+import platform
+import random
+import re
+import subprocess
 from datetime import datetime, timezone
+from enum import Enum
 
 # PIP packages - installed by yugiquery
-import git
 import discord
-from discord.ext import commands
+import git
 import pandas as pd
-import multiprocessing as mp
+from discord.ext import commands
 from dotenv import dotenv_values
-from tqdm.contrib.discord import tqdm as discord_pbar
 from tqdm.auto import tqdm, trange
-
+from tqdm.contrib.discord import tqdm as discord_pbar
 
 # ======= #
 # Helpers #

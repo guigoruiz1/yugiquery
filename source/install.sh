@@ -1,10 +1,10 @@
 #! /bin/bash
 CURRENT_DIR=$PWD
 cd "$(dirname "$0")"
-pip install -U pip
-pip install -r requirements.txt
-pip install git+https://github.com/b1naryth1ef/disco
-pip install -U gevent
-pip install -U pynacl
-pip install -U nbstripout
+pip3 install -U pip
+pip3 install -r requirements.txt
+pip3 install git+https://github.com/b1naryth1ef/disco
+pip3 install -U gevent
+pip3 install -U pynacl
+pip3 install -U nbstripout
 cd $CURRENT_DIR

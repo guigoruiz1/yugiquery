@@ -14,24 +14,24 @@ __status__ = "Development"
 
 # Native python packages
 import argparse
-import os
-import subprocess
-import glob
-import string
 import calendar
-import warnings
 import colorsys
-import logging
-import io
+import glob
 import hashlib
+import io
 import json
+import logging
+import os
 import re
 import socket
+import string
+import subprocess
 import time
-from enum import Enum
+import warnings
 from datetime import datetime, timezone
+from enum import Enum
 from textwrap import wrap
-from typing import List, Tuple, Dict, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 # Shorthand variables
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -41,29 +41,31 @@ PARENT_DIR = os.path.dirname(SCRIPT_DIR)
 loop = 0
 while True:
     try:
-        import git
-        import nbformat
         import asyncio
-        import aiohttp
-        import requests
-        import pandas as pd
-        import numpy as np
-        import seaborn as sns
         import urllib.parse as up
-        import wikitextparser as wtp
-        import papermill as pm
-        import matplotlib.pyplot as plt
+        from ast import literal_eval
+
+        import aiohttp
+        import git
         import matplotlib.colors as mc  # LogNorm, Normalize, ListedColormap, cnames, to_rgb
         import matplotlib.dates as mdates
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
-        from matplotlib.ticker import AutoMinorLocator, MaxNLocator, FixedLocator
-        from matplotlib_venn import venn2
-        from ast import literal_eval
-        from IPython.display import Markdown
-        from tqdm.auto import tqdm, trange
-        from ipylab import JupyterFrontEnd
+        import matplotlib.pyplot as plt
+        import nbformat
+        import numpy as np
+        import pandas as pd
+        import papermill as pm
+        import requests
+        import seaborn as sns
+        import wikitextparser as wtp
         from dotenv import dotenv_values
         from halo import Halo
+        from ipylab import JupyterFrontEnd
+        from IPython.display import Markdown
+        from matplotlib.ticker import (AutoMinorLocator, FixedLocator,
+                                       MaxNLocator)
+        from matplotlib_venn import venn2
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+        from tqdm.auto import tqdm, trange
 
         break
 
@@ -509,7 +511,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
             )
             if col == " Material":
                 df["Materials"] = extracted_cols.apply(
-                    lambda x: tuple(elem for tup in row for elem in tup), axis=1
+                    lambda x: tuple(elem for tup in col for elem in tup), axis=1
                 )
             else:
                 df = df.join(extracted_cols)
