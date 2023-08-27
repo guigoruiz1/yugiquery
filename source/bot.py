@@ -18,28 +18,27 @@ __status__ = yq.__status__
 
 # Native python packages
 import argparse
-import os
-import glob
-import random
-import subprocess
-import platform
 import asyncio
+import glob
 import io
-import re
 import json
-from enum import Enum
+import multiprocessing as mp
+import os
+import platform
+import random
+import re
+import subprocess
 from datetime import datetime, timezone
+from enum import Enum
 
 # PIP packages - installed by yugiquery
-import git
 import discord
-from discord.ext import commands
+import git
 import pandas as pd
-import multiprocessing as mp
+from discord.ext import commands
 from dotenv import dotenv_values
-from tqdm.contrib.discord import tqdm as discord_pbar
 from tqdm.auto import tqdm, trange
-
+from tqdm.contrib.discord import tqdm as discord_pbar
 
 # ======= #
 # Helpers #
@@ -47,10 +46,13 @@ from tqdm.auto import tqdm, trange
 
 
 # Data loaders
-def load_secrets_with_args():
+def load_secrets_with_args(args):
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file if necessary.
+
+    Args:
+        args:
 
     Returns:
         dict: A dictionary containing the loaded secrets.
@@ -58,22 +60,20 @@ def load_secrets_with_args():
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
     """
-    secrets = vars(args)
-    missing = [value == None for value in secrets.values()]
-    if any(missing):
+    secrets = {key: value for key, value in args.items() if value is not None}
+    missing = [key for key, value in args.items() if value is None]
+    if len(missing) > 0:
         try:
             loaded_secrets = yq.load_secrets(
-                secrets.keys(),
-                os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
-                missing,
+                requested_secrets=missing,
+                secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                required=True,
             )
         except:
             print("Secrets not found. Exiting...")
             exit()
 
-        for key, value in secrets.items():
-            if value is None:
-                secrets[key] = loaded_secrets[key]
+        secrets = secrets | loaded_secrets
 
     return secrets
 
@@ -412,16 +412,16 @@ async def data(ctx):
 
         files = pd.read_json(f"{repository_api_url}/contents/data")
         files = files[
-            files["name"].str.endswith(".csv")
+            files["name"].str.endswith(".bz2")
         ]  # Remove .json files from lists
         files["Group"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(1)
         )
         files["Timestamp"] = files["name"].apply(
             lambda x: re.search(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).csv", x
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
             ).group(3)
         )
         files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
@@ -487,7 +487,7 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     MONSTER_STATS = ["Name", "ATK", "DEF"]
     weights = [atk_weight, def_weight]
     cards_files = sorted(
-        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.csv")),
+        glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.bz2")),
         key=os.path.getmtime,
     )
     if not cards_files:
@@ -567,13 +567,14 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
     embed.remove_footer()
     await original_response.edit(embed=embed)
 
+
 @bot.hybrid_command(
     name="status",
     description="Display bot status and system information",
     with_app_command=True,
 )
 async def status(ctx):
-    '''
+    """
     Displays information about the bot, including uptime, guilds, users, channels, available commands,
     bot version, discord.py version, python version, and operating system.
 
@@ -582,9 +583,9 @@ async def status(ctx):
 
     Returns:
         None
-    '''
+    """
     uptime = datetime.now() - bot.start_time
-    
+
     appInfo = await bot.application_info()
     admin = appInfo.owner
     users = 0
@@ -593,25 +594,30 @@ async def status(ctx):
     for guild in bot.guilds:
         users += len(guild.members)
         channels += len(guild.channels)
-        
+
     if len(bot.commands):
-        commandsInfo = '\n'.join(sorted([i.name for i in bot.commands]))
+        commandsInfo = "\n".join(sorted([i.name for i in bot.commands]))
 
     embed = discord.Embed(color=ctx.me.colour)
-    embed.set_footer(text='Time to duel!')
+    embed.set_footer(text="Time to duel!")
     embed.set_thumbnail(url=ctx.me.avatar)
-    embed.add_field(name='Admin', value=admin, inline=False)
-    embed.add_field(name='Uptime', value=uptime, inline=False)
-    embed.add_field(name='Guilds', value=guilds, inline=True)    
-    embed.add_field(name='Users', value=users, inline=True)
-    embed.add_field(name='Channels', value=channels, inline=True)
-    embed.add_field(name='Available Commands', value=commandsInfo, inline=True)
-    embed.add_field(name='Bot Version', value=__version__, inline=True)
-    embed.add_field(name='Discord.py Version', value=discord.__version__, inline=True)
-    embed.add_field(name='Python Version', value=platform.python_version(), inline=True)
-    embed.add_field(name='Operating System', value=f'System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}', inline=False)
-    await ctx.send('**:information_source:** Information about this bot:', embed=embed)
-        
+    embed.add_field(name="Admin", value=admin, inline=False)
+    embed.add_field(name="Uptime", value=uptime, inline=False)
+    embed.add_field(name="Guilds", value=guilds, inline=True)
+    embed.add_field(name="Users", value=users, inline=True)
+    embed.add_field(name="Channels", value=channels, inline=True)
+    embed.add_field(name="Available Commands", value=commandsInfo, inline=True)
+    embed.add_field(name="Bot Version", value=__version__, inline=True)
+    embed.add_field(name="Discord.py Version", value=discord.__version__, inline=True)
+    embed.add_field(name="Python Version", value=platform.python_version(), inline=True)
+    embed.add_field(
+        name="Operating System",
+        value=f"System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}",
+        inline=False,
+    )
+    await ctx.send("**:information_source:** Information about this bot:", embed=embed)
+
+
 # ====== #
 # Events #
 # ====== #
@@ -679,8 +685,16 @@ if __name__ == "__main__":
         type=int,
         help="Discord channel id",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
+    args = vars(parser.parse_args())
+    debug = args.pop("debug", False)
+
     # Load secrets
-    secrets = load_secrets_with_args()
+    secrets = load_secrets_with_args(args)
     # Run
     bot.run(secrets["DISCORD_TOKEN"])
