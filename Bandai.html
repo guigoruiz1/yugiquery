@@ -3,7 +3,34 @@
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>Bandai</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script><script>
+(function() {
+  function addWidgetsRenderer() {
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var scriptElement = document.createElement('script');
+    
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        
+        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
+        
+      }
+    } catch(e) {}
+
+    scriptElement.src = widgetRendererSrc;
+    document.body.appendChild(scriptElement);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
+</script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7455,7 +7482,7 @@ a.anchor-link {
     </pre>
 </div>
 <div align="right">
-    Bandai - Execution started 06/09/2023 20:34 UTC <br/>
+    Bandai - Execution started 06/09/2023 21:11 UTC <br/>
     By <b>Guilherme Ruiz</b>
 </div>
 </div>
@@ -7535,7 +7562,7 @@ a.anchor-link {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>No older files
+<pre>File loaded
 </pre>
 </div>
 </div>
@@ -7558,7 +7585,7 @@ a.anchor-link {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Skipped
+<pre>No changes
 </pre>
 </div>
 </div>
@@ -7581,7 +7608,7 @@ a.anchor-link {
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child">
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Data saved
+<pre>No changes. New data not saved
 </pre>
 </div>
 </div>
@@ -9604,7 +9631,7 @@ a.anchor-link {
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
 <div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/markdown" tabindex="0">
 <div align="right">
-    Execution completed 06/09/2023 20:34 UTC
+    Execution completed 06/09/2023 21:11 UTC
 </div>
 </div>
 </div>
@@ -9637,4 +9664,7 @@ a.anchor-link {
 </div>
 </main>
 </body>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"1546c5c94f0f4d7a97b6da4b3d04e574": {"model_module": "ipylab", "model_module_version": "^1.0.0", "model_name": "JupyterFrontEndModel", "state": {"_model_module": "ipylab", "_model_module_version": "^1.0.0", "_model_name": "JupyterFrontEndModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "commands": "IPY_MODEL_b1c530c92a854bc38b145a3665ebcfd0", "sessions": "IPY_MODEL_6fb05f078b1745419a3a6ec2d9f3d009", "shell": "IPY_MODEL_3c50d085308143b78e36670df4d0bb59", "version": ""}}, "3c50d085308143b78e36670df4d0bb59": {"model_module": "ipylab", "model_module_version": "^1.0.0", "model_name": "ShellModel", "state": {"_model_module": "ipylab", "_model_module_version": "^1.0.0", "_model_name": "ShellModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "_widgets": []}}, "6fb05f078b1745419a3a6ec2d9f3d009": {"model_module": "ipylab", "model_module_version": "^1.0.0", "model_name": "SessionManagerModel", "state": {"_model_module": "ipylab", "_model_module_version": "^1.0.0", "_model_name": "SessionManagerModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null, "current_session": {}, "sessions": []}}, "b1c530c92a854bc38b145a3665ebcfd0": {"model_module": "ipylab", "model_module_version": "^1.0.0", "model_name": "CommandRegistryModel", "state": {"_command_list": [], "_commands": [], "_model_module": "ipylab", "_model_module_version": "^1.0.0", "_model_name": "CommandRegistryModel", "_view_count": null, "_view_module": null, "_view_module_version": "", "_view_name": null}}, "d7e068dafd3c475c963141afff3b1e9b": {"model_module": "@jupyter-widgets\/base", "model_module_version": "2.0.0", "model_name": "LayoutModel", "state": {"_model_module": "@jupyter-widgets\/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets\/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f5331e14ee214ebb9fd4c7dbfb398bf6": {"model_module": "@jupyter-widgets\/output", "model_module_version": "1.0.0", "model_name": "OutputModel", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets\/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets\/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_d7e068dafd3c475c963141afff3b1e9b", "msg_id": "", "outputs": [], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+</script>
 </html>
