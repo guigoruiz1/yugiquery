@@ -1,0 +1,31 @@
+# header_pages:
+#   - LICENSE.md
+
+title: YugiQuery
+author: Guilherme Ruiz
+email: "57478888+guigoruiz1@users.noreply.github.com"
+
+# The `>` after `description:` means to ignore line-breaks until next key.
+# If you want to omit the line-break after the end of text, use `>-` instead.
+description: >
+  Under construction.
+  
+  Jupyter notebook to query and display yugipedia data.
+
+# social links
+# linkedin_username: guigoruiz1
+github_username:  guigoruiz1
+# rss: rss
+
+# Build settings
+show_excerpts: false
+
+theme: minima
+#remote_theme: daattali/beautiful-jekyll
+
+minima:
+  skin: auto
+  
+# plugins:
+#  - jekyll-feed
+#  - jekyll-seo-tag

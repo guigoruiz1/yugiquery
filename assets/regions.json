@@ -1,0 +1,19 @@
+{
+    "EN": "English", 
+    "NA": "North American English",
+    "EU": "European English", 
+    "AU": "Oceanic English", 
+    "PT": "Portuguese", 
+    "DE": "German", 
+    "FC": "French-Canadian", 
+    "FR": "French", 
+    "IT": "Italian", 
+    "SP": "Spanish",
+    "ES": "Spanish",
+    "JP": "Japanese", 
+    "JA": "Japanese-Asian", 
+    "AE": "Asian-English", 
+    "KR": "Korean", 
+    "TC": "Traditional Chinese", 
+    "SC": "Simplified Chinese"
+}
