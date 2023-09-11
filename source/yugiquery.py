@@ -1616,7 +1616,7 @@ def fetch_st(
     elif st == "Both" or st == "All":
         st = "Spells and Trap"
     else:
-        concept += f"[[Card type::{st}]]"
+        concept += f"[[Card type::{st} card]]"
     if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
     print(f"Downloading {st}s")
