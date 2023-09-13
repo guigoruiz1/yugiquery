@@ -662,11 +662,11 @@ async def on_command_error(ctx, error):
     """
     print(error)
     if isinstance(error, commands.errors.CommandOnCooldown):
-        await ctx.send(content=error)
+        await ctx.send(content=error, ephemeral=True, delete_after=60)
     elif isinstance(error, commands.errors.NotOwner):
-        await ctx.send(content=error)
+        await ctx.send(content=error, ephemeral=True, delete_after=60)
     elif isinstance(error, commands.errors.CheckFailure):
-        await ctx.send(content=error)
+        await ctx.send(content=error, ephemeral=True, delete_after=60)
 
 
 # ========= #
