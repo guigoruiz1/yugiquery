@@ -16,4 +16,5 @@ seaborn>=0.12.2
 tqdm>=4.65.0
 wikitextparser>=0.53.0
 itables>=1.6.2
+jupyter_core==5.3.1
 
