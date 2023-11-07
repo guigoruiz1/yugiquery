@@ -38,7 +38,7 @@ import pandas as pd
 from discord.ext import commands
 from dotenv import dotenv_values
 from tqdm.auto import tqdm, trange
-from tqdm.contrib.discord import tqdm as discord_pbar
+# from tqdm.contrib.discord import tqdm as discord_pbar
 
 # ======= #
 # Helpers #
@@ -183,14 +183,14 @@ async def run(ctx, report: Reports = Reports.All):
 
     def progress_handler(iterable=None, API_status: bool = True, **kwargs):
         queue.put(API_status)
-        if iterable and ctx.channel.id != int(secrets["DISCORD_CHANNEL_ID"]):
-            return discord_pbar(
-                iterable,
-                token=secrets["DISCORD_TOKEN"],
-                channel_id=ctx.channel.id,
-                file=io.StringIO(),
-                **kwargs,
-            )
+        # if iterable and ctx.channel.id != int(secrets["DISCORD_CHANNEL_ID"]):
+        #     return discord_pbar(
+        #         iterable,
+        #         token=secrets["DISCORD_TOKEN"],
+        #         channel_id=ctx.channel.id,
+        #         file=io.StringIO(),
+        #         **kwargs,
+        #     )
 
     try:
         process = mp.Process(target=yq.run, args=[report.value, progress_handler])

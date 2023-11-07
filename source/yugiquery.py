@@ -66,6 +66,7 @@ while True:
         from matplotlib_venn import venn2
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from tqdm.auto import tqdm, trange
+        from itables import init_notebook_mode
 
         break
 
@@ -506,7 +507,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     for col, extract in filter_cols.items():
         col_matches = input_df.filter(like=col).columns
         if len(col_matches) > 0:
-            extracted_cols = input_df[col_matches].applymap(
+            extracted_cols = input_df[col_matches].map(
                 extract_fulltext if extract else lambda x: x
             )
             if col == " Material":
@@ -523,7 +524,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     for col, cat in category_bool_cols.items():
         col_matches = input_df.filter(regex=cat).columns
         if len(col_matches) > 0:
-            cat_bool = input_df[col_matches].applymap(extract_category_bool)
+            cat_bool = input_df[col_matches].map(extract_category_bool)
             # Artworks extraction
             if col == "Artwork":
                 df[col] = cat_bool.apply(format_artwork, axis=1)
@@ -533,7 +534,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     # Date columns concatenation
     if len(input_df.filter(like=" date").columns) > 0:
         df = df.join(
-            input_df.filter(like=" date").applymap(
+            input_df.filter(like=" date").map(
                 lambda x: pd.to_datetime(
                     pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce"
                 )
@@ -545,7 +546,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     # Include other unspecified columns
     if include_all:
         df = df.join(
-            input_df[input_df.columns.difference(df.columns)].applymap(
+            input_df[input_df.columns.difference(df.columns)].map(
                 extract_fulltext, multiple=True
             )
         )
@@ -925,12 +926,13 @@ def run_notebooks(
             except:
                 pass
 
-    # Get papermill logger
+    # Create the main logger
     logger = logging.getLogger("papermill")
-    logger.setLevel(logging.INFO)
-
+    logger.setLevel(logging.INFO)  # Set the logger level to the lowest level (DEBUG)
+    
     # Create a StreamHandler and attach it to the logger
     stream_handler = logging.StreamHandler(io.StringIO())
+    stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(logging.Formatter("%(message)s"))
     stream_handler.addFilter(
         lambda record: record.getMessage().startswith("Ending Cell")
@@ -1519,7 +1521,7 @@ def fetch_properties(
                 time.sleep(0.5)
             raise
 
-        spinner.output.close()
+        # spinner.output.close()
 
     return df
 
@@ -1574,6 +1576,8 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
         print("- Total")
 
     print(f"{len(bandai_df.index)} results\n")
+
+    time.sleep(0.5)
 
     return bandai_df
 
@@ -2083,10 +2087,10 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 
                             list_df = pd.DataFrame([x.split(";") for x in lines])
                             list_df = list_df[~list_df[0].str.contains("!:")]
-                            list_df = list_df.applymap(
+                            list_df = list_df.map(
                                 lambda x: x.split("//")[0] if x is not None else x
                             )
-                            list_df = list_df.applymap(
+                            list_df = list_df.map(
                                 lambda x: x.strip() if x is not None else x
                             )
                             list_df.replace(
@@ -2823,9 +2827,9 @@ def run(
     # Execute all notebooks in the source directory
     run_notebooks(
         reports=reports,
-        progress_handler=progress_handler,
+        # progress_handler=progress_handler,
         telegram_first=telegram_first,
-        suppress_contribs=suppress_contribs,
+        suppress_contribs=True, #suppress_contribs,
         **kwargs,
     )
     # Update page index to reflect last execution timestamp
