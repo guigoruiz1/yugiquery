@@ -66,7 +66,6 @@ while True:
         from matplotlib_venn import venn2
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from tqdm.auto import tqdm, trange
-        from itables import init_notebook_mode
 
         break
 
@@ -82,6 +81,7 @@ while True:
 # Overwrite packages with versions specific for jupyter notebook
 try:
     if get_ipython() is not None:
+        from itables import init_notebook_mode
         from halo import HaloNotebook as Halo
 except:
     pass
@@ -928,17 +928,16 @@ def run_notebooks(
 
     # Create the main logger
     logger = logging.getLogger("papermill")
-    logger.setLevel(logging.INFO)  # Set the logger level to the lowest level (DEBUG)
-    
+    logger.setLevel(logging.INFO)
+
     # Create a StreamHandler and attach it to the logger
     stream_handler = logging.StreamHandler(io.StringIO())
-    stream_handler.setLevel(logging.INFO)
     stream_handler.setFormatter(logging.Formatter("%(message)s"))
     stream_handler.addFilter(
         lambda record: record.getMessage().startswith("Ending Cell")
     )
     logger.addHandler(stream_handler)
-
+    
     # Define a function to update the output variable
     def update_pbar():
         iterator.update((1 / cells))
