@@ -1520,7 +1520,7 @@ def fetch_properties(
                 time.sleep(0.5)
             raise
 
-        # spinner.output.close()
+        spinner.output.close()
 
     return df
 
@@ -2276,7 +2276,7 @@ def fetch_set_info(
             )
             tqdm.write("-------------------------------------------------")
 
-        set_info_df = pd.concat([set_info_df, formatted_df])
+        set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
 
     set_info_df = set_info_df.convert_dtypes()
     set_info_df.sort_index(inplace=True)
@@ -2827,8 +2827,8 @@ def run(
     run_notebooks(
         reports=reports,
         # progress_handler=progress_handler,
-        telegram_first=telegram_first,
-        suppress_contribs=True, #suppress_contribs,
+        telegram_first=True, #telegram_first,
+        suppress_contribs=suppress_contribs,
         **kwargs,
     )
     # Update page index to reflect last execution timestamp
