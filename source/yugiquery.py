@@ -24,7 +24,6 @@ import logging
 import os
 import re
 import socket
-import string
 import subprocess
 import time
 import warnings
@@ -2120,7 +2119,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                                     for y in x.split(",")
                                 ]
                             )
-                            if x is not None
+                            if x is not None and "description::" not in x
                             else rarity
                         )
 
