@@ -61,7 +61,7 @@ while True:
         from ipylab import JupyterFrontEnd
         from IPython.display import Markdown
         from matplotlib.ticker import (AutoMinorLocator, FixedLocator,
-                                       MaxNLocator)
+                                       MaxNLocator, MultipleLocator)
         from matplotlib_venn import venn2
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from tqdm.auto import tqdm, trange
@@ -211,6 +211,19 @@ def md5(name: str):
     return hash_md5.hexdigest()
 
 
+def separate_words_and_acronyms(strings: List[str]):
+    """
+    TODO
+    """
+    words = []
+    acronyms = []
+    for string in strings:
+        if re.match(r"^[A-Z][a-z]+$", string):
+            words.append(string)
+        else:
+            acronyms.append(string)
+    return words, acronyms
+    
 ## Image handling
 
 
@@ -357,10 +370,72 @@ def benchmark(report: str, timestamp: pd.Timestamp):
         commit_message=f"{report} report benchmarked - {now.isoformat()}",
     )
 
-
-def cleanup_data(dry_run: bool = False):
+def condense_changelogs(files: pd.DataFrame):
     """
-    Cleans up data files in a specified directory, keeping only the most recent file from each month and week.
+    TODO
+    """
+    new_changelog = pd.DataFrame()
+    for file in files:
+        print(file)
+        match = re.search(
+            r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2",
+            os.path.basename(file),
+        )
+        name = match.group(1)
+        from_date = match.group(2)
+        to_date = match.group(3)
+        df = pd.read_csv(file, dtype=object)
+        df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
+        new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
+
+    new_changelog.sort_values(
+        by=[new_changelog.columns[0], "Version"],
+        ascending=[True, True],
+        axis=0,
+        inplace=True,
+    )
+    new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
+    index = (
+        new_changelog.drop(["Modification date", "Version"], axis=1)
+        .drop_duplicates(keep="last")
+        .index
+    )
+
+    return new_changelog.loc[index]
+
+
+def condense_benchmark(benchmark: dict):
+    """
+    TODO
+    """
+    now = pd.Timestamp.now(timezone.utc)
+    for key, pair in benchmark.items():
+        for key, values in benchmark.items():
+            weighted_sum = 0
+            total_weight = 0
+            for entry in values:
+                weighted_sum += entry["average"] * entry["weight"]
+                total_weight += entry["weight"]
+            weighted_average = weighted_sum / total_weight
+            benchmark.update(
+                {
+                    key: [
+                        {
+                            "ts": now.isoformat(),
+                            "average": weighted_average,
+                            "weight": total_weight,
+                        }
+                    ]
+                }
+            )
+
+    return benchmark
+
+
+def cleanup_data(dry_run=False):
+    """
+    TODO
+    Cleans up data files, keeping only the most recent file from each month and week.
 
     Args:
         dry_run (bool): If True, the function will only print the files that would be deleted without actually deleting them. Defaults to False.
@@ -368,31 +443,120 @@ def cleanup_data(dry_run: bool = False):
     Returns:
         None
     """
-    file_list = glob.glob(os.path.join(PARENT_DIR, "data/*"))
-    df = pd.DataFrame(file_list, columns=["file"])
-    df["timestamp"] = pd.to_datetime(df["file"].apply(os.path.getctime), unit="s")
-    df["group"] = (
-        df["file"].apply(lambda x: x.split("/")[-1]).apply(lambda x: x[: x.rindex("_")])
-    )
-    df = df.sort_values(["group", "timestamp"], ascending=[True, False]).reset_index(
-        drop=True
-    )
-    # Monthly
-    keep_monthly = df.copy()
-    keep_monthly["Y+m"] = keep_monthly["timestamp"].dt.strftime("%Y%m")
-    keep_monthly.drop_duplicates(["Y+m", "group"], keep="first", inplace=True)
-    # Weekly
-    keep_weekly = keep_monthly.where(keep_monthly["Y+m"] == keep_monthly["Y+m"].min())
-    keep_weekly["W"] = keep_monthly["timestamp"].dt.strftime("%W")
-    keep_weekly.drop_duplicates(["W", "group"], keep="first", inplace=True)
+    # Benchmark
+    now = pd.Timestamp.now(timezone.utc)
+    benchmark_path = os.path.join(PARENT_DIR, "data/benchmark.json")
+    benchmark = load_json(benchmark_path)
+    new_benchmark = condense_benchmark(benchmark)
+    if dry_run:
+        print("Benchmark:", new_benchmark)
+    else:
+        with open(benchmark_path, "w+") as f:
+            json.dump(new_benchmark, f)
 
-    drop_index = keep_monthly.index.join(keep_weekly.index)
-    for file in df.loc[~df.index.isin(drop_index), "file"]:
+    # Data CSV files
+    file_list = glob.glob(os.path.join(PARENT_DIR, "data/*.bz2"))
+
+    # Create a DataFrame
+    df = pd.DataFrame(file_list, columns=["Name"])
+
+    # Convert the 'Date' column to a datetime type
+    df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
+
+    # Create a new column 'Group' based on the first two elements after splitting the filename
+    df["Group"] = df["Name"].apply(
+        lambda x: "_".join(os.path.basename(x).split("_", 2)[:2])
+    )
+
+    # Group the DataFrame by 'Group' and 'Date' (year and month)
+    grouped = df.groupby(["Group", pd.Grouper(key="Date", freq="MS")])
+
+    # Get a list of all the files created on the same month of the same year, separated by whether they contain "changelog"
+    same_month_files = {
+        "changelog": [
+            group[1]["Name"].tolist() for group in grouped if "changelog" in group[0][0]
+        ],
+        "data": [
+            group[1]["Name"].tolist()
+            for group in grouped
+            if not "changelog" in group[0][0]
+        ],
+    }
+
+    # Get a list of all the files created in the last month and split them into weeks
+    last_month_files = (
+        df[df["Date"] >= df["Date"].max() - pd.Timedelta("1MS")]
+        .resample("W", on="Date")
+        .first()
+    )
+
+    # Separate the last_month_files by whether they contain "changelog"
+    last_month_files = {
+        "changelog": last_month_files[
+            last_month_files["Group"].str.contains("changelog")
+        ]["Name"].tolist(),
+        "data": last_month_files[~last_month_files["Group"].str.contains("changelog")][
+            "Name"
+        ].tolist(),
+    }
+
+    # Remove the last_month_files from the same_month_files
+    same_month_files["changelog"] = [
+        files
+        for files in same_month_files["changelog"]
+        if files not in last_month_files["changelog"]
+    ]
+    same_month_files["data"] = [
+        files
+        for files in same_month_files["data"]
+        if files not in last_month_files["data"]
+    ]
+
+    if dry_run:
+        display(df)
+
+    print("- same month (with changelog)")
+    for files in same_month_files["changelog"]:
+        if len(files) > 1:
+            new_changelog = condense_changelogs(files)
+            if dry_run:
+                display(new_changelog)
+            for file in files:
+                if dry_run:
+                    print("Delete", file)
+                else:
+                    os.remove(file)
+
+    print("- same month (without changelog)")
+    for files in same_month_files["data"]:
+        for file in files[:-1]:
+            if dry_run:
+                print("Delete", file)
+            else:
+                os.remove(file)
         if dry_run:
-            print(file)
-        else:
-            os.remove(file)
+            print("Keep", files[-1])
 
+    print("- Last month (with changelog)")
+    if (files := last_month_files["changelog"]) and (len(files) > 1):
+        new_changelog = condense_changelogs(files)
+        if dry_run:
+            display(new_changelog)
+        for file in last_month_files["changelog"]:
+            if dry_run:
+                print("Delete", file)
+            else:
+                os.remove(file)
+
+    print("- Last month (without changelog)")
+    if files := last_month_files["data"]:
+        for file in files[:-1]:
+            if dry_run:
+                print("Delete", file)
+            else:
+                os.remove(file)
+        if dry_run:
+            print("Keep", files[-1])
 
 # Data formating
 
@@ -1104,9 +1268,9 @@ revisions_query_action = (
 )
 ask_query_action = "?action=ask&format=json&query="
 askargs_query_action = "?action=askargs&format=json&conditions="
-categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle="
+categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:"
 redirects_query_action = "?action=query&format=json&redirects=True&titles="
-
+backlinks_query_action = "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
 
 # Functions
 def extract_results(response: requests.Response):
@@ -1523,6 +1687,68 @@ def fetch_properties(
 
     return df
 
+def fetch_redirects(titles: List[str]):
+    """
+    TODO
+    """
+    results = {}
+    iterator = trange(
+        np.ceil(len(titles) / 50).astype(int), desc="Redirects", leave=False
+    )
+    for i in iterator:
+        first = i * 50
+        last = (i + 1) * 50
+        target_titles = "|".join(titles[first:last])
+        response = requests.get(
+            base_url + redirects_query_action + target_titles, headers=http_headers
+        ).json()
+        redirects = response["query"]["redirects"]
+        for redirect in redirects:
+            results[redirect.get("from", "")] = redirect.get("to", "")
+
+    return results
+
+
+def fetch_backlinks(titles: List[str]):
+    """
+    TODO
+    """
+    results = {}
+    iterator = tqdm(titles, desc="Backlinks", leave=False)
+    for target_title in iterator:
+        iterator.set_postfix(title=target_title)
+        response = requests.get(
+            base_url + backlinks_query_action + target_title, headers=http_headers
+        ).json()
+        backlinks = response["query"]["backlinks"]
+        for backlink in backlinks:
+            if re.match(r"^[a-zA-Z]+$", backlink["title"]) and backlink[
+                "title"
+            ] not in target_title.split(" "):
+                results[backlink["title"]] = target_title
+
+    return results
+
+
+## Rarities dictionary
+
+def fetch_rarities_dict(rarities_list: List[str] = []):
+    """
+    TODO
+    """
+    words, acronyms = separate_words_and_acronyms(rarities_list)
+    if len(rarities_list)>0:
+        print(f"Words: {words}")
+        print(f"Acronyms: {acronyms}")
+    
+    titles = fetch_categorymembers(category="Rarities", namespace=0)["title"]
+    words = words + titles.tolist()
+    rarity_backlinks = fetch_backlinks(words)
+    rarity_redirects = fetch_redirects(acronyms)
+    rarity_dict = rarity_backlinks | rarity_redirects
+
+    return rarity_dict
+
 
 ## Bandai
 
@@ -1881,9 +2107,9 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
     errata = errata.lower()
     valid = {"name", "type", "all"}
     categories = {
-        "all": "Category:Card Errata",
-        "type": "Category:Cards with card type errata",
-        "name": "Category:Cards with name errata",
+        "all": "Card Errata",
+        "type": "Cards with card type errata",
+        "name": "Cards with name errata",
     }
     if errata not in valid:
         raise ValueError("results: errata must be one of %r." % valid)
@@ -1943,9 +2169,9 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     debug = kwargs.get("debug", False)
     valid_cg = cg.value
     if valid_cg == "CG":
-        category = ["Category:TCG Set Card Lists", "Category:OCG Set Card Lists"]
+        category = ["TCG Set Card Lists", "OCG Set Card Lists"]
     else:
-        category = f"Category:{valid_cg}%20Set%20Card%20Lists"
+        category = f"{valid_cg}%20Set%20Card%20Lists"
 
     print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
@@ -2833,7 +3059,7 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    # cleanup_data()
+    # cleanup_data(dry_run=True)
 
 
 # ========= #

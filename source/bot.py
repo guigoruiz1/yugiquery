@@ -14,8 +14,6 @@ __maintainer__ = yq.__maintainer__
 __email__ = yq.__email__
 __status__ = yq.__status__
 
-# from yugiquery import os, glob, subprocess, io, re, json, Enum, datetime, timezone, git, pd, dotenv_values
-
 # Native python packages
 import argparse
 import asyncio
@@ -504,10 +502,10 @@ async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
         (cards["Card type"] == "Monster Card")
         & (cards["Primary type"] != "Monster Token")
     ][MONSTER_STATS].set_index("Name")
-    monsters = monsters.applymap(
+    monsters = monsters.map(
         lambda x: x if x != "?" else random.randrange(0, 51) * 100
     )
-    monsters = monsters.applymap(pd.to_numeric, errors="coerce").fillna(0).reset_index()
+    monsters = monsters.map(pd.to_numeric, errors="coerce").fillna(0).reset_index()
 
     # Shuffle the monsters and select the first one as the initial winner
     monsters = monsters.sample(frac=1).reset_index(drop=True)
