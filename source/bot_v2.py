@@ -36,10 +36,9 @@ from dotenv import dotenv_values
 from tqdm.auto import tqdm, trange
 
 # Telegram
+import telegram
 from telegram import Update
-from telegram import __version__ as telegram_version
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackContext
 # from tqdm.contrib.telegram import tqdm as telegram_pbar
 
 # Discord
@@ -84,6 +83,11 @@ def load_secrets_with_args(args):
         secrets = secrets | loaded_secrets
 
     return secrets
+
+def escape_chars(string):
+    for char in ['_', '.', '-', '+', '#', '@', '=']:
+        string = string.replace(char, '\\'+char)
+    return string
 
 # ============== #
 # Bot Superclass #
@@ -152,7 +156,7 @@ class Bot:
         except:
             return "Abort failed"
 
-    def benchmark(self, update, context):
+    def benchmark(self):
         """
         Returns the average time each report takes to complete and the latest time for each report.
     
@@ -339,7 +343,7 @@ class Bot:
 
 
     # PENDING
-    async def run(self, callback, report: Reports = Reports.All):
+    async def run(self, callback, channel_id, report: Reports = Reports.All, progress_bar = None):
         """
         Runs a YugiQuery workflow by launching a separate thread and monitoring its progress.
         The progress is reported back to the Telegram chat where the command was issued.
@@ -351,14 +355,14 @@ class Bot:
     
         def progress_handler(iterable=None, API_status: bool = True, **kwargs):
             queue.put(API_status)
-            # if iterable and ctx.channel.id != int(secrets["DISCORD_CHANNEL_ID"]):
-            #     return discord_pbar(
-            #         iterable,
-            #         token=secrets["DISCORD_TOKEN"],
-            #         channel_id=ctx.channel.id,
-            #         file=io.StringIO(),
-            #         **kwargs,
-            #     )
+            if iterable and (channel_id != self.channel) and (progress_bar is not None):
+                 return progress_bar(
+                    iterable,
+                    token=self.token,
+                    channel_id=channel_id,
+                    file=io.StringIO(),
+                    **kwargs,
+                )
     
         try:
             self.process = mp.Process(target=yq.run, args=[report.value, progress_handler, True])
@@ -406,14 +410,14 @@ class Telegram(Bot):
     def run(self):
         self.application.run_polling()
 
-          
+        
     # ======== #
     # Commands #
     # ======== #
            
     def register_commands(self):
 
-        async def shutdown(update, context):
+        async def shutdown(update: Update, context: CallbackContext):
             """
             Shuts down the bot gracefully by sending a message and stopping the polling.
         
@@ -424,8 +428,7 @@ class Telegram(Bot):
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
     
-        # Pending
-        async def run(update, context, report: self.Reports = self.Reports.All):
+        async def run(update: Update, context: CallbackContext, report: self.Reports = self.Reports.All):
             """
             Runs a YugiQuery workflow by launching a separate thread and monitoring its progress.
             The progress is reported back to the Telegram chat where the command was issued.
@@ -438,8 +441,8 @@ class Telegram(Bot):
             def callback(content):
                 nonlocal original_response
                 original_response.edit_text(content)
-                            
-            response = await self.super().run(callback=callback, report=report)
+               
+            response = await self.run(callback=callback, report=report, channel_id = update.effective_chat.id, progress_bar = telegram_pbar)
             if error in response:
                 await context.bot.send_message(chat_id=update.effective_chat.id, text = response["error"])
                 # Reset cooldown in case query did not complete
@@ -448,7 +451,7 @@ class Telegram(Bot):
                 await context.bot.send_message(chat_id=update.effective_chat.id, text = response["content"])
             
         
-        async def abort(update, context):
+        async def abort(update: Update, context: CallbackContext):
             """
             Aborts a running YugiQuery workflow by terminating the thread.
         
@@ -457,11 +460,11 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Aborting...")
-            response = self.super().abort()
+            response = self.abort()
             await original_response.edit_text(response)
         
         
-        async def benchmark(update, context):
+        async def benchmark(update: Update, context: CallbackContext):
             """
             Returns the average time each report takes to complete and the latest time for each report.
         
@@ -469,7 +472,7 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            response = self.super().benchmark()
+            response = self.benchmark()
             if "error" in response: 
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
                 return
@@ -481,10 +484,10 @@ class Telegram(Bot):
             for key, value in response.items():
                 message += f"<b>{key}</b>\n{value}\n\n"
         
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=ParseMode.HTML)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
         
         
-        async def latest(update, context):
+        async def latest(update: Update, context: CallbackContext):
             """
             Displays the timestamp of the latest local and live reports generated.
             Reads the report files from `yq.PARENT_DIR` and queries the GitHub API
@@ -495,11 +498,11 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            response = self.super().latest()
+            response = self.latest()
         
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.HTML)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode="HTML")
         
-        async def links(update, context):
+        async def links(update: Update, context: CallbackContext):
             """
             Displays the links to the YugiQuery webpage, repository, and data.
             Returns the links as an embedded message in the channel.
@@ -508,10 +511,10 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            response = self.super().links()
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["title"]+"\n"+response["description"], parse_mode=ParseMode.MARKDOWN)
+            response = self.links()
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["title"]+"\n"+response["description"], parse_mode="MarkdownV2")
         
-        async def data(update, context):
+        async def data(update: Update, context: CallbackContext):
             """
             This command sends the latest data files available in the repository as direct download links.
         
@@ -520,17 +523,17 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             
-            response=self.super().data()
+            response=self.data()
             if "error" in response:
                 message = response["error"]
             else:
                 message = response["title"]+"\n"+response["description"]+"\n\n"
                 message += response["data"]+"\n"+response["changelog"]
                 
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode=ParseMode.MARKDOWN)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode="MarkdownV2")
     
         # PENDING
-        async def ping(update, context):
+        async def ping(update: Update, context: CallbackContext):
             """
             This command tests the bot's connection latency and sends the result back to the user.
         
@@ -538,14 +541,15 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            latency_ms = round(context.bot.latency * 1000, 1)
-            response = f"🏓 Pong! {latency_ms}ms"
+            start_time = datetime.now()
+            original_message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Calculating latency...")
+            end_time = datetime.now()
+            latency_ms = (end_time - start_time).total_seconds()*1e3
+            response = f"🏓 Pong! {round(latency_ms,1)}ms"
+            await original_message.edit_text(response)
         
-            # Use `update.message.reply_text` to send an ephemeral message
-            update.message.reply_text(response, quote=True)
         
-        
-        async def battle(update, context, atk_weight: int = 4, def_weight: int = 1):
+        async def battle(update: Update, context: CallbackContext, atk_weight: int = 4, def_weight: int = 1):
             """
             This function loads the list of all Monster Cards and simulates a battle between them.
             ...
@@ -558,10 +562,11 @@ class Telegram(Bot):
             """
             original_message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Simulating a battle... ⚔️")
             async def callback(first):
+                first = escape_chars(first)
                 await original_message.edit_text(
-                    f"First contestant: {first}\nStill battling... ⏳", parse_mode=ParseMode.MARKDOWN
+                    f"**First contestant**: {first}\n\nStill battling\.\.\. ⏳", parse_mode="MarkdownV2"
                 )
-            response = await self.super().battle(callback=callback, atk_weight=atk_weight, def_weight=def_weight)
+            response = await self.battle(callback=callback, atk_weight=atk_weight, def_weight=def_weight)
             if "error" in response:
                 message = response["error"]
             else:
@@ -576,12 +581,13 @@ class Telegram(Bot):
                     f"**Wins**: {longest[1]}\n"
                     f"**Stats when defeated**: ATK={longest[0]['ATK']}, DEF={longest[0]['DEF']}"
                 )
+            
+            message = escape_chars(message)
             await original_message.edit_text(
-                message, parse_mode=ParseMode.MARKDOWN
+                message, parse_mode="MarkdownV2"
             )
             
-        # PENDING
-        async def status(update, context):
+        async def status(update: Update, context: CallbackContext):
             """
             Displays information about the bot, including uptime, guilds, users, channels, available commands,
             bot version, discord.py version, python version, and operating system.
@@ -593,73 +599,54 @@ class Telegram(Bot):
             uptime = datetime.now() - self.start_time
         
             app_info = await context.bot.get_me()
-            admin = app_info.username
-            # users = 0
-            # channels = 0
-            # guilds = await context.bot.get_chat_administrators(update.effective_chat.id)
-            # chats = context.bot.get_chats()
-            # for chat in chats:
-            #     users += await chat.get_members_count()
-            #     channels += 1  # Assuming each chat is a channel, adjust as needed
-        
-            # if len(context.bot.commands):
-            #     commands_info = "\n".join(sorted([i.command for i in context.bot.commands]))
-        
-            message = (
-                f"**Admin**: {admin}\n"
-                f"**Uptime**: {uptime}\n"
-                # f"**Guilds**: {guilds}\n"
-                # f"**Users**: {users}\n"
-                # f"**Channels**: {channels}\n"
-                # f"**Available Commands**: {commands_info}\n"
-                f"**Bot Version**: {__version__}\n"
-                f"**Telegram Bot API Version**: {telegram_version}\n"
-                f"**Python Version**: {platform.python_version()}\n"
-                f"**Operating System**: {platform.system()} {platform.version()}"
-            )
-        
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=ParseMode.MARKDOWN)
+            bot_name = app_info.username
 
-            # Register the command handlers
-            self.application.add_handler(CommandHandler("shutdown", shutdown))#, filters=filters.User(username='guigoruiz1')))
-            self.application.add_handler(CommandHandler("run", run, has_args=True, block=False))
-            self.application.add_handler(CommandHandler("abort", abort))
-            self.application.add_handler(CommandHandler("benchmark", benchmark))
-            self.application.add_handler(CommandHandler("latest", latest))
-            self.application.add_handler(CommandHandler("links", links))
-            self.application.add_handler(CommandHandler("data", data))
-            self.application.add_handler(CommandHandler("ping", ping))
-            self.application.add_handler(CommandHandler("battle", battle, has_args=True))
-            self.application.add_handler(CommandHandler("status", status))
+            message = (
+                f"**Bot name**: {bot_name}\n"
+                f"**Uptime**: {uptime}\n"
+                f"**Bot Version**: {__version__}\n"
+                f"**Telegram Bot API Version**: {telegram.__version__}\n"
+                f"**Python Version**: {platform.python_version()}\n"
+                f"**Operating System:**\n"
+                f" - Name: {platform.system()}\n"
+                f" - Release: {platform.release()}\n"
+                f" - Machine: {platform.machine()}\n"
+                f" - Version: {platform.version()}"
+            ).replace('_','\_').replace('.','\.').replace('-','\-').replace('+','\+').replace('#','\#')
+            for char in ['_', '.', '-', '+', '#']:
+                message.replace(char, '\\'+char)
+        
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
+
+        # Register the command handlers
+        self.application.add_handler(CommandHandler("shutdown", shutdown, filters=filters.Chat(chat_id=int(self.channel))))
+        self.application.add_handler(CommandHandler("run", run, block=False))
+        self.application.add_handler(CommandHandler("abort", abort))
+        self.application.add_handler(CommandHandler("benchmark", benchmark))
+        self.application.add_handler(CommandHandler("latest", latest))
+        self.application.add_handler(CommandHandler("links", links))
+        self.application.add_handler(CommandHandler("data", data))
+        self.application.add_handler(CommandHandler("ping", ping))
+        self.application.add_handler(CommandHandler("battle", battle))
+        self.application.add_handler(CommandHandler("status", status))
     
     
     # ====== #
     # Events #
     # ====== #
 
+    # PENDING
     def register_events(self):
-        # PENDING
-        async def on_ready(update, context):
-            """
-            Event that runs when the bot is ready to start receiving events and commands.
-            Prints out the bot's username and the guilds it's connected to.
-            
-            Parameters:
-                update (telegram.Update): The update object.
-                context (telegram.ext.CallbackContext): The callback context.
-            """
-            print("You are logged as {0.username}".format(context.bot))
-            # Assuming tree is a custom attribute or functionality, you may need to adapt it for Telegram
-            await context.bot.tree.sync()
-        
-            print(f"{context.bot.username} is connected to the following chats:")
-            for chat in context.bot.get_chats():
-                print(f"{chat.title} (id: {chat.id})")
-                members = "\n - ".join([member.username for member in chat.get_members()])
-                print(f"Chat Members:\n - {members}")
+        # async def start(update: Update, context: CallbackContext):
+        #     """Send a message when the command /start is issued."""
+        #     user = update.effective_user
+        #     await update.message.reply_html(
+        #         rf"Hi {user.mention_html()}!",
+        #         reply_markup=ForceReply(selective=True),
+        #     )
     
-        # PENDING
-        async def on_command_error(update, context):
+    
+        async def on_command_error(update: Update, context: CallbackContext):
             """
             Event that runs whenever a command invoked by the user results in an error.
             Sends a message to the chat indicating the type of error that occurred.
@@ -679,8 +666,7 @@ class Telegram(Bot):
             #     elif isinstance(error, CheckFailure):
             #         await update.message.reply_text(f"Check failure error: {error}", quote=True)
 
-        
-        self.application.add_handler(MessageHandler(filters.StatusUpdate._NewChatMembers, on_ready))
+        # self.application.add_handler(CommandHandler("start", start))
         self.application.add_error_handler(on_command_error)
 
 # ==================== #
@@ -789,7 +775,7 @@ class Discord(Bot, commands.Bot):
                 nonlocal original_response
                 original_response.edit(content=content)
                 
-            response = await self.run(callback = callback, report = report)
+            response = await self.run(callback = callback, report = report, channel_id = str(ctx.channel.id))
             if error in response:
                 await original_response.send(
                     content=response["error"]
@@ -947,7 +933,7 @@ class Discord(Bot, commands.Bot):
         @self.hybrid_command(
             name="ping", description="Test the bot connection latency", with_app_command=True
         )
-        async def ping(self, ctx):
+        async def ping(ctx):
             """
             This command tests the bot's connection latency and sends the result back to the user.
         
@@ -1073,7 +1059,7 @@ class Discord(Bot, commands.Bot):
             embed.add_field(name="Python Version", value=platform.python_version(), inline=True)
             embed.add_field(
                 name="Operating System",
-                value=f"System: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}",
+                value=f"Name: {platform.system()}\nRelease: {platform.release()}\nMachine: {platform.machine()}\nVersion: {platform.version()}",
                 inline=False,
             )
             await ctx.send("**:information_source:** Information about this bot:", embed=embed)
