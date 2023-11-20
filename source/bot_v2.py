@@ -38,8 +38,8 @@ from tqdm.auto import tqdm, trange
 # Telegram
 import telegram
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackContext
-# from tqdm.contrib.telegram import tqdm as telegram_pbar
+from telegram.ext import ApplicationBuilder, CommandHandler, filters, CallbackContext
+from tqdm.contrib.telegram import tqdm as telegram_pbar
 
 # Discord
 import discord
@@ -227,7 +227,7 @@ class Bot:
         try:
             live_value = ""
             for report in reports:
-                result = pd.read_json(f"{repository_api_url}/commits?path={os.path.basename(report)}")
+                result = pd.read_json(f"{self.repository_api_url}/commits?path={os.path.basename(report)}")
                 timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
                 live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
     
@@ -254,7 +254,7 @@ class Bot:
         This command sends the latest data files available in the repository as direct download links.
         """
         try:
-            files = pd.read_json(f"{repository_api_url}/contents/data")
+            files = pd.read_json(f"{self.repository_api_url}/contents/data")
             files = files[files["name"].str.endswith(".bz2")]  # Remove .json files from lists
             files["Group"] = files["name"].apply(
                 lambda x: re.search(r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x).group(1)
@@ -343,7 +343,7 @@ class Bot:
 
 
     # PENDING
-    async def run(self, callback, channel_id, report: Reports = Reports.All, progress_bar = None):
+    async def run_query(self, callback, channel_id, report: Reports = Reports.All, progress_bar = None):
         """
         Runs a YugiQuery workflow by launching a separate thread and monitoring its progress.
         The progress is reported back to the Telegram chat where the command was issued.
@@ -367,9 +367,9 @@ class Bot:
         try:
             self.process = mp.Process(target=yq.run, args=[report.value, progress_handler, True])
             self.process.start()
-            callback("Running...")
+            await callback("Running...")
         except:
-            callback("Initialization failed!")
+            await callback("Initialization failed!")
     
         async def await_result():
             while self.process.is_alive():
@@ -377,7 +377,7 @@ class Bot:
             API_error = False
             while not queue.empty():
                 API_error = not queue.get()
-            return process.exitcode, API_error
+            return self.process.exitcode, API_error
     
         exitcode, API_error = await await_result()
         self.process.close()
@@ -438,15 +438,15 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
-            def callback(content):
+            async def callback(content):
                 nonlocal original_response
-                original_response.edit_text(content)
+                await original_response.edit_text(content)
                
             response = await self.run(callback=callback, report=report, channel_id = update.effective_chat.id, progress_bar = telegram_pbar)
-            if error in response:
+            if "error" in response:
                 await context.bot.send_message(chat_id=update.effective_chat.id, text = response["error"])
                 # Reset cooldown in case query did not complete
-                ctx.command.reset_cooldown(ctx)
+                # ctx.command.reset_cooldown(ctx)
             else:
                 await context.bot.send_message(chat_id=update.effective_chat.id, text = response["content"])
             
@@ -477,12 +477,9 @@ class Telegram(Bot):
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
                 return
         
-            message = response.pop("title")
-            message += "\n"
-            message += response.pop("description")
-            message += "\n\n"
+            message = rf"<b>{response.pop('title')}</b><p>{response.pop('description')}<p><p>"
             for key, value in response.items():
-                message += f"<b>{key}</b>\n{value}\n\n"
+                message += f"<b>{key}</b><p>{value}<p><p>"
         
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
         
@@ -499,8 +496,11 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             response = self.latest()
-        
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode="HTML")
+            message = rf"<b>{response['title']}</b><p>{response['description']}<p><p>{response['local']}"
+            if "live" in message:
+                message+=response['live']
+
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
         
         async def links(update: Update, context: CallbackContext):
             """
@@ -512,7 +512,8 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             response = self.links()
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["title"]+"\n"+response["description"], parse_mode="MarkdownV2")
+            message = fr"<b>{response['title']}</b><p>{response['description']}"
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
         
         async def data(update: Update, context: CallbackContext):
             """
@@ -527,10 +528,9 @@ class Telegram(Bot):
             if "error" in response:
                 message = response["error"]
             else:
-                message = response["title"]+"\n"+response["description"]+"\n\n"
-                message += response["data"]+"\n"+response["changelog"]
+                message = fr"<b>{response['title']}</b><p>{response['description']}<p><p>Data:<p>{response['data']}<p>Changelog:<p>{response['changelog']}"
                 
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response, parse_mode="MarkdownV2")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
     
         # PENDING
         async def ping(update: Update, context: CallbackContext):
@@ -561,10 +561,12 @@ class Telegram(Bot):
                 def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
             """
             original_message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Simulating a battle... ⚔️")
+            callback_first = None
             async def callback(first):
-                first = escape_chars(first)
+                nonlocal callback_first 
+                callback_first = first
                 await original_message.edit_text(
-                    f"**First contestant**: {first}\n\nStill battling\.\.\. ⏳", parse_mode="MarkdownV2"
+                    f"<b>First contestant</b>: {first}<p><p>Still battling... ⏳", parse_mode="HTML"
                 )
             response = await self.battle(callback=callback, atk_weight=atk_weight, def_weight=def_weight)
             if "error" in response:
@@ -573,18 +575,17 @@ class Telegram(Bot):
                 winner = response["winner"]
                 longest = response["longest"]
                 message = (
-                    f"**Winner**: {winner[0]['Name']}\n"
-                    f"**Wins**: {winner[1]}\n"
-                    f"**Stats remaining**: ATK={winner[0]['ATK']}, DEF={winner[0]['DEF']}\n"
-                    f"\n"
-                    f"**Longest streak**: {longest[0]['Name']}\n"
-                    f"**Wins**: {longest[1]}\n"
-                    f"**Stats when defeated**: ATK={longest[0]['ATK']}, DEF={longest[0]['DEF']}"
+                    f"<b>First contestant</b>: {callback_first}<p><p>"
+                    f"<b>Winner</b>: {winner[0]['Name']}<p>"
+                    f"<b>Wins</b>: {winner[1]}<p>"
+                    f"<b>Stats remaining</b>: ATK={winner[0]['ATK']}, DEF={winner[0]['DEF']}<p><p>"
+                    f"<b>Longest streak</b>: {longest[0]['Name']}<p>"
+                    f"<b>Wins<b>: {longest[1]}<p>"
+                    f"<b>Stats when defeated<b>: ATK={longest[0]['ATK']}, DEF={longest[0]['DEF']}"
                 )
             
-            message = escape_chars(message)
             await original_message.edit_text(
-                message, parse_mode="MarkdownV2"
+                message, parse_mode="HTML"
             )
             
         async def status(update: Update, context: CallbackContext):
@@ -602,21 +603,19 @@ class Telegram(Bot):
             bot_name = app_info.username
 
             message = (
-                f"**Bot name**: {bot_name}\n"
-                f"**Uptime**: {uptime}\n"
-                f"**Bot Version**: {__version__}\n"
-                f"**Telegram Bot API Version**: {telegram.__version__}\n"
-                f"**Python Version**: {platform.python_version()}\n"
-                f"**Operating System:**\n"
-                f" - Name: {platform.system()}\n"
-                f" - Release: {platform.release()}\n"
-                f" - Machine: {platform.machine()}\n"
-                f" - Version: {platform.version()}"
-            ).replace('_','\_').replace('.','\.').replace('-','\-').replace('+','\+').replace('#','\#')
-            for char in ['_', '.', '-', '+', '#']:
-                message.replace(char, '\\'+char)
+                f"<b>Bot name</b>: {bot_name}<p>"
+                f"<b>Uptime</b>: {uptime}<p>"
+                f"<b>Bot Version</b>: {__version__}<p>"
+                f"<b>Telegram Bot API Version</b>: {telegram.__version__}<p>"
+                f"<b>Python Version<p>: {platform.python_version()}<p>"
+                f"</b>Operating System:</b><p><ul>"
+                f"<li> <b>Name:</b> {platform.system()}</li>"
+                f"<li> <b>Release:</b> {platform.release()}</li>"
+                f"<li> <b>Machine:</b> {platform.machine()}</li>"
+                f"<li> <b>Version:</b> {platform.version()}</li></ul>"
+            )
         
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
 
         # Register the command handlers
         self.application.add_handler(CommandHandler("shutdown", shutdown, filters=filters.Chat(chat_id=int(self.channel))))
@@ -657,14 +656,15 @@ class Telegram(Bot):
             """
             error = context.error
             print(error)
-            # if isinstance(error, CommandError):
-            #     # Assuming the exceptions are adapted for Telegram, you may need to customize these messages
-            #     if isinstance(error, CommandOnCooldown):
-            #         await update.message.reply_text(f"Cooldown error: {error}", quote=True)
-            #     elif isinstance(error, NotOwner):
-            #         await update.message.reply_text(f"Not owner error: {error}", quote=True)
-            #     elif isinstance(error, CheckFailure):
-            #         await update.message.reply_text(f"Check failure error: {error}", quote=True)
+            await update.message.reply_text(f"Error: {error}")
+
+            # # Assuming the exceptions are adapted for Telegram, you may need to customize these messages
+            # if isinstance(error, CommandOnCooldown):
+            #     await update.message.reply_text(f"Cooldown error: {error}", quote=True)
+            # elif isinstance(error, NotOwner):
+            #     await update.message.reply_text(f"Not owner error: {error}", quote=True)
+            # elif isinstance(error, CheckFailure):
+            #     await update.message.reply_text(f"Check failure error: {error}", quote=True)
 
         # self.application.add_handler(CommandHandler("start", start))
         self.application.add_error_handler(on_command_error)
@@ -771,12 +771,12 @@ class Discord(Bot, commands.Bot):
             original_response = await ctx.send(
                 content="Initializing...", ephemeral=True, delete_after=60
             )
-            def callback(content):
+            async def callback(content):
                 nonlocal original_response
-                original_response.edit(content=content)
+                await original_response.edit(content=content)
                 
-            response = await self.run(callback = callback, report = report, channel_id = str(ctx.channel.id))
-            if error in response:
+            response = await self.run_query(callback = callback, report = report, channel_id = str(ctx.channel.id))
+            if "error" in response:
                 await original_response.send(
                     content=response["error"]
                 )
@@ -823,7 +823,7 @@ class Discord(Bot, commands.Bot):
             """
             await ctx.defer()
             response = self.benchmark()
-            if error in response:
+            if "error" in response:
                 await ctx.send(
                     response["error"]
                 )
