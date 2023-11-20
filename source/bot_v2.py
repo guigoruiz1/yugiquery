@@ -307,7 +307,7 @@ class Bot:
         monsters = monsters.map(
             lambda x: x if x != "?" else random.randrange(0, 51) * 100
         )
-        monsters = monsters.map(pd.to_numeric, errors="coerce").fillna(0).reset_index()
+        monsters = monsters.map(pd.to_numeric, errors="coerce").fillna(0).astype(int).reset_index()
     
         # Shuffle the monsters and select the first one as the initial winner
         monsters = monsters.sample(frac=1).reset_index(drop=True)
@@ -477,11 +477,13 @@ class Telegram(Bot):
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
                 return
         
-            message = rf"<b>{response.pop('title')}</b><p>{response.pop('description')}<p><p>"
+            message = f"*{response.pop('title')}*\n{response.pop('description')}\n\n"
             for key, value in response.items():
-                message += f"<b>{key}</b><p>{value}<p><p>"
+                message += f"*{key}*\n{value}\n\n"
+
+            message = escape_chars(message)
         
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
         
         
         async def latest(update: Update, context: CallbackContext):
@@ -496,11 +498,12 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             response = self.latest()
-            message = rf"<b>{response['title']}</b><p>{response['description']}<p><p>{response['local']}"
+            message = f"*{response['title']}*\n{response['description']}\n\n*Local:*\n{response['local']}"
             if "live" in message:
-                message+=response['live']
+                message+=f"\n*Live:*\n{response['live']}"
 
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
+            message = escape_chars(message)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
         
         async def links(update: Update, context: CallbackContext):
             """
@@ -512,8 +515,9 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             response = self.links()
-            message = fr"<b>{response['title']}</b><p>{response['description']}"
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
+            message = f"*{response['title']}*\n{response['description']}"
+            message = escape_chars(message)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
         
         async def data(update: Update, context: CallbackContext):
             """
@@ -528,9 +532,10 @@ class Telegram(Bot):
             if "error" in response:
                 message = response["error"]
             else:
-                message = fr"<b>{response['title']}</b><p>{response['description']}<p><p>Data:<p>{response['data']}<p>Changelog:<p>{response['changelog']}"
-                
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
+                message = f"*{response['title']}*\n{response['description']}\n\nData:\n{response['data']}\nChangelog:\n{response['changelog']}"
+            
+            message = escape_chars(message)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
     
         # PENDING
         async def ping(update: Update, context: CallbackContext):
@@ -564,10 +569,9 @@ class Telegram(Bot):
             callback_first = None
             async def callback(first):
                 nonlocal callback_first 
+                first = escape_chars(first)
                 callback_first = first
-                await original_message.edit_text(
-                    f"<b>First contestant</b>: {first}<p><p>Still battling... ⏳", parse_mode="HTML"
-                )
+                await original_message.edit_text(f"*First contestant*: {first}\n\nStill battling\.\.\. ⏳", parse_mode="MarkdownV2")
             response = await self.battle(callback=callback, atk_weight=atk_weight, def_weight=def_weight)
             if "error" in response:
                 message = response["error"]
@@ -575,17 +579,19 @@ class Telegram(Bot):
                 winner = response["winner"]
                 longest = response["longest"]
                 message = (
-                    f"<b>First contestant</b>: {callback_first}<p><p>"
-                    f"<b>Winner</b>: {winner[0]['Name']}<p>"
-                    f"<b>Wins</b>: {winner[1]}<p>"
-                    f"<b>Stats remaining</b>: ATK={winner[0]['ATK']}, DEF={winner[0]['DEF']}<p><p>"
-                    f"<b>Longest streak</b>: {longest[0]['Name']}<p>"
-                    f"<b>Wins<b>: {longest[1]}<p>"
-                    f"<b>Stats when defeated<b>: ATK={longest[0]['ATK']}, DEF={longest[0]['DEF']}"
+                    f"*First contestant*: {callback_first}\n\n"
+                    f"*Winner*: {winner[0]['Name']}\n"
+                    f"*Wins*: {winner[1]}\n"
+                    f"*Stats remaining*: ATK={winner[0]['ATK']}, DEF={winner[0]['DEF']}\n\n"
+                    f"*Longest streak*: {longest[0]['Name']}\n"
+                    f"*Wins*: {longest[1]}\n"
+                    f"*Stats when defeated*: ATK={longest[0]['ATK']}, DEF={longest[0]['DEF']}"
                 )
+
+            message = escape_chars(message)
             
             await original_message.edit_text(
-                message, parse_mode="HTML"
+                message, parse_mode="MarkdownV2"
             )
             
         async def status(update: Update, context: CallbackContext):
@@ -603,19 +609,20 @@ class Telegram(Bot):
             bot_name = app_info.username
 
             message = (
-                f"<b>Bot name</b>: {bot_name}<p>"
-                f"<b>Uptime</b>: {uptime}<p>"
-                f"<b>Bot Version</b>: {__version__}<p>"
-                f"<b>Telegram Bot API Version</b>: {telegram.__version__}<p>"
-                f"<b>Python Version<p>: {platform.python_version()}<p>"
-                f"</b>Operating System:</b><p><ul>"
-                f"<li> <b>Name:</b> {platform.system()}</li>"
-                f"<li> <b>Release:</b> {platform.release()}</li>"
-                f"<li> <b>Machine:</b> {platform.machine()}</li>"
-                f"<li> <b>Version:</b> {platform.version()}</li></ul>"
+                f"*Bot name*: {bot_name}\n"
+                f"*Uptime*: {uptime}\n"
+                f"*Bot Version*: {__version__}\n"
+                f"*Telegram Bot API Version*: {telegram.__version__}\n"
+                f"*Python Version*: {platform.python_version()}\n"
+                f"*Operating System:*\n"
+                f"- *Name:* {platform.system()}\n"
+                f"- *Release:* {platform.release()}\n"
+                f"- *Machine:* {platform.machine()}\n"
+                f"- *Version:* {platform.version()}"
             )
-        
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="HTML")
+            message = escape_chars(message)
+            
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         # Register the command handlers
         self.application.add_handler(CommandHandler("shutdown", shutdown, filters=filters.Chat(chat_id=int(self.channel))))
