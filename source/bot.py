@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 
 # ======= #
@@ -44,7 +46,6 @@ from tqdm.contrib.telegram import tqdm as telegram_pbar
 # Discord
 import discord
 from discord.ext import commands
-
 # from tqdm.contrib.discord import tqdm as discord_pbar
 
 
@@ -118,10 +119,10 @@ class Bot:
 
     def load_repo_vars(self):
         # Open the repository
-        repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+        self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
 
         # Get the remote repository
-        remote = repo.remote()
+        remote = self.repo.remote()
         remote_url = remote.url
 
         # Extract the GitHub page URL from the remote URL
@@ -158,6 +159,7 @@ class Bot:
         """
         try:
             self.process.terminate()
+            self.repo.git.restore(os.path.join(yq.SCRIPT_DIR,"*.ipynb"))
             return "Aborted"
         except:
             return "Abort failed"
@@ -339,7 +341,7 @@ class Bot:
 
         await callback(winner[0]["Name"])
 
-        for i in trange(1, len(monsters)):
+        for i in range(1, len(monsters)):
             current_winner = (winner[0].copy(), winner[1])
             next_monster = monsters.iloc[i].copy()
             chosen_stat = random.choices(MONSTER_STATS[1:], weights=weights)[0]
@@ -417,12 +419,11 @@ class Bot:
             if exitcode is None:
                 return {"error": "Query execution failed!"}
             elif exitcode == 0:
-                return {"content", "Query execution completed!"}
+                return {"content": "Query execution completed!"}
             elif exitcode == -15:
-                return {"error", "Query execution aborted!"}
+                return {"error": "Query execution aborted!"}
             else:
                 return {"error": f"Query execution exited with exit code: {exitcode}"}
-
 
 # ===================== #
 # Telegram Bot Subclass #
@@ -431,7 +432,7 @@ class Bot:
 
 class Telegram(Bot):
     def __init__(self, token, channel):
-        super().__init__(token, channel)
+        Bot.__init__(self, token, channel)
         # Initialize the Telegram bot
         self.application = ApplicationBuilder().token(token).build()
         self.register_commands()
@@ -462,7 +463,6 @@ class Telegram(Bot):
         async def run(
             update: Update,
             context: CallbackContext,
-            report: self.Reports = self.Reports.All,
         ):
             """
             Runs a YugiQuery workflow by launching a separate thread and monitoring its progress.
@@ -472,27 +472,28 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            report = context.args[0] if context.args else self.Reports.All
             original_response = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Initializing..."
             )
 
             async def callback(content):
-                nonlocal original_response
                 await original_response.edit_text(content)
 
-            response = await self.run(
+            response = await self.run_query(
                 callback=callback,
                 report=report,
                 channel_id=update.effective_chat.id,
                 progress_bar=telegram_pbar,
             )
-            if "error" in response:
+            if "error" in response.keys():
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text=response["error"]
                 )
                 # Reset cooldown in case query did not complete
                 # ctx.command.reset_cooldown(ctx)
             else:
+                print(response)
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text=response["content"]
                 )
@@ -520,7 +521,7 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             response = self.benchmark()
-            if "error" in response:
+            if "error" in response.keys():
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text=response["error"]
                 )
@@ -582,7 +583,7 @@ class Telegram(Bot):
             """
 
             response = self.data()
-            if "error" in response:
+            if "error" in response.keys():
                 message = response["error"]
             else:
                 message = f"*{response['title']}*\n{response['description']}\n\nData:\n{response['data']}\nChangelog:\n{response['changelog']}"
@@ -613,8 +614,6 @@ class Telegram(Bot):
         async def battle(
             update: Update,
             context: CallbackContext,
-            atk_weight: int = 4,
-            def_weight: int = 1,
         ):
             """
             This function loads the list of all Monster Cards and simulates a battle between them.
@@ -623,9 +622,16 @@ class Telegram(Bot):
             Parameters:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
-                atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
-                def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
             """
+            # Create a dictionary with the provided arguments if they exist
+            provided_arguments = {}
+            if context.args and len(context.args) > 1:
+                try:
+                    provided_arguments['atk_weight'] = int(context.args[0])
+                    provided_arguments['def_weight'] = int(context.args[1])
+                except:
+                    pass
+    
             original_message = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Simulating a battle... ⚔️"
             )
@@ -640,9 +646,9 @@ class Telegram(Bot):
                 )
 
             response = await self.battle(
-                callback=callback, atk_weight=atk_weight, def_weight=def_weight
+                callback=callback, **provided_arguments
             )
-            if "error" in response:
+            if "error" in response.keys():
                 message = response["error"]
             else:
                 winner = response["winner"]
@@ -701,7 +707,7 @@ class Telegram(Bot):
             )
         )
         self.application.add_handler(CommandHandler("run", run, block=False))
-        self.application.add_handler(CommandHandler("abort", abort))
+        self.application.add_handler(CommandHandler("abort", abort, block=False))
         self.application.add_handler(CommandHandler("benchmark", benchmark))
         self.application.add_handler(CommandHandler("latest", latest))
         self.application.add_handler(CommandHandler("links", links))
@@ -723,6 +729,7 @@ class Telegram(Bot):
         #         rf"Hi {user.mention_html()}!",
         #         reply_markup=ForceReply(selective=True),
         #     )
+
 
         async def on_command_error(update: Update, context: CallbackContext):
             """
@@ -852,18 +859,17 @@ class Discord(Bot, commands.Bot):
             )
 
             async def callback(content):
-                nonlocal original_response
                 await original_response.edit(content=content)
 
             response = await self.run_query(
                 callback=callback, report=report, channel_id=str(ctx.channel.id)
             )
-            if "error" in response:
-                await original_response.send(content=response["error"])
+            if "error" in response.keys():
+                await ctx.channel.send(content=response["error"])
                 # Reset cooldown in case query did not complete
                 ctx.command.reset_cooldown(ctx)
             else:
-                await original_response.send(content=response["content"])
+                await ctx.channel.send(content=response["content"])
 
         @self.hybrid_command(
             name="abort",
@@ -901,7 +907,7 @@ class Discord(Bot, commands.Bot):
             """
             await ctx.defer()
             response = self.benchmark()
-            if "error" in response:
+            if "error" in response.keys():
                 await ctx.send(response["error"])
                 return
             title = response.pop("title")
@@ -988,7 +994,7 @@ class Discord(Bot, commands.Bot):
             """
             await ctx.defer()
             response = self.data()
-            if "error" in response:
+            if "error" in response.keys():
                 await ctx.send(response["error"])
 
             else:
@@ -1061,7 +1067,7 @@ class Discord(Bot, commands.Bot):
                 atk_weight=atk_weight, def_weight=def_weight, callback=callback
             )
 
-            if "error" in response:
+            if "error" in response.keys():
                 await ctx.send(
                     content="Cards data not found... Try again later.",
                     ephemeral=True,
