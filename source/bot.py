@@ -440,7 +440,7 @@ class Telegram(Bot):
 
     def run(self):
         print("Starting Telegram bot")
-        self.application.run_polling()
+        self.application.run_polling(stop_signals=None)
 
     # ======== #
     # Commands #
