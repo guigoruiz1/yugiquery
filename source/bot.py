@@ -33,6 +33,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 # PIP packages - installed by yugiquery
+import arrow
 import git
 import pandas as pd
 from dotenv import dotenv_values
@@ -47,7 +48,6 @@ from tqdm.contrib.telegram import tqdm as telegram_pbar
 # Discord
 import discord
 from discord.ext import commands
-
 # from tqdm.contrib.discord import tqdm as discord_pbar
 
 
@@ -479,7 +479,8 @@ class Bot:
             else:
                 return {"error": f"Query execution exited with exit code: {exitcode}"}
 
-
+    def uptime(self):
+        return arrow.get(self.start_time).humanize(arrow.utcnow(), only_distance=True)
 # ===================== #
 # Telegram Bot Subclass #
 # ===================== #
@@ -727,14 +728,12 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            uptime = datetime.now() - self.start_time
-
             app_info = await context.bot.get_me()
             bot_name = app_info.username
 
             message = (
                 f"*Bot name*: {bot_name}\n"
-                f"*Uptime*: {uptime}\n"
+                f"*Uptime*: {self.uptime()}\n"
                 f"*Bot Version*: {__version__}\n"
                 f"*Telegram Python library Version*: {telegram.__version__}\n"
                 f"*Telegram Bot API Version*: {telegram.__bot_api_version__}\n"
@@ -1163,8 +1162,6 @@ class Discord(Bot, commands.Bot):
             Args:
                 ctx (discord.ext.commands.Context): The context of the command.
             """
-            uptime = datetime.now() - self.start_time
-
             appInfo = await self.application_info()
             admin = appInfo.owner
             users = 0
@@ -1181,7 +1178,7 @@ class Discord(Bot, commands.Bot):
             embed.set_footer(text="Time to duel!")
             embed.set_thumbnail(url=ctx.me.avatar)
             embed.add_field(name="Admin", value=admin, inline=False)
-            embed.add_field(name="Uptime", value=uptime, inline=False)
+            embed.add_field(name="Uptime", value=self.uptime(), inline=False)
             embed.add_field(name="Guilds", value=guilds, inline=True)
             embed.add_field(name="Users", value=users, inline=True)
             embed.add_field(name="Channels", value=channels, inline=True)
