@@ -30,6 +30,7 @@ import re
 import subprocess
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 # PIP packages - installed by yugiquery
 import git
@@ -55,16 +56,16 @@ from discord.ext import commands
 
 
 # Data loaders
-def load_secrets_with_args(args):
+def load_secrets_with_args(args: Dict[str, Any]):
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file if necessary.
 
     Args:
-        args:
+        dict[str: Any]: A dictionary of secrets.
 
     Returns:
-        dict: A dictionary containing the loaded secrets.
+        Dict[str, str]: A dictionary containing the loaded secrets.
 
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
@@ -90,7 +91,7 @@ def load_secrets_with_args(args):
     return secrets
 
 
-def escape_chars(string: str, chars: list=["_", ".", "-", "+", "#", "@", "="]) -> str:
+def escape_chars(string: str, chars: List[str]=["_", ".", "-", "+", "#", "@", "="]):
     """
     Escapes specified characters in a given string by adding a backslash before each occurrence.
 
@@ -188,12 +189,12 @@ class Bot:
         except:
             return "Abort failed"
 
-    async def battle(self, callback, atk_weight: int = 4, def_weight: int = 1):
+    async def battle(self, callback: Callable, atk_weight: int = 4, def_weight: int = 1):
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
         Args:
-            callback: A callback function which receives a string argument.
+            callback: Callable: A callback function which receives a string argument.
             atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
             def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
 
@@ -408,13 +409,13 @@ class Bot:
         return response
 
     async def run_query(
-        self, callback, channel_id: int, report: Reports = Reports.All, progress_bar=None
+        self, callback: Callable, channel_id: int, report: Reports = Reports.All, progress_bar=None
     ):
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
 
         Args:
-            callback: A callback function which receives a string argument.
+            callback: Callable: A callback function which receives a string argument.
             channel_id (int): The channel ID to display the progress bar.
             report (Reports): The report to run.
             progress_bar: A tqdm progress bar.
