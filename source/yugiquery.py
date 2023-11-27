@@ -395,8 +395,10 @@ def condense_changelogs(files: pd.DataFrame):
     TODO
     """
     new_changelog = pd.DataFrame()
+    changelog_name = None
+    first_date = None
+    last_date = None
     for file in files:
-        print(file)
         match = re.search(
             r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2",
             os.path.basename(file),
@@ -404,6 +406,13 @@ def condense_changelogs(files: pd.DataFrame):
         name = match.group(1)
         from_date = match.group(2)
         to_date = match.group(3)
+        if changelog_name is not None and not changelog_name==name:
+            print("Names mismatch!")
+        changelog_name = name
+        if first_date is None or first_date>from_date:
+            first_date = from_date
+        if last_date is None or last_date<to_date:
+            last_date = to_date
         df = pd.read_csv(file, dtype=object)
         df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
         new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
@@ -420,8 +429,8 @@ def condense_changelogs(files: pd.DataFrame):
         .drop_duplicates(keep="last")
         .index
     )
-
-    return new_changelog.loc[index]
+    new_filename = os.path.join(os.path.dirname(file),f"{changelog_name}_{first_date}_{last_date}.bz2")
+    return new_changelog.loc[index], new_filename
 
 
 def condense_benchmark(benchmark: dict):
@@ -538,9 +547,12 @@ def cleanup_data(dry_run=False):
     print("- same month (with changelog)")
     for files in same_month_files["changelog"]:
         if len(files) > 1:
-            new_changelog = condense_changelogs(files)
+            new_changelog, new_filepath = condense_changelogs(files)
+            print(f"New changelog file: {new_filepath}")
             if dry_run:
                 display(new_changelog)
+            else:
+                new_changelog.to_csv(new_filepath)
             for file in files:
                 if dry_run:
                     print("Delete", file)
@@ -559,9 +571,12 @@ def cleanup_data(dry_run=False):
 
     print("- Last month (with changelog)")
     if (files := last_month_files["changelog"]) and (len(files) > 1):
-        new_changelog = condense_changelogs(files)
+        new_changelog, new_filepath = condense_changelogs(files)
+        print(f"New changelog file: {new_filepath}")
         if dry_run:
             display(new_changelog)
+        else:
+            new_changelog.to_csv(new_filepath)
         for file in last_month_files["changelog"]:
             if dry_run:
                 print("Delete", file)
@@ -3072,7 +3087,7 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    # cleanup_data(dry_run=True)
+    cleanup_data(dry_run=True)
 
 
 # ========= #
