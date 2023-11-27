@@ -62,8 +62,12 @@ while True:
         from halo import Halo
         from ipylab import JupyterFrontEnd
         from IPython.display import Markdown
-        from matplotlib.ticker import (AutoMinorLocator, FixedLocator,
-                                       MaxNLocator, MultipleLocator)
+        from matplotlib.ticker import (
+            AutoMinorLocator,
+            FixedLocator,
+            MaxNLocator,
+            MultipleLocator,
+        )
         from matplotlib_venn import venn2
         from mpl_toolkits.axes_grid1 import make_axes_locatable
         from tqdm.auto import tqdm, trange
@@ -155,7 +159,10 @@ def load_secrets(
         KeyError: If a required secret is not found in the environment variables or .env file.
 
     """
-    secrets = {key: os.environ.get(key, os.environ.get(f"TQDM_{key}")) for key in requested_secrets}
+    secrets = {
+        key: os.environ.get(key, os.environ.get(f"TQDM_{key}"))
+        for key in requested_secrets
+    }
     if secrets_file and os.path.isfile(secrets_file):
         secrets = secrets | dotenv_values(secrets_file)
 
@@ -215,7 +222,15 @@ def md5(name: str):
 
 def separate_words_and_acronyms(strings: List[str]):
     """
-    TODO
+    Separates a list of strings into words and acronyms.
+
+    Args:
+        strings (List[str]): A list of strings to be categorized.
+
+    Returns:
+        Tuple[List[str], List[str]]: A tuple containing two lists:
+            - The first list contains words (strings starting with an uppercase letter followed by lowercase letters).
+            - The second list contains acronyms (strings not meeting the word criteria).
     """
     words = []
     acronyms = []
@@ -225,7 +240,8 @@ def separate_words_and_acronyms(strings: List[str]):
         else:
             acronyms.append(string)
     return words, acronyms
-    
+
+
 ## Image handling
 
 
@@ -371,6 +387,7 @@ def benchmark(report: str, timestamp: pd.Timestamp):
         files=[benchmark_file],
         commit_message=f"{report} report benchmarked - {now.isoformat()}",
     )
+
 
 def condense_changelogs(files: pd.DataFrame):
     """
@@ -559,6 +576,7 @@ def cleanup_data(dry_run=False):
                 os.remove(file)
         if dry_run:
             print("Keep", files[-1])
+
 
 # Data formating
 
@@ -823,11 +841,12 @@ def format_artwork(row: pd.Series):
 def format_errata(row: pd.Series):
     """
     Formats errata information from a pandas Series and returns a tuple of errata types.
+
     Args:
-    row (pd.Series): A pandas Series containing errata information for a single card.
+        row (pd.Series): A pandas Series containing errata information for a single card.
 
     Returns:
-    Tuple of errata types (str) if any errata information is present in the input Series, otherwise np.nan.
+        Tuple[str]: Tuple of errata types if any errata information is present in the input Series, otherwise np.nan.
     """
     result = []
     if "Cards with name errata" in row:
@@ -848,12 +867,13 @@ def format_errata(row: pd.Series):
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
     """
     Merges errata information from an input errata DataFrame into an input DataFrame based on card names.
+
     Args:
-    input_df (pd.DataFrame): A pandas DataFrame containing card information.
-    input_errata_df (pd.DataFrame): A pandas DataFrame containing errata information.
+        input_df (pd.DataFrame): A pandas DataFrame containing card information.
+        input_errata_df (pd.DataFrame): A pandas DataFrame containing errata information.
 
     Returns:
-    A pandas DataFrame with errata information merged into it.
+        pd.DataFrame: A pandas DataFrame with errata information merged into it.
     """
     if "Name" in input_df.columns:
         errata_series = input_errata_df.apply(format_errata, axis=1).rename("Errata")
@@ -876,12 +896,13 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     """
     Merges set information from an input set info DataFrame into an input set list DataFrame based on set and region.
+
     Args:
-    input_df (pd.DataFrame): A pandas DataFrame containing set lists.
-    input_info_df (pd.DataFrame): A pandas DataFrame containing set information.
+        input_df (pd.DataFrame): A pandas DataFrame containing set lists.
+        input_info_df (pd.DataFrame): A pandas DataFrame containing set information.
 
     Returns:
-    A pandas DataFrame with set information merged into it.
+        pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
         regions_dict = load_json(os.path.join(PARENT_DIR, "assets/regions.json"))
@@ -965,24 +986,6 @@ def generate_changelog(
     return changelog
 
 
-# ======= #
-# Styling #
-# ======= #
-
-
-def style_df(df: pd.DataFrame):
-    """
-    Formats a pandas DataFrame with HTML hyperlinks.
-
-    Args:
-        df (pd.DataFrame): The pandas DataFrame to be formatted.
-
-    Returns:
-        A styled version of the input DataFrame with HTML hyperlinks.
-    """
-    return df.style.format(hyperlinks="html")
-
-
 # =================== #
 # Notebook management #
 # =================== #
@@ -1005,7 +1008,7 @@ def save_notebook():
 
 def run_notebooks(
     reports: Union[str, List[str]] = "all",
-    progress_handler = None,
+    progress_handler: Callable = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
@@ -1064,17 +1067,19 @@ def run_notebooks(
                     required_secrets, secrets_file=secrets_file, required=True
                 )
                 secrets = secrets | loaded_secrets
-                
+
                 token = secrets.get(f"{contrib}_TOKEN")
                 channel_id = secrets.get(
                     f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID")
                 )
                 if contrib == "DISCORD":
                     from tqdm.contrib.discord import tqdm as contrib_tqdm
-                    channel_id_dict = {"channel_id": channel_id} 
+
+                    channel_id_dict = {"channel_id": channel_id}
 
                 elif contrib == "TELEGRAM":
                     from tqdm.contrib.telegram import tqdm as contrib_tqdm
+
                     channel_id_dict = {"chat_id": channel_id}
 
                 iterator = contrib_tqdm(
@@ -1084,7 +1089,7 @@ def run_notebooks(
                     unit_scale=True,
                     dynamic_ncols=True,
                     token=token,
-                    **channel_id_dict, # Needed to handle Telegram using chat_ID instaed of channel_ID. Will change once TQDM implements using webhook for Discord.
+                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID. Will change once TQDM implements using webhook for Discord.
                 )
 
                 break
@@ -1102,7 +1107,7 @@ def run_notebooks(
         lambda record: record.getMessage().startswith("Ending Cell")
     )
     logger.addHandler(stream_handler)
-    
+
     # Define a function to update the output variable
     def update_pbar():
         iterator.update((1 / cells))
@@ -1272,7 +1277,10 @@ ask_query_action = "?action=ask&format=json&query="
 askargs_query_action = "?action=askargs&format=json&conditions="
 categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:"
 redirects_query_action = "?action=query&format=json&redirects=True&titles="
-backlinks_query_action = "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
+backlinks_query_action = (
+    "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
+)
+
 
 # Functions
 def extract_results(response: requests.Response):
@@ -1689,6 +1697,7 @@ def fetch_properties(
 
     return df
 
+
 def fetch_redirects(titles: List[str]):
     """
     TODO
@@ -1734,15 +1743,16 @@ def fetch_backlinks(titles: List[str]):
 
 ## Rarities dictionary
 
+
 def fetch_rarities_dict(rarities_list: List[str] = []):
     """
     TODO
     """
     words, acronyms = separate_words_and_acronyms(rarities_list)
-    if len(rarities_list)>0:
+    if len(rarities_list) > 0:
         print(f"Words: {words}")
         print(f"Acronyms: {acronyms}")
-    
+
     titles = fetch_categorymembers(category="Rarities", namespace=0)["title"]
     words = words + titles.tolist()
     rarity_backlinks = fetch_backlinks(words)
@@ -3024,7 +3034,7 @@ def boxplot(df, mean=True, **kwargs):
 
 def run(
     reports: Union[str, List[str]] = "all",
-    progress_handler = None,
+    progress_handler=None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
@@ -3054,7 +3064,7 @@ def run(
     run_notebooks(
         reports=reports,
         # progress_handler=progress_handler,
-        telegram_first=True, #telegram_first,
+        telegram_first=True,  # telegram_first,
         suppress_contribs=suppress_contribs,
         **kwargs,
     )

@@ -47,6 +47,7 @@ from tqdm.contrib.telegram import tqdm as telegram_pbar
 # Discord
 import discord
 from discord.ext import commands
+
 # from tqdm.contrib.discord import tqdm as discord_pbar
 
 
@@ -91,7 +92,7 @@ def load_secrets_with_args(args: Dict[str, Any]):
     return secrets
 
 
-def escape_chars(string: str, chars: List[str]=["_", ".", "-", "+", "#", "@", "="]):
+def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]):
     """
     Escapes specified characters in a given string by adding a backslash before each occurrence.
 
@@ -184,12 +185,14 @@ class Bot:
         """
         try:
             self.process.terminate()
-            self.repo.git.restore(os.path.join(yq.SCRIPT_DIR,"*.ipynb"))
+            self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
             return "Aborted"
         except:
             return "Abort failed"
 
-    async def battle(self, callback: Callable, atk_weight: int = 4, def_weight: int = 1):
+    async def battle(
+        self, callback: Callable, atk_weight: int = 4, def_weight: int = 1
+    ):
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
@@ -306,7 +309,7 @@ class Bot:
             response[key.capitalize()] = value
 
         return response
-    
+
     def data(self):
         """
         Sends the latest data files available in the repository as direct download links.
@@ -397,7 +400,7 @@ class Bot:
     def links(self):
         """
         Displays the links to the YugiQuery webpage, repository, and data.
-        
+
         Returns:
             dict: A dictionary containing links to YugiQuery resources.
         """
@@ -409,7 +412,11 @@ class Bot:
         return response
 
     async def run_query(
-        self, callback: Callable, channel_id: int, report: Reports = Reports.All, progress_bar=None
+        self,
+        callback: Callable,
+        channel_id: int,
+        report: Reports = Reports.All,
+        progress_bar=None,
     ):
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
@@ -472,6 +479,7 @@ class Bot:
             else:
                 return {"error": f"Query execution exited with exit code: {exitcode}"}
 
+
 # ===================== #
 # Telegram Bot Subclass #
 # ===================== #
@@ -507,10 +515,11 @@ class Telegram(Bot):
         """
         Register command handlers for the Telegram bot.
         """
+
         async def abort(update: Update, context: CallbackContext):
             """
             Aborts a running YugiQuery flow by terminating the thread.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -527,7 +536,7 @@ class Telegram(Bot):
         ):
             """
             Loads the list of all Monster Cards and simulates a battle between them.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -536,11 +545,11 @@ class Telegram(Bot):
             provided_arguments = {}
             if context.args and len(context.args) > 1:
                 try:
-                    provided_arguments['atk_weight'] = int(context.args[0])
-                    provided_arguments['def_weight'] = int(context.args[1])
+                    provided_arguments["atk_weight"] = int(context.args[0])
+                    provided_arguments["def_weight"] = int(context.args[1])
                 except:
                     pass
-    
+
             original_message = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Simulating a battle... ⚔️"
             )
@@ -554,9 +563,7 @@ class Telegram(Bot):
                     parse_mode="MarkdownV2",
                 )
 
-            response = await self.battle(
-                callback=callback, **provided_arguments
-            )
+            response = await self.battle(callback=callback, **provided_arguments)
             if "error" in response.keys():
                 message = response["error"]
             else:
@@ -579,7 +586,7 @@ class Telegram(Bot):
         async def benchmark(update: Update, context: CallbackContext):
             """
             Returns the average time each report takes to complete and the latest time for each report.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -603,7 +610,7 @@ class Telegram(Bot):
         async def data(update: Update, context: CallbackContext):
             """
             Sends the latest data files available in the repository as direct download links.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -619,11 +626,11 @@ class Telegram(Bot):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
-            
+
         async def latest(update: Update, context: CallbackContext):
             """
             Displays the timestamp of the latest local and live reports generated.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -641,7 +648,7 @@ class Telegram(Bot):
         async def links(update: Update, context: CallbackContext):
             """
             Displays the links to the YugiQuery webpage, repository, and data.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -652,11 +659,11 @@ class Telegram(Bot):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
-            
+
         async def ping(update: Update, context: CallbackContext):
             """
             Tests the bot's connection latency and sends the result back to the user.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -669,7 +676,7 @@ class Telegram(Bot):
             latency_ms = (end_time - start_time).total_seconds() * 1e3
             response = f"🏓 Pong! {round(latency_ms,1)}ms"
             await original_message.edit_text(response)
-             
+
         async def run_query(
             update: Update,
             context: CallbackContext,
@@ -677,12 +684,16 @@ class Telegram(Bot):
             """
             Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
             The progress is reported back to the Telegram chat where the command was issued.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            report = self.Reports[context.args[0]] if context.args and context.args[0] in self.Reports.__members__ else self.Reports.All
+            report = (
+                self.Reports[context.args[0]]
+                if context.args and context.args[0] in self.Reports.__members__
+                else self.Reports.All
+            )
 
             original_response = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Initializing..."
@@ -711,7 +722,7 @@ class Telegram(Bot):
         async def status(update: Update, context: CallbackContext):
             """
             Displays information about the bot, including uptime, versions, and system details.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -743,7 +754,7 @@ class Telegram(Bot):
         async def shutdown(update: Update, context: CallbackContext):
             """
             Shuts down the bot gracefully by sending a message and stopping the polling.
-    
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -777,19 +788,19 @@ class Telegram(Bot):
         """
         Register event handlers for the Telegram bot.
         """
+
         async def start(update: Update, context: CallbackContext):
-            '''
+            """
             Send a message when the command /start is issued.
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
-            '''
+            """
             user = update.effective_user
             await update.message.reply_html(
                 rf"Hi {user.mention_html()}!",
                 reply_markup=ForceReply(selective=True),
             )
-
 
         async def on_command_error(update: Update, context: CallbackContext):
             """
@@ -860,7 +871,7 @@ class Discord(Bot, commands.Bot):
 
         Args:
             ctx (commands.Context): The context of the command.
-            message (): 
+            message ():
         """
         if message.author == self.user:
             return
@@ -875,7 +886,7 @@ class Discord(Bot, commands.Bot):
         """
         Event that runs whenever a command invoked by the user results in an error.
         Sends a message to the channel indicating the type of error that occurred.
-        
+
         Args:
             self (commands.Bot):
             ctx (commands.Context): The context of the command.
@@ -916,7 +927,7 @@ class Discord(Bot, commands.Bot):
             )
             response = self.abort()
             await original_response.edit(content=response)
-    
+
         @self.hybrid_command(
             name="battle",
             description="Simulate a battle of all monster cards.",
@@ -981,7 +992,7 @@ class Discord(Bot, commands.Bot):
             )
             embed.remove_footer()
             await original_response.edit(embed=embed)
-            
+
         @self.hybrid_command(
             name="benchmark",
             description="Show average time each report takes to complete.",
@@ -1038,7 +1049,7 @@ class Discord(Bot, commands.Bot):
                     name="Changelog", value=response["changelog"], inline=False
                 )
                 await ctx.send(embed=embed)
-                
+
         @self.hybrid_command(
             name="latest",
             description="Show latest time each report was generated.",
@@ -1138,7 +1149,7 @@ class Discord(Bot, commands.Bot):
                 ctx.command.reset_cooldown(ctx)
             else:
                 await ctx.channel.send(content=response["content"])
-                
+
         @self.hybrid_command(
             name="status",
             description="Display bot status and system information.",
