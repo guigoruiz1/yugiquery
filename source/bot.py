@@ -48,7 +48,7 @@ from tqdm.contrib.telegram import tqdm as telegram_pbar
 # Discord
 import discord
 from discord.ext import commands
-# from tqdm.contrib.discord import tqdm as discord_pbar
+from tqdm.contrib.discord import tqdm as discord_pbar
 
 
 # ============== #

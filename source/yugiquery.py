@@ -3080,7 +3080,7 @@ def run(
     run_notebooks(
         reports=reports,
         # progress_handler=progress_handler,
-        telegram_first=True,  # telegram_first,
+        telegram_first=telegram_first,
         suppress_contribs=suppress_contribs,
         **kwargs,
     )
@@ -3149,10 +3149,10 @@ if __name__ == "__main__":
         required=False,
         help="Enable debug flag",
     )
-    args = parser.parse_args()
+    args = vars(parser.parse_args())
     # Change working directory to script location
     os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
-    run(**vars(args))
+    run(**args)
     # Exit python
     quit()
