@@ -248,7 +248,7 @@ def make_filename(
     """
     TODO
     """
-    if second_timestamp is None:
+    if previous_timestamp is None:
         return f"all_{report}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
     else:
         return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
@@ -379,7 +379,7 @@ def benchmark(report: str, timestamp: arrow.Arrow):
     Returns:
         None
     """
-    now = arrow.utcnow()  # Make all timestamps UTC?
+    now = arrow.utcnow()
     timedelta = now - timestamp
     benchmark_file = os.path.join(PARENT_DIR, "data/benchmark.json")
     data = load_json(benchmark_file)
