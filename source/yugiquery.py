@@ -29,7 +29,6 @@ import socket
 import subprocess
 import time
 import warnings
-from datetime import datetime, timezone
 from enum import Enum
 from textwrap import wrap
 from typing import Any, Callable, Dict, List, Tuple, Union
@@ -45,7 +44,7 @@ while True:
         import asyncio
         import urllib.parse as up
         from ast import literal_eval
-
+        
         import aiohttp
         import arrow
         import git
@@ -62,7 +61,7 @@ while True:
         from dotenv import dotenv_values
         from halo import Halo
         from ipylab import JupyterFrontEnd
-        from IPython.display import Markdown
+        from IPython.display import Markdown, display
         from matplotlib.ticker import (
             AutoMinorLocator,
             FixedLocator,
@@ -339,7 +338,7 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         None
     """
     if commit_message is None:
-        commit_message = f"Commit - {datetime.now(timezone.utc).isoformat()}"
+        commit_message = f"Commit - {arrow.utcnow().isoformat()}"
     if isinstance(files, str):
         files = [files]
     try:
@@ -368,10 +367,8 @@ def benchmark(report: str, timestamp: pd.Timestamp):
     Returns:
         None
     """
-    now = datetime.now(timezone.utc)  # Make all timestamps UTC?
-    timedelta = now - timestamp.tz_localize("utc")
-    time_str = (datetime.min + timedelta).strftime("%H:%M:%S")
-    # print(f"Report execution took {time_str}")
+    now = arrow.utcnow()  # Make all timestamps UTC?
+    timedelta = now - timestamp
     benchmark_file = os.path.join(PARENT_DIR, "data/benchmark.json")
     data = load_json(benchmark_file)
     # Add the new data to the existing data
@@ -400,7 +397,7 @@ def condense_changelogs(files: pd.DataFrame):
     last_date = None
     for file in files:
         match = re.search(
-            r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2",
+            r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
             os.path.basename(file),
         )
         name = match.group(1)
@@ -437,7 +434,7 @@ def condense_benchmark(benchmark: dict):
     """
     TODO
     """
-    now = pd.Timestamp.now(timezone.utc)
+    now = arrow.utcnow()
     for key, pair in benchmark.items():
         for key, values in benchmark.items():
             weighted_sum = 0
@@ -473,7 +470,7 @@ def cleanup_data(dry_run=False):
         None
     """
     # Benchmark
-    now = pd.Timestamp.now(timezone.utc)
+    now = arrow.utcnow()
     benchmark_path = os.path.join(PARENT_DIR, "data/benchmark.json")
     benchmark = load_json(benchmark_path)
     new_benchmark = condense_benchmark(benchmark)
@@ -1198,7 +1195,7 @@ def update_index():  # Handle index and readme properly
     index_output_path = os.path.join(PARENT_DIR, index_file_name)
     readme_output_path = os.path.join(PARENT_DIR, readme_file_name)
 
-    timestamp = datetime.now(timezone.utc)
+    timestamp = arrow.utcnow()
     try:
         with open(index_input_path) as f:
             index = f.read()
@@ -1254,7 +1251,7 @@ def header(name: str = None):
         header = f.read()
         header = header.replace(
             "@TIMESTAMP@",
-            datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M %Z"),
+            arrow.utcnow().strftime("%d/%m/%Y %H:%M %Z"),
         )
         header = header.replace("@NOTEBOOK@", name)
         return Markdown(header)
@@ -1272,7 +1269,7 @@ def footer(timestamp: pd.Timestamp = None):
     """
     with open(os.path.join(PARENT_DIR, "assets/footer.md")) as f:
         footer = f.read()
-        now = datetime.now(timezone.utc)
+        now = arrow.utcnow()
         footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
 
         return Markdown(footer)
@@ -3149,10 +3146,27 @@ if __name__ == "__main__":
         required=False,
         help="Enable debug flag",
     )
+    parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
+    parser.add_argument(
+        "--dryrun",
+        action="store_true",
+        required=False,
+        help="Enable debug flag",
+    )
     args = vars(parser.parse_args())
     # Change working directory to script location
     os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
-    run(**args)
+    cleanup = args.pop("cleanup")
+    dry_run = args.pop("dryrun")
+    if cleanup:
+        cleanup_data(dry_run=dry_run)
+    else:
+        run(**args)
     # Exit python
     quit()

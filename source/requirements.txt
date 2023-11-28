@@ -13,6 +13,6 @@ papermill>=2.4.0
 python-dotenv>=1.0.0
 requests>=2.31.0
 seaborn>=0.12.2
-tqdm>=4.65.0
+# tqdm>=4.65.0
 wikitextparser>=0.53.0
 itables>=1.6.2

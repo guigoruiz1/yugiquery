@@ -28,7 +28,6 @@ import platform
 import random
 import re
 import subprocess
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Tuple, Union
 
@@ -107,6 +106,26 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
         string = string.replace(char, "\\" + char)
     return string
 
+def get_humanize_granularity(seconds: int):
+    """
+    Humanizes a time interval given in seconds.
+
+    Args:
+        seconds (int): The time interval in seconds.
+
+    Returns:
+        str: A human-readable representation of the time interval.
+    """
+    granularities = ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year']
+
+    # Determine the appropriate granularity based on the time interval
+    selected_granularity = []
+    for granularity in granularities:
+        if seconds > 0:
+            selected_granularity.append(granularity)
+            seconds //= 60  # Divide by 60 to move to the next larger unit
+
+    return selected_granularity
 
 # ============== #
 # Bot Superclass #
@@ -123,7 +142,7 @@ class Bot:
             channel (str): The Telegram channel ID.
             **kwargs: Additional keyword arguments.
         """
-        self.start_time = datetime.now()
+        self.start_time = arrow.utcnow()
         self.token = token
         self.channel = channel
         self.init_reports_enum()
@@ -291,19 +310,11 @@ class Bot:
                 weighted_sum += entry["average"] * entry["weight"]
                 total_weight += entry["weight"]
 
-            avg_time = pd.Timestamp(weighted_sum / total_weight, unit="s")
-            latest_time = pd.Timestamp(entry["average"], unit="s")
+            avg_time = weighted_sum / total_weight
+            latest_time = entry["average"]
 
-            avg_time_str = (
-                f"{avg_time.strftime('%-M')} minutes and {avg_time.strftime('%-S.%f')} seconds"
-                if avg_time.minute > 0
-                else f"{avg_time.strftime('%-S.%f')} seconds"
-            )
-            latest_time_str = (
-                f"{latest_time.strftime('%-M')} minutes and {latest_time.strftime('%-S.%f')} seconds"
-                if latest_time.minute > 0
-                else f"{latest_time.strftime('%-S.%f')} seconds"
-            )
+            avg_time_str = arrow.now().shift(seconds=avg_time).humanize(granularity=get_humanize_granularity(avg_time))
+            latest_time_str = arrow.now().shift(seconds=latest_time).humanize(granularity=get_humanize_granularity(latest_time))
 
             value = f"• Average: {avg_time_str}\n• Latest: {latest_time_str}"
             response[key.capitalize()] = value
@@ -324,12 +335,12 @@ class Bot:
             ]  # Remove .json files from lists
             files["Group"] = files["name"].apply(
                 lambda x: re.search(
-                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
+                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", x
                 ).group(1)
             )
             files["Timestamp"] = files["name"].apply(
                 lambda x: re.search(
-                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}).bz2", x
+                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", x
                 ).group(3)
             )
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
@@ -448,7 +459,7 @@ class Bot:
 
         try:
             self.process = mp.Process(
-                target=yq.run, args=[report.value, progress_handler, True]
+                target=yq.run, args=[report.value, progress_handler]
             )
             self.process.start()
             await callback("Running...")
@@ -480,7 +491,10 @@ class Bot:
                 return {"error": f"Query execution exited with exit code: {exitcode}"}
 
     def uptime(self):
-        return arrow.get(self.start_time).humanize(arrow.utcnow(), only_distance=True)
+        time_difference = (arrow.utcnow() - self.start_time).total_seconds()
+        granularity = get_humanize_granularity(time_difference)
+        humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
+        return humanized
 # ===================== #
 # Telegram Bot Subclass #
 # ===================== #
@@ -669,11 +683,11 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            start_time = datetime.now()
+            start_time = arrow.utcnow()
             original_message = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Calculating latency..."
             )
-            end_time = datetime.now()
+            end_time = arrow.utcnow()
             latency_ms = (end_time - start_time).total_seconds() * 1e3
             response = f"🏓 Pong! {round(latency_ms,1)}ms"
             await original_message.edit_text(response)
