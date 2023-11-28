@@ -1151,7 +1151,7 @@ class Discord(Bot, commands.Bot):
 
         @self.hybrid_command(
             name="status",
-            description="Display bot status and system information.",
+            description="Displays bot status and system information.",
             with_app_command=True,
         )
         async def status(ctx):
@@ -1172,7 +1172,7 @@ class Discord(Bot, commands.Bot):
                 channels += len(guild.channels)
 
             if len(self.commands):
-                commandsInfo = "\n".join(sorted([i.name for i in self.commands]))
+                commandsInfo = " • `\\" + "\n • `\\".join(sorted([f"{i.name}`: {i.description}" for i in self.commands]))
 
             embed = discord.Embed(color=ctx.me.colour)
             embed.set_footer(text="Time to duel!")
@@ -1182,7 +1182,7 @@ class Discord(Bot, commands.Bot):
             embed.add_field(name="Guilds", value=guilds, inline=True)
             embed.add_field(name="Users", value=users, inline=True)
             embed.add_field(name="Channels", value=channels, inline=True)
-            embed.add_field(name="Available Commands", value=commandsInfo, inline=True)
+            embed.add_field(name="Available Commands", value=commandsInfo, inline=False)
             embed.add_field(name="Bot Version", value=__version__, inline=True)
             embed.add_field(
                 name="Discord.py Version", value=discord.__version__, inline=True
@@ -1192,7 +1192,7 @@ class Discord(Bot, commands.Bot):
             )
             embed.add_field(
                 name="Operating System",
-                value=f" • Name: {platform.system()}\n • Release: {platform.release()}\n • Machine: {platform.machine()}\n • Version: {platform.version()}",
+                value=f" • **Name**: {platform.system()}\n • **Release**: {platform.release()}\n • **Machine**: {platform.machine()}\n • **Version**: {platform.version()}",
                 inline=False,
             )
             await ctx.send(
