@@ -106,6 +106,7 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
         string = string.replace(char, "\\" + char)
     return string
 
+
 def get_humanize_granularity(seconds: int):
     """
     Humanizes a time interval given in seconds.
@@ -116,7 +117,16 @@ def get_humanize_granularity(seconds: int):
     Returns:
         str: A human-readable representation of the time interval.
     """
-    granularities = ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year']
+    granularities = [
+        "second",
+        "minute",
+        "hour",
+        "day",
+        "week",
+        "month",
+        "quarter",
+        "year",
+    ]
 
     # Determine the appropriate granularity based on the time interval
     selected_granularity = []
@@ -126,6 +136,7 @@ def get_humanize_granularity(seconds: int):
             seconds //= 60  # Divide by 60 to move to the next larger unit
 
     return selected_granularity
+
 
 # ============== #
 # Bot Superclass #
@@ -313,8 +324,16 @@ class Bot:
             avg_time = weighted_sum / total_weight
             latest_time = entry["average"]
 
-            avg_time_str = arrow.now().shift(seconds=avg_time).humanize(granularity=get_humanize_granularity(avg_time))
-            latest_time_str = arrow.now().shift(seconds=latest_time).humanize(granularity=get_humanize_granularity(latest_time))
+            avg_time_str = (
+                arrow.now()
+                .shift(seconds=avg_time)
+                .humanize(granularity=get_humanize_granularity(avg_time))
+            )
+            latest_time_str = (
+                arrow.now()
+                .shift(seconds=latest_time)
+                .humanize(granularity=get_humanize_granularity(latest_time))
+            )
 
             value = f"• Average: {avg_time_str}\n• Latest: {latest_time_str}"
             response[key.capitalize()] = value
@@ -493,8 +512,12 @@ class Bot:
     def uptime(self):
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
         granularity = get_humanize_granularity(time_difference)
-        humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
+        humanized = self.start_time.humanize(
+            arrow.utcnow(), only_distance=True, granularity=granularity
+        )
         return humanized
+
+
 # ===================== #
 # Telegram Bot Subclass #
 # ===================== #
@@ -1186,7 +1209,9 @@ class Discord(Bot, commands.Bot):
                 channels += len(guild.channels)
 
             if len(self.commands):
-                commandsInfo = " • `\\" + "\n • `\\".join(sorted([f"{i.name}`: {i.description}" for i in self.commands]))
+                commandsInfo = " • `\\" + "\n • `\\".join(
+                    sorted([f"{i.name}`: {i.description}" for i in self.commands])
+                )
 
             embed = discord.Embed(color=ctx.me.colour)
             embed.set_footer(text="Time to duel!")

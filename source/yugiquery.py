@@ -44,7 +44,7 @@ while True:
         import asyncio
         import urllib.parse as up
         from ast import literal_eval
-        
+
         import aiohttp
         import arrow
         import git
@@ -242,6 +242,18 @@ def separate_words_and_acronyms(strings: List[str]):
     return words, acronyms
 
 
+def make_filename(
+    report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None
+):
+    """
+    TODO
+    """
+    if second_timestamp is None:
+        return f"all_{report}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+    else:
+        return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+
+
 ## Image handling
 
 
@@ -356,13 +368,13 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         raise
 
 
-def benchmark(report: str, timestamp: pd.Timestamp):
+def benchmark(report: str, timestamp: arrow.Arrow):
     """
     Records the execution time of a report and saves the data to a JSON file.
 
     Args:
         report (str): The name of the report being benchmarked.
-        timestamp (pandas.Timestamp): The timestamp when the report execution began.
+        timestamp (arrow.Arrow): The timestamp when the report execution began.
 
     Returns:
         None
@@ -403,12 +415,12 @@ def condense_changelogs(files: pd.DataFrame):
         name = match.group(1)
         from_date = match.group(2)
         to_date = match.group(3)
-        if changelog_name is not None and not changelog_name==name:
+        if changelog_name is not None and not changelog_name == name:
             print("Names mismatch!")
         changelog_name = name
-        if first_date is None or first_date>from_date:
+        if first_date is None or first_date > from_date:
             first_date = from_date
-        if last_date is None or last_date<to_date:
+        if last_date is None or last_date < to_date:
             last_date = to_date
         df = pd.read_csv(file, dtype=object)
         df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
@@ -426,7 +438,12 @@ def condense_changelogs(files: pd.DataFrame):
         .drop_duplicates(keep="last")
         .index
     )
-    new_filename = os.path.join(os.path.dirname(file),f"{changelog_name}_{first_date}_{last_date}.bz2")
+    new_filename = os.path.join(
+        os.path.dirname(file),
+        make_filename(
+            report=changelog_name, timestamp=last_date, previous_timestamp=first_date
+        ),
+    )
     return new_changelog.loc[index], new_filename
 
 
@@ -1257,12 +1274,12 @@ def header(name: str = None):
         return Markdown(header)
 
 
-def footer(timestamp: pd.Timestamp = None):
+def footer(timestamp: arrow.Arrow = None):
     """
     Generates a Markdown footer with a timestamp.
 
     Args:
-        timestamp (pd.Timestamp, optional): The timestamp to use. If None, uses the current time. Defaults to None.
+        timestamp (arrow.Arrow, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
         Markdown: The generated Markdown footer.
