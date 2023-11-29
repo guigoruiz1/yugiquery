@@ -443,7 +443,9 @@ def condense_changelogs(files: pd.DataFrame):
     new_filename = os.path.join(
         os.path.dirname(file),
         make_filename(
-            report=changelog_name, timestamp=arrow.get(last_date), previous_timestamp=arrow.get(first_date)
+            report=changelog_name,
+            timestamp=arrow.get(last_date),
+            previous_timestamp=arrow.get(first_date),
         ),
     )
     return new_changelog.loc[index], new_filename
@@ -612,8 +614,15 @@ def cleanup_data(dry_run=False):
             print("Keep", files[-1])
 
     if not dry_run:
-        commit(files=os.path.join(PARENT_DIR, "data"), commit_message=f"Data cleanup {arrow.utcnow().isoformat()}")
-        
+        commit(
+            files=[
+                os.path.join(PARENT_DIR, "data/benchmark.json"),
+                os.path.join(PARENT_DIR, "data/*bz2"), # May not work
+            ],
+            commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
+        )
+
+
 # Data formating
 
 
@@ -3109,7 +3118,7 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    cleanup_data(dry_run=True) # Make logic to only use if too many files.
+    cleanup_data(dry_run=True)  # Make logic to only use if too many files.
 
 
 # ========= #
