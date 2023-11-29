@@ -24,10 +24,10 @@ Below are listed all the available reports and their execution timestamps.
 | [Cards](Cards.html) | 27/11/2023 05:09 UTC |
 | [Rush](Rush.html) | 27/11/2023 05:12 UTC |
 | [Sets](Sets.html) | 27/11/2023 05:28 UTC |
-| [Speed](Speed.html) | 29/11/2023 22:20 UTC |
+| [Speed](Speed.html) | 29/11/2023 22:31 UTC |
 | [Timeline](Timeline.html) | 27/11/2023 05:37 UTC |
 
 
-The full YugiQuery flow was last executed at `29/11/2023 22:22 UTC`
+The full YugiQuery flow was last executed at `29/11/2023 22:31 UTC`
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
