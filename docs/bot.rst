@@ -1,4 +1,4 @@
-Discord Bot
+Bot
 ===========
 
 .. automodule:: bot

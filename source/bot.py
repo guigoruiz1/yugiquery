@@ -162,6 +162,7 @@ class Bot:
     # Other
     process = None
     Reports = Enum("Reports", {"All": "all"})
+    cooldown_limit = 12 * 60 * 60 # 12 hours
 
     # ======================== #
     # Bot Superclass Functions #
@@ -327,12 +328,12 @@ class Bot:
             avg_time_str = (
                 arrow.now()
                 .shift(seconds=avg_time)
-                .humanize(granularity=get_humanize_granularity(avg_time))
+                .humanize(granularity=get_humanize_granularity(avg_time), only_distance=True)
             )
             latest_time_str = (
                 arrow.now()
                 .shift(seconds=latest_time)
-                .humanize(granularity=get_humanize_granularity(latest_time))
+                .humanize(granularity=get_humanize_granularity(latest_time), only_distance=True)
             )
 
             value = f"• Average: {avg_time_str}\n• Latest: {latest_time_str}"
@@ -727,8 +728,16 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            last_run = context.user_data.get("last_run", arrow.utcnow())
+            print((arrow.utcnow()-last_run).total_seconds(),self.cooldown_limit)
+            if (arrow.utcnow()-last_run).total_seconds()<self.cooldown_limit:
+                granularity = get_humanize_granularity((arrow.utcnow()-last_run.shift(seconds=self.cooldown_limit)).total_seconds())
+                next_available = last_run.shift(seconds=self.cooldown_limit).humanize(arrow.utcnow(), granularity=granularity)
+                await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
+                return
+                
             report = (
-                self.Reports[context.args[0]]
+                self.Reports[context.args[0].capitalize()]
                 if context.args and context.args[0] in self.Reports.__members__
                 else self.Reports.All
             )
@@ -753,6 +762,7 @@ class Telegram(Bot):
                 # Reset cooldown in case query did not complete
                 # ctx.command.reset_cooldown(ctx)
             else:
+                context.user_data["last_run"] = arrow.utcnow()
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text=response["content"]
                 )
@@ -871,9 +881,12 @@ class Discord(Bot, commands.Bot):
             channel (str): The channel for the bot.
         """
         Bot.__init__(self, token, channel)
-        intents = discord.Intents(messages=True, guilds=True, members=True)
         # Initialize the Discord bot
-        commands.Bot.__init__(self, command_prefix="/", intents=intents)
+        intents = discord.Intents(messages=True, guilds=True, members=True)
+        help_command = commands.DefaultHelpCommand(no_category="Commands")
+        description = "Bot to manage YugiQuery data and execution."
+        activity=discord.Activity(type=discord.ActivityType.watching, name="for /status")
+        commands.Bot.__init__(self, command_prefix="/", intents=intents, activity=activity, description = description, help_command=help_command)
         self.register_commands()
 
     def run(self):
@@ -1155,7 +1168,7 @@ class Discord(Bot, commands.Bot):
             name="run", description="Run full YugiQuery flow.", with_app_command=True
         )
         @commands.is_owner()
-        @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
+        @commands.cooldown(1, self.cooldown_limit, commands.BucketType.user)
         async def run_query(ctx, report: self.Reports = self.Reports.All):
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
@@ -1210,7 +1223,7 @@ class Discord(Bot, commands.Bot):
 
             if len(self.commands):
                 commandsInfo = " • `\\" + "\n • `\\".join(
-                    sorted([f"{i.name}`: {i.description}" for i in self.commands])
+                    sorted([f"{i.name}`: {i.description}" for i in self.commands if not i.name=="help"])
                 )
 
             embed = discord.Embed(color=ctx.me.colour)
