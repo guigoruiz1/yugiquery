@@ -554,7 +554,7 @@ class Telegram(Bot):
         """
         Start running the Telegram bot.
         """
-        print("Starting Telegram bot")
+        print("Running Telegram bot...")
         self.application.run_polling(stop_signals=None)
 
     # ======== #
