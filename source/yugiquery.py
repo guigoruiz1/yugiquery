@@ -335,7 +335,7 @@ async def download_images(
 
 def commit(files: Union[str, List[str]], commit_message: str = None):
     """
-    Commits the specified files to the git repository.
+    Commits the specified files to the git repository after staging them.
 
     Args:
         files (Union[str, List[str]]): A list of file paths to be committed.
@@ -355,7 +355,9 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         files = [files]
     try:
         with git.Repo(SCRIPT_DIR, search_parent_directories=True) as repo:
-            repo.git.commit(message=commit_message, *files)
+            # Stage the files before committing
+            repo.git.add(*files)
+            repo.git.commit(message=commit_message)
 
     except git.InvalidGitRepositoryError as e:
         print(f"Unable to find a git repository: {e}")
@@ -441,7 +443,7 @@ def condense_changelogs(files: pd.DataFrame):
     new_filename = os.path.join(
         os.path.dirname(file),
         make_filename(
-            report=changelog_name, timestamp=last_date, previous_timestamp=first_date
+            report=changelog_name, timestamp=arrow.get(last_date), previous_timestamp=arrow.get(first_date)
         ),
     )
     return new_changelog.loc[index], new_filename
@@ -558,7 +560,8 @@ def cleanup_data(dry_run=False):
     if dry_run:
         display(df)
 
-    print("- same month (with changelog)")
+    if not same_month_files["changelog"].empty:
+        print("- same month (with changelog)")
     for files in same_month_files["changelog"]:
         if len(files) > 1:
             new_changelog, new_filepath = condense_changelogs(files)
@@ -573,7 +576,8 @@ def cleanup_data(dry_run=False):
                 else:
                     os.remove(file)
 
-    print("- same month (without changelog)")
+    if not same_month_files["data"].empty:
+        print("- same month (without changelog)")
     for files in same_month_files["data"]:
         for file in files[:-1]:
             if dry_run:
@@ -583,8 +587,8 @@ def cleanup_data(dry_run=False):
         if dry_run:
             print("Keep", files[-1])
 
-    print("- Last month (with changelog)")
     if (files := last_month_files["changelog"]) and (len(files) > 1):
+        print("- Last month (with changelog)")
         new_changelog, new_filepath = condense_changelogs(files)
         print(f"New changelog file: {new_filepath}")
         if dry_run:
@@ -597,8 +601,8 @@ def cleanup_data(dry_run=False):
             else:
                 os.remove(file)
 
-    print("- Last month (without changelog)")
     if files := last_month_files["data"]:
+        print("- Last month (without changelog)")
         for file in files[:-1]:
             if dry_run:
                 print("Delete", file)
@@ -607,7 +611,9 @@ def cleanup_data(dry_run=False):
         if dry_run:
             print("Keep", files[-1])
 
-
+    if not dry_run:
+        commit(files=os.path.join(PARENT_DIR, "data"), commit_message=f"Data cleanup {arrow.utcnow().isoformat()}")
+        
 # Data formating
 
 
@@ -3067,6 +3073,7 @@ def run(
     progress_handler=None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
+    dry_run: bool = False,
     **kwargs,
 ):
     """
@@ -3079,6 +3086,7 @@ def run(
         progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
         telegram_first (bool, optional): Defaults to False.
         suppress_contribs (bool, optional): Defaults to False.
+        dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 
     Returns:
@@ -3101,7 +3109,7 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    cleanup_data(dry_run=True)
+    cleanup_data(dry_run=True) # Make logic to only use if too many files.
 
 
 # ========= #
@@ -3180,7 +3188,7 @@ if __name__ == "__main__":
     os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
     cleanup = args.pop("cleanup")
-    dry_run = args.pop("dryrun")
+    dry_run = args.get("dryrun")
     if cleanup:
         cleanup_data(dry_run=dry_run)
     else:
