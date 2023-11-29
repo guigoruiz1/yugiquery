@@ -115,25 +115,26 @@ def get_humanize_granularity(seconds: int):
         seconds (int): The time interval in seconds.
 
     Returns:
-        str: A human-readable representation of the time interval.
+        list: A list of human-readable granularities for the time interval.
     """
     granularities = [
-        "second",
-        "minute",
-        "hour",
-        "day",
-        "week",
-        "month",
-        "quarter",
-        "year",
+        ("year", 31536000),  # seconds in a year
+        ("quarter", 7776000),  # seconds in a quarter
+        ("month", 2592000),  # seconds in a month
+        ("week", 604800),  # seconds in a week
+        ("day", 86400),  # seconds in a day
+        ("hour", 3600),  # seconds in an hour
+        ("minute", 60),  # seconds in a minute
+        ("second", 1),
     ]
 
-    # Determine the appropriate granularity based on the time interval
     selected_granularity = []
-    for granularity in granularities:
-        if seconds > 0:
+
+    for granularity, divisor in granularities:
+        value = seconds // divisor
+        if value > 0:
             selected_granularity.append(granularity)
-            seconds //= 60  # Divide by 60 to move to the next larger unit
+            seconds %= divisor
 
     return selected_granularity
 
@@ -147,18 +148,19 @@ class Bot:
     """
     Bot superclass.
     """
-    def __init__(self, token: str, channel: str, **kwargs):
+
+    def __init__(self, token: str, channel: Union[str, int], **kwargs):
         """
         Initialize the Bot instance.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (str): The Telegram channel ID.
+            channel (Union[str, int]): The Telegram channel ID.
             **kwargs: Additional keyword arguments.
         """
         self.start_time = arrow.utcnow()
         self.token = token
-        self.channel = channel
+        self.channel = int(channel)
         self.init_reports_enum()
         self.load_repo_vars()
 
@@ -474,20 +476,26 @@ class Bot:
 
         queue = mp.Queue()
 
+        if isinstance(self, Discord):
+            channel_id_dict = {"channel_id": channel_id}
+        elif isinstance(self, Telegram):
+            channel_id_dict = {"chat_id": channel_id}
+
         def progress_handler(iterable=None, API_status: bool = True, **kwargs):
             queue.put(API_status)
             if iterable and (channel_id != self.channel) and (progress_bar is not None):
                 return progress_bar(
                     iterable,
                     token=self.token,
-                    channel_id=channel_id,
                     file=io.StringIO(),
+                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID.
                     **kwargs,
                 )
 
         try:
             self.process = mp.Process(
-                target=yq.run, args=[report.value, progress_handler]
+                target=yq.run,
+                args=[report.value, progress_handler],  # isinstance(self,Telegram)
             )
             self.process.start()
             await callback("Running...")
@@ -536,6 +544,7 @@ class Telegram(Bot):
     """
     Telegram bot subclass.
     """
+
     def __init__(self, token: str, channel: str):
         """
         Initialize the Telegram Bot subclass instance.
@@ -739,12 +748,11 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            last_run = context.user_data.get("last_run", arrow.utcnow())
-            print((arrow.utcnow() - last_run).total_seconds(), self.cooldown_limit)
+            last_run = context.user_data.get("last_run", arrow.get(0.0))
             if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
                 granularity = get_humanize_granularity(
                     (
-                        arrow.utcnow() - last_run.shift(seconds=self.cooldown_limit)
+                        last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()
                     ).total_seconds()
                 )
                 next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
@@ -757,7 +765,8 @@ class Telegram(Bot):
 
             report = (
                 self.Reports[context.args[0].capitalize()]
-                if context.args and context.args[0] in self.Reports.__members__
+                if context.args
+                and context.args[0].capitalize in self.Reports.__members__
                 else self.Reports.All
             )
 
@@ -778,8 +787,6 @@ class Telegram(Bot):
                 await context.bot.send_message(
                     chat_id=update.effective_chat.id, text=response["error"]
                 )
-                # Reset cooldown in case query did not complete
-                # ctx.command.reset_cooldown(ctx)
             else:
                 context.user_data["last_run"] = arrow.utcnow()
                 await context.bot.send_message(
@@ -893,6 +900,7 @@ class Discord(Bot, commands.Bot):
     """
     Discord bot subclass.
     """
+
     def __init__(self, token: str, channel: str):
         """
         Initialize the Discord bot subclass instance.
@@ -957,8 +965,6 @@ class Discord(Bot, commands.Bot):
             return
 
         await self.process_commands(message)
-        # response = super().on_message(message.content)
-        # await message.channel.send(content=response)
         if message.content.lower().startswith("hi"):
             await message.channel.send(content=f"Hello, {message.author.name}!")
 
@@ -1220,7 +1226,10 @@ class Discord(Bot, commands.Bot):
                 await original_response.edit(content=content)
 
             response = await self.run_query(
-                callback=callback, report=report, channel_id=str(ctx.channel.id)
+                callback=callback,
+                report=report,
+                channel_id=str(ctx.channel.id),
+                progress_bar=discord_pbar,
             )
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])

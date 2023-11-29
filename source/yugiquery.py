@@ -612,7 +612,7 @@ def cleanup_data(dry_run=False):
         commit(
             files=[
                 os.path.join(PARENT_DIR, "data/benchmark.json"),
-                os.path.join(PARENT_DIR, "data/*bz2"), # May not work
+                os.path.join(PARENT_DIR, "data/*bz2"),  # May not work
             ],
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
@@ -1129,7 +1129,7 @@ def run_notebooks(
                     unit_scale=True,
                     dynamic_ncols=True,
                     token=token,
-                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID. Will change once TQDM implements using webhook for Discord.
+                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID.
                 )
 
                 break
@@ -3105,7 +3105,7 @@ def run(
     # Execute all notebooks in the source directory
     run_notebooks(
         reports=reports,
-        # progress_handler=progress_handler,
+        progress_handler=progress_handler,
         telegram_first=telegram_first,
         suppress_contribs=suppress_contribs,
         **kwargs,
