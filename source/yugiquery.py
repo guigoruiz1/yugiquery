@@ -559,11 +559,7 @@ def cleanup_data(dry_run=False):
         if files not in last_month_files["data"]
     ]
 
-    if dry_run:
-        display(df)
-
-    if not same_month_files["changelog"].empty:
-        print("- same month (with changelog)")
+    print("\n- same month (with changelog)")
     for files in same_month_files["changelog"]:
         if len(files) > 1:
             new_changelog, new_filepath = condense_changelogs(files)
@@ -578,8 +574,7 @@ def cleanup_data(dry_run=False):
                 else:
                     os.remove(file)
 
-    if not same_month_files["data"].empty:
-        print("- same month (without changelog)")
+    print("\n- same month (without changelog)")
     for files in same_month_files["data"]:
         for file in files[:-1]:
             if dry_run:
@@ -590,7 +585,7 @@ def cleanup_data(dry_run=False):
             print("Keep", files[-1])
 
     if (files := last_month_files["changelog"]) and (len(files) > 1):
-        print("- Last month (with changelog)")
+        print("\n- Last month (with changelog)")
         new_changelog, new_filepath = condense_changelogs(files)
         print(f"New changelog file: {new_filepath}")
         if dry_run:
@@ -604,7 +599,7 @@ def cleanup_data(dry_run=False):
                 os.remove(file)
 
     if files := last_month_files["data"]:
-        print("- Last month (without changelog)")
+        print("\n- Last month (without changelog)")
         for file in files[:-1]:
             if dry_run:
                 print("Delete", file)
