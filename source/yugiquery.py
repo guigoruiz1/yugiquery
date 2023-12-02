@@ -617,9 +617,37 @@ def cleanup_data(dry_run=False):
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
 
+def load_corrected_latest(name_pattern: str, tuple_cols: List[str]=[]):
+    """
+    TODO
+
+    Args:
+        name_pattern (str): Data file name pattern to load.
+        tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval.
+    """
+    files = sorted(glob.glob(f"../data/all_{name_pattern}_*.bz2"), key=os.path.getctime, reverse=True)
+    
+    if files:
+        df = pd.read_csv(files[0], dtype=object)
+        for col in tuple_cols:
+            if col in df:
+                df[col] = df[col].dropna().apply(literal_eval)
+                
+        for col in ["Modification date", "Release"]:
+            if col in df:
+                df[col] = pd.to_datetime(df[col])
+
+        ts = arrow.get(
+            os.path.basename(files[0]).split("_")[-1].split(".bz2")[0]
+        )
+        print(f"{name_pattern} file loaded")
+        return df, ts
+    else:
+        print(f"No {name_pattern} files")
+        return None, None
+
 
 # Data formating
-
 
 def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False):
     """
@@ -1075,7 +1103,7 @@ def run_notebooks(
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
     if progress_handler:
-        external_pbar = progress_handler(
+        external_pbar = progress_handler.pbar(
             iterable=reports, desc="Completion", unit="report", unit_scale=True
         )
     else:
@@ -2747,6 +2775,7 @@ def generate_rate_grid(
         temp_ax.yaxis.set_minor_locator(AutoMinorLocator())
         temp_ax.xaxis.set_major_locator(mdates.YearLocator())
         temp_ax.yaxis.set_major_locator(MaxNLocator(5, integer=True))
+        temp_ax.set_axisbelow(True)
         temp_ax.grid()
 
     if len(dy.columns) == 1:
@@ -3061,7 +3090,8 @@ def boxplot(df, mean=True, **kwargs):
     elif df[col].max() == 5000:
         ax.set_yticks(np.arange(0, 5500, 500))
         ax.yaxis.set_minor_locator(AutoMinorLocator())
-
+    
+    ax.set_axisbelow(True)
     plt.xticks(rotation=30)
     fig.tight_layout()
     fig.show()
@@ -3082,8 +3112,7 @@ def run(
 ):
     """
     Executes all notebooks in the source directory that match the specified report, updates the page index
-    to reflect the last execution timestamp, and cleans up
-    redundant data files.
+    to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
         reports (str, optional): The report to generate. Defaults to 'all'.
@@ -3099,7 +3128,7 @@ def run(
     # Check API status
     if not check_API_status():
         if progress_handler:
-            progress_handler(API_status=False)
+            progress_handler.exit(API_status=False)
         return
 
     # Execute all notebooks in the source directory
@@ -3113,7 +3142,7 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    cleanup_data(dry_run=True)  # Make logic to only use if too many files.
+    cleanup_data(dry_run=True)  # TODO Make logic to only use if too many files.
 
 
 # ========= #

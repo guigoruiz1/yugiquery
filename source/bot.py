@@ -139,6 +139,65 @@ def get_humanize_granularity(seconds: int):
     return selected_granularity
 
 
+# ====================== #
+# Progress handler class #
+# ====================== #
+
+import io
+
+class ProgressHandler:
+    """
+    Progress handler class.
+
+    Args:
+        queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
+        progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
+        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
+
+    Attributes:
+        queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
+        progress_bar (tqdm, optional): The tqdm progress bar implementation.
+        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar.
+
+    Methods:
+        pbar(iterable, **kwargs):
+            Initializes and returns a progress bar instance if progress_bar is not None.
+
+        exit(API_status: bool = True):
+            Puts the API status in the queue.
+    """
+    def __init__(self, queue: mp.Queue, progress_bar: tqdm = None, pbar_kwargs: Dict[str,Any]={}):
+        self.queue = queue
+        self.progress_bar = progress_bar
+        self.pbar_kwargs = pbar_kwargs
+
+    def pbar(self, iterable, **kwargs):
+        """
+        Initializes and returns a progress bar instance if progress_bar is not None.
+
+        Args:
+            iterable (iterable): The iterable to track progress.
+            **kwargs: Additional keyword arguments for the progress bar.
+
+        Returns:
+            Progress bar instance or None: The initialized progress bar instance or None if progress_bar is None.
+        """
+        if self.progress_bar is None:
+            return None
+        else:
+            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
+
+    def exit(self, API_status: bool=True):
+        """
+        Puts the API status in the queue.
+
+        Args:
+            API_status (bool, optional): The status to put in the queue. Defaults to True.
+        """
+        self.queue.put(API_status)
+
+
+
 # ============== #
 # Bot Superclass #
 # ============== #
@@ -166,6 +225,7 @@ class Bot:
 
     # Other
     process = None
+    progress_handler = None
     Reports = Enum("Reports", {"All": "all"})
     cooldown_limit = 12 * 60 * 60  # 12 hours
 
@@ -477,21 +537,15 @@ class Bot:
         queue = mp.Queue()
 
         if isinstance(self, Discord):
-            channel_id_dict = {"channel_id": channel_id}
+            pbar_kwargs = {"channel_id": channel_id, "token": self.token}
         elif isinstance(self, Telegram):
-            channel_id_dict = {"chat_id": channel_id}
+            pbar_kwargs = {"chat_id": channel_id, "token": self.token}
 
-        def progress_handler(iterable=None, API_status: bool = True, **kwargs):
-            queue.put(API_status)
-            if iterable and ((channel_id != self.channel) or isinstance(self,Telegram)) and (progress_bar is not None): # Only Discord may call from another channel
-                return progress_bar(
-                    iterable,
-                    token=self.token,
-                    file=io.StringIO(),
-                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID.
-                    **kwargs,
-                )
-
+        progress_handler = ProgressHandler(
+            queue=queue, 
+            progress_bar = progress_bar if ((channel_id != self.channel) or isinstance(self,Telegram)) else None,
+            pbar_kwargs=pbar_kwargs
+        )
         try:
             self.process = mp.Process(
                 target=yq.run,
@@ -499,7 +553,8 @@ class Bot:
             )
             self.process.start()
             await callback("Running...")
-        except:
+        except Exception as e:
+            print(e)
             await callback("Initialization failed!")
 
         async def await_result():
@@ -513,6 +568,7 @@ class Bot:
         exitcode, API_error = await await_result()
         self.process.close()
         self.process = None
+        queue.close()
 
         if API_error:
             return {"error": "Unable to communicate with the API. Try again later."}
@@ -1359,7 +1415,8 @@ if __name__ == "__main__":
 
     # Load secrets
     secrets = load_secrets_with_args(args)
-
+    mp.set_start_method('spawn')
+    
     if subclass == "discord":
         # Initialize the Discord bot
         bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
