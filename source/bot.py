@@ -149,13 +149,13 @@ class Bot:
     Bot superclass.
     """
 
-    def __init__(self, token: str, channel: Union[str, int], **kwargs):
+    def __init__(self, token: str, channel: int, **kwargs):
         """
         Initialize the Bot instance.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (Union[str, int]): The Telegram channel ID.
+            channel (int): The Telegram channel ID.
             **kwargs: Additional keyword arguments.
         """
         self.start_time = arrow.utcnow()
@@ -483,7 +483,7 @@ class Bot:
 
         def progress_handler(iterable=None, API_status: bool = True, **kwargs):
             queue.put(API_status)
-            if iterable and (channel_id != self.channel) and (progress_bar is not None):
+            if iterable and ((channel_id != self.channel) or isinstance(self,Telegram)) and (progress_bar is not None): # Only Discord may call from another channel
                 return progress_bar(
                     iterable,
                     token=self.token,
@@ -545,13 +545,13 @@ class Telegram(Bot):
     Telegram bot subclass.
     """
 
-    def __init__(self, token: str, channel: str):
+    def __init__(self, token: str, channel: Union[str, int]):
         """
         Initialize the Telegram Bot subclass instance.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (str): The Telegram channel ID.
+            channel (Union[str, int]): The Telegram channel ID.
         """
         Bot.__init__(self, token, channel)
         # Initialize the Telegram bot
@@ -573,6 +573,21 @@ class Telegram(Bot):
     def register_commands(self):
         """
         Register command handlers for the Telegram bot.
+
+
+        Commands descriptions to pass to BotFather:
+        
+            abort - Aborts a running YugiQuery flow by terminating the process.
+            battle - Simulate a battle of all monster cards.
+            benchmark - Show average time each report takes to complete.
+            data - Send latest data files.
+            shutdown - Shutdown bot
+            latest - Show latest time each report was generated.
+            links - Show YugiQuery links.
+            ping - Test the bot connection latency.
+            run - Run full YugiQuery flow.
+            status - Display bot status and system information.
+        
         """
 
         async def abort(update: Update, context: CallbackContext):
@@ -766,7 +781,7 @@ class Telegram(Bot):
             report = (
                 self.Reports[context.args[0].capitalize()]
                 if context.args
-                and context.args[0].capitalize in self.Reports.__members__
+                and context.args[0].capitalize() in self.Reports.__members__
                 else self.Reports.All
             )
 
@@ -901,14 +916,14 @@ class Discord(Bot, commands.Bot):
     Discord bot subclass.
     """
 
-    def __init__(self, token: str, channel: str):
+    def __init__(self, token: str, channel: Union[str, int]):
         """
         Initialize the Discord bot subclass instance.
 
         Args:
             self (commands.Bot):
             token (str): The token for the Discord bot.
-            channel (str): The channel for the bot.
+            channel (Union[str, int]): The channel for the bot.
         """
         Bot.__init__(self, token, channel)
         # Initialize the Discord bot
@@ -1228,7 +1243,7 @@ class Discord(Bot, commands.Bot):
             response = await self.run_query(
                 callback=callback,
                 report=report,
-                channel_id=str(ctx.channel.id),
+                channel_id=ctx.channel.id,
                 progress_bar=discord_pbar,
             )
             if "error" in response.keys():
