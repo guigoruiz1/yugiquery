@@ -447,8 +447,9 @@ class Bot:
             files = files[
                 files["name"].str.endswith(".bz2")
             ]  # Remove .json files from lists
-            _, files["Group"], _, files["Timestamp"] = zip(*files["name"].str.extract(r"(\w+_\w+)_(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2"))
-
+            files[["Group", "Timestamp"]] = files["name"].str.extract(
+                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", expand=True
+            ).drop(1,axis=1)
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
             index = files.groupby("Group")["Timestamp"].idxmax()
             latest_files = files.loc[index, ["name", "download_url"]]
