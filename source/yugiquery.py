@@ -246,7 +246,15 @@ def make_filename(
     report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None
 ):
     """
-    TODO
+    Generates a standardized filename based on the provided parameters.
+
+    Args:
+        report (str): The name or identifier of the report.
+        timestamp (arrow.Arrow): The timestamp to be included in the filename.
+        previous_timestamp (arrow.Arrow): The previous timestamp, if applicable. Defaults to None.
+
+    Returns:
+        str: The generated filename.
     """
     if previous_timestamp is None:
         return f"all_{report}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
@@ -436,7 +444,13 @@ def benchmark(timestamp: arrow.Arrow, report: str=None):
 
 def condense_changelogs(files: pd.DataFrame):
     """
-    TODO
+    Condenses multiple changelog files into a consolidated dataframe and generates a new filename.
+
+    Args:
+        files (pd.DataFrame): A dataframe containing the changelog files.
+
+    Returns:
+        Tuple[pd.DataFrame, str]: A tuple containing the consolidated changelog dataframe and the new filename.
     """
     new_changelog = pd.DataFrame()
     changelog_name = None
@@ -486,7 +500,13 @@ def condense_changelogs(files: pd.DataFrame):
 
 def condense_benchmark(benchmark: dict):
     """
-    TODO
+    Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
+
+    Args:
+        benchmark (dict): A dictionary containing benchmark data.
+
+    Returns:
+        dict: The condensed benchmark dictionary with updated entries.
     """
     now = arrow.utcnow()
     for key, pair in benchmark.items():
@@ -514,7 +534,6 @@ def condense_benchmark(benchmark: dict):
 
 def cleanup_data(dry_run=False):
     """
-    TODO
     Cleans up data files, keeping only the most recent file from each month and week.
 
     Args:
@@ -652,11 +671,14 @@ def cleanup_data(dry_run=False):
 
 def load_corrected_latest(name_pattern: str, tuple_cols: List[str]=[]):
     """
-    TODO
+    Loads the most recent data file matching the specified name pattern and applies corrections.
 
     Args:
         name_pattern (str): Data file name pattern to load.
         tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval.
+
+    Returns:
+        Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(glob.glob(f"../data/all_{name_pattern}_*.bz2"), key=os.path.getctime, reverse=True)
     
@@ -1801,7 +1823,13 @@ def fetch_properties(
 
 def fetch_redirects(titles: List[str]):
     """
-    TODO
+    Fetches redirects for a list of page titles.
+
+    Args:
+        titles (List[str]): A list of titles.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping source titles to their corresponding redirect targets.
     """
     results = {}
     iterator = trange(
@@ -1823,7 +1851,13 @@ def fetch_redirects(titles: List[str]):
 
 def fetch_backlinks(titles: List[str]):
     """
-    TODO
+    Fetches backlinks for a list of page titles.
+
+    Args:
+        titles (List[str]): A list of titles.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
     """
     results = {}
     iterator = tqdm(titles, desc="Backlinks", leave=False)
@@ -1847,7 +1881,14 @@ def fetch_backlinks(titles: List[str]):
 
 def fetch_rarities_dict(rarities_list: List[str] = []):
     """
-    TODO
+    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
+
+    Args:
+        rarities_list (List[str]): A list of rarities.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
+
     """
     words, acronyms = separate_words_and_acronyms(rarities_list)
     if len(rarities_list) > 0:
@@ -1903,8 +1944,9 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
         bandai_query += f"|?{up.quote(arg)}"
 
     print(f"Downloading bandai cards")
+    concept="[[Medium::Bandai]]"
     bandai_df = fetch_properties(
-        "[[Medium::Bandai]]", bandai_query, step=limit, limit=limit, **kwargs
+        concept, bandai_query, step=limit, limit=limit, **kwargs
     )
     bandai_df["Monster type"] = (
         bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
@@ -1983,7 +2025,7 @@ def fetch_monster(
     **kwargs,
 ):
     """
-        Fetch monster cards based on query and properties of the cards.
+    Fetch monster cards based on query and properties of the cards.
 
     Args:
         monster_query (str, optional): A string representing a SMW query to search for. Defaults to None.
@@ -2129,11 +2171,12 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     debug = kwargs.get("debug", False)
 
     print(f"Downloading Speed duel cards")
+    concept="[[Category:TCG Speed Duel cards]]"
     if speed_query is None:
         speed_query = card_query(default="speed")
 
     speed_df = fetch_properties(
-        "[[Category:TCG Speed Duel cards]]",
+        concept,
         speed_query,
         step=step,
         limit=limit,
@@ -2163,7 +2206,7 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     """
     print("Downloading skill cards")
 
-    concept = f"[[Category:Skill%20Cards]][[Card type::Skill Card]]"
+    concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
     if skill_query is None:
         skill_query = card_query(default="skill")
 

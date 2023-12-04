@@ -143,7 +143,6 @@ def get_humanize_granularity(seconds: int):
 # Progress handler class #
 # ====================== #
 
-import io
 
 class ProgressHandler:
     """
@@ -254,24 +253,30 @@ class Bot:
         """
         Load repository variables including URLs and paths.
         """
-        # Open the repository
-        self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+        try:
+            # Open the repository
+            self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+    
+            # Get the remote repository
+            remote = self.repo.remote()
+            remote_url = remote.url
+    
+            # Extract the GitHub page URL from the remote URL
+            # by removing the ".git" suffix and splitting the URL
+            # by the "/" character
+            remote_url_parts = remote_url[:-4].split("/")
+    
+            # Repository
+            (author, repo) = remote_url_parts[-2:]
+            # URLs
+            self.repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
+            self.repository_url = f"https://github.com/{author}/{repo}"
+            self.webpage_url = f"https://{author}.github.io/{repo}"
 
-        # Get the remote repository
-        remote = self.repo.remote()
-        remote_url = remote.url
-
-        # Extract the GitHub page URL from the remote URL
-        # by removing the ".git" suffix and splitting the URL
-        # by the "/" character
-        remote_url_parts = remote_url[:-4].split("/")
-
-        # Repository
-        (author, repo) = remote_url_parts[-2:]
-        # URLs
-        self.repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
-        self.repository_url = f"https://github.com/{author}/{repo}"
-        self.webpage_url = f"https://{author}.github.io/{repo}"
+            self.has_remote = True
+        except:
+            self.has_remote = False
+            
 
     def init_reports_enum(self):
         """
@@ -435,25 +440,19 @@ class Bot:
         Returns:
             dict: A dictionary containing direct links to the latest data files.
         """
+        if not self.has_remote:
+            return {"error": "No github repository."}
         try:
             files = pd.read_json(f"{self.repository_api_url}/contents/data")
             files = files[
                 files["name"].str.endswith(".bz2")
             ]  # Remove .json files from lists
-            files["Group"] = files["name"].apply(
-                lambda x: re.search(
-                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", x
-                ).group(1)
-            )
-            files["Timestamp"] = files["name"].apply(
-                lambda x: re.search(
-                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", x
-                ).group(3)
-            )
+            _, files["Group"], _, files["Timestamp"] = zip(*files["name"].str.extract(r"(\w+_\w+)_(?:\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2"))
+
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
             index = files.groupby("Group")["Timestamp"].idxmax()
             latest_files = files.loc[index, ["name", "download_url"]]
-
+    
             data_value = ""
             changelog_value = ""
             for _, file in latest_files.iterrows():
@@ -461,7 +460,7 @@ class Bot:
                     changelog_value += f'• [{file["name"]}]({file["download_url"]})\n'
                 else:
                     data_value += f'• [{file["name"]}]({file["download_url"]})\n'
-
+    
             response = {
                 "title": "Latest data files",
                 "description": "Direct links to download files from GitHub",
@@ -469,7 +468,6 @@ class Bot:
                 "changelog": changelog_value,
             }
             return response
-
         except:
             return {
                 "error": "Unable to obtain the latest files at this time. Try again later."
@@ -500,18 +498,19 @@ class Bot:
         response["local"] = local_value
 
         # Get live files timestamps
-        try:
-            live_value = ""
-            for report in reports:
-                result = pd.read_json(
-                    f"{self.repository_api_url}/commits?path={os.path.basename(report)}"
-                )
-                timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
-                live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
-
-            response["live"] = live_value
-        except:
-            pass
+        if self.has_remote:
+            try:
+                live_value = ""
+                for report in reports:
+                    result = pd.read_json(
+                        f"{self.repository_api_url}/commits?path={os.path.basename(report)}"
+                    )
+                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
+                    live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+    
+                response["live"] = live_value
+            except:
+                pass
 
         return response
 
@@ -522,9 +521,13 @@ class Bot:
         Returns:
             dict: A dictionary containing links to YugiQuery resources.
         """
+        if self.has_remote:
+            description = f"[Webpage]({self.webpage_url}) • [Repository]({self.repository_url}) • [Data]({self.repository_url}/tree/main/data)"
+        else:
+            description = "No github repository."
         response = {
             "title": "YugiQuery links",
-            "description": f"[Webpage]({self.webpage_url}) • [Repository]({self.repository_url}) • [Data]({self.repository_url}/tree/main/data)",
+            "description": description,
         }
 
         return response
