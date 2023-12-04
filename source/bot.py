@@ -167,6 +167,14 @@ class ProgressHandler:
             Puts the API status in the queue.
     """
     def __init__(self, queue: mp.Queue, progress_bar: tqdm = None, pbar_kwargs: Dict[str,Any]={}):
+        """
+        Initializes the ProgressHandler class.
+        
+        Args:
+            queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
+            progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
+            pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
+        """
         self.queue = queue
         self.progress_bar = progress_bar
         self.pbar_kwargs = pbar_kwargs
@@ -206,11 +214,21 @@ class ProgressHandler:
 class Bot:
     """
     Bot superclass.
+
+    Args:
+        token (str): The token for the Telegram bot.
+        channel (int): The Telegram channel ID.
+        **kwargs: Additional keyword arguments.
+
+    Attributes:
+        TODO
+    Methods:
+        TODO
     """
 
     def __init__(self, token: str, channel: int, **kwargs):
         """
-        Initialize the Bot instance.
+        Initializes the Bot base class.
 
         Args:
             token (str): The token for the Telegram bot.
@@ -225,9 +243,8 @@ class Bot:
 
     # Other
     process = None
-    progress_handler = None
     Reports = Enum("Reports", {"All": "all"})
-    cooldown_limit = 12 * 60 * 60  # 12 hours
+    cooldown_limit = 12 * 3600  # 12 hours
 
     # ======================== #
     # Bot Superclass Functions #
@@ -599,15 +616,29 @@ class Bot:
 class Telegram(Bot):
     """
     Telegram bot subclass.
+
+    Args:
+        token (str): The token for the Telegram bot.
+        channel (Union[str, int]): The Telegram channel ID.
+
+    Attributes:
+        TODO
+    Methods:
+        TODO
+        run
+        register_commands
+        register_events
+        
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
         """
-        Initialize the Telegram Bot subclass instance.
+        Initialize Telegram Bot subclass.
 
         Args:
             token (str): The token for the Telegram bot.
             channel (Union[str, int]): The Telegram channel ID.
+        
         """
         Bot.__init__(self, token, channel)
         # Initialize the Telegram bot
@@ -970,16 +1001,32 @@ class Telegram(Bot):
 class Discord(Bot, commands.Bot):
     """
     Discord bot subclass.
+
+    Args:
+        token (str): The token for the Discord bot.
+        channel (Union[str, int]): The channel for the bot.
+
+    Attributes:
+        TODO
+
+    Methods:
+        TODO
+        run
+        on_ready
+        on_message
+        on_command_error
+        register_commands
+
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
         """
-        Initialize the Discord bot subclass instance.
-
+        Initializes the Discord bot subclass.
+    
         Args:
-            self (commands.Bot):
             token (str): The token for the Discord bot.
             channel (Union[str, int]): The channel for the bot.
+    
         """
         Bot.__init__(self, token, channel)
         # Initialize the Discord bot

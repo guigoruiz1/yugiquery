@@ -333,6 +333,32 @@ async def download_images(
 # =============== #
 
 
+# Git management
+
+def assure_repo():
+    """
+    Assures the script is inside a git repository. Initializes a repository if one is not found.
+
+    Raises:
+        Exception: For any unexpected errors.
+
+    Returns:
+        None
+    """
+    try:
+        # Try to create a Repo object
+        repo = git.Repo(PARENT_DIR)
+
+    except git.InvalidGitRepositoryError:
+        # Handle the case when the path is not a valid Git repository
+        git.Repo.init(PARENT_DIR)
+        print(f"Git repository initialized in {PARENT_DIR}")
+    
+    except Exception as e:
+        # Handle any exceptions (e.g., invalid path)
+        print(f"Unable to init Git repository: {e}")
+        raise
+
 def commit(files: Union[str, List[str]], commit_message: str = None):
     """
     Commits the specified files to the git repository after staging them.
@@ -369,18 +395,25 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         print(f"An unexpected error occurred: {e}")
         raise
 
+# Data files
 
-def benchmark(report: str, timestamp: arrow.Arrow):
+def benchmark(timestamp: arrow.Arrow, report: str=None):
     """
     Records the execution time of a report and saves the data to a JSON file.
 
     Args:
-        report (str): The name of the report being benchmarked.
         timestamp (arrow.Arrow): The timestamp when the report execution began.
+         report (str): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
 
     Returns:
         None
     """
+    if report is None:
+        try:
+            report = os.path.basename(os.environ["JPY_SESSION_NAME"]).split(".")[0]
+        except:
+            report = ""
+            
     now = arrow.utcnow()
     timedelta = now - timestamp
     benchmark_file = os.path.join(PARENT_DIR, "data/benchmark.json")
@@ -3107,6 +3140,7 @@ def run(
     progress_handler=None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
+    cleanup: Union[bool,str] = False,
     dry_run: bool = False,
     **kwargs,
 ):
@@ -3119,6 +3153,7 @@ def run(
         progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
         telegram_first (bool, optional): Defaults to False.
         suppress_contribs (bool, optional): Defaults to False.
+        cleanup (Union[bool,str], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 
@@ -3142,12 +3177,26 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    cleanup_data(dry_run=True)  # TODO Make logic to only use if too many files.
+    if cleanup=='auto':
+        data_files_count = len(glob.glob(os.path.join(PARENT_DIR,"data/*.bz2")))
+        reports_count = len(glob.glob(os.path.join(SCRIPT_DIR,"*.ipynb")))
+        if data_files_count/reports_count > 4:
+            cleanup_data(dry_run=dry_run)
+    elif cleanup:
+        cleanup_data(dry_run=dry_run)
 
 
 # ========= #
 # CLI usage #
 # ========= #
+
+def auto_or_bool(value):
+    if value is None:
+        return True
+    elif value.lower() == "auto":
+        return "auto"
+    else:
+        return bool(value)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -3158,7 +3207,7 @@ if __name__ == "__main__":
         default="all",
         type=str,
         required=False,
-        help="The report(s) to be generated",
+        help="The report(s) to be generated.",
     )
     parser.add_argument(
         "-t",
@@ -3166,7 +3215,7 @@ if __name__ == "__main__":
         dest="telegram_token",
         type=str,
         required=False,
-        help="Telegram API token",
+        help="Telegram API token.",
     )
     parser.add_argument(
         "-d",
@@ -3174,7 +3223,7 @@ if __name__ == "__main__":
         dest="discord_token",
         type=str,
         required=False,
-        help="Discord API token",
+        help="Discord API token.",
     )
     parser.add_argument(
         "-c",
@@ -3182,49 +3231,49 @@ if __name__ == "__main__":
         dest="channel_id",
         type=int,
         required=False,
-        help="Discord or Telegram Channel ID",
+        help="Discord or Telegram Channel/chat ID.",
     )
     parser.add_argument(
         "-s",
         "--suppress-contribs",
         action="store_true",
         required=False,
-        help="Disables using TQDM contribs entirely",
+        help="Disables using TQDM contribs entirely.",
     )
     parser.add_argument(
         "-f",
         "--telegram-first",
         action="store_true",
         required=False,
-        help="Force TQDM contribs to try using Telegram before Discord",
+        help="Force TQDM to try using Telegram as progress bar before Discord.",
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        required=False,
-        help="Enable debug flag",
-    )
-    parser.add_argument(
-        "--cleanup",
-        action="store_true",
-        required=False,
-        help="Enable debug flag",
+        "--cleanup", 
+        default='auto', 
+        type=auto_or_bool, 
+        nargs='?', 
+        const=True, 
+        action='store',
+        help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto."
     )
     parser.add_argument(
         "--dryrun",
         action="store_true",
         required=False,
-        help="Enable debug flag",
+        help="Whether to dry run the cleanup routine. No effect if cleanup is False.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        required=False,
+        help="Enables debug flag.",
     )
     args = vars(parser.parse_args())
+    # Assures the script is within a git repository before proceesing
+    assure_repo()
     # Change working directory to script location
     os.chdir(SCRIPT_DIR)
     # Execute the complete workflow
-    cleanup = args.pop("cleanup")
-    dry_run = args.get("dryrun")
-    if cleanup:
-        cleanup_data(dry_run=dry_run)
-    else:
-        run(**args)
+    run(**args)
     # Exit python
     quit()
