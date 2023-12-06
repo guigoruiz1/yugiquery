@@ -2,6 +2,16 @@
 
 # -*- coding: utf-8 -*-
 
+# ======================================================================== #
+#                                                                          #
+# ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ #
+#  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  #
+#   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   #
+#    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    #
+#    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    #
+#                                   ▀▀                                     # 
+# ======================================================================== #
+
 __author__ = "Guilherme Ruiz"
 __copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
@@ -1452,26 +1462,26 @@ def card_query(default: str = None, *args, **kwargs):
     """
     # Default card query
     prop_bool = {
-        "_password": True,
-        "_card_type": True,
-        "_property": True,
-        "_primary": True,
-        "_secondary": True,
-        "_attribute": True,
-        "_monster_type": True,
-        "_stars": True,
-        "_atk": True,
-        "_def": True,
-        "_scale": True,
-        "_link": True,
-        "_arrows": True,
-        "_effect_type": True,
-        "_archseries": True,
-        "_alternate_artwork": True,
-        "_edited_artwork": True,
-        "_tcg": True,
-        "_ocg": True,
-        "_date": True,
+        "password": True,
+        "card_type": True,
+        "property": True,
+        "primary": True,
+        "secondary": True,
+        "attribute": True,
+        "monster_type": True,
+        "stars": True,
+        "atk": True,
+        "def": True,
+        "scale": True,
+        "link": True,
+        "arrows": True,
+        "effect_type": True,
+        "archseries": True,
+        "alternate_artwork": True,
+        "edited_artwork": True,
+        "tcg": True,
+        "ocg": True,
+        "date": True,
     }
 
     if default is not None:
@@ -1490,122 +1500,122 @@ def card_query(default: str = None, *args, **kwargs):
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
     elif default == "monster":
-        prop_bool.update({"_property": False})
+        prop_bool.update({"property": False})
     elif default == "st" or default == "trap" or default == "spell":
         prop_bool.update(
             {
-                "_primary": False,
-                "_secondary": False,
-                "_attribute": False,
-                "_monster_type": False,
-                "_stars": False,
-                "_atk": False,
-                "_def": False,
-                "_scale": False,
-                "_link": False,
-                "_arrows": False,
+                "primary": False,
+                "secondary": False,
+                "attribute": False,
+                "monster_type": False,
+                "stars": False,
+                "atk": False,
+                "def": False,
+                "scale": False,
+                "link": False,
+                "arrows": False,
             }
         )
     elif default == "counter":
         prop_bool.update(
             {
-                "_primary": False,
-                "_secondary": False,
-                "_attribute": False,
-                "_monster_type": False,
-                "_property": False,
-                "_stars": False,
-                "_atk": False,
-                "_def": False,
-                "_scale": False,
-                "_link": False,
-                "_arrows": False,
+                "primary": False,
+                "secondary": False,
+                "attribute": False,
+                "monster_type": False,
+                "property": False,
+                "stars": False,
+                "atk": False,
+                "def": False,
+                "scale": False,
+                "link": False,
+                "arrows": False,
             }
         )
     elif default == "skill":
         prop_bool.update(
             {
-                "_password": False,
-                "_primary": False,
-                "_secondary": False,
-                "_attribute": False,
-                "_monster_type": False,
-                "_stars": False,
-                "_atk": False,
-                "_def": False,
-                "_scale": False,
-                "_link": False,
-                "_arrows": False,
-                "_effect_type": False,
-                "_edited_artwork": False,
-                "_alternate_artwork": False,
-                "_ocg": False,
-                "_speed": True,
-                "_character": True,
+                "password": False,
+                "primary": False,
+                "secondary": False,
+                "attribute": False,
+                "monster_type": False,
+                "stars": False,
+                "atk": False,
+                "def": False,
+                "scale": False,
+                "link": False,
+                "arrows": False,
+                "effect_type": False,
+                "edited_artwork": False,
+                "alternate_artwork": False,
+                "ocg": False,
+                "speed": True,
+                "character": True,
             }
         )
     elif default == "speed":
         prop_bool.update(
             {
-                "_speed": True,
-                "_scale": False,
-                "_link": False,
-                "_arrows": False,
+                "speed": True,
+                "scale": False,
+                "link": False,
+                "arrows": False,
             }
         )
     elif default == "rush":
         prop_bool.update(
             {
-                "_password": False,
-                "_secondary": False,
-                "_scale": False,
-                "_link": False,
-                "_arrows": False,
-                "_tcg": False,
-                "_ocg": False,
-                "_maximum_atk": True,
-                "_edited_artwork": False,
-                "_alternate_artwork": False,
-                "_rush_alt_artwork": True,
-                "_rush_edited_artwork": True,
-                "_misc": True,
+                "password": False,
+                "secondary": False,
+                "scale": False,
+                "link": False,
+                "arrows": False,
+                "tcg": False,
+                "ocg": False,
+                "maximum_atk": True,
+                "edited_artwork": False,
+                "alternate_artwork": False,
+                "rush_alt_artwork": True,
+                "rush_edited_artwork": True,
+                "misc": True,
             }
         )
 
     # Card properties dictionary
     prop_dict = {
-        "_password": "|?Password",
-        "_card_type": "|?Card%20type",
-        "_property": "|?Property",
-        "_primary": "|?Primary%20type",
-        "_secondary": "|?Secondary%20type",
-        "_attribute": "|?Attribute",
-        "_monster_type": "|?Type=Monster%20type",
-        "_stars": "|?Stars%20string=Level%2FRank%20",
-        "_atk": "|?ATK%20string=ATK",
-        "_def": "|?DEF%20string=DEF",
-        "_scale": "|?Pendulum%20Scale",
-        "_link": "|?Link%20Rating=Link",
-        "_arrows": "|?Link%20Arrows",
-        "_effect_type": "|?Effect%20type",
-        "_archseries": "|?Archseries",
-        "_alternate_artwork": "|?Category:OCG/TCG%20cards%20with%20alternate%20artworks",
-        "_edited_artwork": "|?Category:OCG/TCG%20cards%20with%20edited%20artworks",
-        "_tcg": "|?TCG%20status",
-        "_ocg": "|?OCG%20status",
-        "_date": "|?Modification%20date",
-        "_image_URL": "|?Card%20image",
-        "_misc": "|?Misc",
-        "_summoning": "|?Summoning",
+        "password": "|?Password",
+        "card_type": "|?Card%20type",
+        "property": "|?Property",
+        "primary": "|?Primary%20type",
+        "secondary": "|?Secondary%20type",
+        "attribute": "|?Attribute",
+        "monster_type": "|?Type=Monster%20type",
+        "stars": "|?Stars%20string=Level%2FRank%20",
+        "atk": "|?ATK%20string=ATK",
+        "def": "|?DEF%20string=DEF",
+        "scale": "|?Pendulum%20Scale",
+        "link": "|?Link%20Rating=Link",
+        "arrows": "|?Link%20Arrows",
+        "effect_type": "|?Effect%20type",
+        "archseries": "|?Archseries",
+        "alternate_artwork": "|?Category:OCG/TCG%20cards%20with%20alternate%20artworks",
+        "edited_artwork": "|?Category:OCG/TCG%20cards%20with%20edited%20artworks",
+        "tcg": "|?TCG%20status",
+        "ocg": "|?OCG%20status",
+        "date": "|?Modification%20date",
+        "image_URL": "|?Card%20image",
+        "misc": "|?Misc",
+        "summoning": "|?Summoning",
         # Speed duel specific
-        "_speed": "|?TCG%20Speed%20Duel%20status",
-        "_character": "|?Character",
+        "speed": "|?TCG%20Speed%20Duel%20status",
+        "character": "|?Character",
         # Rush duel specific
-        "_rush_alt_artwork": "|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks",
-        "_rush_edited_artwork": "|?Category:Rush%20Duel%20cards%20with%20edited%20artworks",
-        "_maximum_atk": "|?MAXIMUM%20ATK",
+        "rush_alt_artwork": "|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks",
+        "rush_edited_artwork": "|?Category:Rush%20Duel%20cards%20with%20edited%20artworks",
+        "maximum_atk": "|?MAXIMUM%20ATK",
         # Deprecated - Use for debuging
-        "_category": "|?category",
+        "category": "|?category",
     }
     # Change default values to kwargs values
     prop_bool.update(kwargs)
@@ -1913,8 +1923,8 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
 
     Args:
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
-        *args: Additional arguments.
-        **kwargs: Additional keyword arguments to pass to fetch_properties.
+        *args: Additional properties to query.
+        **kwargs: keyword arguments to disable specific properties from query. Remaining keword arguments are passed to fetch_properties()
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
@@ -1922,23 +1932,24 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
     debug = kwargs.get("debug", False)
     bandai_query = "|?English%20name=Name"
     bandai_prop_dict = {
-        "_card_type": "|?Card%20type",
-        "_level": "|?Level",
-        "_atk": "|?ATK",
-        "_def": "|?DEF",
-        "_number": "|?Bandai%20number=Card%20number",
-        "_type": "|?Type=Monster%20type",
-        "_rule": "|?Bandai%20rule=Rule",
-        "_sets": "|?Sets=Set",
-        "_rarity": "|?Rarity",
-        "_ability": "|?Ability",
-        "_date": "|?Modification%20date",
+        "card_type": "|?Card%20type",
+        "level": "|?Level",
+        "atk": "|?ATK",
+        "def": "|?DEF",
+        "number": "|?Bandai%20number=Card%20number",
+        "type": "|?Type=Monster%20type",
+        "rule": "|?Bandai%20rule=Rule",
+        "sets": "|?Sets=Set",
+        "rarity": "|?Rarity",
+        "ability": "|?Ability",
+        "date": "|?Modification%20date",
     }
     for key, value in bandai_prop_dict.items():
-        if key in kwargs and not kwargs[key]:
-            continue
-        else:
-            bandai_query += value
+        if key in kwargs:
+            disable = not kwargs.pop(key)
+            if disable:
+                continue
+        bandai_query += value
 
     for arg in args:
         bandai_query += f"|?{up.quote(arg)}"
@@ -1948,9 +1959,10 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
     bandai_df = fetch_properties(
         concept, bandai_query, step=limit, limit=limit, **kwargs
     )
-    bandai_df["Monster type"] = (
-        bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
-    )  # Temporary
+    if "Monster type" in bandai_df:
+        bandai_df["Monster type"] = (
+            bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
+        )  # Temporary
     if debug:
         print("- Total")
 
