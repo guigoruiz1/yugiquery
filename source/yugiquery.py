@@ -9,7 +9,7 @@
 #   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   #
 #    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    #
 #    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    #
-#                                   ▀▀                                     # 
+#                                   ▀▀                                     #
 # ======================================================================== #
 
 __author__ = "Guilherme Ruiz"
@@ -353,6 +353,7 @@ async def download_images(
 
 # Git management
 
+
 def assure_repo():
     """
     Assures the script is inside a git repository. Initializes a repository if one is not found.
@@ -371,11 +372,12 @@ def assure_repo():
         # Handle the case when the path is not a valid Git repository
         git.Repo.init(PARENT_DIR)
         print(f"Git repository initialized in {PARENT_DIR}")
-    
+
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
         print(f"Unable to init Git repository: {e}")
         raise
+
 
 def commit(files: Union[str, List[str]], commit_message: str = None):
     """
@@ -413,9 +415,11 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         print(f"An unexpected error occurred: {e}")
         raise
 
+
 # Data files
 
-def benchmark(timestamp: arrow.Arrow, report: str=None):
+
+def benchmark(timestamp: arrow.Arrow, report: str = None):
     """
     Records the execution time of a report and saves the data to a JSON file.
 
@@ -431,7 +435,7 @@ def benchmark(timestamp: arrow.Arrow, report: str=None):
             report = os.path.basename(os.environ["JPY_SESSION_NAME"]).split(".")[0]
         except:
             report = ""
-            
+
     now = arrow.utcnow()
     timedelta = now - timestamp
     benchmark_file = os.path.join(PARENT_DIR, "data/benchmark.json")
@@ -679,7 +683,8 @@ def cleanup_data(dry_run=False):
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
 
-def load_corrected_latest(name_pattern: str, tuple_cols: List[str]=[]):
+
+def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -690,21 +695,23 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str]=[]):
     Returns:
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
-    files = sorted(glob.glob(f"../data/all_{name_pattern}_*.bz2"), key=os.path.getctime, reverse=True)
-    
+    files = sorted(
+        glob.glob(f"../data/all_{name_pattern}_*.bz2"),
+        key=os.path.getctime,
+        reverse=True,
+    )
+
     if files:
         df = pd.read_csv(files[0], dtype=object)
         for col in tuple_cols:
             if col in df:
                 df[col] = df[col].dropna().apply(literal_eval)
-                
+
         for col in ["Modification date", "Release"]:
             if col in df:
                 df[col] = pd.to_datetime(df[col])
 
-        ts = arrow.get(
-            os.path.basename(files[0]).split("_")[-1].split(".bz2")[0]
-        )
+        ts = arrow.get(os.path.basename(files[0]).split("_")[-1].split(".bz2")[0])
         print(f"{name_pattern} file loaded")
         return df, ts
     else:
@@ -713,6 +720,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str]=[]):
 
 
 # Data formating
+
 
 def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False):
     """
@@ -1955,7 +1963,7 @@ def fetch_bandai(limit: int = 200, *args, **kwargs):
         bandai_query += f"|?{up.quote(arg)}"
 
     print(f"Downloading bandai cards")
-    concept="[[Medium::Bandai]]"
+    concept = "[[Medium::Bandai]]"
     bandai_df = fetch_properties(
         concept, bandai_query, step=limit, limit=limit, **kwargs
     )
@@ -2183,7 +2191,7 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     debug = kwargs.get("debug", False)
 
     print(f"Downloading Speed duel cards")
-    concept="[[Category:TCG Speed Duel cards]]"
+    concept = "[[Category:TCG Speed Duel cards]]"
     if speed_query is None:
         speed_query = card_query(default="speed")
 
@@ -2258,17 +2266,18 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
 
 ### Unusable cards
 
+
 def fetch_unusable(
     query: str = None,
     cg: CG = CG.ALL,
-    filter = True,
+    filter=True,
     step: int = 500,
     limit: int = 5000,
     **kwargs,
 ):
     """
-    Fetch unusable cards based on query and properties of the cards. Unusable cards include "Strategy cards", "Tip cards", 
-    "Card Checklists", etc, which are not actual cards. The filter option enables filtering those out and keeping only cards 
+    Fetch unusable cards based on query and properties of the cards. Unusable cards include "Strategy cards", "Tip cards",
+    "Card Checklists", etc, which are not actual cards. The filter option enables filtering those out and keeping only cards
     such as Duelist Kingdom "Ticket cards", old video-game promo "Character cards" and "Non-game cards" which have the layout
     of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
 
@@ -2285,16 +2294,16 @@ def fetch_unusable(
 
     """
     debug = kwargs.get("debug", False)
-    concept="[[Category:Unusable cards]]"
-    
+    concept = "[[Category:Unusable cards]]"
+
     valid_cg = cg.value
     if valid_cg == "CG":
-        concept= "OR".join([concept+f"[[{s} status::+]]" for s in ["TCG","OCG"]])
+        concept = "OR".join([concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
     else:
-        concept+= f"[[{valid_cg} status::+]]"
+        concept += f"[[{valid_cg} status::+]]"
 
     concept = up.quote(concept)
-    
+
     print(f"Downloading unusable cards")
     if query is None:
         query = card_query()
@@ -2303,11 +2312,13 @@ def fetch_unusable(
 
     if filter and "Card type" in unusable_df:
         unusable_df = unusable_df[
-            unusable_df["Card type"].isin(["Character Card", "Non-game card", "Ticket Card"])
+            unusable_df["Card type"].isin(
+                ["Character Card", "Non-game card", "Ticket Card"]
+            )
         ].reset_index(drop=True)
-    
+
     unusable_df.dropna(how="all", axis=1, inplace=True)
-    
+
     if debug:
         print("- Total")
 
@@ -3238,7 +3249,7 @@ def boxplot(df, mean=True, **kwargs):
     elif df[col].max() == 5000:
         ax.set_yticks(np.arange(0, 5500, 500))
         ax.yaxis.set_minor_locator(AutoMinorLocator())
-    
+
     ax.set_axisbelow(True)
     plt.xticks(rotation=30)
     fig.tight_layout()
@@ -3255,7 +3266,7 @@ def run(
     progress_handler=None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
-    cleanup: Union[bool,str] = False,
+    cleanup: Union[bool, str] = False,
     dry_run: bool = False,
     **kwargs,
 ):
@@ -3292,10 +3303,10 @@ def run(
     # Update page index to reflect last execution timestamp
     update_index()
     # Cleanup redundant data files
-    if cleanup=='auto':
-        data_files_count = len(glob.glob(os.path.join(PARENT_DIR,"data/*.bz2")))
-        reports_count = len(glob.glob(os.path.join(SCRIPT_DIR,"*.ipynb")))
-        if data_files_count/reports_count > 4:
+    if cleanup == "auto":
+        data_files_count = len(glob.glob(os.path.join(PARENT_DIR, "data/*.bz2")))
+        reports_count = len(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
+        if data_files_count / reports_count > 4:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
@@ -3305,6 +3316,7 @@ def run(
 # CLI usage #
 # ========= #
 
+
 def auto_or_bool(value):
     if value is None:
         return True
@@ -3312,6 +3324,7 @@ def auto_or_bool(value):
         return "auto"
     else:
         return bool(value)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -3363,13 +3376,13 @@ if __name__ == "__main__":
         help="Force TQDM to try using Telegram as progress bar before Discord.",
     )
     parser.add_argument(
-        "--cleanup", 
-        default='auto', 
-        type=auto_or_bool, 
-        nargs='?', 
-        const=True, 
-        action='store',
-        help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto."
+        "--cleanup",
+        default="auto",
+        type=auto_or_bool,
+        nargs="?",
+        const=True,
+        action="store",
+        help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto.",
     )
     parser.add_argument(
         "--dryrun",
