@@ -9,7 +9,7 @@
 #   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   #
 #    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    #
 #    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    #
-#                                   ▀▀                                     # 
+#                                   ▀▀                                     #
 # ======================================================================== #
 
 # ======= #
@@ -175,10 +175,16 @@ class ProgressHandler:
         exit(API_status: bool = True):
             Puts the API status in the queue.
     """
-    def __init__(self, queue: mp.Queue, progress_bar: tqdm = None, pbar_kwargs: Dict[str,Any]={}):
+
+    def __init__(
+        self,
+        queue: mp.Queue,
+        progress_bar: tqdm = None,
+        pbar_kwargs: Dict[str, Any] = {},
+    ):
         """
         Initializes the ProgressHandler class.
-        
+
         Args:
             queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
             progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
@@ -202,9 +208,11 @@ class ProgressHandler:
         if self.progress_bar is None:
             return None
         else:
-            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
+            return self.progress_bar(
+                iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs
+            )
 
-    def exit(self, API_status: bool=True):
+    def exit(self, API_status: bool = True):
         """
         Puts the API status in the queue.
 
@@ -212,7 +220,6 @@ class ProgressHandler:
             API_status (bool, optional): The status to put in the queue. Defaults to True.
         """
         self.queue.put(API_status)
-
 
 
 # ============== #
@@ -225,14 +232,54 @@ class Bot:
     Bot superclass.
 
     Args:
-        token (str): The token for the Telegram bot.
-        channel (int): The Telegram channel ID.
+        token (str): The token for bot authentication.
+        channel (int): The bot channel ID.
         **kwargs: Additional keyword arguments.
 
     Attributes:
-        TODO
+        start_time (arrow.Arrow): The bot initialization timestamp.
+        token: (str): The token for bot authentication.
+        channel (int): The bot channel ID.
+        has_remote (bool): Whether the repository has a remote.
+        repo (git.Repo): The git repository object, if has_remote.
+        repository_api_url (str): The GitHub API URL for the remote repository, if has_remote.
+        repository_url (str): The URL of the remote repository, if has_remote.
+        webpage_url (str): The URL of the GitHub pages webpage for the remote repository, if has_remote.
+        process (multiprocessing.Process): The variable to hold a process spawned by run_query.
+        Reports (Enum): The Enum listing the available reports.
+        cooldown_limit (Tnt): The cooldown time in seconds to wait between consecutive calls to run_query.
+
     Methods:
-        TODO
+        load_repo_vars():
+            Load repository variables including URLs and paths.
+
+        init_reports_enum():
+            Initializes and returns an Enum object containing the available reports.
+
+        abort():
+            Aborts a running YugiQuery flow by terminating the process.
+
+        battle (callable: Callable, atk_weight: Int = 4, def_weight: Int = 1):
+            Simulates a battle between all cards from a the latest saved data file.
+
+        benchmark():
+            Returns the average time each report takes to complete and the latest time for each report.
+
+        data():
+            Returns the latest data files available in the repository as direct download links.
+
+        latest():
+            Displays the timestamp of the latest local and live reports generated.
+
+        links():
+            Displays the links to the YugiQuery webpage, repository, and data.
+
+        run_query(callback: Callable, channel_id: Int, report: Reports = Reports.All, progress_bar: tqdm = None):
+            Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
+
+        uptime():
+            Returns humanized bot uptime.
+
     """
 
     def __init__(self, token: str, channel: int, **kwargs):
@@ -266,16 +313,15 @@ class Bot:
         try:
             # Open the repository
             self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
-    
             # Get the remote repository
             remote = self.repo.remote()
             remote_url = remote.url
-    
+
             # Extract the GitHub page URL from the remote URL
             # by removing the ".git" suffix and splitting the URL
             # by the "/" character
             remote_url_parts = remote_url[:-4].split("/")
-    
+
             # Repository
             (author, repo) = remote_url_parts[-2:]
             # URLs
@@ -286,7 +332,6 @@ class Bot:
             self.has_remote = True
         except:
             self.has_remote = False
-            
 
     def init_reports_enum(self):
         """
@@ -313,7 +358,8 @@ class Bot:
         """
         try:
             self.process.terminate()
-            self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
+            if has_remote:
+                self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
             return "Aborted"
         except:
             return "Abort failed"
@@ -457,13 +503,17 @@ class Bot:
             files = files[
                 files["name"].str.endswith(".bz2")
             ]  # Remove .json files from lists
-            files[["Group", "Timestamp"]] = files["name"].str.extract(
-                r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", expand=True
-            ).drop(1,axis=1)
+            files[["Group", "Timestamp"]] = (
+                files["name"]
+                .str.extract(
+                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", expand=True
+                )
+                .drop(1, axis=1)
+            )
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
             index = files.groupby("Group")["Timestamp"].idxmax()
             latest_files = files.loc[index, ["name", "download_url"]]
-    
+
             data_value = ""
             changelog_value = ""
             for _, file in latest_files.iterrows():
@@ -471,7 +521,7 @@ class Bot:
                     changelog_value += f'• [{file["name"]}]({file["download_url"]})\n'
                 else:
                     data_value += f'• [{file["name"]}]({file["download_url"]})\n'
-    
+
             response = {
                 "title": "Latest data files",
                 "description": "Direct links to download files from GitHub",
@@ -516,9 +566,11 @@ class Bot:
                     result = pd.read_json(
                         f"{self.repository_api_url}/commits?path={os.path.basename(report)}"
                     )
-                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
+                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
+                        "date", "author"
+                    ]
                     live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
-    
+
                 response["live"] = live_value
             except:
                 pass
@@ -548,16 +600,16 @@ class Bot:
         callback: Callable,
         channel_id: int,
         report: Reports = Reports.All,
-        progress_bar=None,
+        progress_bar: tqdm = None,
     ):
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
 
         Args:
-            callback: Callable: A callback function which receives a string argument.
+            callback (Callable): A callback function which receives a string argument.
             channel_id (int): The channel ID to display the progress bar.
-            report (Reports): The report to run.
-            progress_bar: A tqdm progress bar.
+            report (Reports, optional): The report to run. Defaults to All.
+            progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
 
         Returns:
             dict: A dictionary containing the result of the query execution.
@@ -573,9 +625,11 @@ class Bot:
             pbar_kwargs = {"chat_id": channel_id, "token": self.token}
 
         progress_handler = ProgressHandler(
-            queue=queue, 
-            progress_bar = progress_bar if ((channel_id != self.channel) or isinstance(self,Telegram)) else None,
-            pbar_kwargs=pbar_kwargs
+            queue=queue,
+            progress_bar=progress_bar
+            if ((channel_id != self.channel) or isinstance(self, Telegram))
+            else None,
+            pbar_kwargs=pbar_kwargs,
         )
         try:
             self.process = mp.Process(
@@ -614,6 +668,9 @@ class Bot:
                 return {"error": f"Query execution exited with exit code: {exitcode}"}
 
     def uptime(self):
+        """
+        Returns humanized bot uptime.
+        """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
         granularity = get_humanize_granularity(time_difference)
         humanized = self.start_time.humanize(
@@ -636,13 +693,21 @@ class Telegram(Bot):
         channel (Union[str, int]): The Telegram channel ID.
 
     Attributes:
-        TODO
+        application (telegram.Application): The Telegram Application bot instance.
+        Bot attributes.
+
     Methods:
-        TODO
-        run
-        register_commands
-        register_events
-        
+        run():
+           Wrapper to start running the Telegram bot.
+
+        register_commands():
+            Registers the bot command handlers.
+
+        register_events():
+            Registers the bot event handlers.
+
+        Bot methods.
+
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
@@ -652,7 +717,7 @@ class Telegram(Bot):
         Args:
             token (str): The token for the Telegram bot.
             channel (Union[str, int]): The Telegram channel ID.
-        
+
         """
         Bot.__init__(self, token, channel)
         # Initialize the Telegram bot
@@ -675,9 +740,8 @@ class Telegram(Bot):
         """
         Register command handlers for the Telegram bot.
 
+        Command descriptions to pass to BotFather:
 
-        Commands descriptions to pass to BotFather:
-        
             abort - Aborts a running YugiQuery flow by terminating the process.
             battle - Simulate a battle of all monster cards.
             benchmark - Show average time each report takes to complete.
@@ -688,7 +752,7 @@ class Telegram(Bot):
             ping - Test the bot connection latency.
             run - Run full YugiQuery flow.
             status - Display bot status and system information.
-        
+
         """
 
         async def abort(update: Update, context: CallbackContext):
@@ -1001,7 +1065,12 @@ class Telegram(Bot):
             """
             error = context.error
             print(error)
-            await update.message.reply_text(f"Error: {error}")
+            if update is not None:
+                await update.message.reply_text(f"Error: {error}")
+            else:
+                await context.bot.send_message(
+                    chat_id=self.channel, text=f"Error: {error}"
+                )
 
         self.application.add_handler(CommandHandler("start", start))
         self.application.add_error_handler(on_command_error)
@@ -1021,26 +1090,34 @@ class Discord(Bot, commands.Bot):
         channel (Union[str, int]): The channel for the bot.
 
     Attributes:
-        TODO
+        discord.ext.Bot attributes.
+        Bot attributes.
 
     Methods:
-        TODO
-        run
-        on_ready
-        on_message
-        on_command_error
-        register_commands
+        run():
+           Wrapper to start running the Telegram bot.
 
+        register_commands():
+            Registers the bot command handlers.
+
+        on_ready():
+            Event callback that runs when the bot is ready to start receiving events and commands.
+
+        on_message():
+            Event callback that runs whenever a message is sent in a server where the bot is present.
+
+        on_command_error():
+             Event callback that runs whenever a command invoked by the user results in an error.
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
         """
         Initializes the Discord bot subclass.
-    
+
         Args:
             token (str): The token for the Discord bot.
             channel (Union[str, int]): The channel for the bot.
-    
+
         """
         Bot.__init__(self, token, channel)
         # Initialize the Discord bot
@@ -1072,7 +1149,7 @@ class Discord(Bot, commands.Bot):
 
     async def on_ready(self):
         """
-        Event that runs when the bot is ready to start receiving events and commands.
+        Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
         """
         print("You are logged as {}".format(self.user))
@@ -1086,7 +1163,7 @@ class Discord(Bot, commands.Bot):
 
     async def on_message(self, message: discord.Message):
         """
-        Event that runs whenever a message is sent in a server where the bot is present.
+        Event callback that runs whenever a message is sent in a server where the bot is present.
         Responds with a greeting to any message starting with 'hi'.
 
         Args:
@@ -1102,7 +1179,7 @@ class Discord(Bot, commands.Bot):
 
     async def on_command_error(self, ctx, error: commands.CommandError):
         """
-        Event that runs whenever a command invoked by the user results in an error.
+        Event callback that runs whenever a command invoked by the user results in an error.
         Sends a message to the channel indicating the type of error that occurred.
 
         Args:
@@ -1124,6 +1201,20 @@ class Discord(Bot, commands.Bot):
     def register_commands(self):
         """
         Register command handlers for the Discord bot.
+
+        Command descriptions:
+
+            abort - Aborts a running YugiQuery flow by terminating the process.
+            battle - Simulate a battle of all monster cards.
+            benchmark - Show average time each report takes to complete.
+            data - Send latest data files.
+            shutdown - Shutdown bot
+            latest - Show latest time each report was generated.
+            links - Show YugiQuery links.
+            ping - Test the bot connection latency.
+            run - Run full YugiQuery flow.
+            status - Display bot status and system information.
+
         """
 
         @self.hybrid_command(
@@ -1476,8 +1567,8 @@ if __name__ == "__main__":
 
     # Load secrets
     secrets = load_secrets_with_args(args)
-    mp.set_start_method('spawn')
-    
+    mp.set_start_method("spawn")
+
     if subclass == "discord":
         # Initialize the Discord bot
         bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])

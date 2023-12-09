@@ -2256,6 +2256,66 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
     return rush_df
 
 
+### Unusable cards
+
+def fetch_unusable(
+    query: str = None,
+    cg: CG = CG.ALL,
+    filter = True,
+    step: int = 500,
+    limit: int = 5000,
+    **kwargs,
+):
+    """
+    Fetch unusable cards based on query and properties of the cards. Unusable cards include "Strategy cards", "Tip cards", 
+    "Card Checklists", etc, which are not actual cards. The filter option enables filtering those out and keeping only cards 
+    such as Duelist Kingdom "Ticket cards", old video-game promo "Character cards" and "Non-game cards" which have the layout
+    of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
+
+    Args:
+        query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
+        filter (bool, optional): Keep only "Character Cards", "Non-game cards" and "Ticket Cards".
+        step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
+        limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched spell/trap cards.
+
+    """
+    debug = kwargs.get("debug", False)
+    concept="[[Category:Unusable cards]]"
+    
+    valid_cg = cg.value
+    if valid_cg == "CG":
+        concept= "OR".join([concept+f"[[{s} status::+]]" for s in ["TCG","OCG"]])
+    else:
+        concept+= f"[[{valid_cg} status::+]]"
+
+    concept = up.quote(concept)
+    
+    print(f"Downloading unusable cards")
+    if query is None:
+        query = card_query()
+
+    unusable_df = fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+
+    if filter and "Card type" in unusable_df:
+        unusable_df = unusable_df[
+            unusable_df["Card type"].isin(["Character Card", "Non-game card", "Ticket Card"])
+        ].reset_index(drop=True)
+    
+    unusable_df.dropna(how="all", axis=1, inplace=True)
+    
+    if debug:
+        print("- Total")
+
+    print(f"{len(unusable_df.index)} results\n")
+
+    return unusable_df
+
+
 ### Extra properties
 
 
