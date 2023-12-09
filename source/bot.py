@@ -1044,6 +1044,7 @@ class Telegram(Bot):
         async def start(update: Update, context: CallbackContext):
             """
             Send a message when the command /start is issued.
+            
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -1051,7 +1052,6 @@ class Telegram(Bot):
             user = update.effective_user
             await update.message.reply_html(
                 rf"Hi {user.mention_html()}!",
-                reply_markup=ForceReply(selective=True),
             )
 
         async def on_command_error(update: Update, context: CallbackContext):
