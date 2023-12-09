@@ -91,7 +91,7 @@ yugiquery/
 └─ _config.yml
 ```
 
-Ideally, files in the *assets* directory should be read-only files for reference only. Files in the *data* directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
+Ideally, files in the *assets* directory should be read-only files exclusively for reference. Files in the *data* directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 

@@ -167,13 +167,6 @@ class ProgressHandler:
         queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
         progress_bar (tqdm, optional): The tqdm progress bar implementation.
         pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar.
-
-    Methods:
-        pbar(iterable, **kwargs):
-            Initializes and returns a progress bar instance if progress_bar is not None.
-
-        exit(API_status: bool = True):
-            Puts the API status in the queue.
     """
 
     def __init__(
@@ -238,7 +231,7 @@ class Bot:
 
     Attributes:
         start_time (arrow.Arrow): The bot initialization timestamp.
-        token: (str): The token for bot authentication.
+        token (str): The token for bot authentication.
         channel (int): The bot channel ID.
         has_remote (bool): Whether the repository has a remote.
         repo (git.Repo): The git repository object, if has_remote.
@@ -246,39 +239,7 @@ class Bot:
         repository_url (str): The URL of the remote repository, if has_remote.
         webpage_url (str): The URL of the GitHub pages webpage for the remote repository, if has_remote.
         process (multiprocessing.Process): The variable to hold a process spawned by run_query.
-        Reports (Enum): The Enum listing the available reports.
         cooldown_limit (Tnt): The cooldown time in seconds to wait between consecutive calls to run_query.
-
-    Methods:
-        load_repo_vars():
-            Load repository variables including URLs and paths.
-
-        init_reports_enum():
-            Initializes and returns an Enum object containing the available reports.
-
-        abort():
-            Aborts a running YugiQuery flow by terminating the process.
-
-        battle (callable: Callable, atk_weight: Int = 4, def_weight: Int = 1):
-            Simulates a battle between all cards from a the latest saved data file.
-
-        benchmark():
-            Returns the average time each report takes to complete and the latest time for each report.
-
-        data():
-            Returns the latest data files available in the repository as direct download links.
-
-        latest():
-            Displays the timestamp of the latest local and live reports generated.
-
-        links():
-            Displays the links to the YugiQuery webpage, repository, and data.
-
-        run_query(callback: Callable, channel_id: Int, report: Reports = Reports.All, progress_bar: tqdm = None):
-            Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
-
-        uptime():
-            Returns humanized bot uptime.
 
     """
 
@@ -686,7 +647,7 @@ class Bot:
 
 class Telegram(Bot):
     """
-    Telegram bot subclass.
+    Telegram bot subclass. Inherits from Bot class.
 
     Args:
         token (str): The token for the Telegram bot.
@@ -694,20 +655,7 @@ class Telegram(Bot):
 
     Attributes:
         application (telegram.Application): The Telegram Application bot instance.
-        Bot attributes.
-
-    Methods:
-        run():
-           Wrapper to start running the Telegram bot.
-
-        register_commands():
-            Registers the bot command handlers.
-
-        register_events():
-            Registers the bot event handlers.
-
-        Bot methods.
-
+        Bot attributes
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
@@ -743,14 +691,23 @@ class Telegram(Bot):
         Command descriptions to pass to BotFather:
 
             abort - Aborts a running YugiQuery flow by terminating the process.
+            
             battle - Simulate a battle of all monster cards.
+            
             benchmark - Show average time each report takes to complete.
+            
             data - Send latest data files.
-            shutdown - Shutdown bot
+            
+            shutdown - Shutdown bot.
+            
             latest - Show latest time each report was generated.
+            
             links - Show YugiQuery links.
+            
             ping - Test the bot connection latency.
+            
             run - Run full YugiQuery flow.
+            
             status - Display bot status and system information.
 
         """
@@ -1083,31 +1040,15 @@ class Telegram(Bot):
 
 class Discord(Bot, commands.Bot):
     """
-    Discord bot subclass.
+    Discord bot subclass. Inherits from Bot class and discord.ext.commands.Bot.
 
     Args:
         token (str): The token for the Discord bot.
         channel (Union[str, int]): The channel for the bot.
 
     Attributes:
-        discord.ext.Bot attributes.
-        Bot attributes.
-
-    Methods:
-        run():
-           Wrapper to start running the Telegram bot.
-
-        register_commands():
-            Registers the bot command handlers.
-
-        on_ready():
-            Event callback that runs when the bot is ready to start receiving events and commands.
-
-        on_message():
-            Event callback that runs whenever a message is sent in a server where the bot is present.
-
-        on_command_error():
-             Event callback that runs whenever a command invoked by the user results in an error.
+        discord.ext.commands.Bot attributes
+        Bot attributes
     """
 
     def __init__(self, token: str, channel: Union[str, int]):
@@ -1205,14 +1146,23 @@ class Discord(Bot, commands.Bot):
         Command descriptions:
 
             abort - Aborts a running YugiQuery flow by terminating the process.
+            
             battle - Simulate a battle of all monster cards.
+            
             benchmark - Show average time each report takes to complete.
+            
             data - Send latest data files.
+            
             shutdown - Shutdown bot
+            
             latest - Show latest time each report was generated.
+            
             links - Show YugiQuery links.
+            
             ping - Test the bot connection latency.
+            
             run - Run full YugiQuery flow.
+            
             status - Display bot status and system information.
 
         """
