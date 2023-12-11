@@ -31,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 04/12/2023 21:29 UTC |
-| [Cards](Cards.html) | 04/12/2023 21:29 UTC |
-| [Rush](Rush.html) | 04/12/2023 21:29 UTC |
-| [Sets](Sets.html) | 04/12/2023 21:29 UTC |
-| [Speed](Speed.html) | 04/12/2023 21:29 UTC |
+| [Bandai](Bandai.html) | 11/12/2023 05:02 UTC |
+| [Cards](Cards.html) | 11/12/2023 05:05 UTC |
+| [Rush](Rush.html) | 11/12/2023 05:06 UTC |
+| [Sets](Sets.html) | 11/12/2023 05:18 UTC |
+| [Speed](Speed.html) | 11/12/2023 18:50 UTC |
 | [Timeline](Timeline.html) | 06/12/2023 22:26 UTC |
 
 
-The full YugiQuery flow was last executed at `06/12/2023 22:27 UTC`
+The full YugiQuery flow was last executed at `11/12/2023 18:50 UTC`
 
 # Usage
 
@@ -96,7 +96,7 @@ yugiquery/
 └─ _config.yml
 ```
 
-Ideally, files in the *assets* directory should be read-only files for reference only. Files in the *data* directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
+Ideally, files in the *assets* directory should be read-only files exclusively for reference. Files in the *data* directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 
