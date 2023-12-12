@@ -691,23 +691,23 @@ class Telegram(Bot):
         Command descriptions to pass to BotFather:
 
             abort - Aborts a running YugiQuery flow by terminating the process.
-            
+
             battle - Simulate a battle of all monster cards.
-            
+
             benchmark - Show average time each report takes to complete.
-            
+
             data - Send latest data files.
-            
+
             shutdown - Shutdown bot.
-            
+
             latest - Show latest time each report was generated.
-            
+
             links - Show YugiQuery links.
-            
+
             ping - Test the bot connection latency.
-            
+
             run - Run full YugiQuery flow.
-            
+
             status - Display bot status and system information.
 
         """
@@ -1001,7 +1001,7 @@ class Telegram(Bot):
         async def start(update: Update, context: CallbackContext):
             """
             Send a message when the command /start is issued.
-            
+
             Args:
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
@@ -1146,23 +1146,23 @@ class Discord(Bot, commands.Bot):
         Command descriptions:
 
             abort - Aborts a running YugiQuery flow by terminating the process.
-            
+
             battle - Simulate a battle of all monster cards.
-            
+
             benchmark - Show average time each report takes to complete.
-            
+
             data - Send latest data files.
-            
+
             shutdown - Shutdown bot
-            
+
             latest - Show latest time each report was generated.
-            
+
             links - Show YugiQuery links.
-            
+
             ping - Test the bot connection latency.
-            
+
             run - Run full YugiQuery flow.
-            
+
             status - Display bot status and system information.
 
         """
