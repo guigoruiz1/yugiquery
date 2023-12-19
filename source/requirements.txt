@@ -19,3 +19,4 @@ seaborn>=0.12.2
 wikitextparser>=0.53.0
 itables>=1.6.2
 sphinx_rtd_theme>=2.0.0
+nbstripout>=0.6.1
