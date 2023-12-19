@@ -59,6 +59,8 @@ import discord
 from discord.ext import commands
 from tqdm.contrib.discord import tqdm as discord_pbar
 
+# Silence discord.py pynacl optional dependency warning.
+discord.VoiceClient.warn_nacl = False
 
 # ============== #
 # Helper methods #
