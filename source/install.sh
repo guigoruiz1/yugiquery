@@ -17,16 +17,16 @@ jupyter_install_prefix=$(which jupyter | xargs dirname | xargs dirname)
 templates_directory="$jupyter_install_prefix/share/jupyter/nbconvert/templates"
 
 # Create the destination folder if it does not exist
-mkdir -p "$templates_directory/yugiquery"
+mkdir -p "$templates_directory/labdynamic"
 
 # Copy the folder to nbconvert templates directory
-cp -r "../assets/nbconvert"/* "$templates_directory/yugiquery"
+cp -r "../assets/nbconvert"/* "$templates_directory/labdynamic"
 
 # Check if the copy was successful
 if [ $? -eq 0 ]; then
-    echo "yugiquery nbconvert template successfully installed in $templates_directory"
+    echo "Lab dynamic nbconvert template successfully installed in $templates_directory"
 else
-    echo "Error: Failed to install yugiquery nbconvert template."
+    echo "Error: Failed to install Lab dynamic nbconvert template."
     echo "Be sure to install it manually or change the template used when generating the HTML report."
 fi
 
