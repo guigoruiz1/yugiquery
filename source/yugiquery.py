@@ -267,7 +267,7 @@ def make_filename(
         str: The generated filename.
     """
     if previous_timestamp is None:
-        return f"all_{report}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
     else:
         return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
 
@@ -696,7 +696,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(
-        glob.glob(f"../data/all_{name_pattern}_*.bz2"),
+        glob.glob(f"../data/{name_pattern}_data_*.bz2"),
         key=os.path.getctime,
         reverse=True,
     )
