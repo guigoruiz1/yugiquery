@@ -445,7 +445,7 @@ class Bot:
                 )
             )
 
-            value = f"• Average: {avg_time_str}\n• Latest: {latest_time_str}"
+            value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
             response[key.capitalize()] = value
 
         return response

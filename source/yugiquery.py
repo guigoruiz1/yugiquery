@@ -3306,7 +3306,7 @@ def run(
     if cleanup == "auto":
         data_files_count = len(glob.glob(os.path.join(PARENT_DIR, "data/*.bz2")))
         reports_count = len(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
-        if data_files_count / reports_count > 4:
+        if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
