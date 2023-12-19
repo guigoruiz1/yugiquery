@@ -319,7 +319,7 @@ class Bot:
         """
         try:
             self.process.terminate()
-            if has_remote:
+            if self.has_remote:
                 self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
             return "Aborted"
         except:

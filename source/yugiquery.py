@@ -95,7 +95,7 @@ while True:
 
 # Overwrite packages with versions specific for jupyter notebook
 try:
-    if get_ipython() is not None:
+    if 'IPython' in globals() and 'get_ipython' in globals():
         from itables import init_notebook_mode
         from halo import HaloNotebook as Halo
 except:
