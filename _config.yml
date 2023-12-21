@@ -4,7 +4,7 @@
 title: YugiQuery
 author: 
   name: Guilherme Ruiz
-  email: "57478888+guigoruiz1@users.noreply.github.com"
+  email: "guilherme.guigoruiz@gmail.com"
 
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
@@ -20,7 +20,7 @@ remote_theme: jekyll/minima
 minima:
   skin: auto
   social_links:
-    - { platform: github,  user_url: "https://github.com/guigoruiz1/yugiquery" }
+   - { platform: github,         user_url: "https://github.com/guigoruiz1/yugiquery" }
   
 plugins:
  - jekyll-feed
