@@ -31,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](Bandai.html) | 21/12/2023 21:54 UTC |
-| [Cards](Cards.html) | 21/12/2023 21:54 UTC |
+| [Bandai](Bandai.html) | 24/12/2023 20:43 UTC |
+| [Cards](Cards.html) | 24/12/2023 20:16 UTC |
 | [Rush](Rush.html) | 21/12/2023 21:54 UTC |
-| [Sets](Sets.html) | 21/12/2023 21:54 UTC |
-| [Speed](Speed.html) | 24/12/2023 18:16 UTC |
+| [Sets](Sets.html) | 24/12/2023 20:29 UTC |
+| [Speed](Speed.html) | 24/12/2023 18:57 UTC |
 | [Timeline](Timeline.html) | 21/12/2023 21:54 UTC |
 
 
-The full YugiQuery flow was last executed at `24/12/2023 18:16 UTC`
+The full YugiQuery flow was last executed at `24/12/2023 20:43 UTC`
 
 # Usage
 
@@ -49,54 +49,84 @@ The full YugiQuery workflow can be run with
 python yugiquery.py
 ```
 
-Any Jupyter notebook in the *source* directory will be assumed to be a report and will be executed and exported to HTML. The index.md and README.md files will be updated, using their template files in the *assets* directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be commited to Git.
+Any Jupyter notebook in the ***source*** directory will be assumed to be a report and will be executed and exported to HTML. The index.md and README.md files will be updated, using their respective template files in the ***assets*** directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be commited to Git.
+
+Report templates are included in the `assets/notebook` folder. Moving them to the source folder will enable them for execution.
+
+To use the optional Discord bot, run
+
+```
+python bot.py discord
+```
+
+Alternatively, to use the optional Telegram bot, run
+
+```
+python bot.py telegram
+```
+
+Both `yugiquery.py` and `bot.py` accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage. It is also possible to call the script directly as an executable using `./`, although that may be OS dependant.
+
+Further use cases can be found in the [documentation](#documentation).
 
 ## Installation
 
-YugiQuery is meant to be user friendly to users without much coding experience. Provided you have Python and Git installed, upon first execution YugiQuery will try to install all its dependencies. If the operation is not succesfull, the user may try to install the dependencies manually relying on the install.sh script. A pip requirements.txt file is also provided, but it does not install every dependency installed by the install.sh script.
+YugiQuery is meant to be user friendly to users without much coding experience. Provided you have Python and Git installed, upon first execution YugiQuery will try to install all its dependencies. If the operation is not succesfull, the user may try to install the dependencies manually, relying on the `install.sh` script and the pip `requirements.txt` file provided. The `install.sh`` script also install a nbconvert template which adds dynamic light and dark modes to the exported html report. This is the default template used by YugiQuery. In case it cannot be installed, the user should change the selected template on each report notebook.
+
+Further details can be found the [documentation](#documentation).
 
 ## Repository hierarchy
 
-The repository is structured such that its root contains the web page source files while the actual executable files are kept in the *source* directory. Any template files and files used for reference such as dictionaries are kept in the *assets* directory. The raw data is saved in the *data* directory and the ReadTheDocs source files are kept the *docs* directory. Below is an example of the basic structure of the directory.
+The repository is structured such that its root contains the web page source files, while the actual executable files are kept in the ***source*** directory. Any template files (markdown, nbconvert, notebook, etc) and files used for reference such as dictionaries are kept in the ***assets*** directory. The raw data used by the reports is saved in the ***data*** directory. The *Read The Docs* source files are kept in the ***docs*** directory. Below is an skeleton of the directory structure.
 
 ```
 yugiquery/
 ├─ assets/
-│  ├─ colors/
-│  ├─ dates.json
-│  ├─ footer.md
+│  ├─ json/
+│  │  ├─ colors.json
+│  │  ├─ dates.json
+│  │  ├─ rarities.json
+│  │  └─ regions.json
+│  ├─ markdown/
+│  │  ├─ footer.md
+│  │  ├─ header.md
+│  │  ├─ index.md
+│  │  └─ REAMDME.md
+│  ├─ nbconvert/
+│  │  ├─ conf.json
+│  │  ├─ dynamic.css
+│  │  └─ index.html.j2
+│  ├─ notebook/
+│  │  └─ Template.ipynb
 │  ├─ Gateway.html
-│  ├─ header.md
-│  ├─ index.md
-│  ├─ rarities.json
-│  ├─ README.md
-│  ├─ regions.json
-│  ├─ secrets.env
-│  └─ Template.ipynb
+│  └─ secrets.env
 ├─ data/
 │  ├─ benchmark.json
-│  ├─ data.csv
-│  └─ data_changelog.csv
+│  ├─ report_data.csv
+│  └─ report_changelog.csv
 ├─ docs/
-│  ├─ bot.rst
+│  ├─ Makefile
+│  ├─ make.bat
 │  ├─ conf.py
 │  ├─ index.rst
+│  ├─ bot.rst
 │  └─ yugiquery.rst
 ├─ source/
-│  ├─ bot.py
 │  ├─ install.sh
-│  ├─ Report.ipynb
 │  ├─ requirements.txt
+│  ├─ Report.ipynb
+│  ├─ bot.py
 │  └─ yugiquery.py
+├─ _config.yml
+├─ .devcontainer.json
 ├─ .readthedocs.yaml
 ├─ index.md
 ├─ LICENSE.md
 ├─ README.md
-├─ Report.html
-└─ _config.yml
+└─ Report.html
 ```
 
-Ideally, files in the *assets* directory should be read-only files exclusively for reference. Files in the *data* directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
+Ideally, files in the ***assets*** directory should be read-only files exclusively for reference. Files in the ***data*** directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 
@@ -104,7 +134,9 @@ The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io
 
 ## Known limitations
 
-At present, python<3.11 is needed to install all dependencies. This will be fixed once `TQDM` changes its Discord integration from the deprecated `disco-py` to `discord.py`
+At present, `TQDM` relies on the deprecated `disco-py` package which won't build. To circunvent this problem until the official`TQDM` release drops the `disco-py` dependency, we install `TQDM` from [this fork](https://github.com/guigoruiz1/tqdm), which uses pure REST API and/or `discord.py`.
+
+Recent updates to `IPython` broke `HALO` in Jupyter notebooks. Until `HALO` conforms to the new IPython API, we install it from [this fork](https://github.com/guigoruiz1/halo).
 
 ---
 
