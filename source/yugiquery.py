@@ -15,7 +15,7 @@
 __author__ = "Guilherme Ruiz"
 __copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"

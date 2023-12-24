@@ -1027,9 +1027,7 @@ class Telegram(Bot):
             if update is not None:
                 await update.message.reply_text(error.message)
             else:
-                await context.bot.send_message(
-                    chat_id=self.channel, text=error.message
-                )
+                await context.bot.send_message(chat_id=self.channel, text=error.message)
 
         self.application.add_handler(CommandHandler("start", start))
         self.application.add_error_handler(on_command_error)
