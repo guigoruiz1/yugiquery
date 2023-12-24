@@ -1023,12 +1023,12 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             error = context.error
-            print(error)
+            print(error.message)
             if update is not None:
-                await update.message.reply_text(f"Error: {error}")
+                await update.message.reply_text(error.message)
             else:
                 await context.bot.send_message(
-                    chat_id=self.channel, text=f"Error: {error}"
+                    chat_id=self.channel, text=error.message
                 )
 
         self.application.add_handler(CommandHandler("start", start))

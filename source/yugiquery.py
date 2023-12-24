@@ -15,7 +15,7 @@
 __author__ = "Guilherme Ruiz"
 __copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
@@ -95,7 +95,7 @@ while True:
 
 # Overwrite packages with versions specific for jupyter notebook
 try:
-    if 'IPython' in globals() and 'get_ipython' in globals():
+    if get_ipython() is not None:
         from itables import init_notebook_mode
         from halo import HaloNotebook as Halo
 except:
