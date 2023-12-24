@@ -25,9 +25,9 @@ Below are listed all the available reports and their execution timestamps.
 | [Rush](Rush.html) | 24/12/2023 22:16 UTC |
 | [Sets](Sets.html) | 24/12/2023 20:29 UTC |
 | [Speed](Speed.html) | 24/12/2023 18:57 UTC |
-| [Timeline](Timeline.html) | 21/12/2023 21:54 UTC |
+| [Timeline](Timeline.html) | 24/12/2023 22:28 UTC |
 
 
-The full YugiQuery flow was last executed at `24/12/2023 22:16 UTC`
+The full YugiQuery flow was last executed at `24/12/2023 22:28 UTC`
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
