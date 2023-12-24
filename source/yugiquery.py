@@ -1046,7 +1046,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(os.path.join(PARENT_DIR, "assets/regions.json"))
+        regions_dict = load_json(os.path.join(PARENT_DIR, "assets/json/regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: input_info_df[regions_dict[x["Region"]] + " release date"][
                 x["Set"]
