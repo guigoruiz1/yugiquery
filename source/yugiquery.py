@@ -267,7 +267,7 @@ def make_filename(
         str: The generated filename.
     """
     if previous_timestamp is None:
-        return f"all_{report}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
     else:
         return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
 
@@ -696,7 +696,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(
-        glob.glob(f"../data/all_{name_pattern}_*.bz2"),
+        glob.glob(f"../data/{name_pattern}_data_*.bz2"),
         key=os.path.getctime,
         reverse=True,
     )
@@ -1318,8 +1318,8 @@ def update_index():  # Handle index and readme properly
     index_file_name = "index.md"
     readme_file_name = "README.md"
 
-    index_input_path = os.path.join(PARENT_DIR, "assets", index_file_name)
-    readme_input_path = os.path.join(PARENT_DIR, "assets", readme_file_name)
+    index_input_path = os.path.join(PARENT_DIR, "assets/markdown", index_file_name)
+    readme_input_path = os.path.join(PARENT_DIR, "assets/markdown", readme_file_name)
     index_output_path = os.path.join(PARENT_DIR, index_file_name)
     readme_output_path = os.path.join(PARENT_DIR, readme_file_name)
 
@@ -1375,7 +1375,7 @@ def header(name: str = None):
         except:
             name = ""
 
-    with open(os.path.join(PARENT_DIR, "assets/header.md")) as f:
+    with open(os.path.join(PARENT_DIR, "assets/markdown/header.md")) as f:
         header = f.read()
         header = header.replace(
             "@TIMESTAMP@",
@@ -1395,7 +1395,7 @@ def footer(timestamp: arrow.Arrow = None):
     Returns:
         Markdown: The generated Markdown footer.
     """
-    with open(os.path.join(PARENT_DIR, "assets/footer.md")) as f:
+    with open(os.path.join(PARENT_DIR, "assets/markdown/footer.md")) as f:
         footer = f.read()
         now = arrow.utcnow()
         footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
@@ -2464,7 +2464,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
         print(f"{len(titles)} sets requested")
 
     titles = up.quote("|".join(titles))
-    rarity_dict = load_json(os.path.join(PARENT_DIR, "assets/rarities.json"))
+    rarity_dict = load_json(os.path.join(PARENT_DIR, "assets/json/rarities.json"))
     set_lists_df = pd.DataFrame(
         columns=[
             "Set",
@@ -2709,7 +2709,7 @@ def fetch_set_info(
     if debug:
         print(f"{len(titles)} sets requested")
 
-    regions_dict = load_json(os.path.join(PARENT_DIR, "assets/regions.json"))
+    regions_dict = load_json(os.path.join(PARENT_DIR, "assets/json/regions.json"))
     # Info to ask
     info = extra_info + ["Series", "Set type", "Cover card"]
     # Release to ask
@@ -2758,7 +2758,7 @@ def fetch_set_info(
 
 # Variables
 colors_dict = load_json(
-    os.path.join(PARENT_DIR, "assets/colors.json")
+    os.path.join(PARENT_DIR, "assets/json/colors.json")
 )  # Colors dictionary to associate to series and cards
 
 # Functions
