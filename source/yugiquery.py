@@ -472,7 +472,7 @@ def condense_changelogs(files: pd.DataFrame):
     last_date = None
     for file in files:
         match = re.search(
-            r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+            r"(\w+)_\w+_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
             os.path.basename(file),
         )
         name = match.group(1)
