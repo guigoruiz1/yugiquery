@@ -23,11 +23,11 @@ Below are listed all the available reports and their execution timestamps.
 | [Bandai](Bandai.html) | 27/12/2023 01:06 UTC |
 | [Cards](Cards.html) | 27/12/2023 01:11 UTC |
 | [Rush](Rush.html) | 27/12/2023 01:16 UTC |
-| [Sets](Sets.html) | 25/12/2023 05:21 UTC |
+| [Sets](Sets.html) | 27/12/2023 01:31 UTC |
 | [Speed](Speed.html) | 27/12/2023 01:17 UTC |
 | [Timeline](Timeline.html) | 25/12/2023 05:28 UTC |
 
 
-The full YugiQuery flow was last executed at `27/12/2023 01:17 UTC`
+The full YugiQuery flow was last executed at `27/12/2023 01:31 UTC`
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
