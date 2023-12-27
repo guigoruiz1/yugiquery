@@ -36,10 +36,10 @@ Below are listed all the available reports and their execution timestamps.
 | [Rush](Rush.html) | 27/12/2023 01:16 UTC |
 | [Sets](Sets.html) | 27/12/2023 01:31 UTC |
 | [Speed](Speed.html) | 27/12/2023 01:17 UTC |
-| [Timeline](Timeline.html) | 25/12/2023 05:28 UTC |
+| [Timeline](Timeline.html) | 27/12/2023 01:38 UTC |
 
 
-The full YugiQuery flow was last executed at `27/12/2023 01:31 UTC`
+The full YugiQuery flow was last executed at `27/12/2023 01:38 UTC`
 
 # Usage
 
