@@ -1355,7 +1355,7 @@ def update_index():  # Handle index and readme properly
 
     commit(
         files=[index_output_path, readme_output_path],
-        commit_message=f"index and readme timestamp update - {timestamp.isoformat()}",
+        commit_message=f"Index and README timestamp update - {timestamp.isoformat()}",
     )
 
 
