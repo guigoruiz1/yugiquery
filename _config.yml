@@ -9,7 +9,7 @@ author:
 # The `>` after `description:` means to ignore line-breaks until next key.
 # If you want to omit the line-break after the end of text, use `>-` instead.
 description: >
-  Jupyter notebook to query and display yugipedia data.
+  Python script to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git.
   
 # Build settings
 show_excerpts: false
@@ -23,12 +23,12 @@ minima:
    - { platform: github,         user_url: "https://github.com/guigoruiz1" }
    - { platform: linkedin,       user_url: "https://www.linkedin.com/in/guigoruiz1" }
    - { platform: stackoverflow,  user_url: "https://stackoverflow.com/users/6794856" }
-   
-header_pages:
- # - README.md
- - LICENSE.md
 
 plugins:
  - jekyll-feed
  - jekyll-seo-tag
  - jekyll-remote-theme
+
+header_pages:
+ - LICENSE.md
+ # - README.md
