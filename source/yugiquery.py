@@ -15,7 +15,7 @@
 __author__ = "Guilherme Ruiz"
 __copyright__ = "2023, Guilherme Ruiz"
 __license__ = "MIT"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __maintainer__ = "Guilherme Ruiz"
 __email__ = "57478888+guigoruiz1@users.noreply.github.com"
 __status__ = "Development"
@@ -472,7 +472,7 @@ def condense_changelogs(files: pd.DataFrame):
     last_date = None
     for file in files:
         match = re.search(
-            r"(\w+_\w+)_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+            r"(\w+)_\w+_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
             os.path.basename(file),
         )
         name = match.group(1)
@@ -1046,7 +1046,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(os.path.join(PARENT_DIR, "assets/regions.json"))
+        regions_dict = load_json(os.path.join(PARENT_DIR, "assets/json/regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: input_info_df[regions_dict[x["Region"]] + " release date"][
                 x["Set"]
@@ -1355,7 +1355,7 @@ def update_index():  # Handle index and readme properly
 
     commit(
         files=[index_output_path, readme_output_path],
-        commit_message=f"index and readme timestamp update - {timestamp.isoformat()}",
+        commit_message=f"Index and README timestamp update - {timestamp.isoformat()}",
     )
 
 
