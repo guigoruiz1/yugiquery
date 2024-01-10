@@ -3331,6 +3331,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-r",
         "--reports",
+        nargs='+',
         dest="reports",
         default="all",
         type=str,
