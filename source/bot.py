@@ -343,7 +343,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob.glob(os.path.join(yq.PARENT_DIR, "data/all_cards_*.bz2")),
+            glob.glob(os.path.join(yq.PARENT_DIR, "data/cards_data_*.bz2")),
             key=os.path.getmtime,
         )
         if not cards_files:
