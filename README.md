@@ -39,7 +39,7 @@ Below are listed all the available reports and their execution timestamps.
 | [Timeline](Timeline.html) | 05/02/2024 05:27 UTC |
 
 
-The full YugiQuery flow was last executed at `05/02/2024 05:27 UTC`
+The full YugiQuery flow was last executed at `19/02/2024 10:46 UTC`
 
 # Usage
 
