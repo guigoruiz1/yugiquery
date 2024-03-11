@@ -1,6 +1,6 @@
 #! /bin/bash
 CURRENT_DIR=$PWD
-cd "$(dirname "$0")"
+pushd "$(dirname "$0")"
 
 # Install Python packages
 pip3 install -U pip
@@ -16,20 +16,20 @@ pip3 install -U nbstripout
 config_directories=$(jupyter --paths | awk '/data:/ {getline; getline; print}')
 
 # Check if a valid config directory is found
-if [ -n "$config_directories" ]; then
-    templates_directory="$config_directories/nbconvert/templates"
+if [ -n $config_directories ]; then
+    templates_directory=$config_directories/nbconvert/templates
 
     # Check if the nbconvert templates directory exists
-    if [ -d "$templates_directory" ]; then
+    if [ -d $templates_directory ]; then
         # Create the destination folder if it does not exist
-        mkdir -p "$templates_directory/yugiquery"
+        mkdir -p $templates_directory/labdynamic
         
         # Copy the folder to nbconvert templates directory
-        cp -r "../assets/nbconvert"/* "$templates_directory/yugiquery"
+        cp -r ../assets/nbconvert/* $templates_directory/labdynamic
         
         # Check if the copy was successful
         if [ $? -eq 0 ]; then
-            echo "nbconvert template successfully installed in $templates_directory"
+            echo "nbconvert template successfully installed in" $templates_directory
         else
             echo "Error: Failed to install nbconvert template."
             echo "Be sure to install it manually or change the template used when generating the HTML report."
@@ -45,4 +45,4 @@ else
 fi
 # Finish
 
-cd $CURRENT_DIR
+popd
