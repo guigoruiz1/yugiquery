@@ -5,6 +5,7 @@ pushd "$(dirname "$0")"
 # Install Python packages
 pip3 install -U pip
 pip3 install -r requirements.txt
+pip3 install --no-deps git+https://github.com/guigoruiz1/tqdm.git
 
 # Install nbconvert template
 
