@@ -5,31 +5,32 @@ pushd "$(dirname "$0")"
 # Install Python packages
 pip3 install -U pip
 pip3 install -r requirements.txt
-pip3 install git+https://github.com/guigoruiz1/halo.git
-pip3 install git+https://github.com/guigoruiz1/tqdm.git
-pip3 install -U pynacl
-pip3 install -U nbstripout
 
 # Install nbconvert template
 
-# Get the second line after "data:" from jupyter --paths output
-config_directories=$(jupyter --paths | awk '/data:/ {getline; getline; print}')
+# Check if nbconvert is installed in a virtual environment
+if [ -n "$VIRTUAL_ENV" ]; then
+    # Virtual environment is active, construct path accordingly
+    templates_directory="$VIRTUAL_ENV/share/jupyter/nbconvert/templates"
+else
+    # Virtual environment is not active, use default path
+    config_directories=$(jupyter --paths | awk '/data:/ {getline; getline; print}')
+    templates_directory="$config_directories/nbconvert/templates"
+fi
 
 # Check if a valid config directory is found
-if [ -n $config_directories ]; then
-    templates_directory=$config_directories/nbconvert/templates
-
+if [ -n "$templates_directory" ]; then
     # Check if the nbconvert templates directory exists
-    if [ -d $templates_directory ]; then
+    if [ -d "$templates_directory" ]; then
         # Create the destination folder if it does not exist
-        mkdir -p $templates_directory/labdynamic
+        mkdir -p "$templates_directory/labdynamic"
         
         # Copy the folder to nbconvert templates directory
-        cp -r ../assets/nbconvert/* $templates_directory/labdynamic
+        cp -r ../assets/nbconvert/* "$templates_directory/labdynamic"
         
         # Check if the copy was successful
         if [ $? -eq 0 ]; then
-            echo "nbconvert template successfully installed in" $templates_directory
+            echo "nbconvert template successfully installed in $templates_directory"
         else
             echo "Error: Failed to install nbconvert template."
             echo "Be sure to install it manually or change the template used when generating the HTML report."
