@@ -7,6 +7,11 @@ pip3 install -U pip
 pip3 install -r requirements.txt
 pip3 install --no-deps git+https://github.com/guigoruiz1/tqdm.git
 
+# Install Jupyter kernel for the virtual environment
+if [ -n "$VIRTUAL_ENV" ]; then
+    python3 -m ipykernel install --user --name=yugiquery
+fi
+
 # Install nbconvert template
 
 # Check if nbconvert is installed in a virtual environment
