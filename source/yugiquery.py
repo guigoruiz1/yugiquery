@@ -58,6 +58,7 @@ while True:
         import aiohttp
         import arrow
         import git
+        import jupyter_client
         import matplotlib.colors as mc  # LogNorm, Normalize, ListedColormap, cnames, to_rgb
         import matplotlib.dates as mdates
         import matplotlib.pyplot as plt
@@ -815,9 +816,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     # Link arrows styling
     if "Link Arrows" in input_df.columns:
         df["Link Arrows"] = input_df["Link Arrows"].apply(
-            lambda x: tuple([arrows_dict[i] for i in sorted(x)])
-            if len(x) > 0
-            else np.nan
+            lambda x: (
+                tuple([arrows_dict[i] for i in sorted(x)]) if len(x) > 0 else np.nan
+            )
         )
 
     # Columns with matching name pattern: extraction function
@@ -859,11 +860,13 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
     if len(input_df.filter(like=" date").columns) > 0:
         df = df.join(
             input_df.filter(like=" date").map(
-                lambda x: pd.to_datetime(
-                    pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce"
+                lambda x: (
+                    pd.to_datetime(
+                        pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce"
+                    )
+                    if len(x) > 0
+                    else np.nan
                 )
-                if len(x) > 0
-                else np.nan
             )
         )
 
@@ -1048,11 +1051,14 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
     if all([col in input_df.columns for col in ["Set", "Region"]]):
         regions_dict = load_json(os.path.join(PARENT_DIR, "assets/json/regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
-            lambda x: input_info_df[regions_dict[x["Region"]] + " release date"][
-                x["Set"]
-            ]
-            if (x["Region"] in regions_dict.keys() and x["Set"] in input_info_df.index)
-            else np.nan,
+            lambda x: (
+                input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
+                if (
+                    x["Region"] in regions_dict.keys()
+                    and x["Set"] in input_info_df.index
+                )
+                else np.nan
+            ),
             axis=1,
         )
         input_df["Release"] = pd.to_datetime(
@@ -1277,11 +1283,16 @@ def run_notebooks(
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = "True"
+        if "yugiquery" in jupyter_client.kernelspec.find_kernel_specs():
+            kernel_name = "yugiquery"
+        else:
+            kernel_name = "python3"
         pm.execute_notebook(
             report,
             report,
             log_output=True,
             progress_bar=True,
+            kernel_name=kernel_name,
         )
         os.environ.pop("PM_IN_EXECUTION", None)
 
@@ -2568,9 +2579,9 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 
                     noabbr = opt == "noabbr"
                     set_df["Name"] = list_df[1 - noabbr].apply(
-                        lambda x: x.strip("\u200e").split(" (")[0]
-                        if x is not None
-                        else x
+                        lambda x: (
+                            x.strip("\u200e").split(" (")[0] if x is not None else x
+                        )
                     )
 
                     if not noabbr and len(list_df.columns > 1):
@@ -2578,14 +2589,16 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 
                     if len(list_df.columns) > (2 - noabbr):  # and rare in str
                         set_df["Rarity"] = list_df[2 - noabbr].apply(
-                            lambda x: tuple(
-                                [
-                                    rarity_dict.get(y.strip(), y.strip())
-                                    for y in x.split(",")
-                                ]
+                            lambda x: (
+                                tuple(
+                                    [
+                                        rarity_dict.get(y.strip(), y.strip())
+                                        for y in x.split(",")
+                                    ]
+                                )
+                                if x is not None and "description::" not in x
+                                else rarity
                             )
-                            if x is not None and "description::" not in x
-                            else rarity
                         )
 
                     else:
@@ -2594,9 +2607,9 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                     if len(list_df.columns) > (3 - noabbr):
                         if card_print is not None:  # and new/reprint in str
                             set_df["Print"] = list_df[3 - noabbr].apply(
-                                lambda x: card_print
-                                if (card_print and x is None)
-                                else x
+                                lambda x: (
+                                    card_print if (card_print and x is None) else x
+                                )
                             )
 
                             if len(list_df.columns) > (4 - noabbr) and qty:
@@ -3331,7 +3344,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-r",
         "--reports",
-        nargs='+',
+        nargs="+",
         dest="reports",
         default="all",
         type=str,
