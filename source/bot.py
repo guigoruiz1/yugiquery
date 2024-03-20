@@ -589,9 +589,11 @@ class Bot:
 
         progress_handler = ProgressHandler(
             queue=queue,
-            progress_bar=progress_bar
-            if ((channel_id != self.channel) or isinstance(self, Telegram))
-            else None,
+            progress_bar=(
+                progress_bar
+                if ((channel_id != self.channel) or isinstance(self, Telegram))
+                else None
+            ),
             pbar_kwargs=pbar_kwargs,
         )
         try:
@@ -757,7 +759,9 @@ class Telegram(Bot):
                 nonlocal callback_first
                 callback_first = first
                 await original_message.edit_text(
-                    escape_chars(f"*First contestant*: {first}\n\nStill battling... ⏳"),
+                    escape_chars(
+                        f"*First contestant*: {first}\n\nStill battling... ⏳"
+                    ),
                     parse_mode="MarkdownV2",
                 )
 

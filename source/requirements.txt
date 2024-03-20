@@ -6,6 +6,7 @@ ipykernel>=6.29.3
 ipylab>=1.0.0
 ipython>=8.12.3
 itables>=1.7.1
+jupyter_client>=8.6.1
 matplotlib>=3.8.3
 matplotlib_venn>=0.11.10
 nbconvert>=7.11.0
