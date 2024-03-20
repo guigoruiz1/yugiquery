@@ -2,6 +2,9 @@
 CURRENT_DIR=$PWD
 pushd "$(dirname "$0")"
 
+chmod +x yugiquery.py
+chmod +x bot.py
+
 # Install Python packages
 pip3 install -U pip
 pip3 install -r requirements.txt
