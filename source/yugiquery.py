@@ -1104,8 +1104,8 @@ def generate_changelog(
         .loc[lambda x: x["_merge"] != "both"]
         .sort_values(col, ignore_index=True)
     )
-    changelog["_merge"].replace(
-        ["left_only", "right_only"], ["Old", "New"], inplace=True
+    changelog["_merge"] = changelog["_merge"].cat.rename_categories(
+        {"left_only": "Old", "right_only": "New"}
     )
     changelog.rename(columns={"_merge": "Version"}, inplace=True)
     nunique = changelog.groupby(col).nunique(dropna=False)
