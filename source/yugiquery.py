@@ -2370,7 +2370,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
         categories = list(categories["errata"])
 
     print(f"Downloading {errata} errata")
-    errata_df = pd.DataFrame()
+    errata_df = pd.DataFrame(dtype=bool)
     iterator = tqdm(
         categories,
         leave=False,
@@ -2389,7 +2389,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
         errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
         errata_df = (
-            pd.concat([errata_df, errata_series], axis=1).astype(bool).fillna(False).sort_index()
+            pd.concat([errata_df, errata_series], axis=1).astype("boolean").fillna(False).sort_index()
         )
 
     if debug:
