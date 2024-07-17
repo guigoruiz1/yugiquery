@@ -2525,6 +2525,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                     desc = None
                     opt = None
                     list_df = None
+                    extra_df = None
 
                     for argument in template.arguments:
                         if "region=" in argument:
@@ -2561,9 +2562,29 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 
                             list_df = pd.DataFrame([x.split(";") for x in lines])
                             list_df = list_df[~list_df[0].str.contains("!:")]
+
+                            # Handle extra parameters passed as "// descriptions"
+                            extra = list_df.map(lambda x: x.split("//")[1] if isinstance(x, str) and "//" in x else None).dropna(how="all")
+                            if not extra.empty:
+                                extra = extra.stack().droplevel(1, axis=0)
+                                extra_lines = pd.DataFrame()
+                                for (extra_idx, extra_value) in extra.items():
+                                    if "::" in extra_value:
+                                        col, val = extra_value.split("::")
+                                        # Strip and process col and val to extract desired values
+                                        col = col.strip().strip("@").lower()
+                                        val = val.strip().strip("(").strip(")").split("]]")[0].split("[[")[-1]
+                                        extra_lines.loc[extra_idx, col] = val
+                                        
+                                extra_lines = extra_lines.dropna(how="all")
+                                if not extra_lines.empty:
+                                    extra_df = extra_lines
+                            ###
+                  
                             list_df = list_df.map(
                                 lambda x: x.split("//")[0] if x is not None else x
                             )
+                            
                             list_df = list_df.map(
                                 lambda x: x.strip() if x is not None else x
                             )
@@ -2576,14 +2597,14 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                         if debug:
                             print(f'Error! Unable to parse template for "{page_name}"')
                         continue
-
+                        
                     noabbr = opt == "noabbr"
                     set_df["Name"] = list_df[1 - noabbr].apply(
                         lambda x: (
                             x.strip("\u200e").split(" (")[0] if x is not None else x
                         )
                     )
-
+                    
                     if not noabbr and len(list_df.columns > 1):
                         set_df["Card number"] = list_df[0]
 
@@ -2625,12 +2646,25 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                     if not title:
                         title = page_name.split("Lists:")[1]
 
+                    # Handle token name and print in description
+                    if extra_df is not None:
+                        for row in set_df.index:
+                            # Handle token name in description
+                            if "description" in extra_df and row in extra_df["description"].dropna().index:
+                                if set_df.at[row, "Name"] is not None and "Token" in set_df.at[row, "Name"] and "Token" in extra_df.at[row, "description"]:
+                                    set_df.at[row, "Name"] = extra_df.at[row, "description"]
+                            
+                            # Handle print in description
+                            if "print" in extra_df and row in extra_df["print"].dropna().index:
+                                set_df.at[row, "Print"] = extra_df.at[row, "print"]
+                    ###
+
                     set_df["Set"] = re.sub(r"\(\w{3}-\w{2}\)\s*$", "", title).strip()
                     set_df["Region"] = region.upper()
                     set_df["Page name"] = page_name
                     set_lists_df = pd.concat(
                         [set_lists_df, set_df], ignore_index=True
-                    ).fillna(np.nan)
+                    ).infer_objects(copy=False).fillna(np.nan)
                     success += 1
 
         else:
