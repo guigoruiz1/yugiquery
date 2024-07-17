@@ -2630,7 +2630,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                     set_df["Page name"] = page_name
                     set_lists_df = pd.concat(
                         [set_lists_df, set_df], ignore_index=True
-                    ).fillna(np.nan)
+                    ).infer_objects(copy=False).fillna(np.nan)
                     success += 1
 
         else:
