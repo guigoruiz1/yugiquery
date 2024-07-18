@@ -642,6 +642,50 @@ class Bot:
             arrow.utcnow(), only_distance=True, granularity=granularity
         )
         return humanized
+        
+    def push(self, passphrase: str = None):
+        result = subprocess.check_output(['git', 'config', '--get', 'credential.credentialstore'], text=True).strip()
+        if result=='gpg':
+            if passphrase is None:
+                return "GPG passphrase needed."
+            else:
+                gpg_cache_passphrase = subprocess.Popen(['gpg', '--batch', '--yes', '--passphrase', passphrase, '--pinentry-mode', 'loopback', '--sign'],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout_data, stderr_data = gpg_cache_passphrase.communicate()
+                
+        try:
+            with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
+                repo.git.push()
+                return f"Repository pushed to remote."
+    
+        except git.InvalidGitRepositoryError as e:
+            return f"Unable to find a git repository: {e}"
+        except git.GitCommandError as e:
+            return f"Failed to push changes: {e}"
+        except Exception as e:
+            return f"An unexpected error occurred: {e}"
+        
+        return response
+
+    def pull(self, passphrase: str = None):
+        result = subprocess.check_output(['git', 'config', '--get', 'credential.credentialstore'], text=True).strip()
+        if result=='gpg':
+            if passphrase is None:
+                return "GPG passphrase needed."
+            else:
+                gpg_cache_passphrase = subprocess.Popen(['gpg', '--batch', '--yes', '--passphrase', passphrase, '--pinentry-mode', 'loopback', '--sign'],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout_data, stderr_data = gpg_cache_passphrase.communicate()
+                
+        try:
+            with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
+                repo.git.pull()
+                return f"Changes pulled from remote."
+    
+        except git.InvalidGitRepositoryError as e:
+            return f"Unable to find a git repository: {e}"
+        except git.GitCommandError as e:
+            return f"Failed to push changes: {e}"
+        except Exception as e:
+            return f"An unexpected error occurred: {e}"
 
 
 # ===================== #
@@ -1376,6 +1420,32 @@ class Discord(Bot, commands.Bot):
                 ephemeral=True,
                 delete_after=60,
             )
+
+        @self.hybrid_command(
+            name="pull", description="Pull changes from remote.", with_app_command=True
+        )
+        @commands.is_owner()
+        async def pull(ctx, passphrase: str = None):
+            """
+            ...
+            """
+
+            await ctx.defer()
+            response = self.pull(passphrase)
+            await ctx.send(content=response)
+            
+        @self.hybrid_command(
+            name="push", description="Push repository to remote.", with_app_command=True
+        )
+        @commands.is_owner()
+        async def push(ctx, passphrase: str = None):
+            """
+            ...
+            """
+
+            await ctx.defer()
+            response = self.push(passphrase)
+            await ctx.send(content=response)
 
         @self.hybrid_command(
             name="run", description="Run full YugiQuery flow.", with_app_command=True
