@@ -642,50 +642,52 @@ class Bot:
             arrow.utcnow(), only_distance=True, granularity=granularity
         )
         return humanized
-        
+
     def push(self, passphrase: str = None):
-        result = subprocess.check_output(['git', 'config', '--get', 'credential.credentialstore'], text=True).strip()
-        if result=='gpg':
-            if passphrase is None:
-                return "GPG passphrase needed."
-            else:
-                gpg_cache_passphrase = subprocess.Popen(['gpg', '--batch', '--yes', '--passphrase', passphrase, '--pinentry-mode', 'loopback', '--sign'],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout_data, stderr_data = gpg_cache_passphrase.communicate()
-                
-        try:
-            with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
-                repo.git.push()
-                return f"Repository pushed to remote."
-    
-        except git.InvalidGitRepositoryError as e:
-            return f"Unable to find a git repository: {e}"
-        except git.GitCommandError as e:
-            return f"Failed to push changes: {e}"
-        except Exception as e:
-            return f"An unexpected error occurred: {e}"
-        
-        return response
+        result = subprocess.run(
+            "unlock_gpg.sh",
+            args=passphrase,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            return result.stdout.decode("utf-8")
+        else:
+            try:
+                with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
+                    repo.git.push()
+                    return f"Repository pushed to remote."
+
+            except git.InvalidGitRepositoryError as e:
+                return f"Unable to find a git repository: {e}"
+            except git.GitCommandError as e:
+                return f"Failed to push changes: {e}"
+            except Exception as e:
+                return f"An unexpected error occurred: {e}"
 
     def pull(self, passphrase: str = None):
-        result = subprocess.check_output(['git', 'config', '--get', 'credential.credentialstore'], text=True).strip()
-        if result=='gpg':
-            if passphrase is None:
-                return "GPG passphrase needed."
-            else:
-                gpg_cache_passphrase = subprocess.Popen(['gpg', '--batch', '--yes', '--passphrase', passphrase, '--pinentry-mode', 'loopback', '--sign'],stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout_data, stderr_data = gpg_cache_passphrase.communicate()
-                
-        try:
-            with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
-                repo.git.pull()
-                return f"Changes pulled from remote."
-    
-        except git.InvalidGitRepositoryError as e:
-            return f"Unable to find a git repository: {e}"
-        except git.GitCommandError as e:
-            return f"Failed to push changes: {e}"
-        except Exception as e:
-            return f"An unexpected error occurred: {e}"
+        result = subprocess.run(
+            "unlock_gpg.sh",
+            args=passphrase,
+            shell=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            return result.stdout.decode("utf-8")
+        else:
+            try:
+                with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
+                    repo.git.pull()
+                    return f"Changes pulled from remote."
+
+            except git.InvalidGitRepositoryError as e:
+                return f"Unable to find a git repository: {e}"
+            except git.GitCommandError as e:
+                return f"Failed to push changes: {e}"
+            except Exception as e:
+                return f"An unexpected error occurred: {e}"
 
 
 # ===================== #
@@ -1433,7 +1435,7 @@ class Discord(Bot, commands.Bot):
             await ctx.defer()
             response = self.pull(passphrase)
             await ctx.send(content=response)
-            
+
         @self.hybrid_command(
             name="push", description="Push repository to remote.", with_app_command=True
         )
