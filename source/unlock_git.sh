@@ -9,7 +9,7 @@ if [ "$credential_store" = "gpg" ]; then
         echo "Passphrase needed."
         exit 1
     else
-        echo "$passphrase" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --sign
+        echo "$passphrase" | gpg --batch --yes --passphrase-fd 0 --pinentry-mode loopback --sign >> /dev/null
     fi
 else
     echo "GPG not used"
