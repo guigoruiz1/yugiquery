@@ -404,17 +404,84 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         with git.Repo(SCRIPT_DIR, search_parent_directories=True) as repo:
             # Stage the files before committing
             repo.git.add(*files)
-            repo.git.commit(message=commit_message)
+            return repo.git.commit(message=commit_message)
 
     except git.InvalidGitRepositoryError as e:
-        print(f"Unable to find a git repository: {e}")
-        raise
+        raise RuntimeError(f"Unable to find a git repository: {e}")
     except git.GitCommandError as e:
-        print(f"Failed to commit changes: {e}")
-        raise
+        raise RuntimeError(f"Failed to commit changes: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        raise
+        raise RuntimeError(f"An unexpected error occurred: {e}")
+
+
+def pull(passphrase: str = None):
+    """
+    Pulls changes from the remote git repository.
+
+    Args:
+        passphrase (str, optional): The passphrase to unlock your Git credential store.
+
+    Raises:
+        git.InvalidGitRepositoryError: If the PARENT_DIR is not a git repository.
+        git.GitCommandError: If an error occurs while committing the changes.
+        Exception: For any other unexpected errors.
+
+    Returns:
+        None
+    """
+    result = subprocess.run(
+        ["sh", "unlock_git.sh", passphrase if passphrase else ""],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        return result.stdout.decode("utf-8")
+    else:
+        try:
+            with git.Repo(SCRIPT_DIR, search_parent_directories=True) as repo:
+                return repo.git.pull()
+
+        except git.InvalidGitRepositoryError as e:
+            raise RuntimeError(f"Unable to find a git repository: {e}")
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to push changes: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
+
+
+def push(passphrase: str = None):
+    """
+    Pushes commits to the remote git repository.
+
+    Args:
+        passphrase (str, optional): The passphrase to unlock your Git credential store.
+
+    Raises:
+        git.InvalidGitRepositoryError: If the PARENT_DIR is not a git repository.
+        git.GitCommandError: If an error occurs while committing the changes.
+        Exception: For any other unexpected errors.
+
+    Returns:
+        None
+    """
+    result = subprocess.run(
+        ["sh", "unlock_git.sh", passphrase if passphrase else ""],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        return result.stdout.decode("utf-8")
+    else:
+        try:
+            with git.Repo(SCRIPT_DIR, search_parent_directories=True) as repo:
+                return repo.git.push()
+
+        except git.InvalidGitRepositoryError as e:
+            return f"Unable to find a git repository: {e}"
+        except git.GitCommandError as e:
+            return f"Failed to push changes: {e}"
+        except Exception as e:
+            return f"An unexpected error occurred: {e}"
 
 
 # Data files
@@ -451,10 +518,11 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
     with open(benchmark_file, "w+") as file:
         json.dump(data, file)
 
-    commit(
+    result = commit(
         files=[benchmark_file],
         commit_message=f"{report} report benchmarked - {now.isoformat()}",
     )
+    print(result)
 
 
 def condense_changelogs(files: pd.DataFrame):
@@ -676,13 +744,14 @@ def cleanup_data(dry_run=False):
             print("Keep", files[-1])
 
     if not dry_run:
-        commit(
+        result = commit(
             files=[
                 os.path.join(PARENT_DIR, "data/benchmark.json"),
                 os.path.join(PARENT_DIR, "data/*bz2"),  # May not work
             ],
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
+        print(result)
 
 
 def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
@@ -1364,10 +1433,11 @@ def update_index():  # Handle index and readme properly
     with open(readme_output_path, "w+") as o:
         print(readme, file=o)
 
-    commit(
+    result = commit(
         files=[index_output_path, readme_output_path],
         commit_message=f"Index and README timestamp update - {timestamp.isoformat()}",
     )
+    print(result)
 
 
 def header(name: str = None):
@@ -2389,7 +2459,10 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
         errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
         errata_df = (
-            pd.concat([errata_df, errata_series], axis=1).astype("boolean").fillna(False).sort_index()
+            pd.concat([errata_df, errata_series], axis=1)
+            .astype("boolean")
+            .fillna(False)
+            .sort_index()
         )
 
     if debug:
@@ -2564,27 +2637,39 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                             list_df = list_df[~list_df[0].str.contains("!:")]
 
                             # Handle extra parameters passed as "// descriptions"
-                            extra = list_df.map(lambda x: x.split("//")[1] if isinstance(x, str) and "//" in x else None).dropna(how="all")
+                            extra = list_df.map(
+                                lambda x: (
+                                    x.split("//")[1]
+                                    if isinstance(x, str) and "//" in x
+                                    else None
+                                )
+                            ).dropna(how="all")
                             if not extra.empty:
                                 extra = extra.stack().droplevel(1, axis=0)
                                 extra_lines = pd.DataFrame()
-                                for (extra_idx, extra_value) in extra.items():
+                                for extra_idx, extra_value in extra.items():
                                     if "::" in extra_value:
                                         col, val = extra_value.split("::")
                                         # Strip and process col and val to extract desired values
                                         col = col.strip().strip("@").lower()
-                                        val = val.strip().strip("(").strip(")").split("]]")[0].split("[[")[-1]
+                                        val = (
+                                            val.strip()
+                                            .strip("(")
+                                            .strip(")")
+                                            .split("]]")[0]
+                                            .split("[[")[-1]
+                                        )
                                         extra_lines.loc[extra_idx, col] = val
-                                        
+
                                 extra_lines = extra_lines.dropna(how="all")
                                 if not extra_lines.empty:
                                     extra_df = extra_lines
                             ###
-                  
+
                             list_df = list_df.map(
                                 lambda x: x.split("//")[0] if x is not None else x
                             )
-                            
+
                             list_df = list_df.map(
                                 lambda x: x.strip() if x is not None else x
                             )
@@ -2597,14 +2682,14 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                         if debug:
                             print(f'Error! Unable to parse template for "{page_name}"')
                         continue
-                        
+
                     noabbr = opt == "noabbr"
                     set_df["Name"] = list_df[1 - noabbr].apply(
                         lambda x: (
                             x.strip("\u200e").split(" (")[0] if x is not None else x
                         )
                     )
-                    
+
                     if not noabbr and len(list_df.columns > 1):
                         set_df["Card number"] = list_df[0]
 
@@ -2650,21 +2735,35 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                     if extra_df is not None:
                         for row in set_df.index:
                             # Handle token name in description
-                            if "description" in extra_df and row in extra_df["description"].dropna().index:
-                                if set_df.at[row, "Name"] is not None and "Token" in set_df.at[row, "Name"] and "Token" in extra_df.at[row, "description"]:
-                                    set_df.at[row, "Name"] = extra_df.at[row, "description"]
-                            
+                            if (
+                                "description" in extra_df
+                                and row in extra_df["description"].dropna().index
+                            ):
+                                if (
+                                    set_df.at[row, "Name"] is not None
+                                    and "Token" in set_df.at[row, "Name"]
+                                    and "Token" in extra_df.at[row, "description"]
+                                ):
+                                    set_df.at[row, "Name"] = extra_df.at[
+                                        row, "description"
+                                    ]
+
                             # Handle print in description
-                            if "print" in extra_df and row in extra_df["print"].dropna().index:
+                            if (
+                                "print" in extra_df
+                                and row in extra_df["print"].dropna().index
+                            ):
                                 set_df.at[row, "Print"] = extra_df.at[row, "print"]
                     ###
 
                     set_df["Set"] = re.sub(r"\(\w{3}-\w{2}\)\s*$", "", title).strip()
                     set_df["Region"] = region.upper()
                     set_df["Page name"] = page_name
-                    set_lists_df = pd.concat(
-                        [set_lists_df, set_df], ignore_index=True
-                    ).infer_objects(copy=False).fillna(np.nan)
+                    set_lists_df = (
+                        pd.concat([set_lists_df, set_df], ignore_index=True)
+                        .infer_objects(copy=False)
+                        .fillna(np.nan)
+                    )
                     success += 1
 
         else:

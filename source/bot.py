@@ -581,6 +581,7 @@ class Bot:
             return {"error": "Query already running. Try again after it has finished."}
 
         queue = mp.Queue()
+        stderr_read, stderr_write = mp.Pipe(duplex=False)  # Create a pipe for stderr
 
         if isinstance(self, Discord):
             pbar_kwargs = {"channel_id": channel_id, "token": self.token}
@@ -602,20 +603,26 @@ class Bot:
                 args=[report.value, progress_handler],  # isinstance(self,Telegram)
             )
             self.process.start()
+            stderr_write.close()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
             print(e)
             await callback("Initialization failed!")
 
         async def await_result():
+            stderr_output = ""
             while self.process.is_alive():
                 await asyncio.sleep(1)
+            # Read stderr from the pipe
+            if stderr_read.poll():
+                stderr_output = stderr_read.recv()
+            stderr_read.close()
             API_error = False
             while not queue.empty():
                 API_error = not queue.get()
-            return self.process.exitcode, API_error
+            return self.process.exitcode, API_error, stderr_output
 
-        exitcode, API_error = await await_result()
+        exitcode, API_error, stderr_output = await await_result()
         self.process.close()
         self.process = None
         queue.close()
@@ -624,13 +631,16 @@ class Bot:
             return {"error": "Unable to communicate with the API. Try again later."}
         else:
             if exitcode is None:
-                return {"error": "Query execution failed!"}
+                return {"error": "Query execution failed!\n\n" + stderr_output}
             elif exitcode == 0:
                 return {"content": "Query execution completed!"}
             elif exitcode == -15:
                 return {"error": "Query execution aborted!"}
             else:
-                return {"error": f"Query execution exited with exit code: {exitcode}"}
+                return {
+                    "error": f"Query execution exited with exit code: {exitcode}\n\n"
+                    + stderr_output
+                }
 
     def uptime(self):
         """
@@ -644,10 +654,20 @@ class Bot:
         return humanized
 
     def push(self, passphrase: str = None):
-        return yq.push(passphrase)
+        try:
+            # Attempt to call yq.push and return its result if successful
+            return yq.push(passphrase)
+        except Exception as e:
+            # If an exception occurs, return the exception message instead
+            return str(e)
 
     def pull(self, passphrase: str = None):
-        return yq.pull(passphrase)
+        try:
+            # Attempt to call yq.pull and return its result if successful
+            return yq.pull(passphrase)
+        except Exception as e:
+            # If an exception occurs, return the exception message instead
+            return str(e)
 
 
 # ===================== #
