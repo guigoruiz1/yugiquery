@@ -644,50 +644,10 @@ class Bot:
         return humanized
 
     def push(self, passphrase: str = None):
-        result = subprocess.run(
-            "unlock_gpg.sh",
-            args=passphrase,
-            shell=True,
-            check=True,
-            stdout=subprocess.PIPE,
-        )
-        if result.returncode != 0:
-            return result.stdout.decode("utf-8")
-        else:
-            try:
-                with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
-                    repo.git.push()
-                    return f"Repository pushed to remote."
-
-            except git.InvalidGitRepositoryError as e:
-                return f"Unable to find a git repository: {e}"
-            except git.GitCommandError as e:
-                return f"Failed to push changes: {e}"
-            except Exception as e:
-                return f"An unexpected error occurred: {e}"
+        return yq.push(passphrase)
 
     def pull(self, passphrase: str = None):
-        result = subprocess.run(
-            "unlock_gpg.sh",
-            args=passphrase,
-            shell=True,
-            check=True,
-            stdout=subprocess.PIPE,
-        )
-        if result.returncode != 0:
-            return result.stdout.decode("utf-8")
-        else:
-            try:
-                with git.Repo(yq.SCRIPT_DIR, search_parent_directories=True) as repo:
-                    repo.git.pull()
-                    return f"Changes pulled from remote."
-
-            except git.InvalidGitRepositoryError as e:
-                return f"Unable to find a git repository: {e}"
-            except git.GitCommandError as e:
-                return f"Failed to push changes: {e}"
-            except Exception as e:
-                return f"An unexpected error occurred: {e}"
+        return yq.pull(passphrase)
 
 
 # ===================== #
@@ -924,6 +884,26 @@ class Telegram(Bot):
             latency_ms = (end_time - start_time).total_seconds() * 1e3
             response = f"🏓 Pong! {round(latency_ms,1)}ms"
             await original_message.edit_text(response)
+
+        async def pull(update: Update, context: CallbackContext):
+            """
+            ...
+            """
+            passphrase = context.args[0] if context.args else None
+            response = self.pull(passphrase)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=response
+            )
+
+        async def push(update: Update, context: CallbackContext):
+            """
+            ...
+            """
+            passphrase = context.args[0] if context.args else None
+            response = self.push(passphrase)
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, text=response
+            )
 
         async def run_query(
             update: Update,
