@@ -907,6 +907,8 @@ def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
                 return "Effect Monster"
             elif len(x) > 0:
                 return [z for z in x if z != "Effect Monster"][0]
+            else:
+                return "???"
 
     return x
 
