@@ -1332,6 +1332,7 @@ def run_notebooks(
         if external_pbar:
             external_pbar.update((1 / cells))
 
+    exceptions = []
     for i, report in enumerate(iterator):
         iterator.n = i
         iterator.last_print_n = i
@@ -1358,7 +1359,7 @@ def run_notebooks(
             kernel_name = "yugiquery"
         else:
             kernel_name = "python3"
-       
+
         try:
             pm.execute_notebook(
                 report,
@@ -1368,9 +1369,7 @@ def run_notebooks(
                 kernel_name=kernel_name,
             )
         except pm.PapermillExecutionError as e:
-            tqdm.write(e)
-            if debug:
-                raise e
+            exceptions.append(e)
         finally:
             os.environ.pop("PM_IN_EXECUTION", None)
 
@@ -1383,6 +1382,10 @@ def run_notebooks(
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
+
+    if exceptions:
+        combined_message = "\n".join(str(e) for e in exceptions)
+        raise Exception(combined_message)
 
 
 # ================ #
@@ -3448,15 +3451,20 @@ def run(
         return
 
     # Execute all notebooks in the source directory
-    run_notebooks(
-        reports=reports,
-        progress_handler=progress_handler,
-        telegram_first=telegram_first,
-        suppress_contribs=suppress_contribs,
-        **kwargs,
-    )
-    # Update page index to reflect last execution timestamp
-    update_index()
+    try:
+        run_notebooks(
+            reports=reports,
+            progress_handler=progress_handler,
+            telegram_first=telegram_first,
+            suppress_contribs=suppress_contribs,
+            **kwargs,
+        )
+    except Exception as e:
+        raise e
+    finally:
+        # Update page index to reflect last execution timestamp
+        update_index()
+
     # Cleanup redundant data files
     if cleanup == "auto":
         data_files_count = len(glob.glob(os.path.join(PARENT_DIR, "data/*.bz2")))
