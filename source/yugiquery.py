@@ -976,6 +976,8 @@ def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
                 return "Effect Monster"
             elif len(x) > 0:
                 return [z for z in x if z != "Effect Monster"][0]
+            else:
+                return "???"
 
     return x
 
@@ -1356,14 +1358,21 @@ def run_notebooks(
             kernel_name = "yugiquery"
         else:
             kernel_name = "python3"
-        pm.execute_notebook(
-            report,
-            report,
-            log_output=True,
-            progress_bar=True,
-            kernel_name=kernel_name,
-        )
-        os.environ.pop("PM_IN_EXECUTION", None)
+       
+        try:
+            pm.execute_notebook(
+                report,
+                report,
+                log_output=True,
+                progress_bar=True,
+                kernel_name=kernel_name,
+            )
+        except pm.PapermillExecutionError as e:
+            tqdm.write(e)
+            if debug:
+                raise e
+        finally:
+            os.environ.pop("PM_IN_EXECUTION", None)
 
     # Close the iterator
     iterator.close()
