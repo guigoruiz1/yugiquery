@@ -376,8 +376,7 @@ def assure_repo():
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
-        print(f"Unable to init Git repository: {e}")
-        raise
+        raise RuntimeError(f"Unable to init Git repository: {e}")
 
 
 def commit(files: Union[str, List[str]], commit_message: str = None):
@@ -477,11 +476,11 @@ def push(passphrase: str = None):
                 return repo.git.push()
 
         except git.InvalidGitRepositoryError as e:
-            return f"Unable to find a git repository: {e}"
+            raise RuntimeError(f"Unable to find a git repository: {e}")
         except git.GitCommandError as e:
-            return f"Failed to push changes: {e}"
+            raise RuntimeError(f"Failed to push changes: {e}")
         except Exception as e:
-            return f"An unexpected error occurred: {e}"
+            raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
 # Data files
