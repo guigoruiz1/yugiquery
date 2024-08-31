@@ -1249,6 +1249,7 @@ def run_notebooks(
         # Get reports
         reports = sorted(glob.glob("*.ipynb"))
     else:
+        # TODO eliminate the need to add file extension
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
     if progress_handler:
