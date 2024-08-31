@@ -1271,7 +1271,11 @@ def run_notebooks(
         contribs = ["DISCORD", "TELEGRAM"]
         if telegram_first:
             contribs = contribs[::-1]
-        secrets = {key: value for key, value in kwargs.items() if value is not None}
+        secrets = {
+            key: value
+            for key, value in kwargs.items()
+            if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
+        }
         secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
         for contrib in contribs:
             required_secrets = [
