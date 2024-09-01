@@ -27,7 +27,6 @@ __status__ = "Development"
 # Native python packages
 import argparse
 import glob
-
 import io
 import json
 import logging
@@ -64,7 +63,7 @@ while True:
 
         loop += 1
         print("Missing required packages. Trying to install now...")
-        subprocess.call(["sh", os.path.join(SCRIPT_DIR, "./install.sh")])
+        subprocess.call(["sh", os.path.join(SCRIPT_DIR, "assets/bash/install.sh")])
 
 # Default settings overrides
 pd.set_option("display.max_columns", 40)
@@ -465,7 +464,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(os.path.join(PARENT_DIR, "assets/json/regions.json"))
+        regions_dict = load_json(os.path.join(SCRIPT_DIR, "assets/json/regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
                 input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
@@ -536,8 +535,8 @@ def update_index():  # Handle index and readme properly
     index_file_name = "index.md"
     readme_file_name = "README.md"
 
-    index_input_path = os.path.join(PARENT_DIR, "assets/markdown", index_file_name)
-    readme_input_path = os.path.join(PARENT_DIR, "assets/markdown", readme_file_name)
+    index_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", index_file_name)
+    readme_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", readme_file_name)
     index_output_path = os.path.join(PARENT_DIR, index_file_name)
     readme_output_path = os.path.join(PARENT_DIR, readme_file_name)
 
@@ -594,7 +593,7 @@ def header(name: str = None):
         except:
             name = ""
 
-    with open(os.path.join(PARENT_DIR, "assets/markdown/header.md")) as f:
+    with open(os.path.join(SCRIPT_DIR, "assets/markdown/header.md")) as f:
         header = f.read()
         header = header.replace(
             "@TIMESTAMP@",
@@ -614,7 +613,7 @@ def footer(timestamp: arrow.Arrow = None):
     Returns:
         Markdown: The generated Markdown footer.
     """
-    with open(os.path.join(PARENT_DIR, "assets/markdown/footer.md")) as f:
+    with open(os.path.join(SCRIPT_DIR, "assets/markdown/footer.md")) as f:
         footer = f.read()
         now = arrow.utcnow()
         footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
@@ -1492,7 +1491,7 @@ def run_notebooks(
             for key, value in kwargs.items()
             if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
         }
-        secrets_file = os.path.join(PARENT_DIR, "assets/secrets.env")
+        secrets_file = os.path.join(SCRIPT_DIR, "assets/secrets.env")
         for contrib in contribs:
             required_secrets = [
                 f"{contrib}_" + key if key == "CHANNEL_ID" else key

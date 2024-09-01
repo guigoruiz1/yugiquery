@@ -7,7 +7,7 @@ chmod +x bot.py
 
 # Install Python packages
 pip3 install -U pip
-pip3 install -r requirements.txt
+pip3 install -r ../../requirements.txt
 pip3 install --no-deps git+https://github.com/guigoruiz1/tqdm.git
 
 # Install Jupyter kernel for the virtual environment
@@ -33,7 +33,7 @@ if [ -d "$templates_directory" ]; then
     mkdir -p "$templates_directory/labdynamic"
     
     # Copy the folder to nbconvert templates directory
-    cp -r ../assets/nbconvert/* "$templates_directory/labdynamic"
+    cp -r ../nbconvert/* "$templates_directory/labdynamic"
     
     # Check if the copy was successful
     if [ $? -eq 0 ]; then

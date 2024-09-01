@@ -19,19 +19,9 @@ except:
 # Variables #
 # ========= #
 
-SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
+SCRIPT_DIR = os.path.dirname(UTILS_DIR)
 PARENT_DIR = os.path.dirname(SCRIPT_DIR)
-
-arrows_dict = {
-    "Middle-Left": "←",
-    "Middle-Right": "→",
-    "Top-Left": "↖",
-    "Top-Center": "↑",
-    "Top-Right": "↗",
-    "Bottom-Left": "↙",
-    "Bottom-Center": "↓",
-    "Bottom-Right": "↘",
-}
 
 # ============ #
 # Data loaders #
