@@ -342,7 +342,7 @@ def rate_subplots(
     )
 
 
-def rate_plot(
+def rate(
     dy: pd.DataFrame,
     figsize: Tuple[int, int] = (16, 6),
     title: str = None,
@@ -434,7 +434,7 @@ def rate_plot(
     )
 
 
-def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
+def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
 
@@ -485,7 +485,7 @@ def arrow_plot(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
     fig.show()
 
 
-def boxplot(df, mean=True, **kwargs):
+def box(df, mean=True, **kwargs):
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
 
