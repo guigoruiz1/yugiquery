@@ -43,7 +43,11 @@ while True:
         import papermill as pm
         from ipylab import JupyterFrontEnd
         from IPython.display import Markdown, display
-        from .utils import *
+
+        if __package__:
+            from .utils import *
+        else:
+            from utils import *
 
         break
 
@@ -480,6 +484,88 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         print("Set properties merged")
     else:
         print('Error! No "Set" and/or "Region" column(s) to join set info')
+
+    return input_df
+
+
+# Formatters
+def format_artwork(row: pd.Series):
+    """
+    Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+    If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
+    If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
+    Returns the result tuple.
+
+    Args:
+        row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+
+    Returns:
+        Tuple[str]: The formatted row as a tuple.
+    """
+    result = tuple()
+    index_str = row.index.str
+    if index_str.endswith("alternate artworks").any():
+        matching_cols = row.index[index_str.endswith("alternate artworks")]
+        if row[matching_cols].any():
+            result += ("Alternate",)
+    if index_str.endswith("edited artworks").any():
+        matching_cols = row.index[index_str.endswith("edited artworks")]
+        if row[matching_cols].any():
+            result += ("Edited",)
+    if result == tuple():
+        return np.nan
+    else:
+        return result
+
+
+def format_errata(row: pd.Series):
+    """
+    Formats errata information from a pandas Series and returns a tuple of errata types.
+
+    Args:
+        row (pd.Series): A pandas Series containing errata information for a single card.
+
+    Returns:
+        Tuple[str]: Tuple of errata types if any errata information is present in the input Series, otherwise np.nan.
+    """
+    result = []
+    if "Cards with name errata" in row:
+        if row["Cards with name errata"]:
+            result.append("Name")
+    if "Cards with card type errata" in row:
+        if row["Cards with card type errata"]:
+            result.append("Type")
+    if "Card Errata" in row and not result:
+        if row["Card Errata"]:
+            result.append("Any")
+    if result:
+        return tuple(sorted(result))
+    else:
+        return np.nan
+
+
+def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
+    """
+    Merges errata information from an input errata DataFrame into an input DataFrame based on card names.
+
+    Args:
+        input_df (pd.DataFrame): A pandas DataFrame containing card information.
+        input_errata_df (pd.DataFrame): A pandas DataFrame containing errata information.
+
+    Returns:
+        pd.DataFrame: A pandas DataFrame with errata information merged into it.
+    """
+    if "Name" in input_df.columns:
+        errata_series = input_errata_df.apply(format_errata, axis=1).rename("Errata")
+        input_df = input_df.merge(
+            errata_series,
+            left_on="Name",
+            right_index=True,
+            how="left",
+            suffixes=("", " errata"),
+        )
+    else:
+        print('Error! No "Name" column to join errata')
 
     return input_df
 

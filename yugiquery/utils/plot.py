@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 import colorsys
 import pandas as pd
-import matplotlib.colors as mc  # LogNorm, Normalize, ListedColormap, cnames, to_rgb
+from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (
@@ -48,10 +48,10 @@ def adjust_lightness(color: str, amount: float = 0.5):
     """
 
     try:
-        c = mc.cnames[color]
+        c = cnames[color]
     except:
         c = color
-    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    c = colorsys.rgb_to_hls(*to_rgb(c))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
 
 
@@ -260,11 +260,11 @@ def rate_subplots(
         cmap = plt.cm.tab20
     else:
         if len(colors) == len(df.columns):
-            cmap = mc.ListedColormap(
+            cmap = ListedColormap(
                 [adjust_lightness(c, i * 0.5 + 0.75) for c in colors for i in (0, 1)]
             )
         else:
-            cmap = mc.ListedColormap(colors)
+            cmap = ListedColormap(colors)
 
     c = 0
     for i, col in enumerate(df.columns):
