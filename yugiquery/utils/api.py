@@ -6,8 +6,8 @@ import aiohttp
 import asyncio
 import requests
 import socket
-import numpy as np
 import time
+import numpy as np
 import pandas as pd
 import urllib.parse as up
 import wikitextparser as wtp

@@ -2,6 +2,7 @@
 # Plotting module #
 # =============== #
 
+import warnings
 import numpy as np
 import colorsys
 import pandas as pd
@@ -17,7 +18,6 @@ from matplotlib.ticker import (
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
-import warnings
 from utils.helpers import *
 
 

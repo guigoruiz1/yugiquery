@@ -42,14 +42,11 @@ while True:
     try:
         import urllib.parse as up
         from ast import literal_eval
-
         import jupyter_client
-
         import nbformat
         import numpy as np
         import pandas as pd
         import papermill as pm
-
         from ipylab import JupyterFrontEnd
         from IPython.display import Markdown, display
         from utils import *
