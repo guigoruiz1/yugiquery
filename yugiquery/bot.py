@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# yugiquery/bot.py
+
 # -*- coding: utf-8 -*-
 
 # ======================================================================== #
@@ -17,14 +19,6 @@
 # ======= #
 
 import yugiquery as yq
-
-__author__ = yq.__author__
-__copyright__ = yq.__copyright__
-__license__ = yq.__license__
-__version__ = yq.__version__
-__maintainer__ = yq.__maintainer__
-__email__ = yq.__email__
-__status__ = yq.__status__
 
 # Native python packages
 import argparse
@@ -80,16 +74,14 @@ def load_secrets_with_args(args: Dict[str, Any]):
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
     """
-    subclass = args.pop("subclass").upper()
-    secrets = {
-        f"{subclass}_{key}": value for key, value in args.items() if value is not None
-    }
-    missing = [f"{subclass}_{key}" for key, value in args.items() if value is None]
+
+    secrets = {key: value for key, value in args.items() if value is not None}
+    missing = [key for key, value in args.items() if value is None]
     if len(missing) > 0:
         try:
             loaded_secrets = yq.load_secrets(
                 requested_secrets=missing,
-                secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                secrets_file=os.path.join(yq.SCRIPT_DIR, "assets/secrets.env"),
                 required=True,
             )
         except:
@@ -273,7 +265,7 @@ class Bot:
         """
         try:
             # Open the repository
-            self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+            self.repo = git.Repo(yq.WORK_DIR, search_parent_directories=True)
             # Get the remote repository
             remote = self.repo.remote()
             remote_url = remote.url
@@ -341,7 +333,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob.glob(os.path.join(yq.PARENT_DIR, "data/cards_data_*.bz2")),
+            glob.glob(os.path.join(yq.WORK_DIR, "data/cards_data_*.bz2")),
             key=os.path.getmtime,
         )
         if not cards_files:
@@ -405,7 +397,7 @@ class Bot:
             dict: A dictionary containing benchmark information.
         """
         try:
-            with open(os.path.join(yq.PARENT_DIR, "data/benchmark.json"), "r") as file:
+            with open(os.path.join(yq.WORK_DIR, "data/benchmark.json"), "r") as file:
                 data = json.load(file)
         except:
             return {
@@ -506,7 +498,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob.glob(os.path.join(yq.PARENT_DIR, "*.html")))
+        reports = sorted(glob.glob(os.path.join(yq.WORK_DIR, "*.html")))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -1562,6 +1554,40 @@ class Discord(Bot, commands.Bot):
 # Execution #
 # ========= #
 
+
+def main(args):
+    # Load secrets
+    secrets_args = {
+        f"{args.subclass.upper()}_TOKEN": args.token,
+        f"{args.subclass.upper()}_CHANNEL_ID": args.channel_id,
+    }
+    secrets = load_secrets_with_args(secrets_args)
+
+    # Set multiprocessing start method
+    mp.set_start_method("spawn")
+
+    # Handle bots based on subclass
+    if args.subclass == "discord":
+        if "DISCORD_TOKEN" not in secrets or "DISCORD_CHANNEL_ID" not in secrets:
+            raise ValueError(
+                "Discord bot requires DISCORD_TOKEN and DISCORD_CHANNEL_ID in secrets."
+            )
+        # Initialize and run the Discord bot
+        discord_bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
+        discord_bot.run()
+
+    elif args.subclass == "telegram":
+        if "TELEGRAM_TOKEN" not in secrets or "TELEGRAM_CHANNEL_ID" not in secrets:
+            raise ValueError(
+                "Telegram bot requires TELEGRAM_TOKEN and TELEGRAM_CHANNEL_ID in secrets."
+            )
+        # Initialize and run the Telegram bot
+        telegram_bot = Telegram(
+            secrets["TELEGRAM_TOKEN"], secrets["TELEGRAM_CHANNEL_ID"]
+        )
+        telegram_bot.run()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -1570,11 +1596,11 @@ if __name__ == "__main__":
         default="discord",
         help="Select between a Discord or a Telegram bot",
     )
-    parser.add_argument("-t", "--token", dest="TOKEN", type=str, help="Bot API token")
+    parser.add_argument("-t", "--token", type=str, help="Bot API token")
     parser.add_argument(
         "-c",
         "--channel",
-        dest="CHANNEL_ID",
+        dest="channel_id",
         type=int,
         help="Bot responses channel id",
     )
@@ -1585,20 +1611,6 @@ if __name__ == "__main__":
         help="Enable debug flag",
     )
 
-    args = vars(parser.parse_args())
-    subclass = args["subclass"]
-    debug = args.pop("debug")
+    args = parser.parse_args()
 
-    # Load secrets
-    secrets = load_secrets_with_args(args)
-    mp.set_start_method("spawn")
-
-    if subclass == "discord":
-        # Initialize the Discord bot
-        bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
-        bot.run()
-
-    elif subclass == "telegram":
-        # Initialize the Telegram bot
-        bot = Telegram(secrets["TELEGRAM_TOKEN"], secrets["TELEGRAM_CHANNEL_ID"])
-        bot.run()
+    main(args)

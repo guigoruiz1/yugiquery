@@ -1,0 +1,24 @@
+# Include all Python files in the yugiquery directory and its subdirectories
+recursive-include yugiquery *.py
+
+# Include all Jupyter notebooks in the yugiquery directory
+recursive-include yugiquery *.ipynb
+
+# Include files in the assets directory
+recursive-include yugiquery/assets *
+
+# Include specific configuration and documentation files
+include setup.py
+include requirements.txt
+include README.md
+include LICENSE
+include MANIFEST.in
+include *.md
+
+# Exclude unnecessary files and directories
+exclude .readthedocs.yaml
+exclude .devcontainer.json
+exclude _config.yml
+
+# Exclude notebook checkpoints generated during testing
+recursive-exclude yugiquery *.ipynb_checkpoints

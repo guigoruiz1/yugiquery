@@ -1,10 +1,14 @@
+# yugiquery/utils/git.py
+
+# -*- coding: utf-8 -*-
+
+# ===================== #
+# Git Management module #
+# ===================== #
+
 import git
 import subprocess
-from utils.helpers import *
-
-# ======================== #
-# Git Management functions #
-# ======================== #
+from .helpers import *
 
 
 def assure_repo():
@@ -19,12 +23,12 @@ def assure_repo():
     """
     try:
         # Try to create a Repo object
-        repo = git.Repo(PARENT_DIR)
+        repo = git.Repo(WORK_DIR)
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
-        git.Repo.init(PARENT_DIR)
-        print(f"Git repository initialized in {PARENT_DIR}")
+        git.Repo.init(WORK_DIR)
+        print(f"Git repository initialized in {WORK_DIR}")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)

@@ -1,3 +1,7 @@
+# yugiquery/utils/plot.py
+
+# -*- coding: utf-8 -*-
+
 # =============== #
 # Plotting module #
 # =============== #
@@ -18,7 +22,7 @@ from matplotlib.ticker import (
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
-from utils.helpers import *
+from .helpers import *
 
 
 # Variables

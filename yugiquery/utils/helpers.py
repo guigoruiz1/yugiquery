@@ -1,3 +1,11 @@
+# yugiquery/utils/helpers.py
+
+# -*- coding: utf-8 -*-
+
+# ============== #
+# Helpers module #
+# ============== #
+
 import os
 import json
 import hashlib
@@ -21,7 +29,7 @@ except:
 
 UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_DIR = os.path.dirname(UTILS_DIR)
-PARENT_DIR = os.path.dirname(SCRIPT_DIR)
+WORK_DIR = os.path.dirname(SCRIPT_DIR)
 
 # ============ #
 # Data loaders #
@@ -98,6 +106,15 @@ def load_json(json_file: str):
 # ========== #
 # Validators #
 # ========== #
+
+
+def auto_or_bool(value):
+    if value is None:
+        return True
+    elif value.lower() == "auto":
+        return "auto"
+    else:
+        return bool(value)
 
 
 def md5(name: str):

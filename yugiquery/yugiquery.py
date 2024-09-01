@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# yugiquery/yugiquery.py
+
 # -*- coding: utf-8 -*-
 
 # ======================================================================== #
@@ -11,14 +13,6 @@
 #    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    #
 #                                   ▀▀                                     #
 # ======================================================================== #
-
-__author__ = "Guilherme Ruiz"
-__copyright__ = "2023, Guilherme Ruiz"
-__license__ = "MIT"
-__version__ = "1.0.2"
-__maintainer__ = "Guilherme Ruiz"
-__email__ = "57478888+guigoruiz1@users.noreply.github.com"
-__status__ = "Development"
 
 # ======= #
 # Imports #
@@ -49,7 +43,7 @@ while True:
         import papermill as pm
         from ipylab import JupyterFrontEnd
         from IPython.display import Markdown, display
-        from utils import *
+        from .utils import *
 
         break
 
@@ -163,7 +157,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
 
     now = arrow.utcnow()
     timedelta = now - timestamp
-    benchmark_file = os.path.join(PARENT_DIR, "data/benchmark.json")
+    benchmark_file = os.path.join(WORK_DIR, "data/benchmark.json")
     data = load_json(benchmark_file)
     # Add the new data to the existing data
     if report not in data:
@@ -284,7 +278,7 @@ def cleanup_data(dry_run=False):
     """
     # Benchmark
     now = arrow.utcnow()
-    benchmark_path = os.path.join(PARENT_DIR, "data/benchmark.json")
+    benchmark_path = os.path.join(WORK_DIR, "data/benchmark.json")
     benchmark = load_json(benchmark_path)
     new_benchmark = condense_benchmark(benchmark)
     if dry_run:
@@ -294,7 +288,7 @@ def cleanup_data(dry_run=False):
             json.dump(new_benchmark, f)
 
     # Data CSV files
-    file_list = glob.glob(os.path.join(PARENT_DIR, "data/*.bz2"))
+    file_list = glob.glob(os.path.join(WORK_DIR, "data/*.bz2"))
 
     # Create a DataFrame
     df = pd.DataFrame(file_list, columns=["Name"])
@@ -403,8 +397,8 @@ def cleanup_data(dry_run=False):
     if not dry_run:
         result = git.commit(
             files=[
-                os.path.join(PARENT_DIR, "data/benchmark.json"),
-                os.path.join(PARENT_DIR, "data/*bz2"),  # May not work
+                os.path.join(WORK_DIR, "data/benchmark.json"),
+                os.path.join(WORK_DIR, "data/*bz2"),  # May not work
             ],
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
@@ -534,8 +528,8 @@ def update_index():  # Handle index and readme properly
 
     index_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", index_file_name)
     readme_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", readme_file_name)
-    index_output_path = os.path.join(PARENT_DIR, index_file_name)
-    readme_output_path = os.path.join(PARENT_DIR, readme_file_name)
+    index_output_path = os.path.join(WORK_DIR, index_file_name)
+    readme_output_path = os.path.join(WORK_DIR, readme_file_name)
 
     timestamp = arrow.utcnow()
     try:
@@ -547,7 +541,7 @@ def update_index():  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(glob.glob(os.path.join(PARENT_DIR, "*.html")))
+    reports = sorted(glob.glob(os.path.join(WORK_DIR, "*.html")))
     rows = []
     for report in reports:
         rows.append(
@@ -1654,7 +1648,7 @@ def run(
 
     # Cleanup redundant data files
     if cleanup == "auto":
-        data_files_count = len(glob.glob(os.path.join(PARENT_DIR, "data/*.bz2")))
+        data_files_count = len(glob.glob(os.path.join(WORK_DIR, "data/*.bz2")))
         reports_count = len(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
@@ -1667,13 +1661,15 @@ def run(
 # ========= #
 
 
-def auto_or_bool(value):
-    if value is None:
-        return True
-    elif value.lower() == "auto":
-        return "auto"
-    else:
-        return bool(value)
+def main(args):
+    # Assures the script is within a git repository before proceesing
+    git.assure_repo()
+    # # Change working directory to script location
+    # os.chdir(SCRIPT_DIR)
+    # Execute the complete workflow
+    run(**vars(args))
+    # Exit python
+    quit()
 
 
 if __name__ == "__main__":
@@ -1747,12 +1743,5 @@ if __name__ == "__main__":
         required=False,
         help="Enables debug flag.",
     )
-    args = vars(parser.parse_args())
-    # Assures the script is within a git repository before proceesing
-    git.assure_repo()
-    # Change working directory to script location
-    os.chdir(SCRIPT_DIR)
-    # Execute the complete workflow
-    run(**args)
-    # Exit python
-    quit()
+    args = parser.parse_args()
+    main(args)

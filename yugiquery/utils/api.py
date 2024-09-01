@@ -1,3 +1,7 @@
+# yugiquery/utils/api.py
+
+# -*- coding: utf-8 -*-
+
 # =============== #
 # API call module #
 # =============== #
@@ -11,7 +15,7 @@ import numpy as np
 import pandas as pd
 import urllib.parse as up
 import wikitextparser as wtp
-from utils.helpers import *
+from .helpers import *
 
 # Variables
 http_headers = {"User-Agent": "Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/"}
@@ -20,6 +24,7 @@ media_url = "https://ws.yugipedia.com/"
 revisions_query_action = (
     "?action=query&format=json&prop=revisions&rvprop=content&titles="
 )
+
 ask_query_action = "?action=ask&format=json&query="
 askargs_query_action = "?action=askargs&format=json&conditions="
 categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:"
