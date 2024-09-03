@@ -1,28 +1,21 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=4.1.2",]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling >=1.5"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
-# ...
-# By default, include-package-data is true in pyproject.toml, so you do
-# NOT have to specify this line.
-include-package-data = true
+[tool.hatch.version]
+path = "yugiquery/metadata.py"
 
-[tool.setuptools.packages.find]
-where = "."
-exclude = ["tests", "wiki", "docs", "reports/yugiquery"]
+[tool.hatch.envs.default.scripts]
+post-install = "nbconvert.sh"
 
-[tool.setuptools_scm]
-write_to = "yugiquery/metadata.py"
-write_to_template = "__version__ = '{version}'\n"
-version_scheme = "post-release"  # optional: defines how version numbers are generated
-local_scheme = "dirty-tag"  # optional: handles local version identifiers for dirty repos
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [project]
-name = "yugiquery"
-description = "A CLI tool for running Yugiquery tasks and bots."
+name = "YugiQuery"
+description = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Guilherme Ruiz", email = "57478888+guigoruiz1@users.noreply.github.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
@@ -31,16 +24,38 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Development Status :: Development"
+    "Development Status :: 4 - Beta"
 ]
+urls = {Homepage = "https://guigoruiz1.github.io/yugiquery/", Source = "https://github.com/guigoruiz1/yugiquery/", Documentation = "https://yugiquery.readthedocs.io/"}
 dynamic = [
    "version"
 ]
 requires-python = ">=3.11"
-
-[project.urls]
-"Homepage" = "https://guigoruiz1.github.io/yugiquery"
-"Source" = "https://github.com/guigoruiz1/yugiquery"
+dependencies = [
+    "arrow>=1.3.0",
+    "discord.py>=2.3.2",
+    "GitPython>=3.1.42",
+    "ipykernel>=6.29.3",
+    "ipylab>=1.0.0",
+    "ipython>=8.12.3",
+    "itables>=1.7.1",
+    "jupyter_client>=8.6.1",
+    "matplotlib>=3.8.3",
+    "matplotlib_venn>=0.11.10",
+    "nbconvert>=7.11.0",
+    "nbformat>=5.10.3",
+    "nbstripout>=0.6.1",
+    "numpy>=1.26.4",
+    "pandas>=2.2.1",
+    "papermill>=2.5.0",
+    "python-dotenv>=1.0.1",
+    "python-telegram-bot>=21.0.1",
+    "Requests>=2.31.0",
+    "seaborn>=0.13.2",
+    "wikitextparser>=0.55.8",
+    "tqdm @ git+https://github.com/guigoruiz1/tqdm.git",
+    "halo @ git+https://github.com/guigoruiz1/halo.git"
+]
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx_rtd_theme"]

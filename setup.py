@@ -15,7 +15,7 @@ class CustomInstallCommand(install):
         # Define the base directory and path to the shell script
         base_dir = os.path.dirname(os.path.abspath(__file__))
         script_path = os.path.join(
-            base_dir, "yugiquery", "assets", "bash", "install.sh"
+            base_dir, "yugiquery", "assets", "bash", "nbconvert.sh"
         )
 
         # Run the shell script
