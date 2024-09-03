@@ -35,7 +35,7 @@ setup(
     name=about["__title__"],
     version=about["__version__"],
     author=about["__author__"],
-    author_email=about["__author_email"],
+    author_email=about["__author_email__"],
     description=about["__description__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -53,7 +53,7 @@ setup(
         "Operating System :: OS Independent",
         f"Development Status :: {about['__status__']}",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.11",
     install_requires=[
         "arrow>=1.3.0",
         "discord.py>=2.3.2",

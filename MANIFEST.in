@@ -24,5 +24,8 @@ exclude .readthedocs.yaml
 exclude .devcontainer.json
 exclude _config.yml
 
+# Exclude symlinked directory
+exclude reports/yugiquery
+
 # Exclude notebook checkpoints generated during testing
 recursive-exclude yugiquery *.ipynb_checkpoints

@@ -1,20 +1,22 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=4.1.2"]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=4.1.2",]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["find:"]
-include_package_data = true
+# ...
+# By default, include-package-data is true in pyproject.toml, so you do
+# NOT have to specify this line.
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = "."
+exclude = ["tests", "wiki", "docs", "reports/yugiquery"]
 
 [tool.setuptools_scm]
 write_to = "yugiquery/metadata.py"
+write_to_template = "__version__ = '{version}'\n"
 version_scheme = "post-release"  # optional: defines how version numbers are generated
 local_scheme = "dirty-tag"  # optional: handles local version identifiers for dirty repos
-
-[tool.setuptools.package_data]
-"yugiquery" = ["assets/*", "*.py", "*.ipynb", "*.md", "*.txt"]
-"yugiquery.assets" = ["*"]
-"reports" = ["*"]
 
 [project]
 name = "yugiquery"
@@ -31,6 +33,10 @@ classifiers = [
     "Operating System :: OS Independent",
     "Development Status :: Development"
 ]
+dynamic = [
+   "version"
+]
+requires-python = ">=3.11"
 
 [project.urls]
 "Homepage" = "https://guigoruiz1.github.io/yugiquery"

@@ -59,7 +59,15 @@ while True:
         loop += 1
         print("Missing required packages. Trying to install now...")
         subprocess.call(
-            ["sh", os.path.join(SCRIPT_DIR, "assets", "bash", "install.sh")]
+            [
+                "sh",
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    "assets",
+                    "bash",
+                    "install.sh",
+                ),
+            ]
         )
 
 # Default settings overrides

@@ -14,7 +14,7 @@ __all__ = [
     "__status__",
 ]
 __title__ = "YugiQuery"
-__description__ = "A description of your package"
+__description__ = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
 __url__ = "https://github.com/guigoruiz1/yugiquery"
 __version__ = "1.0.2"
 __author__ = "Guilherme Ruiz"
