@@ -11,6 +11,9 @@ post-install = "nbconvert.sh"
 [tool.hatch.metadata]
 allow-direct-references = true
 
+[tool.hatch.build]
+include = ["MANIFEST.in"]
+
 [project]
 name = "YugiQuery"
 description = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
