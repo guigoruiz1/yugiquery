@@ -1,10 +1,6 @@
 # Include all Python files in the yugiquery directory and its subdirectories
 recursive-include yugiquery *.py
 
-# Include requirements file in the yugiquery directory
-include yugiquery requirements.txt
-
-
 # Include files in the assets directory
 recursive-include yugiquery/assets *
 
@@ -16,6 +12,7 @@ prune docs
 
 # Include specific configuration and documentation files
 include setup.py
+include requirements.txt
 include README.md
 include LICENSE
 include MANIFEST.in
