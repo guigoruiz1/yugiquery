@@ -27,7 +27,7 @@ from .helpers import *
 
 # Variables
 colors_dict = load_json(
-    os.path.join(SCRIPT_DIR, "assets/json/colors.json")
+    os.path.join(SCRIPT_DIR, "assets", "json", "colors.json")
 )  # Colors dictionary to associate to series and cards
 
 # Functions

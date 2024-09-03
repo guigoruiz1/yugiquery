@@ -30,7 +30,12 @@ except:
 
 UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_DIR = os.path.dirname(UTILS_DIR)
-WORK_DIR = os.path.dirname(SCRIPT_DIR)
+WORK_DIR = os.getcwd() if __package__ else os.path.dirname(SCRIPT_DIR)
+DATA_DIR = os.path.join(WORK_DIR, "data")
+REPORTS_DIR = os.path.join(WORK_DIR, "reports")
+
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(REPORTS_DIR, exist_ok=True)
 
 # ============ #
 # Data loaders #

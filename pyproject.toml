@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=4.1.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["find:"]
+include_package_data = true
+
+[tool.setuptools_scm]
+write_to = "yugiquery/__version__.py"
+version_scheme = "post-release"  # optional: defines how version numbers are generated
+local_scheme = "dirty-tag"  # optional: handles local version identifiers for dirty repos
+
+[tool.setuptools.package_data]
+"yugiquery" = ["assets/*", "*.py", "*.ipynb", "*.md", "*.txt"]
+"yugiquery.assets" = ["*"]
+"reports" = ["*"]
+
+[project]
+name = "yugiquery"
+description = "A CLI tool for running Yugiquery tasks and bots."
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+keywords = ["CLI", "yugiquery", "bot", "Discord", "Telegram"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: Development"
+]
+
+[project.urls]
+"Homepage" = "https://guigoruiz1.github.io/yugiquery"
+"Source" = "https://github.com/guigoruiz1/yugiquery"
+"
+
+[project.optional-dependencies]
+docs = ["sphinx", "sphinx_rtd_theme"]
+test = ["pytest", "coverage"]
+
+[project.scripts]
+yugiquery = "yugiquery.__main__:main"
+
+[tool.coverage.run]
+branch = true
+source = ["yugiquery"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.mypy]
+files = ["yugiquery"]
+strict = true
+
+[tool.black]
+line-length = 88
+target-version = ['py36', 'py37', 'py38', 'py39']
+
+[tool.isort]
+profile = "black"

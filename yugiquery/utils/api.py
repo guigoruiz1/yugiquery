@@ -316,7 +316,7 @@ def fetch_set_info(
     if debug:
         print(f"{len(titles)} sets requested")
 
-    regions_dict = load_json(os.path.join(SCRIPT_DIR, "assets/json/regions.json"))
+    regions_dict = load_json(os.path.join(SCRIPT_DIR, "assets", "json", "regions.json"))
     # Info to ask
     info = extra_info + ["Series", "Set type", "Cover card"]
     # Release to ask
@@ -375,7 +375,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
         print(f"{len(titles)} sets requested")
 
     titles = up.quote("|".join(titles))
-    rarity_dict = load_json(os.path.join(SCRIPT_DIR, "assets/json/rarities.json"))
+    rarity_dict = load_json(os.path.join(SCRIPT_DIR, "assets", "json", "rarities.json"))
     set_lists_df = pd.DataFrame(
         columns=[
             "Set",

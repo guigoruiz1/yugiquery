@@ -20,7 +20,7 @@
 
 # Native python packages
 import argparse
-import glob
+from glob import glob
 import io
 import json
 import logging
@@ -58,7 +58,9 @@ while True:
 
         loop += 1
         print("Missing required packages. Trying to install now...")
-        subprocess.call(["sh", os.path.join(SCRIPT_DIR, "assets/bash/install.sh")])
+        subprocess.call(
+            ["sh", os.path.join(SCRIPT_DIR, "assets", "bash", "install.sh")]
+        )
 
 # Default settings overrides
 pd.set_option("display.max_columns", 40)
@@ -161,7 +163,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
 
     now = arrow.utcnow()
     timedelta = now - timestamp
-    benchmark_file = os.path.join(WORK_DIR, "data/benchmark.json")
+    benchmark_file = os.path.join(WORK_DIR, "data", "benchmark.json")
     data = load_json(benchmark_file)
     # Add the new data to the existing data
     if report not in data:
@@ -282,7 +284,7 @@ def cleanup_data(dry_run=False):
     """
     # Benchmark
     now = arrow.utcnow()
-    benchmark_path = os.path.join(WORK_DIR, "data/benchmark.json")
+    benchmark_path = os.path.join(DATA_DIR, "benchmark.json")
     benchmark = load_json(benchmark_path)
     new_benchmark = condense_benchmark(benchmark)
     if dry_run:
@@ -292,7 +294,7 @@ def cleanup_data(dry_run=False):
             json.dump(new_benchmark, f)
 
     # Data CSV files
-    file_list = glob.glob(os.path.join(WORK_DIR, "data/*.bz2"))
+    file_list = glob(os.path.join(DATA_DIR, "*.bz2"))
 
     # Create a DataFrame
     df = pd.DataFrame(file_list, columns=["Name"])
@@ -401,8 +403,8 @@ def cleanup_data(dry_run=False):
     if not dry_run:
         result = git.commit(
             files=[
-                os.path.join(WORK_DIR, "data/benchmark.json"),
-                os.path.join(WORK_DIR, "data/*bz2"),  # May not work
+                os.path.join(DATA_DIR, "benchmark.json"),
+                os.path.join(DATA_DIR, "*bz2"),  # May not work
             ],
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
@@ -421,7 +423,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(
-        glob.glob(os.path.join(WORK_DIR, "data", f"{name_pattern}_data_*.bz2")),
+        glob(os.path.join(DATA_DIR, f"{name_pattern}_data_*.bz2")),
         key=os.path.getctime,
         reverse=True,
     )
@@ -459,7 +461,9 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(os.path.join(SCRIPT_DIR, "assets/json/regions.json"))
+        regions_dict = load_json(
+            os.path.join(SCRIPT_DIR, "assets", "json", "regions.json")
+        )
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
                 input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
@@ -612,8 +616,8 @@ def update_index():  # Handle index and readme properly
     index_file_name = "index.md"
     readme_file_name = "README.md"
 
-    index_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", index_file_name)
-    readme_input_path = os.path.join(SCRIPT_DIR, "assets/markdown", readme_file_name)
+    index_input_path = os.path.join(SCRIPT_DIR, "assets", "markdown", index_file_name)
+    readme_input_path = os.path.join(SCRIPT_DIR, "assets", "markdown", readme_file_name)
     index_output_path = os.path.join(WORK_DIR, index_file_name)
     readme_output_path = os.path.join(WORK_DIR, readme_file_name)
 
@@ -627,7 +631,7 @@ def update_index():  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(glob.glob(os.path.join(WORK_DIR, "*.html")))
+    reports = sorted(glob(os.path.join(WORK_DIR, "*.html")))
     rows = []
     for report in reports:
         rows.append(
@@ -670,7 +674,7 @@ def header(name: str = None):
         except:
             name = ""
 
-    with open(os.path.join(SCRIPT_DIR, "assets/markdown/header.md")) as f:
+    with open(os.path.join(SCRIPT_DIR, "assets", "markdown", "header.md")) as f:
         header = f.read()
         header = header.replace(
             "@TIMESTAMP@",
@@ -690,7 +694,7 @@ def footer(timestamp: arrow.Arrow = None):
     Returns:
         Markdown: The generated Markdown footer.
     """
-    with open(os.path.join(SCRIPT_DIR, "assets/markdown/footer.md")) as f:
+    with open(os.path.join(SCRIPT_DIR, "assets", "markdown", "footer.md")) as f:
         footer = f.read()
         now = arrow.utcnow()
         footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
@@ -1539,7 +1543,7 @@ def run_notebooks(
 
     if reports == "all":
         # Get reports
-        reports = sorted(glob.glob("*.ipynb"))
+        reports = sorted(glob(os.path.join(REPORTS_DIR, "*.ipynb")))
     else:
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
@@ -1568,7 +1572,7 @@ def run_notebooks(
             for key, value in kwargs.items()
             if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
         }
-        secrets_file = os.path.join(SCRIPT_DIR, "assets/secrets.env")
+        secrets_file = os.path.join(SCRIPT_DIR, "assets", "secrets.env")
         for contrib in contribs:
             required_secrets = [
                 f"{contrib}_" + key if key == "CHANNEL_ID" else key
@@ -1734,8 +1738,8 @@ def run(
 
     # Cleanup redundant data files
     if cleanup == "auto":
-        data_files_count = len(glob.glob(os.path.join(WORK_DIR, "data/*.bz2")))
-        reports_count = len(glob.glob(os.path.join(SCRIPT_DIR, "*.ipynb")))
+        data_files_count = len(glob(os.path.join(DATA_DIR, "*.bz2")))
+        reports_count = len(glob(os.path.join(REPORTS_DIR, "*.ipynb")))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:

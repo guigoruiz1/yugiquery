@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 from setuptools.command.install import install
 import subprocess
 import os
+from pathlib import Path  # Import Path from pathlib
 
 
 class CustomInstallCommand(install):
@@ -34,7 +35,7 @@ setup(
     name=about["__title__"],
     version=about["__version__"],
     author=about["__author__"],
-    author_email=about["__author_email__"],
+    author_email=about["__author_email"],
     description=about["__description__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -74,13 +75,9 @@ setup(
         "python-telegram-bot>=21.0.1",
         "Requests>=2.31.0",
         "seaborn>=0.13.2",
-        "sphinx_rtd_theme>=2.0.0",
         "wikitextparser>=0.55.8",
         "tqdm @ git+https://github.com/guigoruiz1/tqdm.git",
         "halo @ git+https://github.com/guigoruiz1/halo.git",
     ],
     include_package_data=True,  # Ensures files listed in MANIFEST.in are included
-    extras_require={
-        "docs": ["sphinx"],  # Additional dependencies for documentation
-    },
 )

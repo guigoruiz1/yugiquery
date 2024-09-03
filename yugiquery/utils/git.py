@@ -87,7 +87,7 @@ def pull(passphrase: str = None):
     result = subprocess.run(
         [
             "sh",
-            os.path.join(SCRIPT_DIR, "assets/bash/unlock_git.sh"),
+            os.path.join(SCRIPT_DIR, "assets", "bash", "unlock_git.sh"),
             passphrase if passphrase else "",
         ],
         stdout=subprocess.PIPE,
@@ -126,7 +126,7 @@ def push(passphrase: str = None):
     result = subprocess.run(
         [
             "sh",
-            os.path.join(SCRIPT_DIR, "assets/bash/unlock_git.sh"),
+            os.path.join(SCRIPT_DIR, "assets", "bash", "unlock_git.sh"),
             passphrase if passphrase else "",
         ],
         stdout=subprocess.PIPE,

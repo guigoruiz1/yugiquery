@@ -1,19 +1,26 @@
 # Include all Python files in the yugiquery directory and its subdirectories
 recursive-include yugiquery *.py
 
-# Include all Jupyter notebooks in the yugiquery directory
-recursive-include yugiquery *.ipynb
+# Include requirements file in the yugiquery directory
+include yugiquery requirements.txt
+
 
 # Include files in the assets directory
 recursive-include yugiquery/assets *
 
+# Include the reports directory and its contents
+recursive-include reports *.ipynb
+
+# Documentation
+prune docs
+
 # Include specific configuration and documentation files
 include setup.py
-include requirements.txt
 include README.md
 include LICENSE
 include MANIFEST.in
 include *.md
+include *.toml
 
 # Exclude unnecessary files and directories
 exclude .readthedocs.yaml

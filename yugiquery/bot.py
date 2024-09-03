@@ -23,7 +23,7 @@ import yugiquery as yq
 # Native python packages
 import argparse
 import asyncio
-import glob
+from glob import glob
 import io
 import json
 import multiprocessing as mp
@@ -296,7 +296,7 @@ class Bot:
             Enum: An Enum object containing the available reports.
         """
         reports_dict = {"All": "all"}
-        reports = sorted(glob.glob(os.path.join(yq.SCRIPT_DIR, "*.ipynb")))
+        reports = sorted(glob(os.path.join(yq.REPORTS_DIR, "*.ipynb")))
         for report in reports:
             reports_dict[os.path.basename(report)[:-6].capitalize()] = report
 
@@ -333,7 +333,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob.glob(os.path.join(yq.WORK_DIR, "data/cards_data_*.bz2")),
+            glob(os.path.join(yq.DATA_DIR, "cards_data_*.bz2")),
             key=os.path.getmtime,
         )
         if not cards_files:
@@ -397,7 +397,7 @@ class Bot:
             dict: A dictionary containing benchmark information.
         """
         try:
-            with open(os.path.join(yq.WORK_DIR, "data/benchmark.json"), "r") as file:
+            with open(os.path.join(yq.DATA_DIR, "benchmark.json"), "r") as file:
                 data = json.load(file)
         except:
             return {
@@ -498,7 +498,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob.glob(os.path.join(yq.WORK_DIR, "*.html")))
+        reports = sorted(glob(os.path.join(yq.WORK_DIR, "*.html")))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
