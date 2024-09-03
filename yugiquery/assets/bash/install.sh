@@ -1,5 +1,5 @@
 #! /bin/bash
-CURRENT_DIR=$PWD
+
 pushd "$(dirname "$0")"
 
 chmod +x yugiquery.py
@@ -12,7 +12,11 @@ pip3 install --no-deps git+https://github.com/guigoruiz1/tqdm.git
 
 # Install Jupyter kernel for the virtual environment
 if [ -n "$VIRTUAL_ENV" ]; then
-    python3 -m ipykernel install --user --name=yugiquery
+    if python3 -m ipykernel install --user --name=yugiquery; then
+        echo "Virtual environment Jupyter kernel successfully installed."
+    else
+        echo "Error: Virtual environment Jupyter kernel could not be installed."
+    fi
 fi
 
 # Install nbconvert template
