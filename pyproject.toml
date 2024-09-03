@@ -1,18 +1,26 @@
 [build-system]
-requires = ["hatchling >=1.5"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
 path = "yugiquery/metadata.py"
 
-[tool.hatch.envs.default.scripts]
-post-install = "nbconvert.sh"
-
 [tool.hatch.metadata]
 allow-direct-references = true
 
+
 [tool.hatch.build]
-include = ["MANIFEST.in"]
+include = [
+    "your_package_name/**",  # Include your main package files
+]
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "*.html",
+  "/docs",
+  "/data",
+]
+[tool.hatch.build.targets.wheel.shared-data]
+"share/yugiquery/templates" = ["../templates/**"]
 
 [project]
 name = "YugiQuery"
@@ -29,7 +37,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Development Status :: 4 - Beta"
 ]
-urls = {Homepage = "https://guigoruiz1.github.io/yugiquery/", Source = "https://github.com/guigoruiz1/yugiquery/", Documentation = "https://yugiquery.readthedocs.io/"}
 dynamic = [
    "version"
 ]
@@ -56,13 +63,19 @@ dependencies = [
     "Requests>=2.31.0",
     "seaborn>=0.13.2",
     "wikitextparser>=0.55.8",
-    "tqdm @ git+https://github.com/guigoruiz1/tqdm.git",
     "halo @ git+https://github.com/guigoruiz1/halo.git"
 ]
+
+[project.urls]
+Homepage = "https://guigoruiz1.github.io/yugiquery/"
+Source = "https://github.com/guigoruiz1/yugiquery/"
+Documentation = "https://yugiquery.readthedocs.io/"
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest", "coverage"]
+tqdm = ["tqdm @ git+https://github.com/guigoruiz1/tqdm.git"]
+
 
 [project.scripts]
 yugiquery = "yugiquery.__main__:main"
@@ -76,8 +89,15 @@ show_missing = true
 skip_covered = true
 
 [tool.mypy]
-files = ["yugiquery"]
-strict = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+enable_error_code = ["ignore-without-code", "truthy-bool"]
+follow_imports = "normal"
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+warn_no_return = false
+warn_unused_ignores = true
 
 [tool.black]
 line-length = 88

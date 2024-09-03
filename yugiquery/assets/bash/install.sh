@@ -7,10 +7,9 @@ chmod +x ../../yugiquery.py
 chmod +x ../../bot.py
 
 # Install Python packages
-pip3 install -U pip
-pip3 install -r ../../../requirements.txt
-pip3 install --no-deps git+https://github.com/guigoruiz1/halo.git
-pip3 install --no-deps git+https://github.com/guigoruiz1/tqdm.git
+pip install -r ../../../requirements.txt
+
+pip install --no-deps git+https://github.com/guigoruiz1/tqdm.git
 
 # Install Jupyter kernel for the virtual environment
 if [ -n "$VIRTUAL_ENV" ]; then
@@ -21,6 +20,7 @@ if [ -n "$VIRTUAL_ENV" ]; then
     fi
 fi
 
+bash nbconvert.sh
 # Finish
 
 popd
