@@ -6,9 +6,23 @@
 Welcome to YugiQuery's documentation!
 =====================================
 
+Under active development.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Main:
 
    yugiquery
    bot
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Utilities:
+
+   utils
+
+Indices and tables
+===================
+
+* :ref:`genindex`
+* :ref:`modindex`

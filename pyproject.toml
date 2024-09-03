@@ -7,7 +7,7 @@ packages = ["find:"]
 include_package_data = true
 
 [tool.setuptools_scm]
-write_to = "yugiquery/version.py"
+write_to = "yugiquery/metadata.py"
 version_scheme = "post-release"  # optional: defines how version numbers are generated
 local_scheme = "dirty-tag"  # optional: handles local version identifiers for dirty repos
 

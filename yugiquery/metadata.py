@@ -13,7 +13,7 @@ __all__ = [
     "__maintainer__",
     "__status__",
 ]
-__title__ = "yugiquery"
+__title__ = "YugiQuery"
 __description__ = "A description of your package"
 __url__ = "https://github.com/guigoruiz1/yugiquery"
 __version__ = "1.0.2"
