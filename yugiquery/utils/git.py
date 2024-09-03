@@ -24,7 +24,7 @@ def assure_repo():
     try:
         # Try to create a Repo object
         repo = git.Repo(SCRIPT_DIR, search_parent_directories=True)
-        WORK_DIR= repo.working_dir
+        WORK_DIR = repo.working_dir
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
@@ -40,7 +40,7 @@ def assure_repo():
         # Ensure the data and reports directories exist
         os.makedirs(DATA_DIR, exist_ok=True)
         os.makedirs(REPORTS_DIR, exist_ok=True)
-    
+
     return repo
 
 

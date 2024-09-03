@@ -163,8 +163,11 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
 
     now = arrow.utcnow()
     timedelta = now - timestamp
-    benchmark_file = os.path.join(WORK_DIR, "data", "benchmark.json")
-    data = load_json(benchmark_file)
+    benchmark_file = os.path.join(DATA_DIR, "benchmark.json")
+    if os.path.isfile(benchmark_file):
+        data = load_json(benchmark_file)
+    else:
+        data = {}
     # Add the new data to the existing data
     if report not in data:
         data[report] = []
@@ -285,13 +288,14 @@ def cleanup_data(dry_run=False):
     # Benchmark
     now = arrow.utcnow()
     benchmark_path = os.path.join(DATA_DIR, "benchmark.json")
-    benchmark = load_json(benchmark_path)
-    new_benchmark = condense_benchmark(benchmark)
-    if dry_run:
-        print("Benchmark:", new_benchmark)
-    else:
-        with open(benchmark_path, "w+") as f:
-            json.dump(new_benchmark, f)
+    if os.path.isfile(benchmark_path):
+        benchmark = load_json(benchmark_path)
+        new_benchmark = condense_benchmark(benchmark)
+        if dry_run:
+            print("Benchmark:", new_benchmark)
+        else:
+            with open(benchmark_path, "w+") as f:
+                json.dump(new_benchmark, f)
 
     # Data CSV files
     file_list = glob(os.path.join(DATA_DIR, "*.bz2"))
@@ -665,6 +669,9 @@ def header(name: str = None):
     Args:
         name (str, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
 
+    Raises:
+        FileNotFoundError: If the "header.md" file in "assets" it not found.
+
     Returns:
         Markdown: The generated Markdown header.
     """
@@ -674,14 +681,19 @@ def header(name: str = None):
         except:
             name = ""
 
-    with open(os.path.join(SCRIPT_DIR, "assets", "markdown", "header.md")) as f:
-        header = f.read()
-        header = header.replace(
-            "@TIMESTAMP@",
-            arrow.utcnow().strftime("%d/%m/%Y %H:%M %Z"),
-        )
-        header = header.replace("@NOTEBOOK@", name)
-        return Markdown(header)
+    header_path = os.path.join(SCRIPT_DIR, "assets", "markdown", "header.md")
+    try:
+        with open(header_path) as f:
+            header = f.read()
+    except:
+        print('Missing template file in "assets". Aborting...')
+
+    header = header.replace(
+        "@TIMESTAMP@",
+        arrow.utcnow().strftime("%d/%m/%Y %H:%M %Z"),
+    )
+    header = header.replace("@NOTEBOOK@", name)
+    return Markdown(header)
 
 
 def footer(timestamp: arrow.Arrow = None):
@@ -690,16 +702,22 @@ def footer(timestamp: arrow.Arrow = None):
 
     Args:
         timestamp (arrow.Arrow, optional): The timestamp to use. If None, uses the current time. Defaults to None.
-
+    Raises:
+            FileNotFoundError: If the "header.md" file in "assets" it not found.
     Returns:
         Markdown: The generated Markdown footer.
     """
-    with open(os.path.join(SCRIPT_DIR, "assets", "markdown", "footer.md")) as f:
-        footer = f.read()
-        now = arrow.utcnow()
-        footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
+    footer_path = os.path.join(SCRIPT_DIR, "assets", "markdown", "footer.md")
+    try:
+        with open(footer_path) as f:
+            footer = f.read()
+    except:
+        print('Missing template file in "assets". Aborting...')
 
-        return Markdown(footer)
+    now = arrow.utcnow()
+    footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
+
+    return Markdown(footer)
 
 
 # ================== #
