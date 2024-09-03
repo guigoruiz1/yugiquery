@@ -19,20 +19,29 @@ def assure_repo():
         Exception: For any unexpected errors.
 
     Returns:
-        None
+        git.Repo: The git repository object.
     """
     try:
         # Try to create a Repo object
-        repo = git.Repo(WORK_DIR)
+        repo = git.Repo(SCRIPT_DIR, search_parent_directories=True)
+        WORK_DIR= repo.working_dir
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
-        git.Repo.init(WORK_DIR)
+        repo = git.Repo.init(WORK_DIR)
         print(f"Git repository initialized in {WORK_DIR}")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
         raise RuntimeError(f"Unable to init Git repository: {e}")
+    finally:
+        DATA_DIR = os.path.join(WORK_DIR, "data")
+        REPORTS_DIR = os.path.join(WORK_DIR, "reports")
+        # Ensure the data and reports directories exist
+        os.makedirs(DATA_DIR, exist_ok=True)
+        os.makedirs(REPORTS_DIR, exist_ok=True)
+    
+    return repo
 
 
 def commit(files: Union[str, List[str]], commit_message: str = None):

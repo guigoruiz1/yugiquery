@@ -265,7 +265,7 @@ class Bot:
         """
         try:
             # Open the repository
-            self.repo = git.Repo(yq.WORK_DIR, search_parent_directories=True)
+            self.repo = yq.git.assure_repo()
             # Get the remote repository
             remote = self.repo.remote()
             remote_url = remote.url

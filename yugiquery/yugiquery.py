@@ -1753,9 +1753,7 @@ def run(
 
 def main(args):
     # Assures the script is within a git repository before proceesing
-    git.assure_repo()
-    # # Change working directory to script location
-    # os.chdir(SCRIPT_DIR)
+    _ = git.assure_repo()
     # Execute the complete workflow
     run(**vars(args))
     # Exit python
