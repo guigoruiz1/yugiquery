@@ -1,5 +1,18 @@
-# yugiquery/__version__.py
+# yugiquery/version.py
 
+__all__ = [
+    "__title__",
+    "__description__",
+    "__url__",
+    "__version__",
+    "__author__",
+    "__author_email__",
+    "__license__",
+    "__copyright__",
+    "__version__",
+    "__maintainer__",
+    "__status__",
+]
 __title__ = "yugiquery"
 __description__ = "A description of your package"
 __url__ = "https://github.com/guigoruiz1/yugiquery"

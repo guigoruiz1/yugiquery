@@ -24,7 +24,7 @@ class CustomInstallCommand(install):
 
 # Import the metadata from __version__.py
 about = {}
-with open(Path(__file__).parent / "yugiquery" / "__version__.py") as f:
+with open(Path(__file__).parent / "yugiquery" / "version.py") as f:
     exec(f.read(), about)
 
 # Read the contents of your README file
