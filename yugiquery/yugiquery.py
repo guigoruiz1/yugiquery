@@ -30,15 +30,18 @@ from enum import Enum
 
 
 # PIP packages
-import urllib.parse as up
 from ast import literal_eval
+from ipylab import JupyterFrontEnd
+from IPython.display import Markdown, display
 import jupyter_client
 import nbformat
+from nbconvert import HTMLExporter
+from nbconvert.writers import FilesWriter
 import numpy as np
 import pandas as pd
 import papermill as pm
-from ipylab import JupyterFrontEnd
-from IPython.display import Markdown, display
+from traitlets.config import Config
+import urllib.parse as up
 
 if __package__:
     from .utils import *
@@ -583,6 +586,47 @@ def save_notebook():
     app = JupyterFrontEnd()
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
+
+
+def export_notebook(input_path, template="auto", no_input=True):
+    output_path = os.path.join(
+        WORK_DIR, os.path.basename(input_path).split(".ipynb")[0]
+    )
+
+    if template == "auto":
+        if os.path.isdir(
+            os.path.join(
+                sysconfig.get_path("data"),
+                "share/jupyter/nbconvert/templates/labdynamic",
+            )
+        ):
+            template = "labdynamic"
+        else:
+            template = "lab"
+
+    # Configure the HTMLExporter
+    c = Config()
+    c.HTMLExporter.template_name = template
+    if no_input:
+        c.TemplateExporter.exclude_output_prompt = True
+        c.TemplateExporter.exclude_input = True
+        c.TemplateExporter.exclude_input_prompt = True
+
+    # Initialize the HTMLExporter
+    html_exporter = HTMLExporter(config=c)
+
+    # Read the notebook content
+    with open(input_path, "r", encoding="utf-8") as f:
+        notebook_content = nbformat.read(f, as_version=4)
+
+    # Convert the notebook to HTML
+    (body, resources) = html_exporter.from_notebook_node(notebook_content)
+
+    # Write the output to the specified directory
+    writer = FilesWriter()
+    writer.write(body, resources, notebook_name=output_path)
+
+    print(f"Notebook converted to HTML and saved to {output_path}.html")
 
 
 # ================ #
