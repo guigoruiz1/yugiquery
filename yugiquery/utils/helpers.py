@@ -15,15 +15,15 @@ import re
 import calendar
 import subprocess
 import sysconfig
+from IPython import get_ipython
 from dotenv import dotenv_values
 from tqdm.auto import tqdm, trange
 from typing import Any, Callable, Dict, List, Tuple, Union
 
 # Overwrite packages with versions specific for jupyter notebook
-try:
-    if get_ipython() is not None:
-        is_notebook = True
-except:
+if get_ipython() is not None:
+    is_notebook = True
+else:
     is_notebook = False
 
 if is_notebook:

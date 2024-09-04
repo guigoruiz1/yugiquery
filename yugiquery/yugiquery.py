@@ -573,6 +573,25 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
 # =================== #
 
 
+def get_notebook_name():
+    try:
+        file_path = getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__", "")
+    except Exception:
+        file_path = ""
+
+    if not file_path:
+        file_path = os.environ.get("JPY_SESSION_NAME", "")
+
+    if not file_path:
+        try:
+            app = JupyterFrontEnd()
+            file_path = app.sessions.current_session.get("name", "")
+        except Exception:
+            file_path = ""
+
+    return os.path.basename(file_path).split(".")[0]
+
+
 def save_notebook():
     """
     Save the current notebook opened in JupyterLab to disk.
@@ -707,10 +726,7 @@ def header(name: str = None):
         Markdown: The generated Markdown header.
     """
     if name is None:
-        try:
-            name = os.path.basename(os.environ["JPY_SESSION_NAME"]).split(".")[0]
-        except:
-            name = ""
+        name = get_notebook_name()
 
     header_path = os.path.join(SCRIPT_DIR, "assets", "markdown", "header.md")
     try:
