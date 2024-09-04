@@ -1,4 +1,4 @@
 *.ipynb filter=nbstripout
 *.zpln filter=nbstripout
 *.ipynb diff=ipynb
-secrets.env filter=strip_secrets
+**/*secret* filter=strip_secrets
