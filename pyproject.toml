@@ -16,12 +16,8 @@ exclude = [
 
 [tool.hatch.build.targets.wheel.shared-data]
 "reports" = "share/yugiquery/reports"
-"yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
 "yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
 "yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
-
-[tool.hatch.build.targets.wheel]
-exclude = ["reports/yugiquery"]
 
 [project]
 name = "YugiQuery"
@@ -41,7 +37,7 @@ classifiers = [
 dynamic = [
    "version"
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
     "arrow>=1.3.0",
     "discord.py>=2.3.2",

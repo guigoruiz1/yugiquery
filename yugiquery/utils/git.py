@@ -21,6 +21,7 @@ def assure_repo():
     Returns:
         git.Repo: The git repository object.
     """
+    global WORK_DIR, DATA_DIR, REPORTS_DIR
     try:
         # Try to create a Repo object
         repo = git.Repo(SCRIPT_DIR, search_parent_directories=True)
@@ -37,6 +38,7 @@ def assure_repo():
     finally:
         DATA_DIR = os.path.join(WORK_DIR, "data")
         REPORTS_DIR = os.path.join(WORK_DIR, "reports")
+
         # Ensure the data and reports directories exist
         os.makedirs(DATA_DIR, exist_ok=True)
         os.makedirs(REPORTS_DIR, exist_ok=True)

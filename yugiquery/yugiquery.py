@@ -282,6 +282,8 @@ def cleanup_data(dry_run=False):
 
     # Data CSV files
     file_list = glob(os.path.join(DATA_DIR, "*.bz2"))
+    if not file_list:
+        return
 
     # Create a DataFrame
     df = pd.DataFrame(file_list, columns=["Name"])
