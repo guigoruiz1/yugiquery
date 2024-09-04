@@ -25,50 +25,25 @@ import io
 import json
 import logging
 import os
-import subprocess
 import time
 from enum import Enum
 
 
 # PIP packages
-loop = 0
-while True:
-    try:
-        import urllib.parse as up
-        from ast import literal_eval
-        import jupyter_client
-        import nbformat
-        import numpy as np
-        import pandas as pd
-        import papermill as pm
-        from ipylab import JupyterFrontEnd
-        from IPython.display import Markdown, display
+import urllib.parse as up
+from ast import literal_eval
+import jupyter_client
+import nbformat
+import numpy as np
+import pandas as pd
+import papermill as pm
+from ipylab import JupyterFrontEnd
+from IPython.display import Markdown, display
 
-        if __package__:
-            from .utils import *
-        else:
-            from utils import *
-
-        break
-
-    except ImportError:
-        if loop > 1:
-            print("Failed to install required packages twice. Aborting...")
-            quit()
-
-        loop += 1
-        print("Missing required packages. Trying to install now...")
-        subprocess.call(
-            [
-                "sh",
-                os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    "assets",
-                    "bash",
-                    "install.sh",
-                ),
-            ]
-        )
+if __package__:
+    from .utils import *
+else:
+    from utils import *
 
 # Default settings overrides
 pd.set_option("display.max_columns", 40)
@@ -350,6 +325,8 @@ def cleanup_data(dry_run=False):
             "Name"
         ].tolist(),
     }
+
+    print(last_month_files)
 
     # Remove the last_month_files from the same_month_files
     same_month_files["changelog"] = [
@@ -1598,7 +1575,6 @@ def run_notebooks(
             for key, value in kwargs.items()
             if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
         }
-        secrets_file = os.path.join(SCRIPT_DIR, "assets", "secrets.env")
         for contrib in contribs:
             required_secrets = [
                 f"{contrib}_" + key if key == "CHANNEL_ID" else key
@@ -1607,7 +1583,7 @@ def run_notebooks(
             ]
             try:
                 loaded_secrets = load_secrets(
-                    required_secrets, secrets_file=secrets_file, required=True
+                    required_secrets, secrets_file=SECRETS_FILE, required=True
                 )
                 secrets = secrets | loaded_secrets
 
@@ -1616,7 +1592,7 @@ def run_notebooks(
                     f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID")
                 )
                 if contrib == "DISCORD":
-                    from tqdm.contrib.discord import tqdm as contrib_tqdm
+                    contrib_tqdm = ensure_tqdm()
 
                     channel_id_dict = {"channel_id": channel_id}
 
@@ -1742,7 +1718,7 @@ def run(
         None: This function does not return a value.
     """
     # Check API status
-    if not api.check_API_status():
+    if not api.check_status():
         if progress_handler:
             progress_handler.exit(API_status=False)
         return

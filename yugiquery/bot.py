@@ -20,39 +20,43 @@
 
 import yugiquery as yq
 
+if __package__:
+    from .utils import *
+else:
+    from utils import *
+
 # Native python packages
 import argparse
 import asyncio
 from glob import glob
 import io
-import json
 import multiprocessing as mp
 import os
 import platform
 import random
+import subprocess
 from enum import Enum
-from typing import Any, Callable, Dict, List, Tuple, Union
 
 # PIP packages - installed by yugiquery
-import arrow
-import git
 import pandas as pd
-from dotenv import dotenv_values
-from tqdm.auto import tqdm, trange
 
 # Telegram
 import telegram
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, filters, CallbackContext
-from tqdm.contrib.telegram import tqdm as telegram_pbar
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    filters,
+    CallbackContext,
+)
 
 # Discord
 import discord
 from discord.ext import commands
-from tqdm.contrib.discord import tqdm as discord_pbar
 
 # Silence discord.py pynacl optional dependency warning.
 discord.VoiceClient.warn_nacl = False
+
 
 # ============== #
 # Helper methods #
@@ -81,7 +85,7 @@ def load_secrets_with_args(args: Dict[str, Any]):
         try:
             loaded_secrets = yq.load_secrets(
                 requested_secrets=missing,
-                secrets_file=os.path.join(yq.SCRIPT_DIR, "assets/secrets.env"),
+                secrets_file=yq.SECRETS_FILE,
                 required=True,
             )
         except:
@@ -687,6 +691,9 @@ class Telegram(Bot):
             channel (Union[str, int]): The Telegram channel ID.
 
         """
+        from tqdm.contrib.telegram import tqdm as telegram_pbar
+
+        self.telegram_pbar = telegram_pbar
         Bot.__init__(self, token, channel)
         # Initialize the Telegram bot
         self.application = ApplicationBuilder().token(token).build()
@@ -960,7 +967,7 @@ class Telegram(Bot):
                 callback=callback,
                 report=report,
                 channel_id=update.effective_chat.id,
-                progress_bar=telegram_pbar,
+                progress_bar=self.telegram_pbar,
             )
             if "error" in response.keys():
                 await context.bot.send_message(
@@ -1100,6 +1107,8 @@ class Discord(Bot, commands.Bot):
             channel (Union[str, int]): The channel for the bot.
 
         """
+
+        self.discord_pbar = ensure_tqdm()
         Bot.__init__(self, token, channel)
         # Initialize the Discord bot
         intents = discord.Intents(messages=True, guilds=True, members=True)
@@ -1468,7 +1477,7 @@ class Discord(Bot, commands.Bot):
                 callback=callback,
                 report=report,
                 channel_id=ctx.channel.id,
-                progress_bar=discord_pbar,
+                progress_bar=self.discord_pbar,
             )
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])

@@ -7,11 +7,14 @@
 # ============== #
 
 import os
+import sys
 import json
 import hashlib
 import arrow
 import re
 import calendar
+import subprocess
+import sysconfig
 from dotenv import dotenv_values
 from tqdm.auto import tqdm, trange
 from typing import Any, Callable, Dict, List, Tuple, Union
@@ -24,7 +27,7 @@ try:
 except:
     from halo import Halo
 
-# ======== #
+# ========= #
 # Variables #
 # ========= #
 
@@ -32,7 +35,53 @@ UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_DIR = os.path.dirname(UTILS_DIR)
 WORK_DIR = os.getcwd()  # Placeholder
 DATA_DIR = os.path.join(WORK_DIR, "data")
+
+# Handle cases where the package is installed
 REPORTS_DIR = os.path.join(WORK_DIR, "reports")
+if not os.path.isdir(REPORTS_DIR):
+    REPORTS_DIR = os.path.join(
+        sysconfig.get_path("data"), "share", "yugiquery", "reports"
+    )
+
+SECRETS_FILE = os.path.join(SCRIPT_DIR, "assets", "secrets.env")
+if not os.path.isfile(SECRETS_FILE):
+    SECRETS_FILE = os.path.join(
+        sysconfig.get_path("data"), "share", "yugiquery", "secrets.env"
+    )
+
+# ================== #
+# TQDM temporary fix #
+# ================== #
+
+
+def ensure_tqdm():
+    loop = 0
+    while True:
+        try:
+            from tqdm.contrib.discord import tqdm as discord_pbar
+
+            return discord_pbar
+
+        except ImportError:
+            if loop > 1:
+                print("Failed to import required tqdm fork twice. Aborting...")
+                quit()
+
+            loop += 1
+            print(
+                "Missing required tqdm fork for Discord progress bar. Trying to install now..."
+            )
+            subprocess.call(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-deps",
+                    "git+https://github.com/guigoruiz1/tqdm.git",
+                ]
+            )
+
 
 # ============ #
 # Data loaders #

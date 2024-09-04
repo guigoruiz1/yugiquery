@@ -8,19 +8,18 @@ path = "yugiquery/metadata.py"
 [tool.hatch.metadata]
 allow-direct-references = true
 
-
-[tool.hatch.build]
-include = [
-    "your_package_name/**",  # Include your main package files
-]
 [tool.hatch.build.targets.sdist]
 exclude = [
   "*.html",
-  "/docs",
-  "/data",
+  "data",
 ]
+
 [tool.hatch.build.targets.wheel.shared-data]
-"share/yugiquery/templates" = ["../templates/**"]
+"reports" = "share/yugiquery/reports"
+"yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
+
+[tool.hatch.build.targets.wheel]
+exclude = ["reports/yugiquery"]
 
 [project]
 name = "YugiQuery"
