@@ -16,6 +16,8 @@ exclude = [
 
 [tool.hatch.build.targets.wheel.shared-data]
 "reports" = "share/yugiquery/reports"
+"yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
+"yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
 "yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
 
 [tool.hatch.build.targets.wheel]
