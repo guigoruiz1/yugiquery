@@ -22,32 +22,62 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 # Overwrite packages with versions specific for jupyter notebook
 try:
     if get_ipython() is not None:
-        from itables import init_notebook_mode
-        from halo import HaloNotebook as Halo
+        is_notebook = True
 except:
+    is_notebook = False
+
+if is_notebook:
+    from itables import init_notebook_mode
+    from halo import HaloNotebook as Halo
+else:
     from halo import Halo
 
 # ========= #
 # Variables #
 # ========= #
 
+# Directories
 UTILS_DIR = os.path.dirname(os.path.realpath(__file__))
 SCRIPT_DIR = os.path.dirname(UTILS_DIR)
-WORK_DIR = os.getcwd()  # Placeholder
-DATA_DIR = os.path.join(WORK_DIR, "data")
+WORK_DIR = os.getcwd()  # Assuming working directory is the root for scripts/notebooks
 
-# Handle cases where the package is installed
-REPORTS_DIR = os.path.join(WORK_DIR, "reports")
-if not os.path.isdir(REPORTS_DIR):
-    REPORTS_DIR = os.path.join(
-        sysconfig.get_path("data"), "share", "yugiquery", "reports"
-    )
+# Set REPORTS_DIR
+if is_notebook:
+    REPORTS_DIR = WORK_DIR
+else:
+    REPORTS_DIR = os.path.join(WORK_DIR, "reports")
+    if not os.path.isdir(REPORTS_DIR):
+        REPORTS_DIR = os.path.join(
+            sysconfig.get_path("data"), "share", "yugiquery", "reports"
+        )
 
+# Set DATA_DIR and WORK_DIR based on REPORTS_DIR
+if os.path.basename(REPORTS_DIR) == "reports":
+    DATA_DIR = os.path.abspath(os.path.join(REPORTS_DIR, "..", "data"))
+    WORK_DIR = os.path.abspath(os.path.join(REPORTS_DIR, ".."))
+else:
+    DATA_DIR = os.path.join(WORK_DIR, "data")
+
+# Ensure directories exist
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(REPORTS_DIR, exist_ok=True)
+
+# Set SECRETS_FILE
 SECRETS_FILE = os.path.join(SCRIPT_DIR, "assets", "secrets.env")
 if not os.path.isfile(SECRETS_FILE):
     SECRETS_FILE = os.path.join(
         sysconfig.get_path("data"), "share", "yugiquery", "secrets.env"
     )
+
+
+def print_dirs():
+    print("UTILS_DIR:", UTILS_DIR)
+    print("SCRIPT_DIR:", SCRIPT_DIR)
+    print("REPORTS_DIR:", REPORTS_DIR)
+    print("DATA_DIR:", DATA_DIR)
+    print("WORK_DIR:", WORK_DIR)
+    print("SECRETS_FILE:", SECRETS_FILE)
+
 
 # ================== #
 # TQDM temporary fix #
