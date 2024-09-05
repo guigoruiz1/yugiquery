@@ -55,7 +55,6 @@ Documentation = "https://yugiquery.readthedocs.io/"
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest", "coverage"]
-tqdm = ["tqdm @ git+https://github.com/guigoruiz1/tqdm.git"]
 
 [project.scripts]
 yugiquery = "yugiquery.__main__:main"
