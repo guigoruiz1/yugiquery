@@ -62,6 +62,7 @@ while True:
         import matplotlib.colors as mc  # LogNorm, Normalize, ListedColormap, cnames, to_rgb
         import matplotlib.dates as mdates
         import matplotlib.pyplot as plt
+        from matplotlib_inline.backend_inline import set_matplotlib_formats
         import nbformat
         import numpy as np
         import pandas as pd
@@ -104,6 +105,8 @@ except:
 
 # Default settings overrides
 pd.set_option("display.max_columns", 40)
+set_matplotlib_formats("svg")  # Needed for dynanmic theme
+plt.style.use("default")
 
 # ======= #
 # Helpers #
