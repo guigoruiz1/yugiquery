@@ -19,16 +19,21 @@ from matplotlib.ticker import (
     MaxNLocator,
     MultipleLocator,
 )
+from matplotlib_inline.backend_inline import set_matplotlib_formats
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 from .helpers import *
 
+# Matplotlib settings
+set_matplotlib_formats("svg")  # Needed for dynanmic theme
+plt.style.use("default")  # TODO: Make this configurable
 
 # Variables
 colors_dict = load_json(
     os.path.join(SCRIPT_DIR, "assets", "json", "colors.json")
 )  # Colors dictionary to associate to series and cards
+# TODO: Adapt colors to style
 
 # Functions
 

@@ -31,6 +31,7 @@ dependencies = [
     "itables>=1.7.1",
     "jupyter_client>=8.6.1",
     "matplotlib>=3.8.3",
+    "matplotlib_inline>=0.1.2",
     "matplotlib_venn>=0.11.10",
     "nbconvert>=7.11.0",
     "nbformat>=5.10.3",
@@ -77,6 +78,11 @@ exclude = [
 "yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
 "yugiquery/assets/post_install.py" = "share/yugiquery/post_install.py"
 "yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
+
+[tool.hatch.envs.docs]
+features = ["docs"]
+[tool.hatch.envs.docs.scripts]
+build = "make -C docs html"
 
 [tool.coverage.run]
 branch = true
