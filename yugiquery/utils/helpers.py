@@ -96,11 +96,11 @@ def ensure_tqdm():
             if loop > 1:
                 print("Failed to import required tqdm fork twice. Aborting...")
                 quit()
-
+            if loop == 0:
+                print(
+                    "Missing required tqdm fork for Discord progress bar. Trying to install now..."
+                )
             loop += 1
-            print(
-                "Missing required tqdm fork for Discord progress bar. Trying to install now..."
-            )
             subprocess.call(
                 [
                     sys.executable,

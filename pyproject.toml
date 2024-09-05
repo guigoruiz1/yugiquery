@@ -2,23 +2,6 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.hatch.version]
-path = "yugiquery/metadata.py"
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.sdist]
-exclude = [
-  "*.html",
-  "data",
-]
-
-[tool.hatch.build.targets.wheel.shared-data]
-"reports" = "share/yugiquery/reports"
-"yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
-"yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
-
 [project]
 name = "YugiQuery"
 description = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
@@ -74,9 +57,27 @@ docs = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest", "coverage"]
 tqdm = ["tqdm @ git+https://github.com/guigoruiz1/tqdm.git"]
 
-
 [project.scripts]
 yugiquery = "yugiquery.__main__:main"
+
+[tool.hatch.version]
+path = "yugiquery/metadata.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "*.html",
+  "data",
+]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"reports" = "share/yugiquery/reports"
+"yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
+"yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
+"yugiquery/assets/post_install.py" = "share/yugiquery/post_install.py"
+"yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
 
 [tool.coverage.run]
 branch = true
