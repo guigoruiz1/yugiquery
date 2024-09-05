@@ -100,11 +100,10 @@ def main():
 
     # Parse initial arguments
     args = parser.parse_args()
-    print(args)
 
     if args.command == "kernel":
         # Kernel installation
-        from .assets.post_install import install_kernel
+        from .assets.scripts.post_install import install_kernel
 
         install_kernel()
     elif args.command == "bot":

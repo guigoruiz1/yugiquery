@@ -85,6 +85,8 @@ def print_dirs():
 
 
 def ensure_tqdm():
+    from ..assets.scripts.post_install import install_tqdm
+
     loop = 0
     while True:
         try:
@@ -100,17 +102,8 @@ def ensure_tqdm():
                 print(
                     "Missing required tqdm fork for Discord progress bar. Trying to install now..."
                 )
+            install_tqdm()
             loop += 1
-            subprocess.call(
-                [
-                    sys.executable,
-                    "-m",
-                    "pip",
-                    "install",
-                    "--no-deps",
-                    "git+https://github.com/guigoruiz1/tqdm.git",
-                ]
-            )
 
 
 # ============ #

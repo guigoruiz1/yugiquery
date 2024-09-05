@@ -25,7 +25,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 from .helpers import *
 
-# Matplotlib settings
+# Matplotlib default settings overrides
 set_matplotlib_formats("svg")  # Needed for dynanmic theme
 plt.style.use("default")  # TODO: Make this configurable
 
