@@ -19,5 +19,5 @@ python-dotenv>=1.0.1
 python-telegram-bot>=21.0.1
 Requests>=2.31.0
 seaborn>=0.13.2
-git+https://github.com/guigoruiz1/tqdm.git
+tqdm>=4.62.3
 wikitextparser>=0.55.8

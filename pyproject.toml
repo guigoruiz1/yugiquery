@@ -59,6 +59,7 @@ dependencies = [
     "python-telegram-bot>=21.0.1",
     "Requests>=2.31.0",
     "seaborn>=0.13.2",
+    "tqdm>=4.62.3",
     "wikitextparser>=0.55.8",
     "halo @ git+https://github.com/guigoruiz1/halo.git"
 ]
