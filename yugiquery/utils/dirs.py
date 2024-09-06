@@ -2,7 +2,7 @@ from IPython import get_ipython
 import os
 import sysconfig
 from pathlib import Path
-from platformdirs import user_data_dir, site_data_dir
+from platformdirs import user_dirs_data, site_dirs_data
 
 
 class Dirs:
@@ -38,9 +38,9 @@ class Dirs:
                     / "yugiquery"
                 )
                 if not self.SHARE.is_dir():
-                    self.SHARE = Path(user_data_dir("yugiquery"))
+                    self.SHARE = Path(user_dirs.DATA("yugiquery"))
                     if not self.SHARE.is_dir():
-                        self.SHARE = Path(site_data_dir("yugiquery"))
+                        self.SHARE = Path(site_dirs.DATA("yugiquery"))
 
         # Determine NOTEBOOKS_DIR based on the environment and hierarchy
         if self.REPORTS.name == "notebooks":
@@ -50,7 +50,7 @@ class Dirs:
             if not self.NOTEBOOKS.is_dir():
                 self.NOTEBOOKS = self.SHARE / "notebooks"
 
-        # Define DATA_DIR based on NOTEBOOKS_DIR
+        # Define dirs.DATA based on NOTEBOOKS_DIR
         if self.REPORTS == self.NOTEBOOKS:
             self.DATA = self.REPORTS.parent / "data"
         else:
