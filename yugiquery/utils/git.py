@@ -25,24 +25,24 @@ def assure_repo():
     """
     try:
         # Try to create a Repo object
-        repo = git.Repo(dirs.SCRIPT, search_parent_directories=True)
-        dirs.REPORTS = repo.working_dir
+        repo = git.Repo(dirs.WORK, search_parent_directories=True)
+        dirs.WORK = Path(repo.working_dir)
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
-        repo = git.Repo.init(dirs.REPORTS)
-        print(f"Git repository initialized in {dirs.REPORTS}")
+        repo = git.Repo.init(dirs.WORK)
+        print(f"Git repository initialized in {dirs.WORK}")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
         raise RuntimeError(f"Unable to init Git repository: {e}")
     finally:
-        dirs.DATA = dirs.REPORTS / "data"
-        dirs.NOTEBOOKS = dirs.REPORTS / "reports"
+        dirs.DATA = dirs.WORK / "data"
+        dirs.REPORTS = dirs.WORK / "reports"
 
         # Ensure the data and reports directories exist
         os.makedirs(dirs.DATA, exist_ok=True)
-        os.makedirs(dirs.NOTEBOOKS, exist_ok=True)
+        os.makedirs(dirs.REPORTS, exist_ok=True)
 
     return repo
 
@@ -68,7 +68,7 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
     if isinstance(files, str):
         files = [files]
     try:
-        with git.Repo(dirs.SCRIPT, search_parent_directories=True) as repo:
+        with git.Repo(dirs.APP, search_parent_directories=True) as repo:
             # Stage the files before committing
             repo.git.add(*files)
             return repo.git.commit(message=commit_message)
@@ -109,7 +109,7 @@ def pull(passphrase: str = None):
         return result.stdout.decode("utf-8")
     else:
         try:
-            with git.Repo(dirs.SCRIPT, search_parent_directories=True) as repo:
+            with git.Repo(dirs.APP, search_parent_directories=True) as repo:
                 return repo.git.pull()
 
         except git.InvalidGitRepositoryError as e:
@@ -148,7 +148,7 @@ def push(passphrase: str = None):
         return result.stdout.decode("utf-8")
     else:
         try:
-            with git.Repo(dirs.SCRIPT, search_parent_directories=True) as repo:
+            with git.Repo(dirs.APP, search_parent_directories=True) as repo:
                 return repo.git.push()
 
         except git.InvalidGitRepositoryError as e:

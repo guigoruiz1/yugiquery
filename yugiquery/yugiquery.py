@@ -116,13 +116,16 @@ def generate_changelog(
 
     if all(col in changelog.columns for col in ["Modification date", "Version"]):
         true_changes = (
-            changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
+            changelog.drop(["Modification date", "Version"], axis=1)[
+                nunique > 1]
             .dropna(axis=0, how="all")
             .index
         )
-        new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
+        new_entries = nunique[nunique["Version"]
+                              == 1].dropna(axis=0, how="all").index
         rows_to_keep = true_changes.union(new_entries).unique()
-        changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
+        changelog = changelog.loc[rows_to_keep].sort_values(
+            by=[*col, "Version"])
 
     if changelog.empty:
         print("No changes")
@@ -143,7 +146,8 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
     """
     if report is None:
         try:
-            report = os.path.basename(os.environ["JPY_SESSION_NAME"]).split(".")[0]
+            report = os.path.basename(
+                os.environ["JPY_SESSION_NAME"]).split(".")[0]
         except:
             report = ""
 
@@ -202,7 +206,8 @@ def condense_changelogs(files: pd.DataFrame):
             last_date = to_date
         df = pd.read_csv(file, dtype=object)
         df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
-        new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
+        new_changelog = pd.concat(
+            [new_changelog, df], axis=0, ignore_index=True)
 
     new_changelog.sort_values(
         by=[new_changelog.columns[0], "Version"],
@@ -210,7 +215,8 @@ def condense_changelogs(files: pd.DataFrame):
         axis=0,
         inplace=True,
     )
-    new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
+    new_changelog = new_changelog.drop_duplicates(
+        keep="last").dropna(how="all", axis=0)
     index = (
         new_changelog.drop(["Modification date", "Version"], axis=1)
         .drop_duplicates(keep="last")
@@ -432,7 +438,8 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
             if col in df:
                 df[col] = pd.to_datetime(df[col])
 
-        ts = arrow.get(os.path.basename(files[0]).split("_")[-1].split(".bz2")[0])
+        ts = arrow.get(os.path.basename(
+            files[0]).split("_")[-1].split(".bz2")[0])
         print(f"{name_pattern} file loaded")
         return df, ts
     else:
@@ -458,7 +465,8 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         regions_dict = load_json(dirs.ASSETS / "json" / "regions.json")
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
-                input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
+                input_info_df[regions_dict[x["Region"]] +
+                              " release date"][x["Set"]]
                 if (
                     x["Region"] in regions_dict.keys()
                     and x["Set"] in input_info_df.index
@@ -552,7 +560,8 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with errata information merged into it.
     """
     if "Name" in input_df.columns:
-        errata_series = input_errata_df.apply(format_errata, axis=1).rename("Errata")
+        errata_series = input_errata_df.apply(
+            format_errata, axis=1).rename("Errata")
         input_df = input_df.merge(
             errata_series,
             left_on="Name",
@@ -573,7 +582,8 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
 
 def get_notebook_name():
     try:
-        file_path = getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__", "")
+        file_path = getattr(get_ipython(), "user_ns", {}
+                            ).get("__vsc_ipynb_file__", "")
     except Exception:
         file_path = ""
 
@@ -606,7 +616,8 @@ def save_notebook():
 
 
 def export_notebook(input_path, template="auto", no_input=True):
-    output_path = dirs.REPORTS / os.path.basename(input_path).split(".ipynb")[0]
+    output_path = dirs.REPORTS / \
+        os.path.basename(input_path).split(".ipynb")[0]
 
     if template == "auto":
         if os.path.isdir(
@@ -690,13 +701,15 @@ def update_index():  # Handle index and readme properly
     table = " |\n| ".join(rows)
 
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
-    index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+    index = index.replace(
+        f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
     with open(index_output_path, "w+") as o:
         print(index, file=o)
 
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
-    readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+    readme = readme.replace(
+        f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
     with open(readme_output_path, "w+") as o:
         print(readme, file=o)
@@ -954,7 +967,8 @@ def card_query(default: str = None, *args, **kwargs):
                 search_string += f"{prop_dict[arg]}"
             # If property is not in the dictionary, assume generic property
             else:
-                print(f"Unrecognized property {arg}. Assuming |?{up.quote(arg)}.")
+                print(
+                    f"Unrecognized property {arg}. Assuming |?{up.quote(arg)}.")
                 search_string += f"|?{up.quote(arg)}"
 
     for arg in args:
@@ -980,7 +994,8 @@ def fetch_rarities_dict(rarities_list: List[str] = []):
         print(f"Words: {words}")
         print(f"Acronyms: {acronyms}")
 
-    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
+    titles = api.fetch_categorymembers(
+        category="Rarities", namespace=0)["title"]
     words = words + titles.tolist()
     rarity_backlinks = api.fetch_backlinks(words)
     rarity_redirects = api.fetch_redirects(acronyms)
@@ -1089,7 +1104,8 @@ def fetch_st(
     if st_query is None:
         st_query = card_query(default="st")
 
-    st_df = api.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
+    st_df = api.fetch_properties(
+        concept, st_query, step=step, limit=limit, **kwargs)
 
     if debug:
         print("- Total")
@@ -1123,7 +1139,8 @@ def fetch_monster(
     """
     debug = kwargs.get("debug", False)
     valid_cg = cg.value
-    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
+    attributes = ["DIVINE", "LIGHT", "DARK",
+                  "WATER", "EARTH", "FIRE", "WIND", "?"]
     print("Downloading monsters")
     if monster_query is None:
         monster_query = card_query(default="monster")
@@ -1148,7 +1165,8 @@ def fetch_monster(
         temp_df = api.fetch_properties(
             concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs
         )
-        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
+        monster_df = pd.concat([monster_df, temp_df],
+                               ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[
@@ -1367,7 +1385,8 @@ def fetch_unusable(
 
     valid_cg = cg.value
     if valid_cg == "CG":
-        concept = "OR".join([concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
+        concept = "OR".join(
+            [concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
     else:
         concept += f"[[{valid_cg} status::+]]"
 
@@ -1377,7 +1396,8 @@ def fetch_unusable(
     if query is None:
         query = card_query()
 
-    unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    unusable_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     if filter and "Card type" in unusable_df:
         unusable_df = unusable_df[
@@ -1444,7 +1464,8 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
         temp = api.fetch_categorymembers(
             cat, namespace=3010, step=step, iterator=iterator, debug=debug
         )
-        errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
+        errata_data = temp["title"].apply(
+            lambda x: x.split("Card Errata:")[-1])
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
         errata_df = (
             pd.concat([errata_df, errata_series], axis=1)
@@ -1540,7 +1561,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
     keys = sets["Page name"]
 
     all_set_lists_df = pd.DataFrame(
-        columns=["Set", "Card number", "Name", "Rarity", "Print", "Quantity", "Region"]
+        columns=["Set", "Card number", "Name",
+                 "Rarity", "Print", "Quantity", "Region"]
     )
     total_success = 0
     total_error = 0
@@ -1554,7 +1576,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
         first = i * step
         last = (i + 1) * step
 
-        set_lists_df, success, error = api.fetch_set_lists(keys[first:last], **kwargs)
+        set_lists_df, success, error = api.fetch_set_lists(
+            keys[first:last], **kwargs)
         set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop(
             "Page name", axis=1
         )
@@ -1666,7 +1689,8 @@ def run_notebooks(
                     unit_scale=True,
                     dynamic_ncols=True,
                     token=token,
-                    **channel_id_dict,  # Needed to handle Telegram using chat_ID instaed of channel_ID.
+                    # Needed to handle Telegram using chat_ID instaed of channel_ID.
+                    **channel_id_dict,
                 )
 
                 break
@@ -1814,6 +1838,8 @@ def run(
 def main(args):
     # Assures the script is within a git repository before proceesing
     _ = git.assure_repo()
+    # Make sure the data and reports directories exist
+    dirs.make()
     # Execute the complete workflow
     run(**vars(args))
     # Exit python

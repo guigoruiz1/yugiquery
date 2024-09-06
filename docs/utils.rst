@@ -14,6 +14,13 @@ Api Module
    :members:
    :show-inheritance:
 
+Dirs Module
+----------------
+
+.. automodule:: yugiquery.utils.dirs
+   :members:
+   :show-inheritance:
+
 Git Module
 ----------------
 

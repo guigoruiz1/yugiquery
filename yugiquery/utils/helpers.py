@@ -11,12 +11,9 @@ import sys
 import json
 import hashlib
 import arrow
+import importlib
 import re
 import calendar
-from pathlib import Path
-import subprocess
-import sysconfig
-from IPython import get_ipython
 from dotenv import dotenv_values
 from tqdm.auto import tqdm, trange
 from typing import Any, Callable, Dict, List, Tuple, Union
@@ -52,22 +49,15 @@ def ensure_tqdm():
                 print(
                     "Missing required tqdm fork for Discord progress bar. Trying to install now..."
                 )
-            result = subprocess.run(
-                [
-                    "python",
-                    "{dirs.ASSETS}/scripts/post_install.py",
-                    "--install-tqdm",
-                ],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode != 0:
-                print(
-                    f"Failed to install tqdm fork for Discord bot. Error: {result.stderr}"
-                )
-                if loop > 1:
-                    print("Failed to install tqdm fork twice. Aborting...")
-                    quit()
+
+            # Assuming dirs and ASSETS are defined somewhere in your code
+            module_path = f"{dirs.ASSETS}.scripts.post_install"
+            post_install = importlib.import_module(module_path)
+            post_install.install_tqdm()
+
+            if loop > 1:
+                print("Failed to install tqdm fork twice. Aborting...")
+                quit()
 
             loop += 1
 

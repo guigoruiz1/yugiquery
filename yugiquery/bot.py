@@ -575,7 +575,8 @@ class Bot:
             return {"error": "Query already running. Try again after it has finished."}
 
         queue = mp.Queue()
-        stderr_read, stderr_write = mp.Pipe(duplex=False)  # Create a pipe for stderr
+        stderr_read, stderr_write = mp.Pipe(
+            duplex=False)  # Create a pipe for stderr
 
         if isinstance(self, Discord):
             pbar_kwargs = {"channel_id": channel_id, "token": self.token}
@@ -594,7 +595,8 @@ class Bot:
         try:
             self.process = mp.Process(
                 target=yq.run,
-                args=[report.value, progress_handler],  # isinstance(self,Telegram)
+                # isinstance(self,Telegram)
+                args=[report.value, progress_handler],
             )
             self.process.start()
             stderr_write.close()  # Close the write end in the parent process to ensure it only reads
@@ -938,7 +940,8 @@ class Telegram(Bot):
             if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
                 granularity = get_humanize_granularity(
                     (
-                        last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()
+                        last_run.shift(
+                            seconds=self.cooldown_limit) - arrow.utcnow()
                     ).total_seconds()
                 )
                 next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
@@ -1023,14 +1026,16 @@ class Telegram(Bot):
             self.application.stop_running()
 
         # Register the command handlers
-        self.application.add_handler(CommandHandler("abort", abort, block=False))
+        self.application.add_handler(
+            CommandHandler("abort", abort, block=False))
         self.application.add_handler(CommandHandler("battle", battle))
         self.application.add_handler(CommandHandler("benchmark", benchmark))
         self.application.add_handler(CommandHandler("data", data))
         self.application.add_handler(CommandHandler("latest", latest))
         self.application.add_handler(CommandHandler("links", links))
         self.application.add_handler(CommandHandler("ping", ping))
-        self.application.add_handler(CommandHandler("run", run_query, block=False))
+        self.application.add_handler(
+            CommandHandler("run", run_query, block=False))
         self.application.add_handler(CommandHandler("status", status))
         self.application.add_handler(
             CommandHandler(
@@ -1260,7 +1265,8 @@ class Discord(Bot, commands.Bot):
             original_response = None
 
             async def callback(first):
-                embed.add_field(name="First contestant", value=first, inline=False)
+                embed.add_field(name="First contestant",
+                                value=first, inline=False)
                 embed.set_footer(text="Still battling... ⏳")
                 nonlocal original_response
                 original_response = await ctx.send(embed=embed)
@@ -1280,7 +1286,8 @@ class Discord(Bot, commands.Bot):
             winner = response["winner"]
             longest = response["longest"]
 
-            embed.add_field(name="Winner", value=winner[0]["Name"], inline=True)
+            embed.add_field(
+                name="Winner", value=winner[0]["Name"], inline=True)
             embed.add_field(name="Wins", value=winner[1], inline=True)
             embed.add_field(
                 name="Stats remaining",
@@ -1351,7 +1358,8 @@ class Discord(Bot, commands.Bot):
                     description=response["description"],
                     color=discord.Colour.magenta(),
                 )
-                embed.add_field(name="Data", value=response["data"], inline=False)
+                embed.add_field(
+                    name="Data", value=response["data"], inline=False)
                 embed.add_field(
                     name="Changelog", value=response["changelog"], inline=False
                 )
@@ -1378,9 +1386,11 @@ class Discord(Bot, commands.Bot):
                 description=response["description"],
                 color=discord.Colour.orange(),
             )
-            embed.add_field(name="Local", value=response["local"], inline=False)
+            embed.add_field(
+                name="Local", value=response["local"], inline=False)
             if "live" in response:
-                embed.add_field(name="Live", value=response["live"], inline=False)
+                embed.add_field(
+                    name="Live", value=response["live"], inline=False)
 
             await ctx.send(embed=embed)
 
@@ -1527,7 +1537,8 @@ class Discord(Bot, commands.Bot):
             embed.add_field(name="Guilds", value=guilds, inline=True)
             embed.add_field(name="Users", value=users, inline=True)
             embed.add_field(name="Channels", value=channels, inline=True)
-            embed.add_field(name="Available Commands", value=commandsInfo, inline=False)
+            embed.add_field(name="Available Commands",
+                            value=commandsInfo, inline=False)
             embed.add_field(name="Bot Version", value=__version__, inline=True)
             embed.add_field(
                 name="Discord.py Version", value=discord.__version__, inline=True
@@ -1565,6 +1576,8 @@ class Discord(Bot, commands.Bot):
 
 
 def main(args):
+    # Make sure the data and reports directories exist
+    dirs.make()
     # Load secrets
     secrets_args = {
         f"{args.subclass.upper()}_TOKEN": args.token,
@@ -1582,7 +1595,8 @@ def main(args):
                 "Discord bot requires DISCORD_TOKEN and DISCORD_CHANNEL_ID in secrets."
             )
         # Initialize and run the Discord bot
-        discord_bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
+        discord_bot = Discord(
+            secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
         discord_bot.run()
 
     elif args.subclass == "telegram":
