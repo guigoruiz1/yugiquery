@@ -52,7 +52,7 @@ def ensure_tqdm():
                 )
 
             # Assuming dirs and ASSETS are defined somewhere in your code
-            module_path = f"{dirs.APP.parent / 'assets' / 'scripts'}.post_install"
+            module_path = f"{dirs.APP.parent}.assets.scripts.post_install"
             post_install = importlib.import_module(module_path)
             post_install.install_tqdm()
 

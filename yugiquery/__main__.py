@@ -126,7 +126,7 @@ def main():
 
     if args.command == "install":
         # Assuming dirs and ASSETS are defined somewhere in your code
-        module_path = f"{dirs.ASSETS}.scripts.post_install"
+        module_path = f"{dirs.APP.parent}.scripts.post_install"
         post_install = importlib.import_module(module_path)
         post_install.main(args)
 
