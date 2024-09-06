@@ -68,7 +68,7 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "*.html",
+  "pages",
   "data",
 ]
 
@@ -76,7 +76,7 @@ exclude = [
 "reports" = "share/yugiquery/reports"
 "yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
 "yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
-"yugiquery/assets/post_install.py" = "share/yugiquery/post_install.py"
+"yugiquery/assets/scripts/post_install.py" = "share/yugiquery/post_install.py"
 "yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
 
 [tool.hatch.envs.docs]

@@ -39,5 +39,14 @@ def install_tqdm():
 
 
 if __name__ == "__main__":
-    install_tqdm()
-    install_kernel()
+    import argparse
+
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--install-tqdm", action="store_true")
+    argparser.add_argument("--install-kernel", action="store_true")
+    if argparser.parse_args().install_tqdm:
+        install_tqdm()
+    elif argparser.parse_args().install_kernel:
+        install_kernel()
+    else:
+        exit()

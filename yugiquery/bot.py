@@ -293,14 +293,14 @@ class Bot:
     def init_reports_enum(self):
         """
         Initializes and returns an Enum object containing the available reports.
-        The reports are read from the yugiquery.SCRIPT_DIR directory, where they are expected to be Jupyter notebooks.
+        The reports are read from the dirs.REPORTS directory, where they are expected to be Jupyter notebooks.
         The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
 
         Returns:
             Enum: An Enum object containing the available reports.
         """
         reports_dict = {"All": "all"}
-        reports = sorted(glob(os.path.join(yq.REPORTS_DIR, "*.ipynb")))
+        reports = sorted(glob(dirs.REPORTS / "*.ipynb"))
         for report in reports:
             reports_dict[os.path.basename(report)[:-6].capitalize()] = report
 
@@ -316,7 +316,7 @@ class Bot:
         try:
             self.process.terminate()
             if self.has_remote:
-                self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
+                self.repo.git.restore(dirs.REPORTS / "*.ipynb")
             return "Aborted"
         except:
             return "Abort failed"
@@ -337,7 +337,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob(os.path.join(yq.DATA_DIR, "cards_data_*.bz2")),
+            glob(dirs.DATA / "cards_data_*.bz2"),
             key=os.path.getmtime,
         )
         if not cards_files:
@@ -401,7 +401,7 @@ class Bot:
             dict: A dictionary containing benchmark information.
         """
         try:
-            with open(os.path.join(yq.DATA_DIR, "benchmark.json"), "r") as file:
+            with open(dirs.DATA / "benchmark.json", "r") as file:
                 data = json.load(file)
         except:
             return {
@@ -494,7 +494,7 @@ class Bot:
     def latest(self):
         """
         Displays the timestamp of the latest local and live reports generated.
-        Reads the report files from `yq.PARENT_DIR` and queries the GitHub API
+        Reads the report files from `dirs.WORK` and queries the GitHub API
         for the latest commit timestamp for each file. Returns the result as an
         message in the channel.
 
@@ -502,7 +502,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob(os.path.join(yq.WORK_DIR, "*.html")))
+        reports = sorted(glob(dirs.WORK / "*.html"))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -1364,7 +1364,7 @@ class Discord(Bot, commands.Bot):
         )
         async def latest(ctx):
             """
-            Displays the timestamp of the latest local and live reports generated. Reads the report files from `yq.PARENT_DIR` and
+            Displays the timestamp of the latest local and live reports generated. Reads the report files from `dirs.WORK` and
             queries the GitHub API for the latest commit timestamp for each file. Returns the result as an embedded message in
             the channel.
 

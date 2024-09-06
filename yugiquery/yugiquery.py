@@ -149,7 +149,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
 
     now = arrow.utcnow()
     timedelta = now - timestamp
-    benchmark_file = os.path.join(DATA_DIR, "benchmark.json")
+    benchmark_file = dirs.DATA / "benchmark.json"
     if os.path.isfile(benchmark_file):
         data = load_json(benchmark_file)
     else:
@@ -273,7 +273,7 @@ def cleanup_data(dry_run=False):
     """
     # Benchmark
     now = arrow.utcnow()
-    benchmark_path = os.path.join(DATA_DIR, "benchmark.json")
+    benchmark_path = dirs.DATA / "benchmark.json"
     if os.path.isfile(benchmark_path):
         benchmark = load_json(benchmark_path)
         new_benchmark = condense_benchmark(benchmark)
@@ -284,7 +284,7 @@ def cleanup_data(dry_run=False):
                 json.dump(new_benchmark, f)
 
     # Data CSV files
-    file_list = glob(os.path.join(DATA_DIR, "*.bz2"))
+    file_list = glob(dirs.DATA / "*.bz2")
     if not file_list:
         return
 
@@ -397,8 +397,8 @@ def cleanup_data(dry_run=False):
     if not dry_run:
         result = git.commit(
             files=[
-                os.path.join(DATA_DIR, "benchmark.json"),
-                os.path.join(DATA_DIR, "*bz2"),  # May not work
+                dirs.DATA / "benchmark.json",
+                dirs.DATA / "*bz2",
             ],
             commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
@@ -417,7 +417,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(
-        glob(os.path.join(DATA_DIR, f"{name_pattern}_data_*.bz2")),
+        glob(dirs.DATA / f"{name_pattern}_data_*.bz2"),
         key=os.path.getctime,
         reverse=True,
     )
@@ -455,9 +455,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(
-            os.path.join(SCRIPT_DIR, "assets", "json", "regions.json")
-        )
+        regions_dict = load_json(dirs.ASSETS / "json" / "regions.json")
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
                 input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
@@ -608,9 +606,7 @@ def save_notebook():
 
 
 def export_notebook(input_path, template="auto", no_input=True):
-    output_path = os.path.join(
-        WORK_DIR, os.path.basename(input_path).split(".ipynb")[0]
-    )
+    output_path = dirs.WORK / os.path.basename(input_path).split(".ipynb")[0]
 
     if template == "auto":
         if os.path.isdir(
@@ -670,10 +666,10 @@ def update_index():  # Handle index and readme properly
     index_file_name = "index.md"
     readme_file_name = "README.md"
 
-    index_input_path = os.path.join(SCRIPT_DIR, "assets", "markdown", index_file_name)
-    readme_input_path = os.path.join(SCRIPT_DIR, "assets", "markdown", readme_file_name)
-    index_output_path = os.path.join(WORK_DIR, index_file_name)
-    readme_output_path = os.path.join(WORK_DIR, readme_file_name)
+    index_input_path = dirs.ASSETS / "markdown" / index_file_name
+    readme_input_path = dirs.ASSETS / "markdown" / readme_file_name
+    index_output_path = dirs.WORK / index_file_name
+    readme_output_path = dirs.WORK / readme_file_name
 
     timestamp = arrow.utcnow()
     try:
@@ -685,7 +681,7 @@ def update_index():  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(glob(os.path.join(WORK_DIR, "*.html")))
+    reports = sorted(glob(dirs.WORK / "*.html"))
     rows = []
     for report in reports:
         rows.append(
@@ -728,7 +724,7 @@ def header(name: str = None):
     if name is None:
         name = get_notebook_name()
 
-    header_path = os.path.join(SCRIPT_DIR, "assets", "markdown", "header.md")
+    header_path = dirs.ASSETS / "markdown" / "header.md"
     try:
         with open(header_path) as f:
             header = f.read()
@@ -754,7 +750,7 @@ def footer(timestamp: arrow.Arrow = None):
     Returns:
         Markdown: The generated Markdown footer.
     """
-    footer_path = os.path.join(SCRIPT_DIR, "assets", "markdown", "footer.md")
+    footer_path = dirs.ASSETS / "markdown" / "footer.md"
     try:
         with open(footer_path) as f:
             footer = f.read()
@@ -1608,7 +1604,7 @@ def run_notebooks(
 
     if reports == "all":
         # Get reports
-        reports = sorted(glob(os.path.join(REPORTS_DIR, "*.ipynb")))
+        reports = sorted(glob(dirs.REPORTS / "*.ipynb"))
     else:
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
@@ -1802,8 +1798,8 @@ def run(
 
     # Cleanup redundant data files
     if cleanup == "auto":
-        data_files_count = len(glob(os.path.join(DATA_DIR, "*.bz2")))
-        reports_count = len(glob(os.path.join(REPORTS_DIR, "*.ipynb")))
+        data_files_count = len(glob(dirs.DATA / "*.bz2"))
+        reports_count = len(glob(dirs.REPORTS / "*.ipynb"))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
