@@ -8,6 +8,7 @@
 
 import git
 import subprocess
+from pathlib import Path
 from .helpers import *
 from .dirs import dirs
 

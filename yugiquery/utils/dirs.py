@@ -9,6 +9,7 @@ class Dirs:
     """
     Singleton class to manage directory paths for the application.
     """
+
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -30,21 +31,11 @@ class Dirs:
         self.WORK = Path.cwd()
 
         # Determine the SHARE path
-        self.SHARE = (
-            Path(os.getenv("VIRTUAL_ENV", ""))
-            / "share"
-            / "yugiquery"
-        )
+        self.SHARE = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
         if not self.SHARE.is_dir():
-            self.SHARE = (
-                Path.home() / ".local" / "share" / "yugiquery"
-            )
+            self.SHARE = Path.home() / ".local" / "share" / "yugiquery"
             if not self.SHARE.is_dir():
-                self.SHARE = (
-                    Path(sysconfig.get_path("data"))
-                    / "share"
-                    / "yugiquery"
-                )
+                self.SHARE = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
                 if not self.SHARE.is_dir():
                     self.SHARE = Path(user_data_dir("yugiquery"))
                     if not self.SHARE.is_dir():
@@ -103,7 +94,7 @@ class Dirs:
         """
         Check if the current environment is a Jupyter notebook.
         """
-        return (get_ipython() is not None)
+        return get_ipython() is not None
 
 
 # Global instance of Dirs
