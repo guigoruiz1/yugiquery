@@ -20,7 +20,6 @@
 
 # Native python packages
 import argparse
-from glob import glob
 import io
 import json
 import logging
@@ -143,10 +142,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
         None
     """
     if report is None:
-        try:
-            report = os.path.basename(os.environ["JPY_SESSION_NAME"]).split(".")[0]
-        except:
-            report = ""
+        report = get_notebook_name()
 
     now = arrow.utcnow()
     timedelta = now - timestamp
@@ -189,7 +185,7 @@ def condense_changelogs(files: pd.DataFrame):
     for file in files:
         match = re.search(
             r"(\w+)_\w+_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
-            os.path.basename(file),
+            Path(file).name,
         )
         name = match.group(1)
         from_date = match.group(2)
@@ -217,8 +213,7 @@ def condense_changelogs(files: pd.DataFrame):
         .drop_duplicates(keep="last")
         .index
     )
-    new_filename = os.path.join(
-        os.path.dirname(file),
+    new_filename = Path(file).joinpath(
         make_filename(
             report=changelog_name,
             timestamp=arrow.get(last_date),
@@ -285,7 +280,7 @@ def cleanup_data(dry_run=False):
                 json.dump(new_benchmark, f)
 
     # Data CSV files
-    file_list = glob(dirs.DATA / "*.bz2")
+    file_list = list(dirs.DATA.glob("*.bz2"))
     if not file_list:
         return
 
@@ -296,9 +291,7 @@ def cleanup_data(dry_run=False):
     df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
 
     # Create a new column 'Group' based on the first two elements after splitting the filename
-    df["Group"] = df["Name"].apply(
-        lambda x: "_".join(os.path.basename(x).split("_", 2)[:2])
-    )
+    df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
 
     # Group the DataFrame by 'Group' and 'Date' (year and month)
     grouped = df.groupby(["Group", pd.Grouper(key="Date", freq="MS")])
@@ -418,7 +411,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
     files = sorted(
-        glob(dirs.DATA / f"{name_pattern}_data_*.bz2"),
+        list(dirs.DATA.glob(f"{name_pattern}_data_*.bz2")),
         key=os.path.getctime,
         reverse=True,
     )
@@ -433,7 +426,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
             if col in df:
                 df[col] = pd.to_datetime(df[col])
 
-        ts = arrow.get(os.path.basename(files[0]).split("_")[-1].split(".bz2")[0])
+        ts = arrow.get(Path(files[0]).stem.split("_")[-1])
         print(f"{name_pattern} file loaded")
         return df, ts
     else:
@@ -588,7 +581,7 @@ def get_notebook_name():
         except Exception:
             file_path = ""
 
-    return os.path.basename(file_path).split(".")[0]
+    return Path(file_path).stem
 
 
 def save_notebook():
@@ -607,7 +600,7 @@ def save_notebook():
 
 
 def export_notebook(input_path, template="auto", no_input=True):
-    output_path = dirs.REPORTS / os.path.basename(input_path).split(".ipynb")[0]
+    output_path = dirs.REPORTS / Path(input_path).stem
 
     if template == "auto":
         if dirs.SHARE.joinpath("jupyter/nbconvert/templates/labdynamic").is_dir():
@@ -677,11 +670,11 @@ def update_index():  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(glob(dirs.REPORTS / "*.html"))
+    reports = sorted(list(dirs.REPORTS.glob("*.html")))
     rows = []
     for report in reports:
         rows.append(
-            f"[{os.path.basename(report).split('.')[0]}]({dirs.WORK.relative_to(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
+            f"[{Path(report).stem}]({dirs.WORK.relative_to(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
         )
     table = " |\n| ".join(rows)
 
@@ -1600,7 +1593,7 @@ def run_notebooks(
 
     if reports == "all":
         # Get reports
-        reports = sorted(glob(dirs.NOTEBOOKS / "*.ipynb"))
+        reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
     else:
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
@@ -1698,7 +1691,7 @@ def run_notebooks(
         iterator.n = i
         iterator.last_print_n = i
         iterator.refresh()
-        report_name = os.path.basename(report)[:-6]
+        report_name = Path(report).stem
 
         with open(report) as f:
             nb = nbformat.read(f, nbformat.NO_CONVERT)
@@ -1797,8 +1790,8 @@ def run(
 
     # Cleanup redundant data files
     if cleanup == "auto":
-        data_files_count = len(glob(dirs.DATA / "*.bz2"))
-        reports_count = len(glob(dirs.NOTEBOOKS / "*.ipynb"))
+        data_files_count = len(list(dirs.DATA("*.bz2")))
+        reports_count = len(list(dirs.NOTEBOOKS.glob("*.ipynb")))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:

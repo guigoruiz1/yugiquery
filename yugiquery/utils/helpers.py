@@ -15,6 +15,7 @@ import importlib
 import re
 import calendar
 from dotenv import dotenv_values
+from pathlib import Path
 from tqdm.auto import tqdm, trange
 from typing import Any, Callable, Dict, List, Tuple, Union
 from .dirs import dirs
@@ -51,7 +52,7 @@ def ensure_tqdm():
                 )
 
             # Assuming dirs and ASSETS are defined somewhere in your code
-            module_path = f"{dirs.ASSETS}.scripts.post_install"
+            module_path = f"{dirs.APP.parent / 'assets' / 'scripts'}.post_install"
             post_install = importlib.import_module(module_path)
             post_install.install_tqdm()
 
@@ -95,7 +96,7 @@ def load_secrets(
         key: os.environ.get(key, os.environ.get(f"TQDM_{key}"))
         for key in requested_secrets
     }
-    if secrets_file and os.path.isfile(secrets_file):
+    if secrets_file and Path(secrets_file).is_file():
         secrets = secrets | dotenv_values(secrets_file)
 
         if not requested_secrets:

@@ -2,6 +2,8 @@
 
 import subprocess
 import sys
+import shutil
+import importlib
 
 
 def install_kernel():
@@ -38,15 +40,41 @@ def install_tqdm():
         print(f"Failed to install tqdm fork for Discord bot. Error: {result.stderr}")
 
 
+def install_nbconvert():
+    from yugiquery.utils.dirs import dirs
+
+    src_dir = dirs.APP.parent / "assets" / "nbconvert"
+    dst_dir = dirs.SHARE / "jupyter" / "nbconvert" / "templates"
+    shutil.copytree(
+        src=src_dir,
+        dst=dst_dir,
+    )
+    print("nbconvert templates installed.")
+
+
+def main(args):
+    if args.tqdm or args.all:
+        install_tqdm()
+    if args.kernel or args.all:
+        install_kernel()
+    if args.nbconvert or args.all:
+        install_nbconvert()
+
+
 if __name__ == "__main__":
     import argparse
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--install-tqdm", action="store_true")
-    argparser.add_argument("--install-kernel", action="store_true")
-    if argparser.parse_args().install_tqdm:
-        install_tqdm()
-    elif argparser.parse_args().install_kernel:
-        install_kernel()
-    else:
-        exit()
+    argparser.add_argument(
+        "--tqdm", action="store_true", help="Install tqdm fork for Discord bot."
+    )
+    argparser.add_argument(
+        "--kernel", action="store_true", help="Install Jupyter kernel."
+    )
+    argparser.add_argument(
+        "--nbconvert", action="store_true", help="Install nbconvert templates."
+    )
+    argparser.add_argument("--all", action="store_true", help="Install all.")
+    args = argparser.parse_args()
+
+    main(args)

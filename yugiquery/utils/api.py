@@ -644,14 +644,15 @@ async def download_images(
                     leave=False,
                     disable=("PM_IN_EXECUTION" in os.environ),
                 )
-                if os.path.isfile(f"{save_folder}/{save_name}"):
-                    os.remove(f"{save_folder}/{save_name}")
+                save_file = Path(save_folder).joinpath(save_name)
+                if save_file.is_file():
+                    os.remove(save_file)
                 while True:
                     chunk = await response.content.read(1024)
                     if not chunk:
                         break
                     progress.update(len(chunk))
-                    with open(f"{save_folder}/{save_name}", "ab") as f:
+                    with open(save_file, "ab") as f:
                         f.write(chunk)
                 progress.close()
                 return save_name
@@ -661,8 +662,9 @@ async def download_images(
     async with aiohttp.ClientSession(
         base_url="https://ms.yugipedia.com/", headers=http_headers
     ) as session:
-        if not os.path.exists(save_folder):
-            os.makedirs(save_folder)
+        save_folder = Path(save_folder)
+        if not save_folder.exists():
+            save_folder.mkdir(parents=True)
         with tqdm(
             total=len(urls),
             unit_scale=True,

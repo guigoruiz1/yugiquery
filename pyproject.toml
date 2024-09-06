@@ -74,9 +74,9 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel.shared-data]
-"notebooks" = "share/yugiquery/notebooks"
 "assets" = "share/yugiquery"
 "assets/nbconvert" = "share/jupyter/nbconvert/templates"
+"notebooks" = "share/yugiquery/notebooks"
 
 [tool.hatch.envs.docs]
 features = ["docs"]

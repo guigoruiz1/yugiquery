@@ -31,15 +31,15 @@ class Dirs:
         self.WORK = Path.cwd()
 
         # Determine the SHARE path
-        self.SHARE = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
+        self.SHARE = Path(os.getenv("VIRTUAL_ENV", "")) / "share"
         if not self.SHARE.is_dir():
-            self.SHARE = Path.home() / ".local" / "share" / "yugiquery"
+            self.SHARE = Path.home() / ".local" / "share"
             if not self.SHARE.is_dir():
-                self.SHARE = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
+                self.SHARE = Path(sysconfig.get_path("data")) / "share"
                 if not self.SHARE.is_dir():
-                    self.SHARE = Path(user_data_dir("yugiquery"))
+                    self.SHARE = Path(user_data_dir())
                     if not self.SHARE.is_dir():
-                        self.SHARE = Path(site_data_dir("yugiquery"))
+                        self.SHARE = Path(site_data_dir())
 
         # Determine the REPORTS path
         if self.WORK.parent.joinpath("reports").is_dir():
@@ -67,7 +67,7 @@ class Dirs:
         elif self.WORK.parent.joinpath("assets").is_dir():
             self.ASSETS = self.WORK.parent / "assets"
         else:
-            self.ASSETS = self.SHARE
+            self.ASSETS = self.SHARE / "yugiquery"
 
     def print(self):
         """

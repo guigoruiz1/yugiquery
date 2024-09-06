@@ -28,7 +28,6 @@ else:
 # Native python packages
 import argparse
 import asyncio
-from glob import glob
 import io
 import multiprocessing as mp
 import os
@@ -300,9 +299,9 @@ class Bot:
             Enum: An Enum object containing the available reports.
         """
         reports_dict = {"All": "all"}
-        reports = sorted(glob(dirs.NOTEBOOKS / "*.ipynb"))
+        reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
         for report in reports:
-            reports_dict[os.path.basename(report)[:-6].capitalize()] = report
+            reports_dict[Path(report).stem.capitalize()] = report
 
         self.Reports = Enum("Reports", reports_dict)
 
@@ -337,7 +336,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob(dirs.DATA / "cards_data_*.bz2"),
+            list(dirs.DATA.glob("cards_data_*.bz2")),
             key=os.path.getmtime,
         )
         if not cards_files:
@@ -502,7 +501,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob(dirs.REPORTS / "*.html"))
+        reports = sorted(list(dirs.REPORTS.glob("*.html")))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -511,7 +510,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            local_value += f'• {Path(report).stem}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 
@@ -521,12 +520,12 @@ class Bot:
                 live_value = ""
                 for report in reports:
                     result = pd.read_json(
-                        f"{self.repository_api_url}/commits?path={os.path.basename(report)}"
+                        f"{self.repository_api_url}/commits?path={Path(report).name}"
                     )
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
                         "date", "author"
                     ]
-                    live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+                    live_value += f'• {Path(report).stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
             except:

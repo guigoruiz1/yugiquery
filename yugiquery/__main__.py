@@ -11,8 +11,7 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command")
     # Subparser for the main yugiquery flow
-    yugiquery_parser = subparsers.add_parser(
-        "run", help=" Run the main Yugiquery flow")
+    yugiquery_parser = subparsers.add_parser("run", help=" Run the main Yugiquery flow")
 
     yugiquery_parser.add_argument(
         "-r",
@@ -95,20 +94,41 @@ def main():
     bot_parser.add_argument(
         "-c", "--channel", dest="channel_id", type=int, help="Bot responses channel id"
     )
-    bot_parser.add_argument(
-        "--debug", action="store_true", help="Enable debug flag")
+    bot_parser.add_argument("--debug", action="store_true", help="Enable debug flag")
 
     # Subparser for the kernel installation
-    subparsers.add_parser("kernel", help="Install Jupyter kernel")
+    post_install_parser = subparsers.add_parser(
+        "install", help="Run post-install script"
+    )
+    post_install_parser.add_argument(
+        "--tqdm",
+        action="store_true",
+        help="Install tqdm fork for Discord bot.",
+    )
+    post_install_parser.add_argument(
+        "--kernel",
+        action="store_true",
+        help="Install Jupyter kernel for Yugiquery.",
+    )
+    post_install_parser.add_argument(
+        "--nbconvert",
+        action="store_true",
+        help="Install nbconvert templates.",
+    )
+    post_install_parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Install all.",
+    )
 
     # Parse initial arguments
     args = parser.parse_args()
 
-    if args.command == "kernel":
+    if args.command == "install":
         # Assuming dirs and ASSETS are defined somewhere in your code
         module_path = f"{dirs.ASSETS}.scripts.post_install"
         post_install = importlib.import_module(module_path)
-        post_install.install_kernel()
+        post_install.main(args)
 
     elif args.command == "bot":
         # Call the bot main function with parsed arguments
