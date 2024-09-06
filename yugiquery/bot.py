@@ -293,14 +293,14 @@ class Bot:
     def init_reports_enum(self):
         """
         Initializes and returns an Enum object containing the available reports.
-        The reports are read from the dirs.REPORTS directory, where they are expected to be Jupyter notebooks.
+        The reports are read from the dirs.NOTEBOOKS directory, where they are expected to be Jupyter notebooks.
         The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
 
         Returns:
             Enum: An Enum object containing the available reports.
         """
         reports_dict = {"All": "all"}
-        reports = sorted(glob(dirs.REPORTS / "*.ipynb"))
+        reports = sorted(glob(dirs.NOTEBOOKS / "*.ipynb"))
         for report in reports:
             reports_dict[os.path.basename(report)[:-6].capitalize()] = report
 
@@ -316,7 +316,7 @@ class Bot:
         try:
             self.process.terminate()
             if self.has_remote:
-                self.repo.git.restore(dirs.REPORTS / "*.ipynb")
+                self.repo.git.restore(dirs.NOTEBOOKS / "*.ipynb")
             return "Aborted"
         except:
             return "Abort failed"
@@ -494,7 +494,7 @@ class Bot:
     def latest(self):
         """
         Displays the timestamp of the latest local and live reports generated.
-        Reads the report files from `dirs.WORK` and queries the GitHub API
+        Reads the report files from `dirs.REPORTS` and queries the GitHub API
         for the latest commit timestamp for each file. Returns the result as an
         message in the channel.
 
@@ -502,7 +502,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob(dirs.WORK / "*.html"))
+        reports = sorted(glob(dirs.REPORTS / "*.html"))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -1364,7 +1364,7 @@ class Discord(Bot, commands.Bot):
         )
         async def latest(ctx):
             """
-            Displays the timestamp of the latest local and live reports generated. Reads the report files from `dirs.WORK` and
+            Displays the timestamp of the latest local and live reports generated. Reads the report files from `dirs.REPORTS` and
             queries the GitHub API for the latest commit timestamp for each file. Returns the result as an embedded message in
             the channel.
 

@@ -606,7 +606,7 @@ def save_notebook():
 
 
 def export_notebook(input_path, template="auto", no_input=True):
-    output_path = dirs.WORK / os.path.basename(input_path).split(".ipynb")[0]
+    output_path = dirs.REPORTS / os.path.basename(input_path).split(".ipynb")[0]
 
     if template == "auto":
         if os.path.isdir(
@@ -668,8 +668,8 @@ def update_index():  # Handle index and readme properly
 
     index_input_path = dirs.ASSETS / "markdown" / index_file_name
     readme_input_path = dirs.ASSETS / "markdown" / readme_file_name
-    index_output_path = dirs.WORK / index_file_name
-    readme_output_path = dirs.WORK / readme_file_name
+    index_output_path = dirs.REPORTS / index_file_name
+    readme_output_path = dirs.REPORTS / readme_file_name
 
     timestamp = arrow.utcnow()
     try:
@@ -681,7 +681,7 @@ def update_index():  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(glob(dirs.WORK / "*.html"))
+    reports = sorted(glob(dirs.REPORTS / "*.html"))
     rows = []
     for report in reports:
         rows.append(
@@ -1604,7 +1604,7 @@ def run_notebooks(
 
     if reports == "all":
         # Get reports
-        reports = sorted(glob(dirs.REPORTS / "*.ipynb"))
+        reports = sorted(glob(dirs.NOTEBOOKS / "*.ipynb"))
     else:
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
@@ -1799,7 +1799,7 @@ def run(
     # Cleanup redundant data files
     if cleanup == "auto":
         data_files_count = len(glob(dirs.DATA / "*.bz2"))
-        reports_count = len(glob(dirs.REPORTS / "*.ipynb"))
+        reports_count = len(glob(dirs.NOTEBOOKS / "*.ipynb"))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:

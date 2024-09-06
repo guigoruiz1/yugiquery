@@ -39,6 +39,7 @@ dependencies = [
     "numpy>=1.26.4",
     "pandas>=2.2.1",
     "papermill>=2.5.0",
+    "platformdirs>=2.4.0",
     "python-dotenv>=1.0.1",
     "python-telegram-bot>=21.0.1",
     "Requests>=2.31.0",
@@ -74,10 +75,8 @@ exclude = [
 
 [tool.hatch.build.targets.wheel.shared-data]
 "reports" = "share/yugiquery/reports"
-"yugiquery/assets/gateway.html" = "share/yugiquery/gateway.html"
-"yugiquery/assets/secrets.env" = "share/yugiquery/secrets.env"
-"yugiquery/assets/scripts/post_install.py" = "share/yugiquery/post_install.py"
-"yugiquery/assets/nbconvert" = "share/jupyter/nbconvert/templates/labdynamic"
+"assets" = "share/yugiquery"
+"assets/nbconvert" = "share/jupyter/nbconvert/templates"
 
 [tool.hatch.envs.docs]
 features = ["docs"]

@@ -26,23 +26,23 @@ def assure_repo():
     try:
         # Try to create a Repo object
         repo = git.Repo(dirs.SCRIPT, search_parent_directories=True)
-        dirs.WORK = repo.working_dir
+        dirs.REPORTS = repo.working_dir
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
-        repo = git.Repo.init(dirs.WORK)
-        print(f"Git repository initialized in {dirs.WORK}")
+        repo = git.Repo.init(dirs.REPORTS)
+        print(f"Git repository initialized in {dirs.REPORTS}")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
         raise RuntimeError(f"Unable to init Git repository: {e}")
     finally:
-        dirs.DATA = dirs.WORK / "data"
-        dirs.REPORTS = dirs.WORK / "reports"
+        dirs.DATA = dirs.REPORTS / "data"
+        dirs.NOTEBOOKS = dirs.REPORTS / "reports"
 
         # Ensure the data and reports directories exist
         os.makedirs(dirs.DATA, exist_ok=True)
-        os.makedirs(dirs.REPORTS, exist_ok=True)
+        os.makedirs(dirs.NOTEBOOKS, exist_ok=True)
 
     return repo
 

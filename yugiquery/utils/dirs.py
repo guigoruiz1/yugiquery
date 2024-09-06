@@ -1,8 +1,8 @@
 from IPython import get_ipython
 import os
-import sys
 import sysconfig
 from pathlib import Path
+from platformdirs import user_data_dir, site_data_dir
 
 
 class Dirs:
@@ -15,71 +15,70 @@ class Dirs:
         return cls._instance
 
     def _initialize_dirs(self):
-        if get_ipython() is not None:
-            self.is_notebook = True
-        else:
-            self.is_notebook = False
-
         # Initialize directory paths
         self.UTILS = Path(__file__).resolve().parent
         self.SCRIPT = self.UTILS.parent
         self.WORK = Path.cwd()
+        self.REPORTS = Path.cwd()
 
-        # Determine REPORTS_DIR based on the environment and hierarchy
-        if self.is_notebook:
-            self.REPORTS = self.WORK
-        else:
-            self.REPORTS = self.WORK / "reports"
-            if not self.REPORTS.is_dir():
-                self.REPORTS = (
-                    Path(os.getenv("VIRTUAL_ENV", ""))
+        # Determine the SHARE path
+        self.SHARE = (
+            Path(os.getenv("VIRTUAL_ENV", ""))
+            / "share"
+            / "yugiquery"
+        )
+        if not self.SHARE.is_dir():
+            self.SHARE = (
+                Path.home() / ".local" / "share" / "yugiquery"
+            )
+            if not self.SHARE.is_dir():
+                self.SHARE = (
+                    Path(sysconfig.get_path("data"))
                     / "share"
                     / "yugiquery"
-                    / "reports"
                 )
-                if not self.REPORTS.is_dir():
-                    self.REPORTS = (
-                        Path.home() / ".local" / "share" / "yugiquery" / "reports"
-                    )
-                    if not self.REPORTS.is_dir():
-                        self.REPORTS = (
-                            Path(sysconfig.get_path("data"))
-                            / "share"
-                            / "yugiquery"
-                            / "reports"
-                        )
+                if not self.SHARE.is_dir():
+                    self.SHARE = Path(user_data_dir("yugiquery"))
+                    if not self.SHARE.is_dir():
+                        self.SHARE = Path(site_data_dir("yugiquery"))
 
-        # Define DATA_DIR based on REPORTS_DIR
-        if self.REPORTS.name == "reports":
+        # Determine NOTEBOOKS_DIR based on the environment and hierarchy
+        if self.REPORTS.name == "notebooks":
+            self.NOTEBOOKS = self.REPORTS
+        else:
+            self.NOTEBOOKS = self.REPORTS / "notebooks"
+            if not self.NOTEBOOKS.is_dir():
+                self.NOTEBOOKS = self.SHARE / "notebooks"
+
+        # Define DATA_DIR based on NOTEBOOKS_DIR
+        if self.REPORTS == self.NOTEBOOKS:
             self.DATA = self.REPORTS.parent / "data"
         else:
-            self.DATA = self.WORK / "data"
+            self.DATA = self.REPORTS / "data"
 
         # Define ASSETS_DIR based on the hierarchy
-        if self.SCRIPT.joinpath("assets").is_dir():
-            self.ASSETS = self.SCRIPT / "assets"
-        elif os.getenv("VIRTUAL_ENV"):
-            self.ASSETS = (
-                Path(os.getenv("VIRTUAL_ENV")) / "share" / "yugiquery" / "assets"
-            )
-        elif Path.home().joinpath(".local", "share", "yugiquery", "assets").is_dir():
-            self.ASSETS = Path.home() / ".local" / "share" / "yugiquery" / "assets"
+        if self.REPORTS.joinpath("assets").is_dir():
+            self.ASSETS = self.REPORTS / "assets"
         else:
-            self.ASSETS = (
-                Path(sysconfig.get_path("data")) / "share" / "yugiquery" / "assets"
-            )
+            self.ASSETS = self.SHARE / "assets"
 
         # Ensure directories exist
         os.makedirs(self.DATA, exist_ok=True)
-        os.makedirs(self.REPORTS, exist_ok=True)
+        os.makedirs(self.NOTEBOOKS, exist_ok=True)
 
     def print(self):
         print(f"UTILS: {self.UTILS}")
         print(f"SCRIPT: {self.SCRIPT}")
         print(f"WORK: {self.WORK}")
         print(f"REPORTS: {self.REPORTS}")
+        print(f"SHARE: {self.SHARE}")
+        print(f"NOTEBOOKS: {self.NOTEBOOKS}")
         print(f"DATA: {self.DATA}")
         print(f"ASSETS: {self.ASSETS}")
+
+    @property
+    def is_notebook(self):
+        return (get_ipython() is not None)
 
 
 # Global instance of Dirs

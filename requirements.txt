@@ -16,6 +16,7 @@ nbstripout>=0.6.1
 numpy>=1.26.4
 pandas>=2.2.1
 papermill>=2.5.0
+platformdirs>=2.4.0
 python-dotenv>=1.0.1
 python-telegram-bot>=21.0.1
 Requests>=2.31.0

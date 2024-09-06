@@ -27,7 +27,7 @@ from .dirs import dirs
 
 # Matplotlib default settings overrides
 plt.style.use("default")  # TODO: Make this configurable
-if Dirs.is_notebook:
+if dirs.is_notebook:
     from matplotlib_inline.backend_inline import set_matplotlib_formats
 
     set_matplotlib_formats("svg")  # Needed for dynanmic theme
