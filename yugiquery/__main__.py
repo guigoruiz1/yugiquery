@@ -13,6 +13,9 @@ def main():
     parser.add_argument(
         "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
     )
+    parser.add_argument(
+        "-v", "--version", action="store_true", help="Print YugiQuery version and exit"
+    )
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help=" Run the main Yugiquery flow")
 
@@ -129,6 +132,10 @@ def main():
 
     if args.paths:
         dirs.print()
+    elif args.version:
+        from .metadata import __version__
+
+        print(f"Yugiquery version {__version__}")
     elif args.command == "install":
         spec = importlib.util.spec_from_file_location(
             name="post_install",
