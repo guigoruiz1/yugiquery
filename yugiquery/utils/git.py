@@ -15,7 +15,7 @@ import subprocess
 from pathlib import Path
 from .helpers import *
 from .dirs import dirs
-from .api import http_headers
+from .api import api_dict
 
 # Add case for when running directly from bot/yugiquery script
 try:
@@ -60,7 +60,9 @@ def assure_repo():
         # Replace the default User-Agent header with the repository URL
         if repo.remote().url:
             url = repo.remote().url.split(".git")[0]
-            http_headers["User-Agent"] = http_headers["User-Agent"].replace(
+            api_dict["headers"]["User-Agent"] = api_dict["headers"][
+                "User-Agent"
+            ].replace(
                 __url__,
                 url,
             )

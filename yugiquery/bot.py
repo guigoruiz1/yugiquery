@@ -69,13 +69,13 @@ discord.VoiceClient.warn_nacl = False
 
 
 # Data loaders
-def load_secrets_with_args(args: Dict[str, Any]) -> dict[str, Any]:
+def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file, placed in the `dirs.ASSETS` directory, if necessary.
 
     Args:
-        dict[str: Any]: A dictionary of secrets.
+        Dict[str: Any]: A dictionary of secrets.
 
     Returns:
         Dict[str, str]: A dictionary containing the loaded secrets.
@@ -403,7 +403,7 @@ class Bot:
 
         return {"winner": winner, "longest": longest}
 
-    def benchmark(self) -> dict[str, str]:
+    def benchmark(self) -> Dict[str, str]:
         """
         Returns the average time each report takes to complete and the latest time for each report.
 
@@ -456,7 +456,7 @@ class Bot:
 
         return response
 
-    def data(self) -> dict[str, str]:
+    def data(self) -> Dict[str, str]:
         """
         Sends the latest data files available in the repository as direct download links.
 
@@ -502,7 +502,7 @@ class Bot:
                 "error": "Unable to obtain the latest files at this time. Try again later."
             }
 
-    def latest(self) -> dict[str, str]:
+    def latest(self) -> Dict[str, str]:
         """
         Displays the timestamp of the latest local and live reports generated.
         Reads the report files from `dirs.REPORTS` and queries the GitHub API
@@ -545,7 +545,7 @@ class Bot:
 
         return response
 
-    def links(self) -> dict[str, str]:
+    def links(self) -> Dict[str, str]:
         """
         Displays the links to the YugiQuery webpage, repository, and data.
 
@@ -569,7 +569,7 @@ class Bot:
         channel_id: int,
         report: Reports = Reports.All,
         progress_bar: tqdm = None,
-    ) -> dict[str, str]:
+    ) -> Dict[str, str]:
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
 
@@ -1663,7 +1663,13 @@ if __name__ == "__main__":
         required=False,
         help="Enable debug flag",
     )
-
+    parser.add_argument(
+        "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
+    )
     args = parser.parse_args()
+
+    if args.paths:
+        dirs.print()
+        quit()
 
     main(args)

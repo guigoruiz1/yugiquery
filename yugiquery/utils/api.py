@@ -34,36 +34,15 @@ if dirs.is_notebook:
 else:
     from halo import Halo
 
-# ========= #
-# Variables #
-# ========= #
+# ============ #
+# Dictionaries #
+# ============ #
 
-#: The HTTP headers to use for API requests.
-# TODO: check if metadata works
-http_headers = {f"User-Agent": f"{__title__}/{__version__} - {__url__}"}
-#: The base URL for the yugipedia API.
-base_url = "https://yugipedia.com/api.php"
-#: The base URL for the yugipedia media API.
-media_url = "https://ws.yugipedia.com/"
-#: The REST API for the yugipedia query action.
-revisions_query_action = (
-    "?action=query&format=json&prop=revisions&rvprop=content&titles="
-)
-#: The REST API for the yugipedia ask action.
-ask_query_action = "?action=ask&format=json&query="
-#: The REST API for the yugipedia askargs action.
-askargs_query_action = "?action=askargs&format=json&conditions="
-#: The REST API for the yugipedia categorymembers action.
-categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:"
-#: The REST API for the yugipedia redirects action.
-redirects_query_action = "?action=query&format=json&redirects=True&titles="
-#: The REST API for the yugipedia backlinks action.
-backlinks_query_action = (
-    "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
-)
+#: A dictionary mapping yugipedia API URLs.
+api_dict: Dict[str, str] = load_json(dirs.ASSETS / "json" / "api.json")
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
-arrows_dict = {
+arrows_dict: Dict[str:str] = {
     "Middle-Left": "←",
     "Middle-Right": "→",
     "Top-Left": "↖",
@@ -95,15 +74,17 @@ def check_status() -> bool:
     }
 
     try:
-        response = requests.get(base_url, params=params, headers=http_headers)
+        response = requests.get(
+            api_dict["base_url"], params=params, headers=api_dict["headers"]
+        )
         response.raise_for_status()
         print(
-            f"{base_url} is up and running {response.json()['query']['general']['generator']}"
+            f"{api_dict['base_url']} is up and running {response.json()['query']['general']['generator']}"
         )
         return True
     except requests.exceptions.RequestException as err:
-        print(f"{base_url} is not alive: {err}")
-        domain = up.urlparse(base_url).netloc
+        print(f"{api_dict['base_url']} is not alive: {err}")
+        domain = up.urlparse(api_dict["base_url"]).netloc
         port = 443
 
         try:
@@ -155,9 +136,11 @@ def fetch_categorymembers(
                 params = params.copy()
                 params.update(lastContinue)
                 response = requests.get(
-                    f"{base_url}{categorymembers_query_action}{category}",
+                    api_dict["base_url"]
+                    + api_dict["categorymembers_action"]
+                    + category,
                     params=params,
-                    headers=http_headers,
+                    headers=api_dict["headers"],
                 )
                 if debug:
                     print(response.url)
@@ -236,8 +219,12 @@ def fetch_properties(
                     iterator.set_postfix(it=i + 1)
 
                 response = requests.get(
-                    url=f"{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc",
-                    headers=http_headers,
+                    url=api_dict["base_url"]
+                    + api_dict["ask_action"]
+                    + condition
+                    + query
+                    + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
+                    headers=api_dict["headers"],
                 )
                 if debug:
                     print(response.url)
@@ -272,7 +259,7 @@ def fetch_properties(
     return df
 
 
-def fetch_redirects(titles: List[str]) -> dict[str, str]:
+def fetch_redirects(titles: List[str]) -> Dict[str, str]:
     """
     Fetches redirects for a list of page titles.
 
@@ -291,7 +278,8 @@ def fetch_redirects(titles: List[str]) -> dict[str, str]:
         last = (i + 1) * 50
         target_titles = "|".join(titles[first:last])
         response = requests.get(
-            url=base_url + redirects_query_action + target_titles, headers=http_headers
+            url=api_dict["base_url"] + api_dict["redirects_action"] + target_titles,
+            headers=api_dict["headers"],
         ).json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
@@ -300,7 +288,7 @@ def fetch_redirects(titles: List[str]) -> dict[str, str]:
     return results
 
 
-def fetch_backlinks(titles: List[str]) -> dict[str, str]:
+def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
     """
     Fetches backlinks for a list of page titles.
 
@@ -315,7 +303,8 @@ def fetch_backlinks(titles: List[str]) -> dict[str, str]:
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
-            url=base_url + backlinks_query_action + target_title, headers=http_headers
+            url=api_dict["base_url"] + api_dict["backlinks_action"] + target_title,
+            headers=api_dict["headers"],
         ).json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
@@ -364,8 +353,11 @@ def fetch_set_info(
         last = (i + 1) * step
         titles = up.quote(string="]]OR[[".join(sets[first:last]))
         response = requests.get(
-            url=f"{base_url}{askargs_query_action}{titles}&printouts={ask}",
-            headers=http_headers,
+            url=api_dict["base_url"]
+            + api_dict["askargs_action"]
+            + titles
+            + f"&printouts={ask}",
+            headers=api_dict["headers"],
         )
         formatted_response = extract_results(response)
         formatted_response.drop(
@@ -428,7 +420,8 @@ def fetch_set_lists(
     error = 0
 
     response = requests.get(
-        url=f"{base_url}{revisions_query_action}{titles}", headers=http_headers
+        url=api_dict["base_url"] + api_dict["revisions_action"] + titles,
+        headers=api_dict["headers"],
     )
     if debug:
         print(response.url)
@@ -700,7 +693,7 @@ async def download_images(
     # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
     async with aiohttp.ClientSession(
-        base_url="https://ms.yugipedia.com/", headers=http_headers
+        base_url="https://ms.yugipedia.com/", headers=api_dict["headers"]
     ) as session:
         save_folder = Path(save_folder)
         if not save_folder.exists():

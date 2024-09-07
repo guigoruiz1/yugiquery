@@ -1918,5 +1918,13 @@ if __name__ == "__main__":
         required=False,
         help="Enables debug flag.",
     )
+    parser.add_argument(
+        "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
+    )
     args = parser.parse_args()
+
+    if args.paths:
+        dirs.print()
+        quit()
+
     main(args)

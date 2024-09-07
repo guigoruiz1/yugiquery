@@ -1,5 +1,7 @@
 # yugiquery/__main__.py
 
+# -*- coding: utf-8 -*-
+
 import argparse
 import importlib
 from .utils import auto_or_bool, dirs

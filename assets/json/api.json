@@ -1,0 +1,13 @@
+{
+    "headers": {
+        "User-Agent": "YugiQuery"
+    },
+    "base_url": "https://yugipedia.com/api.php",
+    "media_url": "https://ws.yugipedia.com/",
+    "revisions_action": "?action=query&format=json&prop=revisions&rvprop=content&titles=",
+    "ask_action": "?action=ask&format=json&query=",
+    "askargs_action": "?action=askargs&format=json&conditions=",
+    "categorymembers_action": "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
+    "redirects_action": "?action=query&format=json&redirects=True&titles=",
+    "backlinks_action": "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
+}

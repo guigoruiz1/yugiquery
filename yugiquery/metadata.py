@@ -1,5 +1,7 @@
 # yugiquery/metadata.py
 
+# -*- coding: utf-8 -*-
+
 __all__ = [
     "__title__",
     "__description__",

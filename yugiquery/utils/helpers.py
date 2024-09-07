@@ -129,7 +129,7 @@ def load_json(json_file: str) -> dict:
             data = json.load(file)
             return data
     except:
-        print(f"Error loading {json_file}. Ignoring...")
+        print(f"Error loading {json_file}! This may break some methods.")
         return {}
 
 
