@@ -10,6 +10,9 @@ def main():
     parser = argparse.ArgumentParser(description="Yugiquery CLI tool")
 
     subparsers = parser.add_subparsers(dest="command")
+    parser.add_argument(
+        "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
+    )
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help=" Run the main Yugiquery flow")
 
@@ -124,7 +127,9 @@ def main():
     # Parse initial arguments
     args = parser.parse_args()
 
-    if args.command == "install":
+    if args.paths:
+        dirs.print()
+    elif args.command == "install":
         spec = importlib.util.spec_from_file_location(
             name="post_install",
             location=dirs.ASSETS / "scripts" / "post_install.py",

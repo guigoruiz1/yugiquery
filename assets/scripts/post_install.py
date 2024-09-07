@@ -17,7 +17,6 @@ def install_kernel():
             "--user",
             "--name=yugiquery",
         ],
-        capture_output=True,
         text=True,
     )
 
@@ -30,7 +29,6 @@ def install_kernel():
 def install_tqdm():
     result = subprocess.run(
         ["pip", "install", "--no-deps", "git+https://github.com/guigoruiz1/tqdm.git"],
-        capture_output=True,
         text=True,
     )
 

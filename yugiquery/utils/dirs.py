@@ -117,12 +117,12 @@ class Dirs:
         """
         Print the directory paths managed by this class.
         """
+        print(f"APP: {self.APP}")
         print(f"ASSETS: {self.ASSETS}")
         print(f"DATA: {self.DATA}")
         print(f"NOTEBOOKS: {self.NOTEBOOKS}")
         print(f"REPORTS: {self.REPORTS}")
         print(f"SHARE: {self.SHARE}")
-        print(f"SCRIPT: {self.APP}")
         print(f"UTILS: {self.UTILS}")
         print(f"WORK: {self.WORK}")
 

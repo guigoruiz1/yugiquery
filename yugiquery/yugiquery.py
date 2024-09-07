@@ -699,7 +699,7 @@ def update_index() -> None:  # Handle index and readme properly
     rows = []
     for report in reports:
         rows.append(
-            f"[{Path(report).stem}]({dirs.WORK.relative_to(report)}) | {pd.to_datetime(report.stat().st_mtime,unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
+            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime,unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
         )
     table = " |\n| ".join(rows)
 
@@ -1718,7 +1718,7 @@ def run_notebooks(
 
     exceptions = []
     for i, report in enumerate(iterator):
-        if not report.endswith(".ipynb"):
+        if not str(report).endswith(".ipynb"):
             report += ".ipynb"
 
         iterator.n = i
