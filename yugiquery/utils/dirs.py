@@ -71,24 +71,27 @@ class Dirs:
         self.APP = self.UTILS.parent
         self.WORK = Path.cwd()
 
-        # Determine the SHARE path
-        self.SHARE = Path(os.getenv("VIRTUAL_ENV", "")) / "share"
-        if not self.SHARE.is_dir():
-            self.SHARE = Path.home() / ".local" / "share"
-            if not self.SHARE.is_dir():
-                self.SHARE = Path(sysconfig.get_path("data")) / "share"
-                if not self.SHARE.is_dir():
-                    self.SHARE = Path(user_data_dir())
-                    if not self.SHARE.is_dir():
-                        self.SHARE = Path(site_data_dir())
-
+        # Determine the ASSETS path
+        self.ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
+        if not self.ASSETS.is_dir():
+            self.ASSETS = Path.home() / ".local" / "share" / "yugiquery"
+            if not self.ASSETS.is_dir():
+                self.ASSETS = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
+                if not self.ASSETS.is_dir():
+                    self.ASSETS = Path(user_data_dir("yugiquery"))
+                    if not self.ASSETS.is_dir():
+                        self.ASSETS = Path(site_data_dir("yugiquery"))
+                        
+        # Determine the SHARE parh from the ASSETS path
+        self.SHARE = self.ASSETS.parent
+        
         # Determine the REPORTS path
         if self.WORK.parent.joinpath("reports").is_dir():
             self.REPORTS = self.WORK.parent / "reports"
         else:
             self.REPORTS = self.WORK / "reports"
 
-        # Determine NOTEBOOKS_DIR based on the environment and hierarchy
+        # Determine the NOTEBOOKS path based on the environment and hierarchy
         if self.WORK.joinpath("notebooks").is_dir():
             self.NOTEBOOKS = self.WORK / "notebooks"
         elif self.WORK.parent.joinpath("notebooks").is_dir():
@@ -96,20 +99,18 @@ class Dirs:
         else:
             self.NOTEBOOKS = self.SHARE / "notebooks"
 
-        # Define dirs.DATA based on NOTEBOOKS_DIR
+        # Define the DATA based on the WORK path
         if self.WORK.parent.joinpath("data").is_dir():
             self.DATA = self.WORK.parent / "data"
         else:
             self.DATA = self.WORK / "data"
 
-        # Define ASSETS_DIR based on the hierarchy
+        # Redefine the ASSETS based on the hierarchy
         if self.WORK.joinpath("assets").is_dir():
             self.ASSETS = self.WORK / "assets"
         elif self.WORK.parent.joinpath("assets").is_dir():
             self.ASSETS = self.WORK.parent / "assets"
-        else:
-            self.ASSETS = self.SHARE / "yugiquery"
-
+            
     def print(self):
         """
         Print the directory paths managed by this class.
