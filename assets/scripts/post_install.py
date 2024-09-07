@@ -43,12 +43,9 @@ def install_tqdm():
 def install_nbconvert():
     from yugiquery.utils.dirs import dirs
 
-    src_dir = dirs.APP.parent / "assets" / "nbconvert"
+    src_dir = dirs.ASSETS / "nbconvert"
     dst_dir = dirs.SHARE / "jupyter" / "nbconvert" / "templates"
-    shutil.copytree(
-        src=src_dir,
-        dst=dst_dir,
-    )
+    shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
     print("nbconvert templates installed.")
 
 

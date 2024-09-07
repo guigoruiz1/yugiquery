@@ -6,11 +6,22 @@
 # Git Management module #
 # ===================== #
 
+# ======= #
+# Imports #
+# ======= #
+
 import git
 import subprocess
 from pathlib import Path
 from .helpers import *
 from .dirs import dirs
+
+# Add case for when running directly from bot/yugiquery script
+try:
+    from ..metadata import __url__
+except ImportError:
+    sys.path.append(str(dirs.APP))
+    from metadata import __url__
 
 
 def assure_repo():
@@ -44,6 +55,14 @@ def assure_repo():
         # Ensure the data and reports directories exist
         os.makedirs(dirs.DATA, exist_ok=True)
         os.makedirs(dirs.REPORTS, exist_ok=True)
+
+        # Replace the default User-Agent header with the repository URL
+        if repo.remote().url:
+            url = repo.remote().url.split(".git")[0]
+            git.http_headers["User-Agent"] = git.http_headers["User-Agent"].replace(
+                __url__,
+                url,
+            )
 
     return repo
 

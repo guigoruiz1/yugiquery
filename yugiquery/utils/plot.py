@@ -6,6 +6,10 @@
 # Plotting module #
 # =============== #
 
+# ======= #
+# Imports #
+# ======= #
+
 import warnings
 import numpy as np
 import colorsys
@@ -32,16 +36,22 @@ if dirs.is_notebook:
 
     set_matplotlib_formats("svg")  # Needed for dynanmic theme
 
-# Variables
+# ========= #
+# Variables #
+# ========= #
+
+#: Dictionary containing the colors used in the plots.
 colors_dict = load_json(
     dirs.ASSETS / "json" / "colors.json"
 )  # Colors dictionary to associate to series and cards
 # TODO: Adapt colors to style
 
-# Functions
+# ======= #
+# Methods #
+# ======= #
 
 
-def adjust_lightness(color: str, amount: float = 0.5):
+def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:
     """Adjust the lightness of a given color by a specified amount.
 
     Args:
@@ -60,10 +70,10 @@ def adjust_lightness(color: str, amount: float = 0.5):
     except:
         c = color
     c = colorsys.rgb_to_hls(*to_rgb(c))
-    return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])
+    return colorsys.hls_to_rgb(h=c[0], l=max(0, min(1, amount * c[1])), s=c[2])
 
 
-def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float):
+def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float) -> None:
     """
     Adjust the y-axis of two subplots so that the specified values in each subplot are aligned.
 
@@ -78,11 +88,11 @@ def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float):
     """
     _, y1 = ax1.transData.transform((0, v1))
     _, y2 = ax2.transData.transform((0, v2))
-    adjust_yaxis(ax2, (y1 - y2) / 2, v2)
-    adjust_yaxis(ax1, (y2 - y1) / 2, v1)
+    adjust_yaxis(ax=ax2, ydif=(y1 - y2) / 2, v=v2)
+    adjust_yaxis(ax=ax1, ydif=(y2 - y1) / 2, v=v1)
 
 
-def adjust_yaxis(ax: plt.Axes, ydif: float, v: float):
+def adjust_yaxis(ax: plt.Axes, ydif: float, v: float) -> None:
     """
     Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
 
@@ -104,7 +114,7 @@ def adjust_yaxis(ax: plt.Axes, ydif: float, v: float):
     else:
         nmaxy = maxy
         nminy = maxy * (miny + dy) / (maxy + dy)
-    ax.set_ylim(nminy + v, nmaxy + v)
+    ax.set_ylim(bottom=nminy + v, top=nmaxy + v)
 
 
 def generate_rate_grid(
@@ -115,7 +125,7 @@ def generate_rate_grid(
     pad: int = 0,
     colors: List[str] = None,
     cumsum: bool = True,
-):
+) -> plt.axes:
     """
     Generate a grid of subplots displaying yearly and monthly rates from a Pandas DataFrame.
 
@@ -129,15 +139,15 @@ def generate_rate_grid(
         cumsum (bool): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
 
     Returns:
-        None
+        matplotlib.axes.Axes: The generated subplot axes.
     """
     if colors is None:
         colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
     if cumsum:
         cumsum_ax = ax
-        divider = make_axes_locatable(cumsum_ax)
-        yearly_ax = divider.append_axes("bottom", size=size, pad=pad)
+        divider = make_axes_locatable(axes=cumsum_ax)
+        yearly_ax = divider.append_axes(position="bottom", size=size, pad=pad)
         cumsum_ax.figure.add_axes(yearly_ax)
         cumsum_ax.set_xticklabels([])
         axes = [cumsum_ax, yearly_ax]
@@ -147,7 +157,7 @@ def generate_rate_grid(
         if len(dy.columns) == 1:
             cumsum_ax.plot(y, label="Cummulative", c=colors[0], antialiased=True)
             cumsum_ax.fill_between(
-                y.index, y.values.T[0], color=colors[0], alpha=0.1, hatch="x"
+                x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x"
             )
             cumsum_ax.set_ylabel(f"{y.columns[0]}")  # Wrap text
         else:
@@ -215,7 +225,7 @@ def generate_rate_grid(
         temp_ax.grid()
 
     if len(dy.columns) == 1:
-        align_yaxis(yearly_ax, 0, monthly_ax, 0)
+        align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
         l = yearly_ax.get_ylim()
         l2 = monthly_ax.get_ylim()
         f = lambda x: l2[0] + (x - l[0]) / (l[1] - l[0]) * (l2[1] - l2[0])
@@ -236,7 +246,7 @@ def rate_subplots(
     cumsum: bool = True,
     bg: pd.DataFrame = None,
     vlines: pd.DataFrame = None,
-):
+) -> None:
     """
     Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
 
@@ -269,7 +279,11 @@ def rate_subplots(
     else:
         if len(colors) == len(df.columns):
             cmap = ListedColormap(
-                [adjust_lightness(c, i * 0.5 + 0.75) for c in colors for i in (0, 1)]
+                [
+                    adjust_lightness(color=c, amount=i * 0.5 + 0.75)
+                    for c in colors
+                    for i in (0, 1)
+                ]
             )
         else:
             cmap = ListedColormap(colors)
@@ -277,7 +291,7 @@ def rate_subplots(
     c = 0
     for i, col in enumerate(df.columns):
         sub_axes = generate_rate_grid(
-            df[col].to_frame(),
+            dy=df[col].to_frame(),
             ax=axes[i],
             colors=[cmap(2 * c), cmap(2 * c), cmap(2 * c + 1)],
             size="100%",
@@ -335,7 +349,7 @@ def rate_subplots(
             c = 0
 
     warnings.filterwarnings(
-        "ignore",
+        action="ignore",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
@@ -344,7 +358,7 @@ def rate_subplots(
     fig.show()
 
     warnings.filterwarnings(
-        "default",
+        action="default",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
@@ -359,7 +373,7 @@ def rate(
     cumsum: bool = True,
     bg: pd.DataFrame = None,
     vlines: pd.DataFrame = None,
-):
+) -> None:
     """
     Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
 
@@ -382,7 +396,7 @@ def rate(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
 
-    axes = generate_rate_grid(dy, ax, size="100%", colors=colors, cumsum=cumsum)
+    axes = generate_rate_grid(dy=dy, ax=ax, size="100%", colors=colors, cumsum=cumsum)
     for i, ax in enumerate(axes[:2]):
         if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
             bg = bg.copy()
@@ -427,7 +441,7 @@ def rate(
                         )
 
     warnings.filterwarnings(
-        "ignore",
+        action="ignore",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
@@ -436,13 +450,13 @@ def rate(
     fig.show()
 
     warnings.filterwarnings(
-        "default",
+        action="default",
         category=UserWarning,
         message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
     )
 
 
-def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
+def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> None:
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
 
@@ -473,7 +487,9 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
     # Create a polar plot
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(polar=True)
-    ax.bar(angles, counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
+    ax.bar(
+        x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs
+    )
 
     # Set the label for each arrow
     ax.set_xticks(list(angle_map.values()))
@@ -493,7 +509,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs):
     fig.show()
 
 
-def box(df, mean=True, **kwargs):
+def box(df, mean=True, **kwargs) -> None:
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
 
@@ -524,7 +540,7 @@ def box(df, mean=True, **kwargs):
     if df[col].max() < 5000:
         ax.set_yticks(np.arange(0, df[col].max() + 1, 1))
     elif df[col].max() == 5000:
-        ax.set_yticks(np.arange(0, 5500, 500))
+        ax.set_yticks(np.arange(start=0, stop=5500, step=500))
         ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     ax.set_axisbelow(True)

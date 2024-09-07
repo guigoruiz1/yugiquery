@@ -48,6 +48,10 @@ if __package__:
 else:
     from utils import *
 
+# Overwrite packages with versions specific for jupyter notebook
+if dirs.is_notebook:
+    from itables import init_notebook_mode
+
 # Default settings overrides
 pd.set_option("display.max_columns", 40)
 

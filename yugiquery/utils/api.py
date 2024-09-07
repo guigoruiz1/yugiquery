@@ -6,6 +6,10 @@
 # API call module #
 # =============== #
 
+# ======= #
+# Imports #
+# ======= #
+
 import aiohttp
 import asyncio
 import requests
@@ -18,23 +22,47 @@ import wikitextparser as wtp
 from .helpers import *
 from .dirs import dirs
 
-# Variables
-http_headers = {"User-Agent": "Yugiquery/1.0 - https://guigoruiz1.github.io/yugiquery/"}
+# Add case for when running directly from bot/yugiquery script
+try:
+    from ..metadata import __title__, __version__, __url__
+except ImportError:
+    sys.path.append(str(dirs.APP))
+    from metadata import __title__, __version__, __url__
+
+if dirs.is_notebook:
+    from halo import HaloNotebook as Halo
+else:
+    from halo import Halo
+
+# ========= #
+# Variables #
+# ========= #
+
+#: The HTTP headers to use for API requests.
+# TODO: check if metadata works
+http_headers = {f"User-Agent": f"{__title__}/{__version__} - {__url__}"}
+#: The base URL for the yugipedia API.
 base_url = "https://yugipedia.com/api.php"
+#: The base URL for the yugipedia media API.
 media_url = "https://ws.yugipedia.com/"
+#: The REST API for the yugipedia query action.
 revisions_query_action = (
     "?action=query&format=json&prop=revisions&rvprop=content&titles="
 )
-
+#: The REST API for the yugipedia ask action.
 ask_query_action = "?action=ask&format=json&query="
+#: The REST API for the yugipedia askargs action.
 askargs_query_action = "?action=askargs&format=json&conditions="
+#: The REST API for the yugipedia categorymembers action.
 categorymembers_query_action = "?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:"
+#: The REST API for the yugipedia redirects action.
 redirects_query_action = "?action=query&format=json&redirects=True&titles="
+#: The REST API for the yugipedia backlinks action.
 backlinks_query_action = (
     "?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle="
 )
 
-
+#: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict = {
     "Middle-Left": "←",
     "Middle-Right": "→",
@@ -47,8 +75,12 @@ arrows_dict = {
 }
 
 
-# Methods
-def check_status():
+# ======= #
+# Methods #
+# ======= #
+
+
+def check_status() -> bool:
     """
     Checks if the API is running and reachable by making a query to retrieve site information. If the API is up and running, returns True. If the API is down or unreachable, returns False and prints an error message with details.
 
@@ -89,7 +121,7 @@ def fetch_categorymembers(
     step: int = 500,
     iterator=None,
     debug: bool = False,
-):
+) -> pd.DataFrame:
     """
     Fetches members of a category from the API by making iterative requests with a specified step size until all members are retrieved.
 
@@ -171,7 +203,7 @@ def fetch_properties(
     iterator=None,
     include_all: bool = False,
     debug: bool = False,
-):
+) -> pd.DataFrame:
     """
     Fetches properties from the API by making iterative requests with a specified step size until a specified limit is reached.
 
@@ -204,7 +236,7 @@ def fetch_properties(
                     iterator.set_postfix(it=i + 1)
 
                 response = requests.get(
-                    f"{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc",
+                    url=f"{base_url}{ask_query_action}{condition}{query}|limit%3D{step}|offset={i*step}|order%3Dasc",
                     headers=http_headers,
                 )
                 if debug:
@@ -214,7 +246,7 @@ def fetch_properties(
                     break
 
                 result = extract_results(response)
-                formatted_df = format_df(result, include_all=include_all)
+                formatted_df = format_df(input_df=result, include_all=include_all)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
                 if debug:
@@ -240,7 +272,7 @@ def fetch_properties(
     return df
 
 
-def fetch_redirects(titles: List[str]):
+def fetch_redirects(titles: List[str]) -> dict[str, str]:
     """
     Fetches redirects for a list of page titles.
 
@@ -259,7 +291,7 @@ def fetch_redirects(titles: List[str]):
         last = (i + 1) * 50
         target_titles = "|".join(titles[first:last])
         response = requests.get(
-            base_url + redirects_query_action + target_titles, headers=http_headers
+            url=base_url + redirects_query_action + target_titles, headers=http_headers
         ).json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
@@ -268,7 +300,7 @@ def fetch_redirects(titles: List[str]):
     return results
 
 
-def fetch_backlinks(titles: List[str]):
+def fetch_backlinks(titles: List[str]) -> dict[str, str]:
     """
     Fetches backlinks for a list of page titles.
 
@@ -283,11 +315,11 @@ def fetch_backlinks(titles: List[str]):
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
-            base_url + backlinks_query_action + target_title, headers=http_headers
+            url=base_url + backlinks_query_action + target_title, headers=http_headers
         ).json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
-            if re.match(r"^[a-zA-Z]+$", backlink["title"]) and backlink[
+            if re.match(pattern=r"^[a-zA-Z]+$", string=backlink["title"]) and backlink[
                 "title"
             ] not in target_title.split(" "):
                 results[backlink["title"]] = target_title
@@ -297,7 +329,7 @@ def fetch_backlinks(titles: List[str]):
 
 def fetch_set_info(
     sets: List[str], extra_info: List[str] = [], step: int = 15, **kwargs
-):
+) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
@@ -323,16 +355,16 @@ def fetch_set_info(
     # Release to ask
     release = [i + " release date" for i in set(regions_dict.values())]
     # Ask list
-    ask = up.quote("|".join(np.append(info, release)))
+    ask = up.quote(string="|".join(np.append(info, release)))
 
     # Get set info
     set_info_df = pd.DataFrame()
     for i in trange(np.ceil(len(sets) / step).astype(int), leave=False):
         first = i * step
         last = (i + 1) * step
-        titles = up.quote("]]OR[[".join(sets[first:last]))
+        titles = up.quote(string="]]OR[[".join(sets[first:last]))
         response = requests.get(
-            f"{base_url}{askargs_query_action}{titles}&printouts={ask}",
+            url=f"{base_url}{askargs_query_action}{titles}&printouts={ask}",
             headers=http_headers,
         )
         formatted_response = extract_results(response)
@@ -340,7 +372,7 @@ def fetch_set_info(
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(
-            formatted_response, include_all=(True if extra_info else True)
+            input_df=formatted_response, include_all=(True if extra_info else True)
         )
         if debug:
             tqdm.write(
@@ -360,7 +392,10 @@ def fetch_set_info(
     return set_info_df
 
 
-def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
+# TODO: Refactor
+def fetch_set_lists(
+    titles: List[str], **kwargs
+) -> None | tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
@@ -375,7 +410,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     if debug:
         print(f"{len(titles)} sets requested")
 
-    titles = up.quote("|".join(titles))
+    titles = up.quote(string="|".join(titles))
     rarity_dict = load_json(dirs.ASSETS / "json" / "rarities.json")
     set_lists_df = pd.DataFrame(
         columns=[
@@ -393,7 +428,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
     error = 0
 
     response = requests.get(
-        f"{base_url}{revisions_query_action}{titles}", headers=http_headers
+        url=f"{base_url}{revisions_query_action}{titles}", headers=http_headers
     )
     if debug:
         print(response.url)
@@ -502,7 +537,10 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                                 lambda x: x.strip() if x is not None else x
                             )
                             list_df.replace(
-                                r"^\s*$|^@.*$", None, regex=True, inplace=True
+                                to_replace=r"^\s*$|^@.*$",
+                                value=None,
+                                regex=True,
+                                inplace=True,
                             )
 
                     if list_df is None:
@@ -584,7 +622,9 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
                                 set_df.at[row, "Print"] = extra_df.at[row, "print"]
                     ###
 
-                    set_df["Set"] = re.sub(r"\(\w{3}-\w{2}\)\s*$", "", title).strip()
+                    set_df["Set"] = re.sub(
+                        pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title
+                    ).strip()
                     set_df["Region"] = region.upper()
                     set_df["Page name"] = page_name
                     set_lists_df = (
@@ -609,7 +649,7 @@ def fetch_set_lists(titles: List[str], **kwargs):  # Separate formating function
 # Images
 async def download_images(
     file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10
-):
+) -> None:
     """
     Downloads a set of images given their names and saves them to a specified folder.
 
@@ -672,7 +712,13 @@ async def download_images(
             disable=("PM_IN_EXECUTION" in os.environ),
         ) as pbar:
             tasks = [
-                download_image(session, url, save_folder, semaphore, pbar)
+                download_image(
+                    session=session,
+                    url=url,
+                    save_folder=save_folder,
+                    semaphore=semaphore,
+                    pbar=pbar,
+                )
                 for url in urls
             ]
             for task in asyncio.as_completed(tasks):
@@ -685,7 +731,7 @@ async def download_images(
 # ========== #
 
 
-def extract_results(response: requests.Response):
+def extract_results(response: requests.Response) -> pd.DataFrame:
     """
     Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
 
@@ -714,7 +760,9 @@ def extract_results(response: requests.Response):
     return df
 
 
-def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False):
+def extract_fulltext(
+    x: List[Union[Dict[str, Any], str]], multiple: bool = False
+) -> str | tuple[str] | float:
     """
     Extracts fulltext from a list of dictionaries or strings.
     If multiple is True, returns a sorted tuple of all fulltexts.
@@ -745,7 +793,7 @@ def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False
         return np.nan
 
 
-def format_df(input_df: pd.DataFrame, include_all: bool = False):
+def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
     """
     Formats a dataframe containing card information.
     Returns a new dataframe with specific columns extracted and processed.
@@ -873,7 +921,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False):
 
 
 # Cards
-def extract_artwork(row: pd.Series):
+def extract_artwork(row: pd.Series) -> float | tuple[str]:
     """
     Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
@@ -902,7 +950,7 @@ def extract_artwork(row: pd.Series):
         return result
 
 
-def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
+def extract_primary_type(x: Union[str, List[str], Tuple[str]]) -> str:
     """
     Extracts the primary type of a card.
     If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
@@ -931,7 +979,7 @@ def extract_primary_type(x: Union[str, List[str], Tuple[str]]):
     return x
 
 
-def extract_misc(x: Union[str, List[str], Tuple[str]]):
+def extract_misc(x: Union[str, List[str], Tuple[str]]) -> pd.Series:
     """
     Extracts the misc properties of a card.
     Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
@@ -951,7 +999,7 @@ def extract_misc(x: Union[str, List[str], Tuple[str]]):
         return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
-def extract_category_bool(x: List[str]):
+def extract_category_bool(x: List[str]) -> float | bool:
     """
     Extracts a boolean value from a list of strings that represent a boolean value.
     If the first string in the list is "t", returns True.

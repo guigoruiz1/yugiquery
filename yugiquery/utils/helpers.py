@@ -6,32 +6,23 @@
 # Helpers module #
 # ============== #
 
+# ======= #
+# Imports #
+# ======= #
+
 import os
 import sys
 import json
 import hashlib
 import arrow
-import importlib
+import importlib.util
 import re
 import calendar
 from dotenv import dotenv_values
 from pathlib import Path
 from tqdm.auto import tqdm, trange
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union, Literal
 from .dirs import dirs
-
-# Overwrite packages with versions specific for jupyter notebook
-if dirs.is_notebook:
-    from itables import init_notebook_mode
-    from halo import HaloNotebook as Halo
-else:
-    from halo import Halo
-
-
-# ========= #
-# Variables #
-# ========= #
-
 
 # ================== #
 # TQDM temporary fix #
@@ -39,6 +30,9 @@ else:
 
 
 def ensure_tqdm():
+    """
+    Ensure the required tqdm fork for the Discord API is installed.
+    """
     loop = 0
     while True:
         try:
@@ -52,8 +46,12 @@ def ensure_tqdm():
                 )
 
             # Assuming dirs and ASSETS are defined somewhere in your code
-            module_path = f"{dirs.APP.parent}.assets.scripts.post_install"
-            post_install = importlib.import_module(module_path)
+            spec = importlib.util.spec_from_file_location(
+                name="post_install",
+                location=dirs.ASSETS / "scripts" / "post_install.py",
+            )
+            post_install = importlib.util.module_from_spec(spec=spec)
+            spec.loader.exec_module(post_install)
             post_install.install_tqdm()
 
             if loop > 1:
@@ -70,13 +68,13 @@ def ensure_tqdm():
 
 def load_secrets(
     requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False
-):
+) -> Dict[str, str]:
     """
     Load secrets from environment variables and/or a .env file.
 
     The secrets can be specified by name using the `requested_secrets` argument, which should be a list of strings. If `requested_secrets` is not specified, all available secrets will be returned.
 
-    The `secrets_file` argument is the path to a .env file containing additional secrets to load. If `secrets_file` is specified and the file exists, the function will load the secrets from the file and merge them with the secrets loaded from the environment variables giving priority to secrets obtained from the .env file.
+    The `secrets_file` argument is the path to a .env file containing additional secrets to load. If `secrets_file` is specified and the file exists, the function will load the secrets from the file and merge them with the secrets loaded from the environment variables giving priority to secrets obtained from the environment.
 
     The `required` argument is a boolean or list of booleans indicating whether each requested secret is required to be present. If `required` is True, a KeyError will be raised if the secret is not found. If `required` is False or not specified, missing secrets will be skipped.
 
@@ -97,7 +95,7 @@ def load_secrets(
         for key in requested_secrets
     }
     if secrets_file and Path(secrets_file).is_file():
-        secrets = secrets | dotenv_values(secrets_file)
+        secrets = dotenv_values(secrets_file) | secrets
 
         if not requested_secrets:
             return secrets
@@ -116,7 +114,7 @@ def load_secrets(
     return secrets
 
 
-def load_json(json_file: str):
+def load_json(json_file: str) -> dict:
     """
     Load data from a JSON file.
 
@@ -140,7 +138,11 @@ def load_json(json_file: str):
 # ========== #
 
 
-def auto_or_bool(value):
+def auto_or_bool(value: str) -> bool | Literal["auto"]:
+    """
+    Convert a string to a boolean (True or False) or "auto".
+    """
+
     if value is None:
         return True
     elif value.lower() == "auto":
@@ -149,7 +151,7 @@ def auto_or_bool(value):
         return bool(value)
 
 
-def md5(name: str):
+def md5(name: str) -> str:
     """
     Generate the MD5 hash of a string.
 
@@ -164,7 +166,7 @@ def md5(name: str):
     return hash_md5.hexdigest()
 
 
-def separate_words_and_acronyms(strings: List[str]):
+def separate_words_and_acronyms(strings: List[str]) -> tuple[list, list]:
     """
     Separates a list of strings into words and acronyms.
 
@@ -179,7 +181,7 @@ def separate_words_and_acronyms(strings: List[str]):
     words = []
     acronyms = []
     for string in strings:
-        if re.match(r"^[A-Z][a-z]+$", string):
+        if re.match(pattern=r"^[A-Z][a-z]+$", string=string):
             words.append(string)
         else:
             acronyms.append(string)
@@ -188,7 +190,7 @@ def separate_words_and_acronyms(strings: List[str]):
 
 def make_filename(
     report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None
-):
+) -> str:
     """
     Generates a standardized filename based on the provided parameters.
 

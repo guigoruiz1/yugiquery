@@ -1,16 +1,57 @@
+# yugiquery/utils/dirs.py
+
+# -*- coding: utf-8 -*-
+
+# =========================== #
+# Directory Management module #
+# =========================== #
+
+# ======= #
+# Imports #
+# ======= #
+
 from IPython import get_ipython
 import os
 import sysconfig
 from pathlib import Path
 from platformdirs import user_data_dir, site_data_dir
 
+# ======= #
+# Classes #
+# ======= #
+
 
 class Dirs:
     """
     Singleton class to manage directory paths for the application.
+
+    :ivar UTILS: The path to the utils subpackage directory.
+    :ivar APP: The path to the application (YugiQuery) directory.
+    :ivar WORK: The path to the working directory.
+    :ivar SHARE: The path to the share directory.
+    :ivar REPORTS: The path to the reports directory.
+    :ivar NOTEBOOKS: The path to the notebooks directory.
+    :ivar DATA: The path to the data directory.
+    :ivar ASSETS: The path to the assets directory.
+    :vartype UTILS: Path:
+    :vartype APP: Path
+    :vartype WORK: Path
+    :vartype SHARE: Path
+    :vartype REPORTS: Path
+    :vartype NOTEBOOKS: Path
+    :vartype DATA: Path
+    :vartype ASSETS: Path
     """
 
     _instance = None
+    UTILS: Path = None
+    APP: Path = None
+    WORK: Path = None
+    SHARE: Path = None
+    REPORTS: Path = None
+    NOTEBOOKS: Path = None
+    DATA: Path = None
+    ASSETS: Path = None
 
     def __new__(cls, *args, **kwargs):
         """
@@ -84,7 +125,7 @@ class Dirs:
 
     def make(self):
         """
-        Ensure that the necessary directories exist.
+        Ensure that the DATA and REPORTS directories exist.
         """
         os.makedirs(self.DATA, exist_ok=True)
         os.makedirs(self.REPORTS, exist_ok=True)

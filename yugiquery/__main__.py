@@ -125,9 +125,12 @@ def main():
     args = parser.parse_args()
 
     if args.command == "install":
-        # Assuming dirs and ASSETS are defined somewhere in your code
-        module_path = f"{dirs.APP.parent}.scripts.post_install"
-        post_install = importlib.import_module(module_path)
+        spec = importlib.util.spec_from_file_location(
+            name="post_install",
+            location=dirs.ASSETS / "scripts" / "post_install.py",
+        )
+        post_install = importlib.util.module_from_spec(spec=spec)
+        spec.loader.exec_module(post_install)
         post_install.main(args)
 
     elif args.command == "bot":
