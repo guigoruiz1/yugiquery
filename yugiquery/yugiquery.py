@@ -629,7 +629,7 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
     output_path = dirs.REPORTS / Path(input_path).stem
 
     if template == "auto":
-        template = dirs.ASSETS / "nbconvert" / "labdynamic"
+        template = str(dirs.ASSETS / "nbconvert" / "labdynamic")
     else:
         template = "lab"
 
