@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# yugiquery/bot.py
+
 # -*- coding: utf-8 -*-
 
 # ======================================================================== #
@@ -18,49 +20,48 @@
 
 import yugiquery as yq
 
-__author__ = yq.__author__
-__copyright__ = yq.__copyright__
-__license__ = yq.__license__
-__version__ = yq.__version__
-__maintainer__ = yq.__maintainer__
-__email__ = yq.__email__
-__status__ = yq.__status__
+if __package__:
+    from .utils import *
+else:
+    from utils import *
 
 # Native python packages
 import argparse
 import asyncio
-import glob
 import io
-import json
 import multiprocessing as mp
 import os
 import platform
 import random
-import re
 import subprocess
 from enum import Enum
-from typing import Any, Callable, Dict, List, Tuple, Union
 
 # PIP packages - installed by yugiquery
-import arrow
-import git
 import pandas as pd
-from dotenv import dotenv_values
-from tqdm.auto import tqdm, trange
 
-# Telegram
-import telegram
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, filters, CallbackContext
-from tqdm.contrib.telegram import tqdm as telegram_pbar
+try:
+    # Telegram
+    import telegram
+    from telegram import Update
+    from telegram.ext import (
+        ApplicationBuilder,
+        CommandHandler,
+        filters,
+        CallbackContext,
+    )
 
-# Discord
-import discord
-from discord.ext import commands
-from tqdm.contrib.discord import tqdm as discord_pbar
+    # Discord
+    import discord
+    from discord.ext import commands
+
+except ImportError:
+    raise RuntimeError(
+        "Missing bot specif packages. Please install the required packages with pip install yugiquery[bot]."
+    )
 
 # Silence discord.py pynacl optional dependency warning.
 discord.VoiceClient.warn_nacl = False
+
 
 # ============== #
 # Helper methods #
@@ -68,10 +69,10 @@ discord.VoiceClient.warn_nacl = False
 
 
 # Data loaders
-def load_secrets_with_args(args: Dict[str, Any]):
+def load_secrets_with_args(args: Dict[str, Any]) -> dict[str, Any]:
     """
     Load secrets from command-line arguments, and update them with values from
-    environment variables or a .env file if necessary.
+    environment variables or a .env file, placed in the `dirs.ASSETS` directory, if necessary.
 
     Args:
         dict[str: Any]: A dictionary of secrets.
@@ -82,16 +83,14 @@ def load_secrets_with_args(args: Dict[str, Any]):
     Raises:
         KeyError: If a required secret is not found in the loaded secrets.
     """
-    subclass = args.pop("subclass").upper()
-    secrets = {
-        f"{subclass}_{key}": value for key, value in args.items() if value is not None
-    }
-    missing = [f"{subclass}_{key}" for key, value in args.items() if value is None]
+
+    secrets = {key: value for key, value in args.items() if value is not None}
+    missing = [key for key, value in args.items() if value is None]
     if len(missing) > 0:
         try:
             loaded_secrets = yq.load_secrets(
                 requested_secrets=missing,
-                secrets_file=os.path.join(yq.PARENT_DIR, "assets/secrets.env"),
+                secrets_file=(dirs.ASSETS / "secrets.env"),
                 required=True,
             )
         except:
@@ -103,7 +102,9 @@ def load_secrets_with_args(args: Dict[str, Any]):
     return secrets
 
 
-def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]):
+def escape_chars(
+    string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]
+) -> str:
     """
     Escapes specified characters in a given string by adding a backslash before each occurrence.
 
@@ -119,7 +120,7 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
     return string
 
 
-def get_humanize_granularity(seconds: int):
+def get_humanize_granularity(seconds: int) -> list[str]:
     """
     Humanizes a time interval given in seconds.
 
@@ -189,7 +190,7 @@ class ProgressHandler:
         self.progress_bar = progress_bar
         self.pbar_kwargs = pbar_kwargs
 
-    def pbar(self, iterable, **kwargs):
+    def pbar(self, iterable, **kwargs) -> None | tqdm:
         """
         Initializes and returns a progress bar instance if progress_bar is not None.
 
@@ -207,12 +208,15 @@ class ProgressHandler:
                 iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs
             )
 
-    def exit(self, API_status: bool = True):
+    def exit(self, API_status: bool = True) -> None:
         """
         Puts the API status in the queue.
 
         Args:
             API_status (bool, optional): The status to put in the queue. Defaults to True.
+
+        Returns:
+            None
         """
         self.queue.put(API_status)
 
@@ -269,13 +273,13 @@ class Bot:
     # Bot Superclass Functions #
     # ======================== #
 
-    def load_repo_vars(self):
+    def load_repo_vars(self) -> None:
         """
         Load repository variables including URLs and paths.
         """
         try:
             # Open the repository
-            self.repo = git.Repo(yq.PARENT_DIR, search_parent_directories=True)
+            self.repo = yq.git.assure_repo()
             # Get the remote repository
             remote = self.repo.remote()
             remote_url = remote.url
@@ -289,30 +293,30 @@ class Bot:
             (author, repo) = remote_url_parts[-2:]
             # URLs
             self.repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
-            self.repository_url = f"https://github.com/{author}/{repo}"
+            self.repository_url = remote_url.split(".git")[0]
             self.webpage_url = f"https://{author}.github.io/{repo}"
 
             self.has_remote = True
         except:
             self.has_remote = False
 
-    def init_reports_enum(self):
+    def init_reports_enum(self) -> None:
         """
         Initializes and returns an Enum object containing the available reports.
-        The reports are read from the yugiquery.SCRIPT_DIR directory, where they are expected to be Jupyter notebooks.
+        The reports are read from the dirs.NOTEBOOKS directory, where they are expected to be Jupyter notebooks.
         The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
 
         Returns:
-            Enum: An Enum object containing the available reports.
+            None
         """
         reports_dict = {"All": "all"}
-        reports = sorted(glob.glob(os.path.join(yq.SCRIPT_DIR, "*.ipynb")))
+        reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
         for report in reports:
-            reports_dict[os.path.basename(report)[:-6].capitalize()] = report
+            reports_dict[Path(report).stem.capitalize()] = report
 
         self.Reports = Enum("Reports", reports_dict)
 
-    def abort(self):
+    def abort(self) -> str:
         """
         Aborts a running YugiQuery flow by terminating the process.
 
@@ -322,14 +326,14 @@ class Bot:
         try:
             self.process.terminate()
             if self.has_remote:
-                self.repo.git.restore(os.path.join(yq.SCRIPT_DIR, "*.ipynb"))
+                self.repo.git.restore(dirs.NOTEBOOKS / "*.ipynb")
             return "Aborted"
         except:
             return "Abort failed"
 
     async def battle(
         self, callback: Callable, atk_weight: int = 4, def_weight: int = 1
-    ):
+    ) -> dict:
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
@@ -343,7 +347,7 @@ class Bot:
         """
         MONSTER_STATS = ["Name", "ATK", "DEF"]
         cards_files = sorted(
-            glob.glob(os.path.join(yq.PARENT_DIR, "data/cards_data_*.bz2")),
+            list(dirs.DATA.glob("cards_data_*.bz2")),
             key=os.path.getmtime,
         )
         if not cards_files:
@@ -356,7 +360,7 @@ class Bot:
             & (cards["Primary type"] != "Monster Token")
         ][MONSTER_STATS].set_index("Name")
         monsters = monsters.map(
-            lambda x: x if x != "?" else random.randrange(0, 51) * 100
+            lambda x: x if x != "?" else random.randrange(start=0, stop=51) * 100
         )
         monsters = (
             monsters.map(pd.to_numeric, errors="coerce")
@@ -399,7 +403,7 @@ class Bot:
 
         return {"winner": winner, "longest": longest}
 
-    def benchmark(self):
+    def benchmark(self) -> dict[str, str]:
         """
         Returns the average time each report takes to complete and the latest time for each report.
 
@@ -407,7 +411,7 @@ class Bot:
             dict: A dictionary containing benchmark information.
         """
         try:
-            with open(os.path.join(yq.PARENT_DIR, "data/benchmark.json"), "r") as file:
+            with open(dirs.DATA / "benchmark.json", "r") as file:
                 data = json.load(file)
         except:
             return {
@@ -452,7 +456,7 @@ class Bot:
 
         return response
 
-    def data(self):
+    def data(self) -> dict[str, str]:
         """
         Sends the latest data files available in the repository as direct download links.
 
@@ -469,7 +473,8 @@ class Bot:
             files[["Group", "Timestamp"]] = (
                 files["name"]
                 .str.extract(
-                    r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2", expand=True
+                    pat=r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+                    expand=True,
                 )
                 .drop(1, axis=1)
             )
@@ -497,10 +502,10 @@ class Bot:
                 "error": "Unable to obtain the latest files at this time. Try again later."
             }
 
-    def latest(self):
+    def latest(self) -> dict[str, str]:
         """
         Displays the timestamp of the latest local and live reports generated.
-        Reads the report files from `yq.PARENT_DIR` and queries the GitHub API
+        Reads the report files from `dirs.REPORTS` and queries the GitHub API
         for the latest commit timestamp for each file. Returns the result as an
         message in the channel.
 
@@ -508,7 +513,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(glob.glob(os.path.join(yq.PARENT_DIR, "*.html")))
+        reports = sorted(list(dirs.REPORTS.glob("*.html")))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -517,7 +522,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(os.path.getmtime(report),unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            local_value += f'• {Path(report).stem}: {pd.to_datetime(report.stats()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 
@@ -527,12 +532,12 @@ class Bot:
                 live_value = ""
                 for report in reports:
                     result = pd.read_json(
-                        f"{self.repository_api_url}/commits?path={os.path.basename(report)}"
+                        f"{self.repository_api_url}/commits?path={Path(report).name}"
                     )
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
                         "date", "author"
                     ]
-                    live_value += f'• {os.path.basename(report).split(".html")[0]}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+                    live_value += f'• {Path(report).stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
             except:
@@ -540,7 +545,7 @@ class Bot:
 
         return response
 
-    def links(self):
+    def links(self) -> dict[str, str]:
         """
         Displays the links to the YugiQuery webpage, repository, and data.
 
@@ -564,7 +569,7 @@ class Bot:
         channel_id: int,
         report: Reports = Reports.All,
         progress_bar: tqdm = None,
-    ):
+    ) -> dict[str, str]:
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
 
@@ -600,7 +605,8 @@ class Bot:
         try:
             self.process = mp.Process(
                 target=yq.run,
-                args=[report.value, progress_handler],  # isinstance(self,Telegram)
+                # isinstance(self,Telegram)
+                args=[report.value, progress_handler],
             )
             self.process.start()
             stderr_write.close()  # Close the write end in the parent process to ensure it only reads
@@ -653,7 +659,16 @@ class Bot:
         )
         return humanized
 
-    def push(self, passphrase: str = None):
+    def push(self, passphrase: str = None) -> str:
+        """
+        Pushes the latest data files to the repository.
+
+        Args:
+            passphrase (str, optional): The passphrase to use for encryption. Defaults to None.
+
+        Returns:
+            str: The result message indicating whether the push was successful
+        """
         try:
             # Attempt to call yq.push and return its result if successful
             return yq.push(passphrase)
@@ -661,7 +676,16 @@ class Bot:
             # If an exception occurs, return the exception message instead
             return str(e)
 
-    def pull(self, passphrase: str = None):
+    def pull(self, passphrase: str = None) -> str:
+        """
+        Pulls the latest data files from the repository.
+
+        Args:
+            passphrase (str, optional): The passphrase to use for decryption. Defaults to None.
+
+        Returns:
+            str: The result message indicating whether the pull was successful
+        """
         try:
             # Attempt to call yq.pull and return its result if successful
             return yq.pull(passphrase)
@@ -697,13 +721,16 @@ class Telegram(Bot):
             channel (Union[str, int]): The Telegram channel ID.
 
         """
-        Bot.__init__(self, token, channel)
+        from tqdm.contrib.telegram import tqdm as telegram_pbar
+
+        self.telegram_pbar = telegram_pbar
+        Bot.__init__(self, token=token, channel=channel)
         # Initialize the Telegram bot
         self.application = ApplicationBuilder().token(token).build()
         self.register_commands()
         self.register_events()
 
-    def run(self):
+    def run(self) -> None:
         """
         Start running the Telegram bot.
         """
@@ -714,7 +741,7 @@ class Telegram(Bot):
     # Commands #
     # ======== #
 
-    def register_commands(self):
+    def register_commands(self) -> None:
         """
         Register command handlers for the Telegram bot.
 
@@ -742,7 +769,7 @@ class Telegram(Bot):
 
         """
 
-        async def abort(update: Update, context: CallbackContext):
+        async def abort(update: Update, context: CallbackContext) -> None:
             """
             Aborts a running YugiQuery flow by terminating the thread.
 
@@ -759,7 +786,7 @@ class Telegram(Bot):
         async def battle(
             update: Update,
             context: CallbackContext,
-        ):
+        ) -> None:
             """
             Loads the list of all Monster Cards and simulates a battle between them.
 
@@ -781,7 +808,7 @@ class Telegram(Bot):
             )
             callback_first = None
 
-            async def callback(first):
+            async def callback(first) -> None:
                 nonlocal callback_first
                 callback_first = first
                 await original_message.edit_text(
@@ -811,7 +838,7 @@ class Telegram(Bot):
 
             await original_message.edit_text(message, parse_mode="MarkdownV2")
 
-        async def benchmark(update: Update, context: CallbackContext):
+        async def benchmark(update: Update, context: CallbackContext) -> None:
             """
             Returns the average time each report takes to complete and the latest time for each report.
 
@@ -835,7 +862,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
 
-        async def data(update: Update, context: CallbackContext):
+        async def data(update: Update, context: CallbackContext) -> None:
             """
             Sends the latest data files available in the repository as direct download links.
 
@@ -855,7 +882,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
 
-        async def latest(update: Update, context: CallbackContext):
+        async def latest(update: Update, context: CallbackContext) -> None:
             """
             Displays the timestamp of the latest local and live reports generated.
 
@@ -873,7 +900,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
 
-        async def links(update: Update, context: CallbackContext):
+        async def links(update: Update, context: CallbackContext) -> None:
             """
             Displays the links to the YugiQuery webpage, repository, and data.
 
@@ -888,7 +915,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
 
-        async def ping(update: Update, context: CallbackContext):
+        async def ping(update: Update, context: CallbackContext) -> None:
             """
             Tests the bot's connection latency and sends the result back to the user.
 
@@ -905,7 +932,7 @@ class Telegram(Bot):
             response = f"🏓 Pong! {round(latency_ms,1)}ms"
             await original_message.edit_text(response)
 
-        async def pull(update: Update, context: CallbackContext):
+        async def pull(update: Update, context: CallbackContext) -> None:
             """
             ...
             """
@@ -915,7 +942,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=response
             )
 
-        async def push(update: Update, context: CallbackContext):
+        async def push(update: Update, context: CallbackContext) -> None:
             """
             ...
             """
@@ -928,7 +955,7 @@ class Telegram(Bot):
         async def run_query(
             update: Update,
             context: CallbackContext,
-        ):
+        ) -> None:
             """
             Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
             The progress is reported back to the Telegram chat where the command was issued.
@@ -963,14 +990,14 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text="Initializing..."
             )
 
-            async def callback(content: str):
+            async def callback(content: str) -> None:
                 await original_response.edit_text(content)
 
             response = await self.run_query(
                 callback=callback,
                 report=report,
                 channel_id=update.effective_chat.id,
-                progress_bar=telegram_pbar,
+                progress_bar=self.telegram_pbar,
             )
             if "error" in response.keys():
                 await context.bot.send_message(
@@ -982,7 +1009,7 @@ class Telegram(Bot):
                     chat_id=update.effective_chat.id, text=response["content"]
                 )
 
-        async def status(update: Update, context: CallbackContext):
+        async def status(update: Update, context: CallbackContext) -> None:
             """
             Displays information about the bot, including uptime, versions, and system details.
 
@@ -996,7 +1023,7 @@ class Telegram(Bot):
             message = (
                 f"*Bot name*: {bot_name}\n"
                 f"*Uptime*: {self.uptime()}\n"
-                f"*Bot Version*: {__version__}\n"
+                f"*Bot Version*: {yq.__version__}\n"
                 f"*Telegram Python library Version*: {telegram.__version__}\n"
                 f"*Telegram Bot API Version*: {telegram.__bot_api_version__}\n"
                 f"*Python Version*: {platform.python_version()}\n"
@@ -1012,7 +1039,7 @@ class Telegram(Bot):
                 chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
             )
 
-        async def shutdown(update: Update, context: CallbackContext):
+        async def shutdown(update: Update, context: CallbackContext) -> None:
             """
             Shuts down the bot gracefully by sending a message and stopping the polling.
 
@@ -1026,18 +1053,26 @@ class Telegram(Bot):
             self.application.stop_running()
 
         # Register the command handlers
-        self.application.add_handler(CommandHandler("abort", abort, block=False))
-        self.application.add_handler(CommandHandler("battle", battle))
-        self.application.add_handler(CommandHandler("benchmark", benchmark))
-        self.application.add_handler(CommandHandler("data", data))
-        self.application.add_handler(CommandHandler("latest", latest))
-        self.application.add_handler(CommandHandler("links", links))
-        self.application.add_handler(CommandHandler("ping", ping))
-        self.application.add_handler(CommandHandler("run", run_query, block=False))
-        self.application.add_handler(CommandHandler("status", status))
+        self.application.add_handler(
+            CommandHandler(command="abort", callback=abort, block=False)
+        )
+        self.application.add_handler(CommandHandler(command="battle", callback=battle))
+        self.application.add_handler(
+            CommandHandler(command="benchmark", callback=benchmark)
+        )
+        self.application.add_handler(CommandHandler(command="data", callback=data))
+        self.application.add_handler(CommandHandler(command="latest", callback=latest))
+        self.application.add_handler(CommandHandler(command="links", callback=links))
+        self.application.add_handler(CommandHandler(command="ping", callback=ping))
+        self.application.add_handler(
+            CommandHandler(command="run", callback=run_query, block=False)
+        )
+        self.application.add_handler(CommandHandler(command="status", callback=status))
         self.application.add_handler(
             CommandHandler(
-                "shutdown", shutdown, filters=filters.Chat(chat_id=int(self.channel))
+                command="shutdown",
+                callback=shutdown,
+                filters=filters.Chat(chat_id=int(self.channel)),
             )
         )
 
@@ -1045,12 +1080,12 @@ class Telegram(Bot):
     # Events #
     # ====== #
 
-    def register_events(self):
+    def register_events(self) -> None:
         """
         Register event handlers for the Telegram bot.
         """
 
-        async def start(update: Update, context: CallbackContext):
+        async def start(update: Update, context: CallbackContext) -> None:
             """
             Send a message when the command /start is issued.
 
@@ -1063,7 +1098,7 @@ class Telegram(Bot):
                 rf"Hi {user.mention_html()}!",
             )
 
-        async def on_command_error(update: Update, context: CallbackContext):
+        async def on_command_error(update: Update, context: CallbackContext) -> None:
             """
             Event that runs whenever a command invoked by the user results in an error.
             Sends a message to the chat indicating the type of error that occurred.
@@ -1079,8 +1114,8 @@ class Telegram(Bot):
             else:
                 await context.bot.send_message(chat_id=self.channel, text=error.message)
 
-        self.application.add_handler(CommandHandler("start", start))
-        self.application.add_error_handler(on_command_error)
+        self.application.add_handler(CommandHandler(command="start", callback=start))
+        self.application.add_error_handler(callback=on_command_error)
 
 
 # ==================== #
@@ -1110,7 +1145,9 @@ class Discord(Bot, commands.Bot):
             channel (Union[str, int]): The channel for the bot.
 
         """
-        Bot.__init__(self, token, channel)
+
+        self.discord_pbar = ensure_tqdm()
+        Bot.__init__(self, token=token, channel=channel)
         # Initialize the Discord bot
         intents = discord.Intents(messages=True, guilds=True, members=True)
         help_command = commands.DefaultHelpCommand(no_category="Commands")
@@ -1128,17 +1165,17 @@ class Discord(Bot, commands.Bot):
         )
         self.register_commands()
 
-    def run(self):
+    def run(self) -> None:
         """
         Starts running the discord Bot.
         """
-        commands.Bot.run(self, self.token)
+        commands.Bot.run(self, token=self.token)
 
     # ====== #
     # Events #
     # ====== #
 
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         """
         Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
@@ -1152,7 +1189,7 @@ class Discord(Bot, commands.Bot):
             members = "\n - ".join([member.name for member in guild.members])
             print(f"Guild Members:\n - {members}")
 
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message) -> None:
         """
         Event callback that runs whenever a message is sent in a server where the bot is present.
         Responds with a greeting to any message starting with 'hi'.
@@ -1168,7 +1205,7 @@ class Discord(Bot, commands.Bot):
         if message.content.lower().startswith("hi"):
             await message.channel.send(content=f"Hello, {message.author.name}!")
 
-    async def on_command_error(self, ctx, error: commands.CommandError):
+    async def on_command_error(self, ctx, error: commands.CommandError) -> None:
         """
         Event callback that runs whenever a command invoked by the user results in an error.
         Sends a message to the channel indicating the type of error that occurred.
@@ -1189,7 +1226,7 @@ class Discord(Bot, commands.Bot):
     # Commands #
     # ======== #
 
-    def register_commands(self):
+    def register_commands(self) -> None:
         """
         Register command handlers for the Discord bot.
 
@@ -1223,7 +1260,7 @@ class Discord(Bot, commands.Bot):
             with_app_command=True,
         )
         @commands.is_owner()
-        async def abort(ctx):
+        async def abort(ctx) -> None:
             """
             Aborts a running YugiQuery flow by terminating the process.
 
@@ -1242,7 +1279,7 @@ class Discord(Bot, commands.Bot):
             with_app_command=True,
         )
         @commands.is_owner()
-        async def battle(ctx, atk_weight: int = 4, def_weight: int = 1):
+        async def battle(ctx, atk_weight: int = 4, def_weight: int = 1) -> None:
             """
             Loads the list of all Monster Cards and simulates a battle between them.
 
@@ -1260,7 +1297,7 @@ class Discord(Bot, commands.Bot):
 
             original_response = None
 
-            async def callback(first):
+            async def callback(first) -> None:
                 embed.add_field(name="First contestant", value=first, inline=False)
                 embed.set_footer(text="Still battling... ⏳")
                 nonlocal original_response
@@ -1306,7 +1343,7 @@ class Discord(Bot, commands.Bot):
             description="Show average time each report takes to complete.",
             with_app_command=True,
         )
-        async def benchmark(ctx):  # Improve function
+        async def benchmark(ctx) -> None:  # Improve function
             """
             Returns the average time each report takes to complete and the latest time for each report.
 
@@ -1334,7 +1371,7 @@ class Discord(Bot, commands.Bot):
         @self.hybrid_command(
             name="data", description="Send latest data files.", with_app_command=True
         )
-        async def data(ctx):
+        async def data(ctx) -> None:
             """
             This command sends the latest data files available in the repository as direct download links.
 
@@ -1363,9 +1400,9 @@ class Discord(Bot, commands.Bot):
             description="Show latest time each report was generated.",
             with_app_command=True,
         )
-        async def latest(ctx):
+        async def latest(ctx) -> None:
             """
-            Displays the timestamp of the latest local and live reports generated. Reads the report files from `yq.PARENT_DIR` and
+            Displays the timestamp of the latest local and live reports generated. Reads the report files from `dirs.REPORTS` and
             queries the GitHub API for the latest commit timestamp for each file. Returns the result as an embedded message in
             the channel.
 
@@ -1388,7 +1425,7 @@ class Discord(Bot, commands.Bot):
         @self.hybrid_command(
             name="links", description="Show YugiQuery links.", with_app_command=True
         )
-        async def links(ctx):
+        async def links(ctx) -> None:
             """
             Displays the links to the YugiQuery webpage, repository, and data. Returns the links as an embedded message in
             the channel.
@@ -1410,7 +1447,7 @@ class Discord(Bot, commands.Bot):
             description="Test the bot connection latency.",
             with_app_command=True,
         )
-        async def ping(ctx):
+        async def ping(ctx) -> None:
             """
             This command tests the bot's connection latency and sends the result back to the user.
 
@@ -1427,7 +1464,7 @@ class Discord(Bot, commands.Bot):
             name="pull", description="Pull changes from remote.", with_app_command=True
         )
         @commands.is_owner()
-        async def pull(ctx, passphrase: str = None):
+        async def pull(ctx, passphrase: str = None) -> None:
             """
             ...
             """
@@ -1440,7 +1477,7 @@ class Discord(Bot, commands.Bot):
             name="push", description="Push repository to remote.", with_app_command=True
         )
         @commands.is_owner()
-        async def push(ctx, passphrase: str = None):
+        async def push(ctx, passphrase: str = None) -> None:
             """
             ...
             """
@@ -1453,8 +1490,10 @@ class Discord(Bot, commands.Bot):
             name="run", description="Run full YugiQuery flow.", with_app_command=True
         )
         @commands.is_owner()
-        @commands.cooldown(1, self.cooldown_limit, commands.BucketType.user)
-        async def run_query(ctx, report: self.Reports = self.Reports.All):
+        @commands.cooldown(
+            rate=1, per=self.cooldown_limit, type=commands.BucketType.user
+        )
+        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -1471,14 +1510,14 @@ class Discord(Bot, commands.Bot):
                 content="Initializing...", ephemeral=True, delete_after=60
             )
 
-            async def callback(content: str):
+            async def callback(content: str) -> None:
                 await original_response.edit(content=content)
 
             response = await self.run_query(
                 callback=callback,
                 report=report,
                 channel_id=ctx.channel.id,
-                progress_bar=discord_pbar,
+                progress_bar=self.discord_pbar,
             )
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])
@@ -1492,7 +1531,7 @@ class Discord(Bot, commands.Bot):
             description="Displays bot status and system information.",
             with_app_command=True,
         )
-        async def status(ctx):
+        async def status(ctx) -> None:
             """
             Displays information about the bot, including uptime, guilds, users, channels, available commands,
             bot version, discord.py version, python version, and operating system.
@@ -1529,7 +1568,7 @@ class Discord(Bot, commands.Bot):
             embed.add_field(name="Users", value=users, inline=True)
             embed.add_field(name="Channels", value=channels, inline=True)
             embed.add_field(name="Available Commands", value=commandsInfo, inline=False)
-            embed.add_field(name="Bot Version", value=__version__, inline=True)
+            embed.add_field(name="Bot Version", value=yq.__version__, inline=True)
             embed.add_field(
                 name="Discord.py Version", value=discord.__version__, inline=True
             )
@@ -1549,7 +1588,7 @@ class Discord(Bot, commands.Bot):
             name="shutdown", description="Shutdown bot.", with_app_command=True
         )
         @commands.is_owner()
-        async def shutdown(ctx):
+        async def shutdown(ctx) -> None:
             """
             Shuts down the bot gracefully by sending a message and closing the connection.
 
@@ -1564,6 +1603,44 @@ class Discord(Bot, commands.Bot):
 # Execution #
 # ========= #
 
+
+def main(args):
+    # Make sure the data and reports directories exist
+    dirs.make()
+    # Load secrets
+    secrets_args = {
+        f"{args.subclass.upper()}_TOKEN": args.token,
+        f"{args.subclass.upper()}_CHANNEL_ID": args.channel_id,
+    }
+    secrets = load_secrets_with_args(secrets_args)
+
+    # Set multiprocessing start method
+    mp.set_start_method("spawn")
+
+    # Handle bots based on subclass
+    if args.subclass == "discord":
+        if "DISCORD_TOKEN" not in secrets or "DISCORD_CHANNEL_ID" not in secrets:
+            raise ValueError(
+                "Discord bot requires DISCORD_TOKEN and DISCORD_CHANNEL_ID in secrets."
+            )
+        # Initialize and run the Discord bot
+        discord_bot = Discord(
+            token=secrets["DISCORD_TOKEN"], channel=secrets["DISCORD_CHANNEL_ID"]
+        )
+        discord_bot.run()
+
+    elif args.subclass == "telegram":
+        if "TELEGRAM_TOKEN" not in secrets or "TELEGRAM_CHANNEL_ID" not in secrets:
+            raise ValueError(
+                "Telegram bot requires TELEGRAM_TOKEN and TELEGRAM_CHANNEL_ID in secrets."
+            )
+        # Initialize and run the Telegram bot
+        telegram_bot = Telegram(
+            token=secrets["TELEGRAM_TOKEN"], channel=secrets["TELEGRAM_CHANNEL_ID"]
+        )
+        telegram_bot.run()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -1572,11 +1649,11 @@ if __name__ == "__main__":
         default="discord",
         help="Select between a Discord or a Telegram bot",
     )
-    parser.add_argument("-t", "--token", dest="TOKEN", type=str, help="Bot API token")
+    parser.add_argument("-t", "--token", type=str, help="Bot API token")
     parser.add_argument(
         "-c",
         "--channel",
-        dest="CHANNEL_ID",
+        dest="channel_id",
         type=int,
         help="Bot responses channel id",
     )
@@ -1587,20 +1664,6 @@ if __name__ == "__main__":
         help="Enable debug flag",
     )
 
-    args = vars(parser.parse_args())
-    subclass = args["subclass"]
-    debug = args.pop("debug")
+    args = parser.parse_args()
 
-    # Load secrets
-    secrets = load_secrets_with_args(args)
-    mp.set_start_method("spawn")
-
-    if subclass == "discord":
-        # Initialize the Discord bot
-        bot = Discord(secrets["DISCORD_TOKEN"], secrets["DISCORD_CHANNEL_ID"])
-        bot.run()
-
-    elif subclass == "telegram":
-        # Initialize the Telegram bot
-        bot = Telegram(secrets["TELEGRAM_TOKEN"], secrets["TELEGRAM_CHANNEL_ID"])
-        bot.run()
+    main(args)

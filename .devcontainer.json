@@ -3,7 +3,7 @@
 {
 	"name": "Python 3",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/python:0-3.11",
+	"image": "mcr.microsoft.com/devcontainers/python",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/git:1": {
@@ -23,16 +23,36 @@
 			"version": "os-provided"
 		}
 	},
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
+	"forwardPorts": [
+		8888
+	],
+	"portsAttributes": {
+		"8888": {
+			"label": "Jupyter",
+			"requireLocalPort": true,
+			"onAutoForward": "ignore"
+		}
+	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash source/install.sh",
-
+	"postCreateCommand": "pip install .",
 	// Configure tool-specific properties.
-	// "customizations": {},
-
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.debugpy",
+				"ms-python.black-formatter",
+				"ms-toolsai.jupyter",
+				"ms-toolsai.jupyter-renderers",
+				"george-alisson.html-preview-vscode"
+			]
+		}
+	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }

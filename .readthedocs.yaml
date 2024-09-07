@@ -12,7 +12,7 @@ build:
     python: "3.10"
   jobs:
     pre_build:
-      - bash ./source/install.sh
+      - pip install .[docs]
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
