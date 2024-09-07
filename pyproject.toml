@@ -103,8 +103,10 @@ warn_no_return = false
 warn_unused_ignores = true
 
 [tool.black]
-line-length = 88
-target-version = ['py36', 'py37', 'py38', 'py39']
+line-length = 125
 
 [tool.isort]
 profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 125

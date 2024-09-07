@@ -66,8 +66,6 @@ Where `SUBCLASS` can be either `telegram` or `discord`.
 
 Both the `yugiquery.py` and `bot.py` modules within the `yugiquery` package accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage.
 
-Further use cases can be found in the [documentation](#documentation).
-
 ## Installation
 
 YugiQuery is meant to be user friendly to users without much coding experience. It can be used "as is" from the repository, or installed via pip.

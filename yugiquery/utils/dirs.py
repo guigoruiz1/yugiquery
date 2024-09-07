@@ -25,33 +25,35 @@ class Dirs:
     """
     Singleton class to manage directory paths for the application.
 
-    :ivar UTILS: The path to the utils subpackage directory.
+
     :ivar APP: The path to the application (YugiQuery) directory.
-    :ivar WORK: The path to the working directory.
-    :ivar SHARE: The path to the share directory.
-    :ivar REPORTS: The path to the reports directory.
-    :ivar NOTEBOOKS: The path to the notebooks directory.
-    :ivar DATA: The path to the data directory.
     :ivar ASSETS: The path to the assets directory.
-    :vartype UTILS: Path:
+    :ivar DATA: The path to the data directory.
+    :ivar NOTEBOOKS: The path to the notebooks directory.
+    :ivar REPORTS: The path to the reports directory.
+    :ivar SHARE: The path to the share directory.
+    :ivar UTILS: The path to the utils subpackage directory.
+    :ivar WORK: The path to the working directory.
+
     :vartype APP: Path
-    :vartype WORK: Path
-    :vartype SHARE: Path
-    :vartype REPORTS: Path
-    :vartype NOTEBOOKS: Path
-    :vartype DATA: Path
     :vartype ASSETS: Path
+    :vartype DATA: Path
+    :vartype NOTEBOOKS: Path
+    :vartype REPORTS: Path
+    :vartype SHARE: Path
+    :vartype UTILS: Path:
+    :vartype WORK: Path
     """
 
     _instance = None
-    UTILS: Path = None
     APP: Path = None
-    WORK: Path = None
-    SHARE: Path = None
-    REPORTS: Path = None
-    NOTEBOOKS: Path = None
-    DATA: Path = None
     ASSETS: Path = None
+    DATA: Path = None
+    NOTEBOOKS: Path = None
+    REPORTS: Path = None
+    SHARE: Path = None
+    UTILS: Path = None
+    WORK: Path = None
 
     def __new__(cls, *args, **kwargs):
         """
@@ -81,10 +83,10 @@ class Dirs:
                     self.ASSETS = Path(user_data_dir("yugiquery"))
                     if not self.ASSETS.is_dir():
                         self.ASSETS = Path(site_data_dir("yugiquery"))
-                        
+
         # Determine the SHARE parh from the ASSETS path
         self.SHARE = self.ASSETS.parent
-        
+
         # Determine the REPORTS path
         if self.WORK.parent.joinpath("reports").is_dir():
             self.REPORTS = self.WORK.parent / "reports"
@@ -110,19 +112,19 @@ class Dirs:
             self.ASSETS = self.WORK / "assets"
         elif self.WORK.parent.joinpath("assets").is_dir():
             self.ASSETS = self.WORK.parent / "assets"
-            
+
     def print(self):
         """
         Print the directory paths managed by this class.
         """
+        print(f"ASSETS: {self.ASSETS}")
+        print(f"DATA: {self.DATA}")
+        print(f"NOTEBOOKS: {self.NOTEBOOKS}")
+        print(f"REPORTS: {self.REPORTS}")
+        print(f"SHARE: {self.SHARE}")
         print(f"SCRIPT: {self.APP}")
         print(f"UTILS: {self.UTILS}")
-        print(f"SHARE: {self.SHARE}")
-        print(f"ASSETS: {self.ASSETS}")
         print(f"WORK: {self.WORK}")
-        print(f"REPORTS: {self.REPORTS}")
-        print(f"NOTEBOOKS: {self.NOTEBOOKS}")
-        print(f"DATA: {self.DATA}")
 
     def make(self):
         """
