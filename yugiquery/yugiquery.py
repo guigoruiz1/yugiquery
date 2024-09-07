@@ -86,7 +86,7 @@ class CG(Enum):
 
 def generate_changelog(
     previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]
-):
+) -> pd.DataFrame:
     """
     Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
 
@@ -134,7 +134,7 @@ def generate_changelog(
     return changelog
 
 
-def benchmark(timestamp: arrow.Arrow, report: str = None):
+def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
     """
     Records the execution time of a report and saves the data to a JSON file.
 
@@ -172,7 +172,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None):
     print(result)
 
 
-def condense_changelogs(files: pd.DataFrame):
+def condense_changelogs(files: pd.DataFrame) -> tuple[pd.DataFrame, str]:
     """
     Condenses multiple changelog files into a consolidated dataframe and generates a new filename.
 
@@ -227,7 +227,7 @@ def condense_changelogs(files: pd.DataFrame):
     return new_changelog.loc[index], new_filename
 
 
-def condense_benchmark(benchmark: dict):
+def condense_benchmark(benchmark: dict) -> dict:
     """
     Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
 
@@ -261,7 +261,7 @@ def condense_benchmark(benchmark: dict):
     return benchmark
 
 
-def cleanup_data(dry_run=False):
+def cleanup_data(dry_run=False) -> None:
     """
     Cleans up data files, keeping only the most recent file from each month and week.
 
@@ -403,7 +403,9 @@ def cleanup_data(dry_run=False):
         print(result)
 
 
-def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
+def load_corrected_latest(
+    name_pattern: str, tuple_cols: List[str] = []
+) -> tuple[pd.DataFrame, arrow.Arrow]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -441,7 +443,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []):
 # Sets
 
 
-def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
+def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.DataFrame:
     """
     Merges set information from an input set info DataFrame into an input set list DataFrame based on set and region.
 
@@ -483,7 +485,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame):
 
 
 # Formatters
-def format_artwork(row: pd.Series):
+def format_artwork(row: pd.Series) -> Tuple[str]:
     """
     Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
@@ -512,7 +514,7 @@ def format_artwork(row: pd.Series):
         return result
 
 
-def format_errata(row: pd.Series):
+def format_errata(row: pd.Series) -> Tuple[str]:
     """
     Formats errata information from a pandas Series and returns a tuple of errata types.
 
@@ -538,7 +540,7 @@ def format_errata(row: pd.Series):
         return np.nan
 
 
-def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
+def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.DataFrame:
     """
     Merges errata information from an input errata DataFrame into an input DataFrame based on card names.
 
@@ -569,14 +571,23 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame):
 # =================== #
 
 
-def get_notebook_name():
+def get_notebook_name() -> str:
+    """
+    Gets the name of the current notebook opened in JupyterLab.
+
+    Args:
+        None
+
+    Returns:
+        str: The name of the current notebook.
+    """
     try:
         file_path = getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__", "")
     except Exception:
         file_path = ""
 
     if not file_path:
-        file_path = os.environ.get("JPY_SESSION_NAME", "")
+        file_path = os.environ.get("JPY_SESSION_NAME", default="")
 
     if not file_path:
         try:
@@ -588,7 +599,7 @@ def get_notebook_name():
     return Path(file_path).stem
 
 
-def save_notebook():
+def save_notebook() -> None:
     """
     Save the current notebook opened in JupyterLab to disk.
 
@@ -603,14 +614,24 @@ def save_notebook():
     print("Notebook saved to disk")
 
 
-def export_notebook(input_path, template="auto", no_input=True):
+def export_notebook(input_path, template="auto", no_input=True) -> None:
+    """
+    Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
+
+    Args:
+        input_path (str): The path to the Jupyter notebook file to convert.
+        template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
+        no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
+
+    Returns:
+        None
+    """
     output_path = dirs.REPORTS / Path(input_path).stem
 
     if template == "auto":
-        if dirs.SHARE.joinpath("jupyter/nbconvert/templates/labdynamic").is_dir():
-            template = "labdynamic"
-        else:
-            template = "lab"
+        template = dirs.ASSETS / "nbconvert" / "labdynamic"
+    else:
+        template = "lab"
 
     # Configure the HTMLExporter
     c = Config()
@@ -624,7 +645,7 @@ def export_notebook(input_path, template="auto", no_input=True):
     html_exporter = HTMLExporter(config=c)
 
     # Read the notebook content
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, mode="r", encoding="utf-8") as f:
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
@@ -632,7 +653,7 @@ def export_notebook(input_path, template="auto", no_input=True):
 
     # Write the output to the specified directory
     writer = FilesWriter()
-    writer.write(body, resources, notebook_name=output_path)
+    writer.write(output=body, resources=resources, notebook_name=output_path)
 
     print(f"Notebook converted to HTML and saved to {output_path}.html")
 
@@ -642,7 +663,7 @@ def export_notebook(input_path, template="auto", no_input=True):
 # ================ #
 
 
-def update_index():  # Handle index and readme properly
+def update_index() -> None:  # Handle index and readme properly
     """
     Update the index.md and README.md files with a table of links to all HTML reports in the parent directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
@@ -678,7 +699,7 @@ def update_index():  # Handle index and readme properly
     rows = []
     for report in reports:
         rows.append(
-            f"[{Path(report).stem}]({dirs.WORK.relative_to(report)}) | {pd.to_datetime(os.path.getmtime(report),unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
+            f"[{Path(report).stem}]({dirs.WORK.relative_to(report)}) | {pd.to_datetime(report.stat().st_mtime,unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
         )
     table = " |\n| ".join(rows)
 
@@ -701,7 +722,7 @@ def update_index():  # Handle index and readme properly
     print(result)
 
 
-def header(name: str = None):
+def header(name: str = None) -> Markdown:
     """
     Generates a Markdown header with a timestamp and the name of the notebook (if provided).
 
@@ -732,7 +753,7 @@ def header(name: str = None):
     return Markdown(header)
 
 
-def footer(timestamp: arrow.Arrow = None):
+def footer(timestamp: arrow.Arrow = None) -> Markdown:
     """
     Generates a Markdown footer with a timestamp.
 
@@ -762,7 +783,7 @@ def footer(timestamp: arrow.Arrow = None):
 
 
 # Query builder
-def card_query(default: str = None, *args, **kwargs):
+def card_query(default: str = None, *args, **kwargs) -> str:
     """
     Builds a string of arguments to be passed to the yugipedia Wiki API for a card search query.
 
@@ -957,7 +978,7 @@ def card_query(default: str = None, *args, **kwargs):
 
 
 # Rarities dictionary
-def fetch_rarities_dict(rarities_list: List[str] = []):
+def fetch_rarities_dict(rarities_list: List[str] = []) -> Dict[str, str]:
     """
     Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
 
@@ -983,7 +1004,7 @@ def fetch_rarities_dict(rarities_list: List[str] = []):
 
 
 # Bandai
-def fetch_bandai(limit: int = 200, *args, **kwargs):
+def fetch_bandai(limit: int = 200, *args, **kwargs) -> pd.DataFrame:
     """
     Fetch Bandai cards.
 
@@ -1047,7 +1068,7 @@ def fetch_st(
     step: int = 500,
     limit: int = 5000,
     **kwargs,
-):
+) -> pd.DataFrame:
     """
     Fetch spell or trap cards based on query and properties of the cards.
 
@@ -1099,7 +1120,7 @@ def fetch_monster(
     limit: int = 5000,
     exclude_token=True,
     **kwargs,
-):
+) -> pd.DataFrame:
     """
     Fetch monster cards based on query and properties of the cards.
 
@@ -1161,7 +1182,7 @@ def fetch_monster(
 
 def fetch_token(
     token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
-):
+) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
@@ -1198,7 +1219,7 @@ def fetch_token(
 
 def fetch_counter(
     counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
-):
+) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
@@ -1233,7 +1254,9 @@ def fetch_counter(
 # Alternative formats
 
 
-def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_speed(
+    speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs
+) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
@@ -1269,7 +1292,9 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     return speed_df
 
 
-def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_skill(
+    skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs
+) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
@@ -1297,7 +1322,9 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     return skill_df
 
 
-def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs):
+def fetch_rush(
+    rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs
+) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
@@ -1336,7 +1363,7 @@ def fetch_unusable(
     step: int = 500,
     limit: int = 5000,
     **kwargs,
-):
+) -> pd.DataFrame:
     """
     Fetch unusable cards based on query and properties of the cards. Unusable cards include "Strategy cards", "Tip cards",
     "Card Checklists", etc, which are not actual cards. The filter option enables filtering those out and keeping only cards
@@ -1392,7 +1419,7 @@ def fetch_unusable(
 # Extra properties
 
 
-def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
+def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame:
     """
     Fetches errata information from the yuipedia Wiki API.
 
@@ -1402,7 +1429,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
         **kwargs: Additional keyword arguments to pass to fetch_categorymembers.
 
     Returns:
-        A pandas DataFrame containing a boolean table indicating whether each card has errata information for the specified type.
+        pandas.DataFrame: A pandas DataFrame containing a boolean table indicating whether each card has errata information for the specified type.
     """
     debug = kwargs.get("debug", False)
     errata = errata.lower()
@@ -1456,7 +1483,9 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs):
 # Sets
 
 
-def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs):
+def fetch_set_list_pages(
+    cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs
+) -> pd.DataFrame:
     """
     Fetches a list of 'Set Card Lists' pages from the yugipedia Wiki API.
 
@@ -1513,7 +1542,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     return set_list_pages
 
 
-def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs):
+def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFrame:
     """
     Fetches all set lists for a given card game.
 
@@ -1579,7 +1608,7 @@ def run_notebooks(
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
-):
+) -> None:
     """
     Execute specified Jupyter notebooks in the source directory using Papermill.
 
@@ -1698,7 +1727,7 @@ def run_notebooks(
         report_name = Path(report).stem
 
         with open(report) as f:
-            nb = nbformat.read(f, nbformat.NO_CONVERT)
+            nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
             cells = len(nb.cells)
             # print(f'Number of Cells: {cells}')
 
@@ -1720,8 +1749,8 @@ def run_notebooks(
 
         try:
             pm.execute_notebook(
-                report,
-                report,
+                input_path=report,
+                output_path=report,
                 log_output=True,
                 progress_bar=True,
                 kernel_name=kernel_name,
@@ -1729,7 +1758,7 @@ def run_notebooks(
         except pm.PapermillExecutionError as e:
             exceptions.append(e)
         finally:
-            os.environ.pop("PM_IN_EXECUTION", None)
+            os.environ.pop("PM_IN_EXECUTION", default=None)
 
     # Close the iterator
     iterator.close()
@@ -1754,7 +1783,7 @@ def run(
     cleanup: Union[bool, str] = False,
     dry_run: bool = False,
     **kwargs,
-):
+) -> None:
     """
     Executes all notebooks in the source directory that match the specified report, updates the page index
     to reflect the last execution timestamp, and clean up redundant data files.

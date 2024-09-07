@@ -184,7 +184,7 @@ def generate_rate_grid(
         monthly_ax = yearly_ax.twinx()
 
         yearly_ax.plot(
-            dy.resample("Y").sum(),
+            dy.resample("YE").sum(),
             label="Yearly rate",
             ls="--",
             c=colors[1],
@@ -192,13 +192,13 @@ def generate_rate_grid(
         )
         yearly_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 8 + 1))
         monthly_ax.plot(
-            dy.resample("M").sum(), label="Monthly rate", c=colors[2], antialiased=True
+            dy.resample("ME").sum(), label="Monthly rate", c=colors[2], antialiased=True
         )
         monthly_ax.set_ylabel(f"Monthly {dy.index.name.lower()} rate")
         monthly_ax.legend(loc="upper right")
 
     else:
-        dy2 = dy.resample("Y").sum()
+        dy2 = dy.resample("YE").sum()
         yearly_ax.stackplot(
             dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True
         )
@@ -264,7 +264,7 @@ def rate_subplots(
         None: Displays the generated plot.
     """
     if figsize is None:
-        figsize = (16, len(df.columns) * 2 * (1 + cumsum))
+        figsize = (14, len(df.columns) * 2 * (1 + cumsum))
 
     fig, axes = plt.subplots(
         nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True
@@ -302,7 +302,7 @@ def rate_subplots(
         for ix, ax in enumerate(sub_axes[:2]):
             if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
                 bg = bg.copy()
-                bg["end"].fillna(df.index.max(), inplace=True)
+                bg["end"] = bg["end"].fillna(df.index.max())
                 for idx, row in bg.iterrows():
                     if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
                         filled_poly = ax.axvspan(
@@ -312,13 +312,11 @@ def rate_subplots(
                             color=colors_dict[idx],
                             zorder=-1,
                         )
-                        if i == 0 and ix == 0:
-                            (x0, y0), (x1, y1) = (
-                                filled_poly.get_path().get_extents().get_points()
-                            )
+                        if ix == 0 and i == 0:
+                            (x, y) = filled_poly.get_center()
                             ax.text(
-                                (x0 + x1) / 2,
-                                y1,
+                                x,
+                                y,
                                 idx,
                                 ha="center",
                                 va="bottom",
@@ -355,7 +353,7 @@ def rate_subplots(
     )
 
     fig.tight_layout()
-    fig.show()
+    plt.show()
 
     warnings.filterwarnings(
         action="default",
@@ -366,7 +364,7 @@ def rate_subplots(
 
 def rate(
     dy: pd.DataFrame,
-    figsize: Tuple[int, int] = (16, 6),
+    figsize: Tuple[int, int] = (14, 6),
     title: str = None,
     xlabel: str = "Date",
     colors: List[str] = None,
@@ -400,7 +398,7 @@ def rate(
     for i, ax in enumerate(axes[:2]):
         if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
             bg = bg.copy()
-            bg["end"].fillna(dy.index.max(), inplace=True)
+            bg["end"] = bg["end"].fillna(dy.index.max())
             for idx, row in bg.iterrows():
                 if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
                     filled_poly = ax.axvspan(
@@ -411,12 +409,10 @@ def rate(
                         zorder=-1,
                     )
                     if i == 0:
-                        (x0, y0), (x1, y1) = (
-                            filled_poly.get_path().get_extents().get_points()
-                        )
+                        (x, y) = filled_poly.get_center()
                         ax.text(
-                            (x0 + x1) / 2,
-                            y1,
+                            x,
+                            y,
                             idx,
                             ha="center",
                             va="bottom",
@@ -447,7 +443,7 @@ def rate(
     )
 
     fig.tight_layout()
-    fig.show()
+    plt.show()
 
     warnings.filterwarnings(
         action="default",
@@ -506,7 +502,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> No
 
     # Display the plot
     fig.tight_layout()
-    fig.show()
+    plt.show()
 
 
 def box(df, mean=True, **kwargs) -> None:
@@ -546,4 +542,4 @@ def box(df, mean=True, **kwargs) -> None:
     ax.set_axisbelow(True)
     plt.xticks(rotation=30)
     fig.tight_layout()
-    fig.show()
+    plt.show()
