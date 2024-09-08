@@ -58,7 +58,7 @@ try:
 
 except ImportError:
     raise RuntimeError(
-        "Missing bot specif packages. Please install the required packages with pip install yugiquery[bot]."
+        'Missing bot specif packages. Please install the required packages with "pip install yugiquery[bot]".'
     )
 
 # Silence discord.py pynacl optional dependency warning.

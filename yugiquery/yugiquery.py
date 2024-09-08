@@ -1764,6 +1764,7 @@ def run_notebooks(
                 kernel_name=kernel_name,
             )
         except pm.PapermillExecutionError as e:
+            print(e)
             exceptions.append(e)
         finally:
             os.environ.pop("PM_IN_EXECUTION", default=None)
