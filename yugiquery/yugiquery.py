@@ -29,7 +29,13 @@ import time
 from enum import Enum
 from pathlib import Path
 from traitlets.config import Config
-
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Tuple,
+    Union,
+)
 
 # Third-party imports
 import arrow

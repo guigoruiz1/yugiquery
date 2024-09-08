@@ -17,6 +17,13 @@ import re
 import socket
 import time
 from enum import Enum
+from typing import (
+    Any,
+    Dict,
+    List,
+    Tuple,
+    Union,
+)
 import urllib.parse as up
 
 # Third-party imports

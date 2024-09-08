@@ -19,15 +19,7 @@ import re
 import os
 
 from pathlib import Path
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Tuple,
-    Union,
-    Literal,
-)  # For sphinx type hints
+from typing import Literal, List, Dict
 
 # Third-party imports
 import arrow

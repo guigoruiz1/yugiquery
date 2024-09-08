@@ -13,6 +13,10 @@
 # Standard library imports
 import warnings
 import colorsys
+from typing import (
+    List,
+    Tuple,
+)
 
 # Third-party imports
 import numpy as np
@@ -186,6 +190,17 @@ def generate_rate_grid(
 
     if len(dy.columns) == 1:
         monthly_ax = yearly_ax.twinx()
+        monthly_rate = dy.resample("ME").sum()
+        monthly_ax.bar(
+            x=monthly_rate.index,
+            height=monthly_rate.T.values[0],
+            width=monthly_rate.index.diff(),
+            label="Monthly rate",
+            color=colors[2],
+            antialiased=True,
+        )
+        monthly_ax.set_ylabel(f"Monthly {dy.index.name.lower()} rate")
+        monthly_ax.legend(loc="upper right")
 
         yearly_ax.plot(
             dy.resample("YE").sum(),
@@ -195,11 +210,6 @@ def generate_rate_grid(
             antialiased=True,
         )
         yearly_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 8 + 1))
-        monthly_ax.plot(
-            dy.resample("ME").sum(), label="Monthly rate", c=colors[2], antialiased=True
-        )
-        monthly_ax.set_ylabel(f"Monthly {dy.index.name.lower()} rate")
-        monthly_ax.legend(loc="upper right")
 
     else:
         dy2 = dy.resample("YE").sum()
@@ -292,6 +302,13 @@ def rate_subplots(
         else:
             cmap = ListedColormap(colors)
 
+    if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
+        bg = bg.copy()
+        bg["end"] = bg["end"].fillna(df.index.max())
+        sec_ax = axes[0].secondary_xaxis("top")
+        sec_ax.set_xticks(bg.mean(axis=1))
+        sec_ax.set_xticklabels(bg.index)
+
     c = 0
     for i, col in enumerate(df.columns):
         sub_axes = generate_rate_grid(
@@ -304,28 +321,15 @@ def rate_subplots(
         )
 
         for ix, ax in enumerate(sub_axes[:2]):
-            if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
-                bg = bg.copy()
-                bg["end"] = bg["end"].fillna(df.index.max())
-                for idx, row in bg.iterrows():
-                    if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                        filled_poly = ax.axvspan(
-                            row["begin"],
-                            row["end"],
-                            alpha=0.1,
-                            color=colors_dict[idx],
-                            zorder=-1,
-                        )
-                        if ix == 0 and i == 0:
-                            (x, y) = filled_poly.get_center()
-                            ax.text(
-                                x,
-                                y,
-                                idx,
-                                ha="center",
-                                va="bottom",
-                                transform=ax.get_xaxis_transform(),
-                            )
+            for idx, row in bg.iterrows():
+                if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
+                    filled_poly = ax.axvspan(
+                        row["begin"],
+                        row["end"],
+                        alpha=0.1,
+                        color=colors_dict[idx],
+                        zorder=-1,
+                    )
 
             if vlines is not None:
                 for idx, row in vlines.items():
@@ -399,29 +403,23 @@ def rate(
     )
 
     axes = generate_rate_grid(dy=dy, ax=ax, size="100%", colors=colors, cumsum=cumsum)
+    if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
+        bg = bg.copy()
+        bg["end"] = bg["end"].fillna(dy.index.max())
+        sec_ax = axes[0].secondary_xaxis("top")
+        sec_ax.set_xticks(bg.mean(axis=1))
+        sec_ax.set_xticklabels(bg.index)
+
     for i, ax in enumerate(axes[:2]):
-        if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
-            bg = bg.copy()
-            bg["end"] = bg["end"].fillna(dy.index.max())
-            for idx, row in bg.iterrows():
-                if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                    filled_poly = ax.axvspan(
-                        row["begin"],
-                        row["end"],
-                        alpha=0.1,
-                        color=colors_dict[idx],
-                        zorder=-1,
-                    )
-                    if i == 0:
-                        (x, y) = filled_poly.get_center()
-                        ax.text(
-                            x,
-                            y,
-                            idx,
-                            ha="center",
-                            va="bottom",
-                            transform=ax.get_xaxis_transform(),
-                        )
+        for idx, row in bg.iterrows():
+            if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
+                filled_poly = ax.axvspan(
+                    row["begin"],
+                    row["end"],
+                    alpha=0.1,
+                    color=colors_dict[idx],
+                    zorder=-1,
+                )
 
         if vlines is not None:
             for idx, row in vlines.items():
