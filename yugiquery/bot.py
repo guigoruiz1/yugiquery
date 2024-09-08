@@ -320,7 +320,7 @@ class Bot:
         reports_dict = {"All": "all"}
         reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
         for report in reports:
-            reports_dict[Path(report).stem.capitalize()] = report
+            reports_dict[report.stem.capitalize()] = report
 
         self.Reports = Enum("Reports", reports_dict)
 
@@ -530,7 +530,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += f'• {Path(report).stem}: {pd.to_datetime(report.stats()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            local_value += f'• {report.stem}: {pd.to_datetime(report.stats()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 
@@ -540,12 +540,12 @@ class Bot:
                 live_value = ""
                 for report in reports:
                     result = pd.read_json(
-                        f"{self.repository_api_url}/commits?path={Path(report).name}"
+                        f"{self.repository_api_url}/commits?path={report.name}"
                     )
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
                         "date", "author"
                     ]
-                    live_value += f'• {Path(report).stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+                    live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
             except:
