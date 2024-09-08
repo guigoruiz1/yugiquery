@@ -389,6 +389,7 @@ def fetch_set_info(
 
 
 # TODO: Refactor
+# TODO: Translate region code?
 def fetch_set_lists(
     titles: List[str], **kwargs
 ) -> None | tuple[pd.DataFrame, int, int]:  # Separate formating function
