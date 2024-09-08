@@ -625,6 +625,7 @@ def save_notebook() -> None:
     print("Notebook saved to disk")
 
 
+# TODO: silence alt text warning
 def export_notebook(input_path, template="auto", no_input=True) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
