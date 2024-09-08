@@ -10,19 +10,30 @@
 # Imports #
 # ======= #
 
-import git
+# Standard library imports
+import os
 import subprocess
+import sys
 from pathlib import Path
+
+# Third-party imports
+import git
+
+# Local application imports
 from .helpers import *
 from .dirs import dirs
-from .api import api_dict
+from .api import URLS
 
-# Add case for when running directly from bot/yugiquery script
+# Metadata with added case for when running directly from bot/yugiquery script
 try:
     from ..metadata import __url__
 except ImportError:
     sys.path.append(str(dirs.APP))
     from metadata import __url__
+
+# ========= #
+# Functions #
+# ========= #
 
 
 def assure_repo():
@@ -60,9 +71,7 @@ def assure_repo():
         # Replace the default User-Agent header with the repository URL
         if repo.remote().url:
             url = repo.remote().url.split(".git")[0]
-            api_dict["headers"]["User-Agent"] = api_dict["headers"][
-                "User-Agent"
-            ].replace(
+            URLS.headers.value["User-Agent"] = URLS.headers["User-Agent"].value.replace(
                 __url__,
                 url,
             )

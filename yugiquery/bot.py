@@ -18,14 +18,7 @@
 # Imports #
 # ======= #
 
-import yugiquery as yq
-
-if __package__:
-    from .utils import *
-else:
-    from utils import *
-
-# Native python packages
+# Standard library packages
 import argparse
 import asyncio
 import io
@@ -36,8 +29,17 @@ import random
 import subprocess
 from enum import Enum
 
-# PIP packages - installed by yugiquery
+# Third-party imports
 import pandas as pd
+from tqdm.auto import tqdm
+
+# Local application imports
+import yugiquery as yq
+
+if __package__:
+    from .utils import *
+else:
+    from utils import *
 
 try:
     # Telegram
@@ -63,9 +65,9 @@ except ImportError:
 discord.VoiceClient.warn_nacl = False
 
 
-# ============== #
-# Helper methods #
-# ============== #
+# ================ #
+# Helper functions #
+# ================ #
 
 
 # Data loaders
@@ -75,7 +77,7 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     environment variables or a .env file, placed in the `dirs.ASSETS` directory, if necessary.
 
     Args:
-        Dict[str: Any]: A dictionary of secrets.
+        Dict[str, Any]: A dictionary of secrets.
 
     Returns:
         Dict[str, str]: A dictionary containing the loaded secrets.

@@ -10,25 +10,29 @@
 # Imports #
 # ======= #
 
-import aiohttp
+# Standard library imports
 import asyncio
-import requests
+import os
+import re
 import socket
 import time
+from enum import Enum
+import urllib.parse as up
+
+# Third-party imports
+import aiohttp
 import numpy as np
 import pandas as pd
-import urllib.parse as up
+import requests
+from tqdm.auto import tqdm, trange
 import wikitextparser as wtp
+
+
+# Local application imports
 from .helpers import *
 from .dirs import dirs
 
-# Add case for when running directly from bot/yugiquery script
-try:
-    from ..metadata import __title__, __version__, __url__
-except ImportError:
-    sys.path.append(str(dirs.APP))
-    from metadata import __title__, __version__, __url__
-
+# Import Halo according to the environment
 if dirs.is_notebook:
     from halo import HaloNotebook as Halo
 else:
@@ -38,11 +42,11 @@ else:
 # Dictionaries #
 # ============ #
 
-#: A dictionary mapping yugipedia API URLs.
-api_dict: Dict[str, str] = load_json(dirs.ASSETS / "json" / "api.json")
+#: An Enum mapping yugipedia API URLs dinamically loaded from the api.json file in the assets directory.
+URLS = Enum("URLS", load_json(dirs.ASSETS / "json" / "api.json"))
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
-arrows_dict: Dict[str:str] = {
+arrows_dict: Dict[str, str] = {
     "Middle-Left": "←",
     "Middle-Right": "→",
     "Top-Left": "↖",
@@ -54,9 +58,9 @@ arrows_dict: Dict[str:str] = {
 }
 
 
-# ======= #
-# Methods #
-# ======= #
+# ========= #
+# Functions #
+# ========= #
 
 
 def check_status() -> bool:
@@ -74,17 +78,15 @@ def check_status() -> bool:
     }
 
     try:
-        response = requests.get(
-            api_dict["base_url"], params=params, headers=api_dict["headers"]
-        )
+        response = requests.get(URLS.base, params=params, headers=URLS.headers)
         response.raise_for_status()
         print(
-            f"{api_dict['base_url']} is up and running {response.json()['query']['general']['generator']}"
+            f"{URLS.base} is up and running {response.json()['query']['general']['generator']}"
         )
         return True
     except requests.exceptions.RequestException as err:
-        print(f"{api_dict['base_url']} is not alive: {err}")
-        domain = up.urlparse(api_dict["base_url"]).netloc
+        print(f"{URLS.base} is not alive: {err}")
+        domain = up.urlparse(URLS.base).netloc
         port = 443
 
         try:
@@ -136,11 +138,9 @@ def fetch_categorymembers(
                 params = params.copy()
                 params.update(lastContinue)
                 response = requests.get(
-                    api_dict["base_url"]
-                    + api_dict["categorymembers_action"]
-                    + category,
+                    URLS.base + URLS.categorymembers_action + category,
                     params=params,
-                    headers=api_dict["headers"],
+                    headers=URLS.headers,
                 )
                 if debug:
                     print(response.url)
@@ -219,12 +219,12 @@ def fetch_properties(
                     iterator.set_postfix(it=i + 1)
 
                 response = requests.get(
-                    url=api_dict["base_url"]
-                    + api_dict["ask_action"]
+                    url=URLS.base
+                    + URLS.ask_action
                     + condition
                     + query
                     + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
-                    headers=api_dict["headers"],
+                    headers=URLS.headers,
                 )
                 if debug:
                     print(response.url)
@@ -278,8 +278,8 @@ def fetch_redirects(titles: List[str]) -> Dict[str, str]:
         last = (i + 1) * 50
         target_titles = "|".join(titles[first:last])
         response = requests.get(
-            url=api_dict["base_url"] + api_dict["redirects_action"] + target_titles,
-            headers=api_dict["headers"],
+            url=URLS.base + URLS.redirects_action + target_titles,
+            headers=URLS.headers,
         ).json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
@@ -303,8 +303,8 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
-            url=api_dict["base_url"] + api_dict["backlinks_action"] + target_title,
-            headers=api_dict["headers"],
+            url=URLS.base + URLS.backlinks_action + target_title,
+            headers=URLS.headers,
         ).json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
@@ -353,11 +353,8 @@ def fetch_set_info(
         last = (i + 1) * step
         titles = up.quote(string="]]OR[[".join(sets[first:last]))
         response = requests.get(
-            url=api_dict["base_url"]
-            + api_dict["askargs_action"]
-            + titles
-            + f"&printouts={ask}",
-            headers=api_dict["headers"],
+            url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
+            headers=URLS.headers,
         )
         formatted_response = extract_results(response)
         formatted_response.drop(
@@ -420,8 +417,8 @@ def fetch_set_lists(
     error = 0
 
     response = requests.get(
-        url=api_dict["base_url"] + api_dict["revisions_action"] + titles,
-        headers=api_dict["headers"],
+        url=URLS.base + URLS.revisions_action + titles,
+        headers=URLS.headers,
     )
     if debug:
         print(response.url)
@@ -640,9 +637,10 @@ def fetch_set_lists(
 
 
 # Images
+# TODO: check save_folder
 async def download_images(
     file_names: pd.DataFrame,
-    save_folder: str = str(dirs.WORK / "images"),
+    save_folder: str = "images",
     max_tasks: int = 10,
 ) -> None:
     """
@@ -650,7 +648,7 @@ async def download_images(
 
     Args:
         file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
-        save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "../images/".
+        save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "images".
         max_tasks (int): The maximum number of images to download at once. Defaults to 10.
 
     Returns:
@@ -695,7 +693,7 @@ async def download_images(
     # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
     async with aiohttp.ClientSession(
-        base_url=api_dict["media_url"], headers=api_dict["headers"]
+        base_url=URLS.media, headers=URLS.headers
     ) as session:
         save_folder = Path(save_folder)
         if not save_folder.exists():

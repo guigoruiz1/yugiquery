@@ -10,10 +10,13 @@
 # Imports #
 # ======= #
 
-from IPython import get_ipython
+# Standard library imports
 import os
 import sysconfig
 from pathlib import Path
+
+# Third-party imports
+from IPython import get_ipython
 from platformdirs import user_data_dir, site_data_dir
 
 # ======= #

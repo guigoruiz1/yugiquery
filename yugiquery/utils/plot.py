@@ -10,9 +10,12 @@
 # Imports #
 # ======= #
 
+# Standard library imports
 import warnings
-import numpy as np
 import colorsys
+
+# Third-party imports
+import numpy as np
 import pandas as pd
 from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb
 import matplotlib.dates as mdates
@@ -21,11 +24,12 @@ from matplotlib.ticker import (
     AutoMinorLocator,
     FixedLocator,
     MaxNLocator,
-    MultipleLocator,
 )
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
+
+# Local application imports
 from .helpers import *
 from .dirs import dirs
 
@@ -46,9 +50,9 @@ colors_dict = load_json(
 )  # Colors dictionary to associate to series and cards
 # TODO: Adapt colors to style
 
-# ======= #
-# Methods #
-# ======= #
+# ========= #
+# Functions #
+# ========= #
 
 
 def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:

@@ -30,8 +30,9 @@ extensions = [
 ]
 
 napoleon_google_docstring = True
-add_module_names = False
+add_module_names = True
 autosummary_generate = True
+autodoc_class_signature = "separated"
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]

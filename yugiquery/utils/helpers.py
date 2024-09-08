@@ -10,18 +10,30 @@
 # Imports #
 # ======= #
 
-import os
-import sys
-import json
+# Standard library imports
+import calendar  # Used in notebooks
 import hashlib
-import arrow
 import importlib.util
+import json
 import re
-import calendar
-from dotenv import dotenv_values
+import os
+
 from pathlib import Path
-from tqdm.auto import tqdm, trange
-from typing import Any, Callable, Dict, List, Tuple, Union, Literal
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Tuple,
+    Union,
+    Literal,
+)  # For sphinx type hints
+
+# Third-party imports
+import arrow
+from dotenv import dotenv_values
+
+# Local application imports
 from .dirs import dirs
 
 # ================== #
@@ -129,7 +141,7 @@ def load_json(json_file: str) -> dict:
             data = json.load(file)
             return data
     except:
-        print(f"Error loading {json_file}! This may break some methods.")
+        print(f"Error loading {json_file}! This may break some features.")
         return {}
 
 
