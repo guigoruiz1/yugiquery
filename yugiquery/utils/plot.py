@@ -278,7 +278,7 @@ def rate_subplots(
         None: Displays the generated plot.
     """
     if figsize is None:
-        figsize = (14, len(df.columns) * 2 * (1 + cumsum))
+        figsize = (12, len(df.columns) * 2 * (1 + cumsum))
 
     fig, axes = plt.subplots(
         nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True
@@ -373,7 +373,7 @@ def rate_subplots(
 
 def rate(
     dy: pd.DataFrame,
-    figsize: Tuple[int, int] = (14, 6),
+    figsize: Tuple[int, int] = (12, 6),
     title: str = None,
     xlabel: str = "Date",
     colors: List[str] = None,
