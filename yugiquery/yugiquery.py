@@ -783,6 +783,7 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
 
 
 # Query builder
+# TODO: Refactor
 def card_query(default: str = None, *args, **kwargs) -> str:
     """
     Builds a string of arguments to be passed to the yugipedia Wiki API for a card search query.
@@ -921,6 +922,7 @@ def card_query(default: str = None, *args, **kwargs) -> str:
         )
 
     # Card properties dictionary
+    # TODO: Move to json in assets
     prop_dict = {
         "password": "|?Password",
         "card_type": "|?Card%20type",
@@ -1018,6 +1020,7 @@ def fetch_bandai(limit: int = 200, *args, **kwargs) -> pd.DataFrame:
     """
     debug = kwargs.get("debug", False)
     bandai_query = "|?English%20name=Name"
+    # TODO: Move to json in assets
     bandai_prop_dict = {
         "card_type": "|?Card%20type",
         "level": "|?Level",
