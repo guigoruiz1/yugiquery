@@ -89,11 +89,11 @@ def check_status() -> bool:
         response = requests.get(URLS["base"], params=params, headers=URLS["headers"])
         response.raise_for_status()
         print(
-            f"{URLS["base"]} is up and running {response.json()['query']['general']['generator']}"
+            f"{URLS['base']} is up and running {response.json()['query']['general']['generator']}"
         )
         return True
     except requests.exceptions.RequestException as err:
-        print(f"{URLS["base"]} is not alive: {err}")
+        print(f"{URLS['base']} is not alive: {err}")
         domain = up.urlparse(URLS["base"]).netloc
         port = 443
 
