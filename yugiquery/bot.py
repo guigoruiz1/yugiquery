@@ -96,7 +96,7 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     missing = [key for key, value in args.items() if value is None]
     if len(missing) > 0:
         try:
-            loaded_secrets = yq.load_secrets(
+            loaded_secrets = load_secrets(
                 requested_secrets=missing,
                 secrets_file=(dirs.ASSETS / "secrets.env"),
                 required=True,
@@ -287,7 +287,7 @@ class Bot:
         """
         try:
             # Open the repository
-            self.repo = yq.git.assure_repo()
+            self.repo = git.assure_repo()
             # Get the remote repository
             remote = self.repo.remote()
             remote_url = remote.url
@@ -678,8 +678,8 @@ class Bot:
             str: The result message indicating whether the push was successful
         """
         try:
-            # Attempt to call yq.push and return its result if successful
-            return yq.push(passphrase)
+            # Attempt to call git.push and return its result if successful
+            return git.push(passphrase)
         except Exception as e:
             # If an exception occurs, return the exception message instead
             return str(e)
@@ -695,8 +695,8 @@ class Bot:
             str: The result message indicating whether the pull was successful
         """
         try:
-            # Attempt to call yq.pull and return its result if successful
-            return yq.pull(passphrase)
+            # Attempt to call git.pull and return its result if successful
+            return git.pull(passphrase)
         except Exception as e:
             # If an exception occurs, return the exception message instead
             return str(e)
@@ -942,7 +942,11 @@ class Telegram(Bot):
 
         async def pull(update: Update, context: CallbackContext) -> None:
             """
-            ...
+            Pulls the latest data files from the repository.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
             """
             passphrase = context.args[0] if context.args else None
             response = self.pull(passphrase)
@@ -952,9 +956,13 @@ class Telegram(Bot):
 
         async def push(update: Update, context: CallbackContext) -> None:
             """
-            ...
+            Pushes the latest data files to the repository.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
             """
-            passphrase = context.args[0] if context.args else None
+            passphrase = context.args[0] if context.args else ""
             response = self.push(passphrase)
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text=response
@@ -1383,7 +1391,7 @@ class Discord(Bot, commands.Bot):
             """
             This command sends the latest data files available in the repository as direct download links.
 
-            Parameters:
+            Args:
                 ctx (discord.ext.commands.Context): The context of the command.
             """
             await ctx.defer()
@@ -1459,7 +1467,7 @@ class Discord(Bot, commands.Bot):
             """
             This command tests the bot's connection latency and sends the result back to the user.
 
-            Parameters:
+            Args:
                 ctx (discord.ext.commands.Context): The context of the command.
             """
             await ctx.send(
@@ -1474,7 +1482,11 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         async def pull(ctx, passphrase: str = None) -> None:
             """
-            ...
+            Pulls the latest data files from the repository.
+
+            Args:
+                ctx (discord.ext.commands.Context): The context of the command.
+                passphrase (str, optional): The password to unlock git. Defaults to None.
             """
 
             await ctx.defer()
@@ -1487,7 +1499,11 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         async def push(ctx, passphrase: str = None) -> None:
             """
-            ...
+            Pushes the latest data files to the repository.
+
+            Args:
+                ctx (discord.ext.commands.Context): The context of the command.
+                passphrase (str, optional): The passphrase to use for encryption. Defaults to None.
             """
 
             await ctx.defer()

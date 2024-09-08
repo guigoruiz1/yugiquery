@@ -95,8 +95,11 @@ def load_secrets(
 
     """
     secrets = {
-        key: os.environ.get(key, os.environ.get(f"TQDM_{key}"))
+        key: value
         for key in requested_secrets
+        if (
+            value := os.environ.get(key, os.environ.get(f"TQDM_{key}"))
+        )  # Using walrus operator to assign and check value
     }
     if secrets_file and Path(secrets_file).is_file():
         secrets = dotenv_values(secrets_file) | secrets
