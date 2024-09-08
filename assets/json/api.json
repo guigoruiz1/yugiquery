@@ -3,7 +3,7 @@
         "User-Agent": "YugiQuery"
     },
     "base_url": "https://yugipedia.com/api.php",
-    "media_url": "https://ws.yugipedia.com/",
+    "media_url": "https://ms.yugipedia.com/",
     "revisions_action": "?action=query&format=json&prop=revisions&rvprop=content&titles=",
     "ask_action": "?action=ask&format=json&query=",
     "askargs_action": "?action=askargs&format=json&conditions=",

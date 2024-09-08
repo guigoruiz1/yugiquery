@@ -641,7 +641,9 @@ def fetch_set_lists(
 
 # Images
 async def download_images(
-    file_names: pd.DataFrame, save_folder: str = "../images/", max_tasks: int = 10
+    file_names: pd.DataFrame,
+    save_folder: str = str(dirs.WORK / "images"),
+    max_tasks: int = 10,
 ) -> None:
     """
     Downloads a set of images given their names and saves them to a specified folder.
@@ -693,7 +695,7 @@ async def download_images(
     # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
     async with aiohttp.ClientSession(
-        base_url="https://ms.yugipedia.com/", headers=api_dict["headers"]
+        base_url=api_dict["media_url"], headers=api_dict["headers"]
     ) as session:
         save_folder = Path(save_folder)
         if not save_folder.exists():
