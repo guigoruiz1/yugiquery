@@ -75,7 +75,7 @@ def assure_repo():
         # Replace the default User-Agent header with the repository URL
         if repo.remote().url:
             url = repo.remote().url.split(".git")[0]
-            URLS.headers.value["User-Agent"] = URLS.headers["User-Agent"].value.replace(
+            URLS.headers.value["User-Agent"] = URLS.headers.value["User-Agent"].replace(
                 __url__,
                 url,
             )

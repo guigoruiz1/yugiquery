@@ -321,15 +321,16 @@ def rate_subplots(
         )
 
         for ix, ax in enumerate(sub_axes[:2]):
-            for idx, row in bg.iterrows():
-                if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                    filled_poly = ax.axvspan(
-                        row["begin"],
-                        row["end"],
-                        alpha=0.1,
-                        color=colors_dict[idx],
-                        zorder=-1,
-                    )
+            if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
+                for idx, row in bg.iterrows():
+                    if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
+                        filled_poly = ax.axvspan(
+                            row["begin"],
+                            row["end"],
+                            alpha=0.1,
+                            color=colors_dict[idx],
+                            zorder=-1,
+                        )
 
             if vlines is not None:
                 for idx, row in vlines.items():
@@ -411,15 +412,16 @@ def rate(
         sec_ax.set_xticklabels(bg.index)
 
     for i, ax in enumerate(axes[:2]):
-        for idx, row in bg.iterrows():
-            if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                filled_poly = ax.axvspan(
-                    row["begin"],
-                    row["end"],
-                    alpha=0.1,
-                    color=colors_dict[idx],
-                    zorder=-1,
-                )
+        if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
+            for idx, row in bg.iterrows():
+                if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
+                    filled_poly = ax.axvspan(
+                        row["begin"],
+                        row["end"],
+                        alpha=0.1,
+                        color=colors_dict[idx],
+                        zorder=-1,
+                    )
 
         if vlines is not None:
             for idx, row in vlines.items():
