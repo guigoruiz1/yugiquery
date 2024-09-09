@@ -19,6 +19,23 @@ def install_kernel() -> None:
     else:
         print(f"{venv_path} virtual environment created.")
 
+    # Install YugiQuery inside the virtual environment.
+    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
+    try:
+        remote_url = git.get_repo().remote().url
+    except:
+        remote_url = f"{__url__}.git"
+
+    result = subprocess.run(
+        [pip_path, "install", f"git+{remote_url}"],
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(f"Failed to install YugiQuery in {venv_path}!")
+    else:
+        print(f"YugiQuery installed in the virtual environment {venv_path}.")
+
     # Install the Jupyter kernel using ipykernel.
     python_path = (
         os.path.join(venv_path, "bin", "python") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python")
@@ -43,29 +60,8 @@ def install_kernel() -> None:
 
     if result.returncode != 0:
         print(f"Failed to install Jupyter kernel 'yugiquery'.")
-        return
     else:
         print("Jupyter kernel 'yugiquery' installed.")
-
-    # Install YugiQuery inside the virtual environment.
-    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
-    try:
-        remote_url = git.get_repo().remote().url
-    except:
-        remote_url = f"{__url__}.git"
-
-    result = subprocess.run(
-        [pip_path, "install", f"git+{remote_url}"],
-        text=True,
-    )
-
-    if result.returncode != 0:
-        print(f"Failed to install YugiQuery in {venv_path}.")
-    else:
-        print(f"YugiQuery installed in the virtual environment {venv_path}.")
-        print(f"YugiQuery kernel setup completed.")
-
-    return
 
 
 def install_tqdm() -> None:
