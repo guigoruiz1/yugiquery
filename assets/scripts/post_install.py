@@ -13,7 +13,7 @@ def install_kernel() -> None:
     venv_path = "yqvenv"
     # Create a virtual environment.
     result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
-    if result.returncode == 0:
+    if result.returncode != 0:
         print(
             f"Failed to create virtual environment '{venv_path}'. Error: {result.stderr}"
         )
@@ -34,7 +34,7 @@ def install_kernel() -> None:
         [pip_path, "install", f"git+{remote_url}"],
         text=True,
     )
-    if result.returncode == 0:
+    if result.returncode != 0:
         print(f"Failed to install YugiQuery in {venv_path}. Error: {result.stderr}")
         return
 
