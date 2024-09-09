@@ -1,21 +1,55 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
 import sys
 import shutil
-import importlib
 
 
-def install_kernel():
-    # Run the jupyter command to install the kernel
+def install_kernel() -> None:
+    venv_path = "yqvenv"
+    # Create a virtual environment.
+    result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
+    if result.returncode == 0:
+        print(
+            f"Failed to create virtual environment '{venv_path}'. Error: {result.stderr}"
+        )
+        return
+
+    # Install dependencies from requirements.txt using pip inside the virtual environment.
+    pip_path = (
+        os.path.join(venv_path, "bin", "pip")
+        if os.name != "nt"
+        else os.path.join(venv_path, "Scripts", "pip")
+    )
+    result = subprocess.run(
+        [pip_path, "install", "git+https://github.com/guigoruiz1/yugiquery.git"],
+        text=True,
+    )
+    if result.returncode == 0:
+        print(f"Failed to install YugiQuery in {venv_path}. Error: {result.stderr}")
+        return
+
+    # Install the Jupyter kernel using ipykernel.
+    python_path = (
+        os.path.join(venv_path, "bin", "python")
+        if os.name != "nt"
+        else os.path.join(venv_path, "Scripts", "python")
+    )
+    kernel_name = "yugiquery"
+    display_name = "Python (yugiquery)"
+
     result = subprocess.run(
         [
-            sys.executable,
+            python_path,
             "-m",
             "ipykernel",
             "install",
             "--user",
-            "--name=yugiquery",
+            "--name",
+            kernel_name,
+            "--display-name",
+            display_name,
         ],
         text=True,
     )
@@ -24,9 +58,10 @@ def install_kernel():
         print("Jupyter kernel 'yugiquery' installed.")
     else:
         print(f"Failed to install Jupyter kernel 'yugiquery'. Error: {result.stderr}")
+    return
 
 
-def install_tqdm():
+def install_tqdm() -> None:
     result = subprocess.run(
         ["pip", "install", "--no-deps", "git+https://github.com/guigoruiz1/tqdm.git"],
         text=True,
@@ -38,7 +73,7 @@ def install_tqdm():
         print(f"Failed to install tqdm fork for Discord bot. Error: {result.stderr}")
 
 
-def install_nbconvert():
+def install_nbconvert() -> None:
     from yugiquery.utils.dirs import dirs
 
     src_dir = dirs.ASSETS / "nbconvert"

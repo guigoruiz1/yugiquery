@@ -247,11 +247,11 @@ class Bot:
         start_time (arrow.Arrow): The bot initialization timestamp.
         token (str): The token for bot authentication.
         channel (int): The bot channel ID.
-        has_remote (bool): Whether the repository has a remote.
-        repo (git.Repo): The git repository object, if has_remote.
-        repository_api_url (str): The GitHub API URL for the remote repository, if has_remote.
-        repository_url (str): The URL of the remote repository, if has_remote.
-        webpage_url (str): The URL of the GitHub pages webpage for the remote repository, if has_remote.
+        repo (git.Repo): The git repository object, if there is a repository, else None.
+        remote (git.Remote): The remote repository object, if there is a remote repository, else None.
+        repository_api_url (str): The GitHub API URL for the remote repository, if remote.
+        repository_url (str): The URL of the remote repository, if remote.
+        webpage_url (str): The URL of the GitHub pages webpage for the remote repository, if remote.
         process (multiprocessing.Process): The variable to hold a process spawned by run_query.
         cooldown_limit (Tnt): The cooldown time in seconds to wait between consecutive calls to run_query.
 
@@ -288,25 +288,28 @@ class Bot:
         try:
             # Open the repository
             self.repo = git.assure_repo()
-            # Get the remote repository
-            remote = self.repo.remote()
-            remote_url = remote.url
+            try:
+                # Get the remote repository
+                remote = self.repo.remote()
+                remote_url = remote.url
 
-            # Extract the GitHub page URL from the remote URL
-            # by removing the ".git" suffix and splitting the URL
-            # by the "/" character
-            remote_url_parts = remote_url[:-4].split("/")
+                # Extract the GitHub page URL from the remote URL
+                # by removing the ".git" suffix and splitting the URL
+                # by the "/" character
+                remote_url_parts = remote_url[:-4].split("/")
 
-            # Repository
-            (author, repo) = remote_url_parts[-2:]
-            # URLs
-            self.repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
-            self.repository_url = remote_url.split(".git")[0]
-            self.webpage_url = f"https://{author}.github.io/{repo}"
-
-            self.has_remote = True
+                # Repository
+                (author, repo) = remote_url_parts[-2:]
+                # URLs
+                self.repository_api_url = (
+                    f"https://api.github.com/repos/{author}/{repo}"
+                )
+                self.repository_url = remote_url.split(".git")[0]
+                self.webpage_url = f"https://{author}.github.io/{repo}"
+            except:
+                self.remote = None
         except:
-            self.has_remote = False
+            self.repo = None
 
     def init_reports_enum(self) -> None:
         """
@@ -333,8 +336,8 @@ class Bot:
         """
         try:
             self.process.terminate()
-            if self.has_remote:
-                self.repo.git.restore(dirs.NOTEBOOKS / "*.ipynb")
+            if self.repo is not None:
+                git.restore(files=list(dirs.NOTEBOOKS.glob("*.ipynb")), repo=self.repo)
             return "Aborted"
         except:
             return "Abort failed"
@@ -471,7 +474,7 @@ class Bot:
         Returns:
             dict: A dictionary containing direct links to the latest data files.
         """
-        if not self.has_remote:
+        if self.remote is None:
             return {"error": "No github repository."}
         try:
             files = pd.read_json(f"{self.repository_api_url}/contents/data")
@@ -535,7 +538,7 @@ class Bot:
         response["local"] = local_value
 
         # Get live files timestamps
-        if self.has_remote:
+        if self.remote is not None:
             try:
                 live_value = ""
                 for report in reports:
@@ -560,7 +563,7 @@ class Bot:
         Returns:
             dict: A dictionary containing links to YugiQuery resources.
         """
-        if self.has_remote:
+        if self.remote is not None:
             description = f"[Webpage]({self.webpage_url}) • [Repository]({self.repository_url}) • [Data]({self.repository_url}/tree/main/data)"
         else:
             description = "No github repository."
@@ -677,9 +680,11 @@ class Bot:
         Returns:
             str: The result message indicating whether the push was successful
         """
+        if self.remote is None:
+            return "No github repository."
         try:
             # Attempt to call git.push and return its result if successful
-            return git.push(passphrase)
+            return git.push(passphrase=passphrase, repo=self.repo)
         except Exception as e:
             # If an exception occurs, return the exception message instead
             return str(e)
@@ -694,9 +699,11 @@ class Bot:
         Returns:
             str: The result message indicating whether the pull was successful
         """
+        if self.remote is None:
+            return "No github repository."
         try:
             # Attempt to call git.pull and return its result if successful
-            return git.pull(passphrase)
+            return git.pull(passphrase=passphrase, repo=self.repo)
         except Exception as e:
             # If an exception occurs, return the exception message instead
             return str(e)

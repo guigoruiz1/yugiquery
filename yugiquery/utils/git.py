@@ -40,7 +40,7 @@ except ImportError:
 # ========= #
 
 
-def assure_repo():
+def assure_repo() -> git.Repo:
     """
     Assures the script is inside a git repository. Initializes a repository if one is not found.
 
@@ -73,23 +73,24 @@ def assure_repo():
         os.makedirs(dirs.REPORTS, exist_ok=True)
 
         # Replace the default User-Agent header with the repository URL
-        if repo.remote().url:
+        try:
             url = repo.remote().url.split(".git")[0]
             URLS["headers"]["User-Agent"] = URLS["headers"]["User-Agent"].replace(
                 __url__,
                 url,
             )
+        except ValueError:
+            pass
 
     return repo
 
 
-def commit(files: Union[str, List[str]], commit_message: str = None):
+def get_repo() -> git.Repo:
     """
-    Commits the specified files to the git repository after staging them.
+    Gets the current git repository if there is one.
 
     Args:
-        files (Union[str, List[str]]): A list of file paths to be committed.
-        commit_message (str, optional): The commit message. If not provided, a default message will be used.
+        None
 
     Raises:
         git.InvalidGitRepositoryError: If the dirs.SCRIPT is not in a git repository.
@@ -97,99 +98,158 @@ def commit(files: Union[str, List[str]], commit_message: str = None):
         Exception: For any other unexpected errors.
 
     Returns:
-        None
+        git.Repo: The git repository object.
+    """
+    try:
+        return git.Repo(dirs.APP, search_parent_directories=True)
+
+    except git.InvalidGitRepositoryError as e:
+        raise RuntimeError(f"Unable to find a git repository: {e}")
+    except Exception as e:
+        raise RuntimeError(f"An unexpected error occurred: {e}")
+
+
+def unlock(passphrase: str = None) -> str:
+    """
+    Unlock the git credential store.
+
+    Args:
+        passphrase (str, optional): The passphrase to unlock your Git credential store.
+
+    Returns:
+        str: The result of the unlock operation.
+    """
+    result = subprocess.run(
+        [
+            "sh",
+            dirs.ASSETS / "scripts" / "unlock_git.sh",
+            passphrase if passphrase else "",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    return result
+
+
+def commit(
+    files: Union[str, List[str]], commit_message: str = None, repo: git.Repo = None
+) -> str:
+    """
+    Commits the specified files to the git repository after staging them.
+
+    Args:
+        files (Union[str, List[str]]): A list of file paths to be committed.
+        commit_message (str, optional): The commit message. If not provided, a default message will be used.
+        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+
+    Raises:
+        git.GitCommandError: If an error occurs while committing the changes.
+        Exception: For any other unexpected errors.
+
+    Returns:
+        str: The commit result.
     """
     if commit_message is None:
         commit_message = f"Commit - {arrow.utcnow().isoformat()}"
     if isinstance(files, str):
         files = [files]
-    try:
-        with git.Repo(dirs.APP, search_parent_directories=True) as repo:
-            # Stage the files before committing
+    if repo is None:
+        repo = get_repo()
+    with repo:
+        # Stage the files before committing
+        try:
             repo.git.add(*files)
             return repo.git.commit(message=commit_message)
-
-    except git.InvalidGitRepositoryError as e:
-        raise RuntimeError(f"Unable to find a git repository: {e}")
-    except git.GitCommandError as e:
-        raise RuntimeError(f"Failed to commit changes: {e}")
-    except Exception as e:
-        raise RuntimeError(f"An unexpected error occurred: {e}")
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to commit changes: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def pull(passphrase: str = None):
+def restore(files: Union[str, List[str]], repo: git.Repo = None) -> str:
+    """
+    Restores the specified files on the git repository.
+
+    Args:
+        files (Union[str, List[str]]): A list of file paths to be restored.
+        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+
+    Raises:
+        git.GitCommandError: If an error occurs while committing the changes.
+        Exception: For any other unexpected errors.
+
+    Returns:
+        str: The restore result.
+    """
+    if isinstance(files, str):
+        files = [files]
+    if repo is None:
+        repo = get_repo()
+    with repo:
+        # Stage the files before committing
+        try:
+            return repo.git.restore(*files)
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to restore files: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
+
+
+def pull(passphrase: str = None, repo: git.Repo = None) -> str:
     """
     Pulls changes from the remote git repository.
 
     Args:
         passphrase (str, optional): The passphrase to unlock your Git credential store.
+        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
 
     Raises:
-        git.InvalidGitRepositoryError: If dirs.SCRIPT is not in a git repository.
         git.GitCommandError: If an error occurs while committing the changes.
         Exception: For any other unexpected errors.
 
     Returns:
         None
     """
-    result = subprocess.run(
-        [
-            "sh",
-            dirs.ASSETS / "scripts" / "unlock_git.sh",
-            passphrase if passphrase else "",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if result.returncode != 0:
-        return result.stdout.decode("utf-8")
-    else:
-        try:
-            with git.Repo(dirs.APP, search_parent_directories=True) as repo:
+    if repo is None:
+        repo = get_repo()
+    with repo:
+        result = unlock(passphrase)
+        if result.returncode != 0:
+            return result.stdout.decode("utf-8")
+        else:
+            try:
                 return repo.git.pull()
-
-        except git.InvalidGitRepositoryError as e:
-            raise RuntimeError(f"Unable to find a git repository: {e}")
-        except git.GitCommandError as e:
-            raise RuntimeError(f"Failed to push changes: {e}")
-        except Exception as e:
-            raise RuntimeError(f"An unexpected error occurred: {e}")
+            except git.GitCommandError as e:
+                raise RuntimeError(f"Failed to pull changes: {e}")
+            except Exception as e:
+                raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def push(passphrase: str = None):
+def push(passphrase: str = None, repo: git.Repo = None) -> str:
     """
     Pushes commits to the remote git repository.
 
     Args:
         passphrase (str, optional): The passphrase to unlock your Git credential store.
+        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
 
     Raises:
-        git.InvalidGitRepositoryError: If dirs.SCRIPT is not in a git repository.
         git.GitCommandError: If an error occurs while committing the changes.
         Exception: For any other unexpected errors.
 
     Returns:
         None
     """
-    result = subprocess.run(
-        [
-            "sh",
-            dirs.ASSETS / "scripts" / "unlock_git.sh",
-            passphrase if passphrase else "",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if result.returncode != 0:
-        return result.stdout.decode("utf-8")
-    else:
-        try:
-            with git.Repo(dirs.APP, search_parent_directories=True) as repo:
+    if repo is None:
+        repo = get_repo()
+    with repo:
+        result = unlock()
+        if result.returncode != 0:
+            return result.stdout.decode("utf-8")
+        else:
+            try:
                 return repo.git.push()
-
-        except git.InvalidGitRepositoryError as e:
-            raise RuntimeError(f"Unable to find a git repository: {e}")
-        except git.GitCommandError as e:
-            raise RuntimeError(f"Failed to push changes: {e}")
-        except Exception as e:
-            raise RuntimeError(f"An unexpected error occurred: {e}")
+            except git.GitCommandError as e:
+                raise RuntimeError(f"Failed to push changes: {e}")
+            except Exception as e:
+                raise RuntimeError(f"An unexpected error occurred: {e}")

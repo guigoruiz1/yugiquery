@@ -57,6 +57,7 @@ Documentation = "https://yugiquery.readthedocs.io/"
 docs = ["sphinx", "sphinx_rtd_theme"]
 bot = ["python-telegram-bot", "discord.py"]
 test = ["pytest", "coverage"]
+all = ["sphinx", "sphinx_rtd_theme", "python-telegram-bot", "discord.py", "pytest", "coverage"]
 
 [project.scripts]
 yugiquery = "yugiquery.__main__:main"
