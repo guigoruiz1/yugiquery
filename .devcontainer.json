@@ -35,7 +35,7 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install .",
+	"postCreateCommand": "pip install .[all]",
 	// Configure tool-specific properties.
 	// Configure tool-specific properties.
 	"customizations": {
