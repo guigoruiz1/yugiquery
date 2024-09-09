@@ -28,7 +28,6 @@ import re
 import time
 from enum import Enum
 from pathlib import Path
-from traitlets.config import Config
 from typing import (
     Callable,
     Dict,
@@ -51,6 +50,7 @@ import numpy as np
 import pandas as pd
 import papermill as pm
 from tqdm.auto import tqdm, trange
+from traitlets.config import Config
 import urllib.parse as up
 import warnings
 

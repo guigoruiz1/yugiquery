@@ -14,36 +14,14 @@ def install_kernel() -> None:
     # Create a virtual environment.
     result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
     if result.returncode != 0:
-        print(
-            f"Failed to create virtual environment '{venv_path}'."
-        )
+        print(f"Failed to create virtual environment '{venv_path}'.")
         return
-
-    # Install dependencies from requirements.txt using pip inside the virtual environment.
-    pip_path = (
-        os.path.join(venv_path, "bin", "pip")
-        if os.name != "nt"
-        else os.path.join(venv_path, "Scripts", "pip")
-    )
-    try:
-        remote_url = git.get_repo().remote().url
-    except:
-        remote_url = f"{__url__}.git"
-
-    result = subprocess.run(
-        [pip_path, "install", f"git+{remote_url}"],
-        text=True,
-    )
-
-    if result.returncode != 0:
-        print(f"Failed to install YugiQuery in {venv_path}.")
-        return
+    else:
+        print(f"{venv_path} virtual environment created.")
 
     # Install the Jupyter kernel using ipykernel.
     python_path = (
-        os.path.join(venv_path, "bin", "python")
-        if os.name != "nt"
-        else os.path.join(venv_path, "Scripts", "python")
+        os.path.join(venv_path, "bin", "python") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python")
     )
     kernel_name = "yugiquery"
     display_name = "Python (yugiquery)"
@@ -63,10 +41,30 @@ def install_kernel() -> None:
         text=True,
     )
 
-    if result.returncode == 0:
-        print("Jupyter kernel 'yugiquery' installed.")
-    else:
+    if result.returncode != 0:
         print(f"Failed to install Jupyter kernel 'yugiquery'.")
+        return
+    else:
+        print("Jupyter kernel 'yugiquery' installed.")
+
+    # Install YugiQuery inside the virtual environment.
+    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
+    try:
+        remote_url = git.get_repo().remote().url
+    except:
+        remote_url = f"{__url__}.git"
+
+    result = subprocess.run(
+        [pip_path, "install", f"git+{remote_url}"],
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(f"Failed to install YugiQuery in {venv_path}.")
+    else:
+        print(f"YugiQuery installed in the virtual environment {venv_path}.")
+        print(f"YugiQuery kernel setup completed.")
+
     return
 
 
@@ -104,15 +102,9 @@ if __name__ == "__main__":
     import argparse
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        "--tqdm", action="store_true", help="Install tqdm fork for Discord bot."
-    )
-    argparser.add_argument(
-        "--kernel", action="store_true", help="Install Jupyter kernel."
-    )
-    argparser.add_argument(
-        "--nbconvert", action="store_true", help="Install nbconvert templates."
-    )
+    argparser.add_argument("--tqdm", action="store_true", help="Install tqdm fork for Discord bot.")
+    argparser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
+    argparser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
     argparser.add_argument("--all", action="store_true", help="Install all.")
     args = argparser.parse_args()
 

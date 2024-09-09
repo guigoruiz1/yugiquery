@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "YugiQuery"
+name = "yugiquery"
 description = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
 authors = [
     {name = "Guilherme Ruiz", email = "57478888+guigoruiz1@users.noreply.github.com"}
