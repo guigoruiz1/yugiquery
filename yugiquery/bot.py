@@ -26,7 +26,7 @@ import multiprocessing as mp
 import os
 import platform
 import random
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import (
     Any,
     Callable,
@@ -248,10 +248,7 @@ class Bot:
         token (str): The token for bot authentication.
         channel (int): The bot channel ID.
         repo (git.Repo): The git repository object, if there is a repository, else None.
-        remote (git.Remote): The remote repository object, if there is a remote repository, else None.
-        repository_api_url (str): The GitHub API URL for the remote repository, if remote.
-        repository_url (str): The URL of the remote repository, if remote.
-        webpage_url (str): The URL of the GitHub pages webpage for the remote repository, if remote.
+        URLS (StrEnum): Enum containing the URLs for the remote repository and webpage.
         process (multiprocessing.Process): The variable to hold a process spawned by run_query.
         cooldown_limit (Tnt): The cooldown time in seconds to wait between consecutive calls to run_query.
 
@@ -270,46 +267,56 @@ class Bot:
         self.token = token
         self.channel = int(channel)
         self.init_reports_enum()
-        self.load_repo_vars()
+        try:
+            # Open the repository
+            self.repo = git.assure_repo()
+        except:
+            self.repo = None
 
-    # Other
+    # ======================== #
+    # Bot Superclass Variables #
+    # ======================== #
     process = None
     Reports = Enum("Reports", {"All": "all"})
     cooldown_limit = 12 * 3600  # 12 hours
 
-    # ======================== #
-    # Bot Superclass Functions #
-    # ======================== #
-
-    def load_repo_vars(self) -> None:
+    @property
+    def URLS(self) -> StrEnum:
         """
-        Load repository variables including URLs and paths.
+        Property to get the URLs for the remote repository and webpage.
         """
+        repository_api_url = None
+        repository_url = None
+        webpage_url = None
         try:
-            # Open the repository
-            self.repo = git.assure_repo()
-            try:
-                # Get the remote repository
-                remote = self.repo.remote()
-                remote_url = remote.url
+            # Get the remote repository
+            remote = self.repo.remote()
+            remote_url = remote.url
 
-                # Extract the GitHub page URL from the remote URL
-                # by removing the ".git" suffix and splitting the URL
-                # by the "/" character
-                remote_url_parts = remote_url[:-4].split("/")
+            # Extract the GitHub page URL from the remote URL
+            # by removing the ".git" suffix and splitting the URL
+            # by the "/" character
+            remote_url_parts = remote_url[:-4].split("/")
 
-                # Repository
-                (author, repo) = remote_url_parts[-2:]
-                # URLs
-                self.repository_api_url = (
-                    f"https://api.github.com/repos/{author}/{repo}"
-                )
-                self.repository_url = remote_url.split(".git")[0]
-                self.webpage_url = f"https://{author}.github.io/{repo}"
-            except:
-                self.remote = None
-        except:
-            self.repo = None
+            # Repository
+            (author, repo) = remote_url_parts[-2:]
+            # URLs
+            repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
+            repository_url = remote_url.split(".git")[0]
+            webpage_url = f"https://{author}.github.io/{repo}"
+        finally:
+            return StrEnum(
+                "URLS",
+                {
+                    "api": repository_api_url,
+                    "repo": repository_url,
+                    "webpage": webpage_url,
+                },
+            )
+
+    # ====================== #
+    # Bot Superclass Methods #
+    # ====================== #
 
     def init_reports_enum(self) -> None:
         """
@@ -474,10 +481,10 @@ class Bot:
         Returns:
             dict: A dictionary containing direct links to the latest data files.
         """
-        if self.remote is None:
+        if self.URLS.api is None:
             return {"error": "No github repository."}
         try:
-            files = pd.read_json(f"{self.repository_api_url}/contents/data")
+            files = pd.read_json(f"{self.URLS.api}/contents/data")
             files = files[
                 files["name"].str.endswith(".bz2")
             ]  # Remove .json files from lists
@@ -538,13 +545,11 @@ class Bot:
         response["local"] = local_value
 
         # Get live files timestamps
-        if self.remote is not None:
+        if self.URLS.api is not None:
             try:
                 live_value = ""
                 for report in reports:
-                    result = pd.read_json(
-                        f"{self.repository_api_url}/commits?path={report.name}"
-                    )
+                    result = pd.read_json(f"{self.URLS.api}/commits?path={report.name}")
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
                         "date", "author"
                     ]
@@ -563,8 +568,8 @@ class Bot:
         Returns:
             dict: A dictionary containing links to YugiQuery resources.
         """
-        if self.remote is not None:
-            description = f"[Webpage]({self.webpage_url}) • [Repository]({self.repository_url}) • [Data]({self.repository_url}/tree/main/data)"
+        if self.URLS.webpage is not None and self.URLS.repo is not None:
+            description = f"[Webpage]({self.URLS.webpage}) • [Repository]({self.URLS.repo}) • [Data]({self.URLS.repo}/tree/main/data)"
         else:
             description = "No github repository."
         response = {
@@ -670,17 +675,17 @@ class Bot:
         )
         return humanized
 
-    def push(self, passphrase: str = None) -> str:
+    def push(self, passphrase: str = "") -> str:
         """
         Pushes the latest data files to the repository.
 
         Args:
-            passphrase (str, optional): The passphrase to use for encryption. Defaults to None.
+            passphrase (str, optional): The passphrase to use for encryption. Defaults to empty.
 
         Returns:
             str: The result message indicating whether the push was successful
         """
-        if self.remote is None:
+        if self.URLS.repo is None:
             return "No github repository."
         try:
             # Attempt to call git.push and return its result if successful
@@ -689,17 +694,17 @@ class Bot:
             # If an exception occurs, return the exception message instead
             return str(e)
 
-    def pull(self, passphrase: str = None) -> str:
+    def pull(self, passphrase: str = "") -> str:
         """
         Pulls the latest data files from the repository.
 
         Args:
-            passphrase (str, optional): The passphrase to use for decryption. Defaults to None.
+            passphrase (str, optional): The passphrase to use for decryption. Defaults to empty.
 
         Returns:
             str: The result message indicating whether the pull was successful
         """
-        if self.remote is None:
+        if self.URLS.repo is None:
             return "No github repository."
         try:
             # Attempt to call git.pull and return its result if successful
@@ -955,7 +960,7 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            passphrase = context.args[0] if context.args else None
+            passphrase = context.args[0] if context.args else ""
             response = self.pull(passphrase)
             await context.bot.send_message(
                 chat_id=update.effective_chat.id, text=response
@@ -1487,13 +1492,13 @@ class Discord(Bot, commands.Bot):
             name="pull", description="Pull changes from remote.", with_app_command=True
         )
         @commands.is_owner()
-        async def pull(ctx, passphrase: str = None) -> None:
+        async def pull(ctx, passphrase: str = "") -> None:
             """
             Pulls the latest data files from the repository.
 
             Args:
                 ctx (discord.ext.commands.Context): The context of the command.
-                passphrase (str, optional): The password to unlock git. Defaults to None.
+                passphrase (str, optional): The password to unlock git. Defaults to empty.
             """
 
             await ctx.defer()
@@ -1504,13 +1509,13 @@ class Discord(Bot, commands.Bot):
             name="push", description="Push repository to remote.", with_app_command=True
         )
         @commands.is_owner()
-        async def push(ctx, passphrase: str = None) -> None:
+        async def push(ctx, passphrase: str = "") -> None:
             """
             Pushes the latest data files to the repository.
 
             Args:
                 ctx (discord.ext.commands.Context): The context of the command.
-                passphrase (str, optional): The passphrase to use for encryption. Defaults to None.
+                passphrase (str, optional): The passphrase to use for encryption. Defaults to empty.
             """
 
             await ctx.defer()

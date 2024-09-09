@@ -109,12 +109,12 @@ def get_repo() -> git.Repo:
         raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def unlock(passphrase: str = None) -> str:
+def unlock(passphrase: str = "") -> str:
     """
     Unlock the git credential store.
 
     Args:
-        passphrase (str, optional): The passphrase to unlock your Git credential store.
+        passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
 
     Returns:
         str: The result of the unlock operation.
@@ -132,7 +132,7 @@ def unlock(passphrase: str = None) -> str:
 
 
 def commit(
-    files: Union[str, List[str]], commit_message: str = None, repo: git.Repo = None
+    files: Union[str, List[str]], commit_message: str = "", repo: git.Repo = None
 ) -> str:
     """
     Commits the specified files to the git repository after staging them.
@@ -195,12 +195,12 @@ def restore(files: Union[str, List[str]], repo: git.Repo = None) -> str:
             raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def pull(passphrase: str = None, repo: git.Repo = None) -> str:
+def pull(passphrase: str = "", repo: git.Repo = None) -> str:
     """
     Pulls changes from the remote git repository.
 
     Args:
-        passphrase (str, optional): The passphrase to unlock your Git credential store.
+        passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
         repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
 
     Raises:
@@ -225,12 +225,12 @@ def pull(passphrase: str = None, repo: git.Repo = None) -> str:
                 raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def push(passphrase: str = None, repo: git.Repo = None) -> str:
+def push(passphrase: str = "", repo: git.Repo = None) -> str:
     """
     Pushes commits to the remote git repository.
 
     Args:
-        passphrase (str, optional): The passphrase to unlock your Git credential store.
+        passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
         repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
 
     Raises:

@@ -7,6 +7,8 @@ import shutil
 
 
 def install_kernel() -> None:
+    from yugiquery.utils import git
+
     venv_path = "yqvenv"
     # Create a virtual environment.
     result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
@@ -22,8 +24,13 @@ def install_kernel() -> None:
         if os.name != "nt"
         else os.path.join(venv_path, "Scripts", "pip")
     )
+    try:
+        remote_url = git.get_repo().remote().url
+    except:
+        remote_url = "https://github.com/guigoruiz1/yugiquery.git"
+
     result = subprocess.run(
-        [pip_path, "install", "git+https://github.com/guigoruiz1/yugiquery.git"],
+        [pip_path, "install", f"git+{remote_url}"],
         text=True,
     )
     if result.returncode == 0:

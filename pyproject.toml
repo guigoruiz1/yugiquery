@@ -49,9 +49,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://guigoruiz1.github.io/yugiquery/"
-Source = "https://github.com/guigoruiz1/yugiquery/"
-Documentation = "https://yugiquery.readthedocs.io/"
+Homepage = "https://guigoruiz1.github.io/yugiquery"
+Source = "https://github.com/guigoruiz1/yugiquery"
+Documentation = "https://yugiquery.readthedocs.io"
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx_rtd_theme"]
