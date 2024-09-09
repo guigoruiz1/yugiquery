@@ -1,6 +1,6 @@
 {
     "headers": {
-        "User-Agent": "YugiQuery/2.0.0 - http://github.com/guigoruiz1/yugiquery"
+        "User-Agent": "YugiQuery/2.0.0 - https://github.com/guigoruiz1/yugiquery"
     },
     "base": "https://yugipedia.com/api.php",
     "media": "https://ms.yugipedia.com/",
