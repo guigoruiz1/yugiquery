@@ -15,7 +15,7 @@ def install_kernel() -> None:
     result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
     if result.returncode != 0:
         print(
-            f"Failed to create virtual environment '{venv_path}'. Error: {result.stderr}"
+            f"Failed to create virtual environment '{venv_path}'."
         )
         return
 
@@ -34,8 +34,9 @@ def install_kernel() -> None:
         [pip_path, "install", f"git+{remote_url}"],
         text=True,
     )
+
     if result.returncode != 0:
-        print(f"Failed to install YugiQuery in {venv_path}. Error: {result.stderr}")
+        print(f"Failed to install YugiQuery in {venv_path}.")
         return
 
     # Install the Jupyter kernel using ipykernel.
@@ -65,7 +66,7 @@ def install_kernel() -> None:
     if result.returncode == 0:
         print("Jupyter kernel 'yugiquery' installed.")
     else:
-        print(f"Failed to install Jupyter kernel 'yugiquery'. Error: {result.stderr}")
+        print(f"Failed to install Jupyter kernel 'yugiquery'.")
     return
 
 
