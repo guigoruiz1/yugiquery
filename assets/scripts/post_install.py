@@ -28,7 +28,7 @@ def install_kernel() -> None:
     try:
         remote_url = git.get_repo().remote().url
     except:
-        remote_url = "{__url__}.git"
+        remote_url = f"{__url__}.git"
 
     result = subprocess.run(
         [pip_path, "install", f"git+{remote_url}"],
