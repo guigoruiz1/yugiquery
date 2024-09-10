@@ -617,9 +617,9 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
-    warnings.filterwarnings("ignore", module="IPKernelApp", message=".*Alternative text.*")
+    warnings.filterwarnings("ignore", message=".*Alternative text.*")
     (body, resources) = html_exporter.from_notebook_node(notebook_content)
-    warnings.filterwarnings("default", module="IPKernelApp", message=".*Alternative text.*")
+    warnings.filterwarnings("default", message=".*Alternative text.*")
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
@@ -1741,7 +1741,7 @@ def run(
 
     # Cleanup redundant data files
     if cleanup == "auto":
-        data_files_count = len(list(dirs.DATA("*.bz2")))
+        data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.NOTEBOOKS.glob("*.ipynb")))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
