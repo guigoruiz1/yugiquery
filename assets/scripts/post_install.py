@@ -4,23 +4,24 @@ import os
 import subprocess
 import sys
 import shutil
+from termcolor import cprint
 
 
 def install_kernel() -> None:
     from yugiquery.utils import git
     from yugiquery import __url__
 
-    venv_path = "yqvenv"
+    venv_name = "yqvenv"
     # Create a virtual environment.
-    result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
+    result = subprocess.run([sys.executable, "-m", "venv", venv_name], text=True)
     if result.returncode != 0:
-        print(f"Failed to create virtual environment '{venv_path}'.")
+        cprint(text=f"Failed to create virtual environment '{venv_name}'.", color="red")
         return
     else:
-        print(f"{venv_path} virtual environment created.")
+        print(f"{venv_name} virtual environment created.")
 
     # Install YugiQuery inside the virtual environment.
-    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
+    pip_path = os.path.join(venv_name, "bin", "pip") if os.name != "nt" else os.path.join(venv_name, "Scripts", "pip")
     try:
         remote_url = git.get_repo().remote().url
     except:
@@ -32,15 +33,15 @@ def install_kernel() -> None:
     )
 
     if result.returncode != 0:
-        print(f"Failed to install YugiQuery in {venv_path}!")
+        cprint(text=f"Failed to install YugiQuery in {venv_name}!", color="red")
+        return
     else:
-        print(f"YugiQuery installed in the virtual environment {venv_path}.")
+        print(f"YugiQuery installed in the virtual environment {venv_name}.")
 
     # Install the Jupyter kernel using ipykernel.
     python_path = (
-        os.path.join(venv_path, "bin", "python") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python")
+        os.path.join(venv_name, "bin", "python") if os.name != "nt" else os.path.join(venv_name, "Scripts", "python")
     )
-    kernel_name = "yugiquery"
     display_name = "Python (yugiquery)"
 
     result = subprocess.run(
@@ -51,15 +52,18 @@ def install_kernel() -> None:
             "install",
             "--user",
             "--name",
-            kernel_name,
+            venv_name,
             "--display-name",
             display_name,
+            "--matplotlib",
+            "svg",
+            "--IPKernelApp.exec_lines=['from yugiquery import *']",
         ],
         text=True,
     )
 
     if result.returncode != 0:
-        print(f"Failed to install Jupyter kernel 'yugiquery'.")
+        cprint(text=f"Failed to install Jupyter kernel 'yugiquery'!", color="red")
     else:
         print("Jupyter kernel 'yugiquery' installed.")
 
@@ -73,7 +77,8 @@ def install_tqdm() -> None:
     if result.returncode == 0:
         print("tqdm fork for Discord bot installed.")
     else:
-        print(f"Failed to install tqdm fork for Discord bot. Error: {result.stderr}")
+        cprint(f"Failed to install tqdm fork for Discord bot!", color="red")
+        print(result.stderr)
 
 
 def install_nbconvert() -> None:

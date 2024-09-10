@@ -116,7 +116,7 @@ class Dirs:
         elif self.WORK.parent.joinpath("assets").is_dir():
             self.ASSETS = self.WORK.parent / "assets"
 
-    def print(self):
+    def print(self) -> None:
         """
         Print the directory paths managed by this class.
         """
@@ -129,7 +129,7 @@ class Dirs:
         print(f"UTILS: {self.UTILS}")
         print(f"WORK: {self.WORK}")
 
-    def make(self):
+    def make(self) -> None:
         """
         Ensure that the DATA and REPORTS directories exist.
         """
@@ -137,11 +137,30 @@ class Dirs:
         os.makedirs(self.REPORTS, exist_ok=True)
 
     @property
-    def is_notebook(self):
+    def is_notebook(self) -> bool:
         """
         Check if the current environment is a Jupyter notebook.
+
+        Returns:
+            bool: True if the current environment is a Jupyter notebook, False otherwise.
         """
         return get_ipython() is not None
+
+    def secrets_file(self) -> Path:
+        """
+        Return the path to the secrets file following the hierarchy: first dirs.ASSETS, then dirs.WORK. Returns none if the file is not found.
+
+        Returns:
+            Path: The path to the secrets file.
+
+        """
+        secrets_file = self.ASSETS / "secrets.env"
+        if not secrets_file.is_file():
+            secrets_file = self.WORK / "secrets.env"
+            if not secrets_file.is_file():
+                secrets_file = None
+
+        return secrets_file
 
 
 # Global instance of Dirs

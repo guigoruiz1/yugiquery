@@ -98,7 +98,7 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
         try:
             loaded_secrets = load_secrets(
                 requested_secrets=missing,
-                secrets_file=(dirs.ASSETS / "secrets.env"),
+                secrets_file=dirs.secrets_file,
                 required=True,
             )
         except:

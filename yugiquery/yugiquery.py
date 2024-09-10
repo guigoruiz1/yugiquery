@@ -96,9 +96,7 @@ class CG(Enum):
 # =============== #
 
 
-def generate_changelog(
-    previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]
-) -> pd.DataFrame:
+def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]) -> pd.DataFrame:
     """
     Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
 
@@ -117,25 +115,15 @@ def generate_changelog(
         .loc[lambda x: x["_merge"] != "both"]
         .sort_values(col, ignore_index=True)
     )
-    changelog["_merge"] = changelog["_merge"].cat.rename_categories(
-        {"left_only": "Old", "right_only": "New"}
-    )
+    changelog["_merge"] = changelog["_merge"].cat.rename_categories({"left_only": "Old", "right_only": "New"})
     changelog.rename(columns={"_merge": "Version"}, inplace=True)
     nunique = changelog.groupby(col).nunique(dropna=False)
-    cols_to_drop = (
-        nunique[nunique < 2]
-        .dropna(axis=1)
-        .columns.difference(["Modification date", "Version"])
-    )
+    cols_to_drop = nunique[nunique < 2].dropna(axis=1).columns.difference(["Modification date", "Version"])
     changelog.drop(cols_to_drop, axis=1, inplace=True)
     changelog = changelog.set_index(col)
 
     if all(col in changelog.columns for col in ["Modification date", "Version"]):
-        true_changes = (
-            changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1]
-            .dropna(axis=0, how="all")
-            .index
-        )
+        true_changes = changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1].dropna(axis=0, how="all").index
         new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
         rows_to_keep = true_changes.union(new_entries).unique()
         changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
@@ -170,9 +158,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
     # Add the new data to the existing data
     if report not in data:
         data[report] = []
-    data[report].append(
-        {"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1}
-    )
+    data[report].append({"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
     # Save new data to file
     with open(benchmark_file, "w+") as file:
         json.dump(data, file)
@@ -224,11 +210,7 @@ def condense_changelogs(files: pd.DataFrame) -> tuple[pd.DataFrame, str]:
         inplace=True,
     )
     new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
-    index = (
-        new_changelog.drop(["Modification date", "Version"], axis=1)
-        .drop_duplicates(keep="last")
-        .index
-    )
+    index = new_changelog.drop(["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
     new_filename = Path(file).joinpath(
         make_filename(
             report=changelog_name,
@@ -314,46 +296,26 @@ def cleanup_data(dry_run=False) -> None:
 
     # Get a list of all the files created on the same month of the same year, separated by whether they contain "changelog"
     same_month_files = {
-        "changelog": [
-            group[1]["Name"].tolist() for group in grouped if "changelog" in group[0][0]
-        ],
-        "data": [
-            group[1]["Name"].tolist()
-            for group in grouped
-            if not "changelog" in group[0][0]
-        ],
+        "changelog": [group[1]["Name"].tolist() for group in grouped if "changelog" in group[0][0]],
+        "data": [group[1]["Name"].tolist() for group in grouped if not "changelog" in group[0][0]],
     }
 
     # Get a list of all the files created in the last month and split them into weeks
-    last_month_files = (
-        df[df["Date"] >= df["Date"].max() - pd.Timedelta("1MS")]
-        .resample("W", on="Date")
-        .first()
-    )
+    last_month_files = df[df["Date"] >= df["Date"].max() - pd.Timedelta("1MS")].resample("W", on="Date").first()
 
     # Separate the last_month_files by whether they contain "changelog"
     last_month_files = {
-        "changelog": last_month_files[
-            last_month_files["Group"].str.contains("changelog")
-        ]["Name"].tolist(),
-        "data": last_month_files[~last_month_files["Group"].str.contains("changelog")][
-            "Name"
-        ].tolist(),
+        "changelog": last_month_files[last_month_files["Group"].str.contains("changelog")]["Name"].tolist(),
+        "data": last_month_files[~last_month_files["Group"].str.contains("changelog")]["Name"].tolist(),
     }
 
     print(last_month_files)
 
     # Remove the last_month_files from the same_month_files
     same_month_files["changelog"] = [
-        files
-        for files in same_month_files["changelog"]
-        if files not in last_month_files["changelog"]
+        files for files in same_month_files["changelog"] if files not in last_month_files["changelog"]
     ]
-    same_month_files["data"] = [
-        files
-        for files in same_month_files["data"]
-        if files not in last_month_files["data"]
-    ]
+    same_month_files["data"] = [files for files in same_month_files["data"] if files not in last_month_files["data"]]
 
     print("\n- same month (with changelog)")
     for files in same_month_files["changelog"]:
@@ -415,9 +377,7 @@ def cleanup_data(dry_run=False) -> None:
         print(result)
 
 
-def load_corrected_latest(
-    name_pattern: str, tuple_cols: List[str] = []
-) -> tuple[pd.DataFrame, arrow.Arrow]:
+def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> tuple[pd.DataFrame, arrow.Arrow]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -471,17 +431,12 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
                 input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
-                if (
-                    x["Region"] in regions_dict.keys()
-                    and x["Set"] in input_info_df.index
-                )
+                if (x["Region"] in regions_dict.keys() and x["Set"] in input_info_df.index)
                 else np.nan
             ),
             axis=1,
         )
-        input_df["Release"] = pd.to_datetime(
-            input_df["Release"].astype(str), errors="coerce"
-        )  # Bug fix
+        input_df["Release"] = pd.to_datetime(input_df["Release"].astype(str), errors="coerce")  # Bug fix
         input_df = input_df.merge(
             input_info_df.loc[:, :"Cover card"],
             left_on="Set",
@@ -662,13 +617,9 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
-    warnings.filterwarnings(
-        "ignore", module="NbConvertApp", message=".*Alternative text.*"
-    )
+    warnings.filterwarnings("ignore", module="NbConvertApp", message=".*Alternative text.*")
     (body, resources) = html_exporter.from_notebook_node(notebook_content)
-    warnings.filterwarnings(
-        "default", module="NbConvertApp", message=".*Alternative text.*"
-    )
+    warnings.filterwarnings("default", module="NbConvertApp", message=".*Alternative text.*")
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
@@ -1064,13 +1015,9 @@ def fetch_bandai(limit: int = 200, *args, **kwargs) -> pd.DataFrame:
 
     print(f"Downloading bandai cards")
     concept = "[[Medium::Bandai]]"
-    bandai_df = api.fetch_properties(
-        concept, bandai_query, step=limit, limit=limit, **kwargs
-    )
+    bandai_df = api.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
-        bandai_df["Monster type"] = (
-            bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
-        )  # Temporary
+        bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])  # Temporary
     if debug:
         print("- Total")
 
@@ -1180,15 +1127,11 @@ def fetch_monster(
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
 
-        temp_df = api.fetch_properties(
-            concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs
-        )
+        temp_df = api.fetch_properties(concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
-        monster_df = monster_df[
-            monster_df["Primary type"] != "Monster Token"
-        ].reset_index(drop=True)
+        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"].reset_index(drop=True)
 
     if debug:
         print("- Total")
@@ -1201,9 +1144,7 @@ def fetch_monster(
 # Non deck cards
 
 
-def fetch_token(
-    token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
-) -> pd.DataFrame:
+def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
@@ -1229,18 +1170,14 @@ def fetch_token(
     if token_query is None:
         token_query = card_query(default="monster")
 
-    token_df = api.fetch_properties(
-        concept, token_query, step=step, limit=limit, **kwargs
-    )
+    token_df = api.fetch_properties(concept, token_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
 
     return token_df
 
 
-def fetch_counter(
-    counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs
-) -> pd.DataFrame:
+def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
@@ -1263,9 +1200,7 @@ def fetch_counter(
     if counter_query is None:
         counter_query = card_query(default="counter")
 
-    counter_df = api.fetch_properties(
-        concept, counter_query, step=step, limit=limit, **kwargs
-    )
+    counter_df = api.fetch_properties(concept, counter_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
 
@@ -1275,9 +1210,7 @@ def fetch_counter(
 # Alternative formats
 
 
-def fetch_speed(
-    speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs
-) -> pd.DataFrame:
+def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
@@ -1313,9 +1246,7 @@ def fetch_speed(
     return speed_df
 
 
-def fetch_skill(
-    skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs
-) -> pd.DataFrame:
+def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
@@ -1334,18 +1265,14 @@ def fetch_skill(
     if skill_query is None:
         skill_query = card_query(default="skill")
 
-    skill_df = api.fetch_properties(
-        concept, skill_query, step=step, limit=limit, **kwargs
-    )
+    skill_df = api.fetch_properties(concept, skill_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
 
     return skill_df
 
 
-def fetch_rush(
-    rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs
-) -> pd.DataFrame:
+def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
@@ -1365,9 +1292,7 @@ def fetch_rush(
     if rush_query is None:
         rush_query = card_query(default="rush")
 
-    rush_df = api.fetch_properties(
-        concept, rush_query, step=step, limit=limit, **kwargs
-    )
+    rush_df = api.fetch_properties(concept, rush_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
 
@@ -1422,9 +1347,7 @@ def fetch_unusable(
 
     if filter and "Card type" in unusable_df:
         unusable_df = unusable_df[
-            unusable_df["Card type"].isin(
-                ["Character Card", "Non-game card", "Ticket Card"]
-            )
+            unusable_df["Card type"].isin(["Character Card", "Non-game card", "Ticket Card"])
         ].reset_index(drop=True)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
@@ -1482,17 +1405,10 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         if debug:
             tqdm.write(f"- {cat}")
 
-        temp = api.fetch_categorymembers(
-            cat, namespace=3010, step=step, iterator=iterator, debug=debug
-        )
+        temp = api.fetch_categorymembers(cat, namespace=3010, step=step, iterator=iterator, debug=debug)
         errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
-        errata_df = (
-            pd.concat([errata_df, errata_series], axis=1)
-            .astype("boolean")
-            .fillna(False)
-            .sort_index()
-        )
+        errata_df = pd.concat([errata_df, errata_series], axis=1).astype("boolean").fillna(False).sort_index()
 
     if debug:
         print("- Total")
@@ -1504,9 +1420,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
 # Sets
 
 
-def fetch_set_list_pages(
-    cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs
-) -> pd.DataFrame:
+def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs) -> pd.DataFrame:
     """
     Fetches a list of 'Set Card Lists' pages from the yugipedia Wiki API.
 
@@ -1538,9 +1452,7 @@ def fetch_set_list_pages(
     )
     for cat in iterator:
         iterator.set_description(cat.split("Category:")[-1])
-        temp = api.fetch_categorymembers(
-            cat, namespace=None, step=step, iterator=iterator, debug=debug
-        )
+        temp = api.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator, debug=debug)
         sub_categories = pd.DataFrame(temp)["title"]
         sub_iterator = tqdm(
             sub_categories,
@@ -1582,9 +1494,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     sets = fetch_set_list_pages(cg, **kwargs)  # Get list of sets
     keys = sets["Page name"]
 
-    all_set_lists_df = pd.DataFrame(
-        columns=["Set", "Card number", "Name", "Rarity", "Print", "Quantity", "Region"]
-    )
+    all_set_lists_df = pd.DataFrame(columns=["Set", "Card number", "Name", "Rarity", "Print", "Quantity", "Region"])
     total_success = 0
     total_error = 0
 
@@ -1598,22 +1508,14 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
         last = (i + 1) * step
 
         set_lists_df, success, error = api.fetch_set_lists(keys[first:last], **kwargs)
-        set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop(
-            "Page name", axis=1
-        )
-        all_set_lists_df = pd.concat(
-            [all_set_lists_df, set_lists_df], ignore_index=True
-        )
+        set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop("Page name", axis=1)
+        all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success += success
         total_error += error
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
-    all_set_lists_df.sort_values(by=["Set", "Region", "Card number"]).reset_index(
-        inplace=True
-    )
-    print(
-        f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing'
-    )
+    all_set_lists_df.sort_values(by=["Set", "Region", "Card number"]).reset_index(inplace=True)
+    print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing')
 
     return all_set_lists_df
 
@@ -1652,9 +1554,7 @@ def run_notebooks(
         reports = [str(reports)] if not isinstance(reports, list) else reports
 
     if progress_handler:
-        external_pbar = progress_handler.pbar(
-            iterable=reports, desc="Completion", unit="report", unit_scale=True
-        )
+        external_pbar = progress_handler.pbar(iterable=reports, desc="Completion", unit="report", unit_scale=True)
     else:
         external_pbar = None
 
@@ -1672,9 +1572,7 @@ def run_notebooks(
         if telegram_first:
             contribs = contribs[::-1]
         secrets = {
-            key: value
-            for key, value in kwargs.items()
-            if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
+            key: value for key, value in kwargs.items() if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
         }
         for contrib in contribs:
             required_secrets = [
@@ -1685,15 +1583,13 @@ def run_notebooks(
             try:
                 loaded_secrets = load_secrets(
                     required_secrets,
-                    secrets_file=(dirs.ASSETS / "secrets.env"),
+                    secrets_file=dirs.secrets_file,
                     required=True,
                 )
                 secrets = secrets | loaded_secrets
 
                 token = secrets.get(f"{contrib}_TOKEN")
-                channel_id = secrets.get(
-                    f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID")
-                )
+                channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
                 if contrib == "DISCORD":
                     contrib_tqdm = ensure_tqdm()
 
@@ -1726,9 +1622,7 @@ def run_notebooks(
     # Create a StreamHandler and attach it to the logger
     stream_handler = logging.StreamHandler(io.StringIO())
     stream_handler.setFormatter(logging.Formatter("%(message)s"))
-    stream_handler.addFilter(
-        lambda record: record.getMessage().startswith("Ending Cell")
-    )
+    stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
     logger.addHandler(stream_handler)
 
     # Define a function to update the output variable
@@ -1940,9 +1834,7 @@ if __name__ == "__main__":
         required=False,
         help="Enables debug flag.",
     )
-    parser.add_argument(
-        "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
-    )
+    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     args = parser.parse_args()
 
     if args.paths:
