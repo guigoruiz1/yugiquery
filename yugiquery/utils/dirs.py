@@ -102,7 +102,7 @@ class Dirs:
         elif self.WORK.parent.joinpath("notebooks").is_dir():
             self.NOTEBOOKS = self.WORK.parent / "notebooks"
         else:
-            self.NOTEBOOKS = self.SHARE / "notebooks"
+            self.NOTEBOOKS = self.ASSETS / "notebooks"
 
         # Define the DATA based on the WORK path
         if self.WORK.parent.joinpath("data").is_dir():
