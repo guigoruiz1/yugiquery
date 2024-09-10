@@ -40,9 +40,9 @@ def install_kernel() -> None:
 
     # Install the Jupyter kernel using ipykernel.
     python_path = (
-        os.path.join(venv_name, "bin", "python") if os.name != "nt" else os.path.join(venv_name, "Scripts", "python")
+        os.path.join(venv_name, "bin", "python3") if os.name != "nt" else os.path.join(venv_name, "Scripts", "python3")
     )
-    display_name = "Python (yugiquery)"
+    display_name = "Python3 (yugiquery)"
 
     result = subprocess.run(
         [
@@ -86,8 +86,32 @@ def install_nbconvert() -> None:
 
     src_dir = dirs.ASSETS / "nbconvert"
     dst_dir = dirs.SHARE / "jupyter" / "nbconvert" / "templates"
-    shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
-    print("nbconvert templates installed.")
+    try:
+        shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
+        print("nbconvert templates installed.")
+    except Exception as e:
+        cprint(f"Failed to install nbconvert templates", color="red")
+        print(e)
+
+
+def install_filters() -> None:
+    from yugiquery.utils.dirs import dirs
+    from yugiquery.utils import git
+
+    try:
+        repo_root = git.get_repo().rev_parse("--show-toplevel")
+        script_path = dirs.ASSETS / "scripts" / "git_filters.sh"
+        result = subprocess.run(
+            ["cd", repo_root, "&&", "bash", script_path],
+            text=True,
+        )
+        if result.returncode == 0:
+            print("Git filters have been installed in the current repository.")
+        else:
+            raise RuntimeError(result.stderr)
+    except Exception as e:
+        cprint(f"Failed to install tqdm fork for Discord bot!", color="red")
+        print(e)
 
 
 def main(args):
@@ -97,6 +121,8 @@ def main(args):
         install_kernel()
     if args.nbconvert or args.all:
         install_nbconvert()
+    if args.filters or args.all:
+        install_filters()
 
 
 if __name__ == "__main__":
@@ -106,6 +132,7 @@ if __name__ == "__main__":
     argparser.add_argument("--tqdm", action="store_true", help="Install tqdm fork for Discord bot.")
     argparser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
     argparser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
+    argparser.add_argument("--filters", action="store_true", help="Install git filters.")
     argparser.add_argument("--all", action="store_true", help="Install all.")
     args = argparser.parse_args()
 

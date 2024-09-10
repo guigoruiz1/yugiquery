@@ -12,7 +12,6 @@ matplotlib_inline>=0.1.2
 matplotlib_venn>=0.11.10
 nbconvert>=7.11.0
 nbformat>=5.10.3
-nbstripout>=0.6.1
 numpy>=1.26.4
 pandas>=2.2.1
 papermill>=2.5.0

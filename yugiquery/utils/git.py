@@ -11,9 +11,7 @@
 # ======= #
 
 # Standard library imports
-import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import (
     List,
@@ -61,8 +59,7 @@ def assure_repo() -> git.Repo:
         dirs.REPORTS = dirs.WORK / "reports"
 
         # Ensure the data and reports directories exist
-        os.makedirs(dirs.DATA, exist_ok=True)
-        os.makedirs(dirs.REPORTS, exist_ok=True)
+        dirs.make()
 
     return repo
 
@@ -113,9 +110,7 @@ def unlock(passphrase: str = "") -> str:
     return result
 
 
-def commit(
-    files: Union[str, List[str]], commit_message: str = "", repo: git.Repo = None
-) -> str:
+def commit(files: Union[str, List[str]], commit_message: str = "", repo: git.Repo = None) -> str:
     """
     Commits the specified files to the git repository after staging them.
 

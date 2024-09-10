@@ -116,6 +116,11 @@ def main():
         help="Install nbconvert templates.",
     )
     post_install_parser.add_argument(
+        "--filters",
+        action="store_true",
+        help="Install Git filters.",
+    )
+    post_install_parser.add_argument(
         "--all",
         action="store_true",
         help="Install all.",

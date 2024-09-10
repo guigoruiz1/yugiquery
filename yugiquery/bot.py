@@ -110,9 +110,7 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     return secrets
 
 
-def escape_chars(
-    string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]
-) -> str:
+def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
     """
     Escapes specified characters in a given string by adding a backslash before each occurrence.
 
@@ -212,9 +210,7 @@ class ProgressHandler:
         if self.progress_bar is None:
             return None
         else:
-            return self.progress_bar(
-                iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs
-            )
+            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
 
     def exit(self, API_status: bool = True) -> None:
         """
@@ -349,9 +345,7 @@ class Bot:
         except:
             return "Abort failed"
 
-    async def battle(
-        self, callback: Callable, atk_weight: int = 4, def_weight: int = 1
-    ) -> dict:
+    async def battle(self, callback: Callable, atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
@@ -373,19 +367,11 @@ class Bot:
 
         cards = pd.read_csv(cards_files[0])
         weights = [atk_weight, def_weight]
-        monsters = cards[
-            (cards["Card type"] == "Monster Card")
-            & (cards["Primary type"] != "Monster Token")
-        ][MONSTER_STATS].set_index("Name")
-        monsters = monsters.map(
-            lambda x: x if x != "?" else random.randrange(start=0, stop=51) * 100
-        )
-        monsters = (
-            monsters.map(pd.to_numeric, errors="coerce")
-            .fillna(0)
-            .astype(int)
-            .reset_index()
-        )
+        monsters = cards[(cards["Card type"] == "Monster Card") & (cards["Primary type"] != "Monster Token")][
+            MONSTER_STATS
+        ].set_index("Name")
+        monsters = monsters.map(lambda x: x if x != "?" else random.randrange(start=0, stop=51) * 100)
+        monsters = monsters.map(pd.to_numeric, errors="coerce").fillna(0).astype(int).reset_index()
 
         # Shuffle the monsters and select the first one as the initial winner
         monsters = monsters.sample(frac=1).reset_index(drop=True)
@@ -398,9 +384,7 @@ class Bot:
             current_winner = (winner[0].copy(), winner[1])
             next_monster = monsters.iloc[i].copy()
             chosen_stat = random.choices(MONSTER_STATS[1:], weights=weights)[0]
-            not_chosen_stat = [
-                stat for stat in MONSTER_STATS[1:] if stat != chosen_stat
-            ][0]
+            not_chosen_stat = [stat for stat in MONSTER_STATS[1:] if stat != chosen_stat][0]
             if next_monster[chosen_stat] > current_winner[0][chosen_stat]:
                 next_monster[chosen_stat] -= current_winner[0][chosen_stat]
                 if current_winner[1] > longest[1]:
@@ -432,9 +416,7 @@ class Bot:
             with open(dirs.DATA / "benchmark.json", "r") as file:
                 data = json.load(file)
         except:
-            return {
-                "error": "Unable to find benchmark records at this time. Try again later."
-            }
+            return {"error": "Unable to find benchmark records at this time. Try again later."}
 
         response = {
             "title": "Benchmark",
@@ -456,9 +438,7 @@ class Bot:
             avg_time_str = (
                 arrow.now()
                 .shift(seconds=avg_time)
-                .humanize(
-                    granularity=get_humanize_granularity(avg_time), only_distance=True
-                )
+                .humanize(granularity=get_humanize_granularity(avg_time), only_distance=True)
             )
             latest_time_str = (
                 arrow.now()
@@ -485,9 +465,7 @@ class Bot:
             return {"error": "No github repository."}
         try:
             files = pd.read_json(f"{self.URLS.api}/contents/data")
-            files = files[
-                files["name"].str.endswith(".bz2")
-            ]  # Remove .json files from lists
+            files = files[files["name"].str.endswith(".bz2")]  # Remove .json files from lists
             files[["Group", "Timestamp"]] = (
                 files["name"]
                 .str.extract(
@@ -516,9 +494,7 @@ class Bot:
             }
             return response
         except:
-            return {
-                "error": "Unable to obtain the latest files at this time. Try again later."
-            }
+            return {"error": "Unable to obtain the latest files at this time. Try again later."}
 
     def latest(self) -> Dict[str, str]:
         """
@@ -550,9 +526,7 @@ class Bot:
                 live_value = ""
                 for report in reports:
                     result = pd.read_json(f"{self.URLS.api}/commits?path={report.name}")
-                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc[
-                        "date", "author"
-                    ]
+                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
                     live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
@@ -569,7 +543,9 @@ class Bot:
             dict: A dictionary containing links to YugiQuery resources.
         """
         if self.URLS.webpage is not None and self.URLS.repo is not None:
-            description = f"[Webpage]({self.URLS.webpage}) • [Repository]({self.URLS.repo}) • [Data]({self.URLS.repo}/tree/main/data)"
+            description = (
+                f"[Webpage]({self.URLS.webpage}) • [Repository]({self.URLS.repo}) • [Data]({self.URLS.repo}/tree/main/data)"
+            )
         else:
             description = "No github repository."
         response = {
@@ -611,11 +587,7 @@ class Bot:
 
         progress_handler = ProgressHandler(
             queue=queue,
-            progress_bar=(
-                progress_bar
-                if ((channel_id != self.channel) or isinstance(self, Telegram))
-                else None
-            ),
+            progress_bar=(progress_bar if ((channel_id != self.channel) or isinstance(self, Telegram)) else None),
             pbar_kwargs=pbar_kwargs,
         )
         try:
@@ -659,10 +631,7 @@ class Bot:
             elif exitcode == -15:
                 return {"error": "Query execution aborted!"}
             else:
-                return {
-                    "error": f"Query execution exited with exit code: {exitcode}\n\n"
-                    + stderr_output
-                }
+                return {"error": f"Query execution exited with exit code: {exitcode}\n\n" + stderr_output}
 
     def uptime(self):
         """
@@ -670,9 +639,7 @@ class Bot:
         """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
         granularity = get_humanize_granularity(time_difference)
-        humanized = self.start_time.humanize(
-            arrow.utcnow(), only_distance=True, granularity=granularity
-        )
+        humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
 
     def push(self, passphrase: str = "") -> str:
@@ -797,9 +764,7 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            original_response = await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="Aborting..."
-            )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Aborting...")
             response = self.abort()
             await original_response.edit_text(response)
 
@@ -832,9 +797,7 @@ class Telegram(Bot):
                 nonlocal callback_first
                 callback_first = first
                 await original_message.edit_text(
-                    escape_chars(
-                        f"*First contestant*: {first}\n\nStill battling... ⏳"
-                    ),
+                    escape_chars(f"*First contestant*: {first}\n\nStill battling... ⏳"),
                     parse_mode="MarkdownV2",
                 )
 
@@ -868,9 +831,7 @@ class Telegram(Bot):
             """
             response = self.benchmark()
             if "error" in response.keys():
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=response["error"]
-                )
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
                 return
 
             message = f"*{response.pop('title')}*\n{response.pop('description')}\n\n"
@@ -878,9 +839,7 @@ class Telegram(Bot):
                 message += f"*{key}*\n{value}\n\n"
 
             message = escape_chars(message)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         async def data(update: Update, context: CallbackContext) -> None:
             """
@@ -898,9 +857,7 @@ class Telegram(Bot):
                 message = f"*{response['title']}*\n{response['description']}\n\nData:\n{response['data']}\nChangelog:\n{response['changelog']}"
 
             message = escape_chars(message)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         async def latest(update: Update, context: CallbackContext) -> None:
             """
@@ -916,9 +873,7 @@ class Telegram(Bot):
                 message += f"\n*Live:*\n{response['live']}"
 
             message = escape_chars(message)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         async def links(update: Update, context: CallbackContext) -> None:
             """
@@ -931,9 +886,7 @@ class Telegram(Bot):
             response = self.links()
             message = f"*{response['title']}*\n{response['description']}"
             message = escape_chars(message)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         async def ping(update: Update, context: CallbackContext) -> None:
             """
@@ -962,9 +915,7 @@ class Telegram(Bot):
             """
             passphrase = context.args[0] if context.args else ""
             response = self.pull(passphrase)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=response
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
         async def push(update: Update, context: CallbackContext) -> None:
             """
@@ -976,9 +927,7 @@ class Telegram(Bot):
             """
             passphrase = context.args[0] if context.args else ""
             response = self.push(passphrase)
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=response
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
         async def run_query(
             update: Update,
@@ -995,28 +944,21 @@ class Telegram(Bot):
             last_run = context.user_data.get("last_run", arrow.get(0.0))
             if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
                 granularity = get_humanize_granularity(
-                    (
-                        last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()
-                    ).total_seconds()
+                    (last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds()
                 )
                 next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
                     arrow.utcnow(), granularity=granularity
                 )
-                await update.effective_message.reply_text(
-                    f"You are on cooldown. Try again {next_available}"
-                )
+                await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
                 return
 
             report = (
                 self.Reports[context.args[0].capitalize()]
-                if context.args
-                and context.args[0].capitalize() in self.Reports.__members__
+                if context.args and context.args[0].capitalize() in self.Reports.__members__
                 else self.Reports.All
             )
 
-            original_response = await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="Initializing..."
-            )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)
@@ -1028,14 +970,10 @@ class Telegram(Bot):
                 progress_bar=self.telegram_pbar,
             )
             if "error" in response.keys():
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=response["error"]
-                )
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
             else:
                 context.user_data["last_run"] = arrow.utcnow()
-                await context.bot.send_message(
-                    chat_id=update.effective_chat.id, text=response["content"]
-                )
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
 
         async def status(update: Update, context: CallbackContext) -> None:
             """
@@ -1063,9 +1001,7 @@ class Telegram(Bot):
             )
             message = escape_chars(message)
 
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2"
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         async def shutdown(update: Update, context: CallbackContext) -> None:
             """
@@ -1075,26 +1011,18 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id, text="Shutting down..."
-            )
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
 
         # Register the command handlers
-        self.application.add_handler(
-            CommandHandler(command="abort", callback=abort, block=False)
-        )
+        self.application.add_handler(CommandHandler(command="abort", callback=abort, block=False))
         self.application.add_handler(CommandHandler(command="battle", callback=battle))
-        self.application.add_handler(
-            CommandHandler(command="benchmark", callback=benchmark)
-        )
+        self.application.add_handler(CommandHandler(command="benchmark", callback=benchmark))
         self.application.add_handler(CommandHandler(command="data", callback=data))
         self.application.add_handler(CommandHandler(command="latest", callback=latest))
         self.application.add_handler(CommandHandler(command="links", callback=links))
         self.application.add_handler(CommandHandler(command="ping", callback=ping))
-        self.application.add_handler(
-            CommandHandler(command="run", callback=run_query, block=False)
-        )
+        self.application.add_handler(CommandHandler(command="run", callback=run_query, block=False))
         self.application.add_handler(CommandHandler(command="status", callback=status))
         self.application.add_handler(
             CommandHandler(
@@ -1180,9 +1108,7 @@ class Discord(Bot, commands.Bot):
         intents = discord.Intents(messages=True, guilds=True, members=True)
         help_command = commands.DefaultHelpCommand(no_category="Commands")
         description = "Bot to manage YugiQuery data and execution."
-        activity = discord.Activity(
-            type=discord.ActivityType.watching, name="for /status"
-        )
+        activity = discord.Activity(type=discord.ActivityType.watching, name="for /status")
         commands.Bot.__init__(
             self,
             command_prefix="/",
@@ -1295,9 +1221,7 @@ class Discord(Bot, commands.Bot):
             Args:
                 ctx (commands.Context): The context of the command.
             """
-            original_response = await ctx.send(
-                content="Aborting...", ephemeral=True, delete_after=60
-            )
+            original_response = await ctx.send(content="Aborting...", ephemeral=True, delete_after=60)
             response = self.abort()
             await original_response.edit(content=response)
 
@@ -1331,9 +1255,7 @@ class Discord(Bot, commands.Bot):
                 nonlocal original_response
                 original_response = await ctx.send(embed=embed)
 
-            response = await self.battle(
-                atk_weight=atk_weight, def_weight=def_weight, callback=callback
-            )
+            response = await self.battle(atk_weight=atk_weight, def_weight=def_weight, callback=callback)
 
             if "error" in response.keys():
                 await ctx.send(
@@ -1354,9 +1276,7 @@ class Discord(Bot, commands.Bot):
                 inline=True,
             )
 
-            embed.add_field(
-                name="Longest streak", value=longest[0]["Name"], inline=True
-            )
+            embed.add_field(name="Longest streak", value=longest[0]["Name"], inline=True)
             embed.add_field(name="Wins", value=longest[1], inline=True)
             embed.add_field(
                 name="Stats when defeated",
@@ -1396,9 +1316,7 @@ class Discord(Bot, commands.Bot):
 
             await ctx.send(embed=embed)
 
-        @self.hybrid_command(
-            name="data", description="Send latest data files.", with_app_command=True
-        )
+        @self.hybrid_command(name="data", description="Send latest data files.", with_app_command=True)
         async def data(ctx) -> None:
             """
             This command sends the latest data files available in the repository as direct download links.
@@ -1418,9 +1336,7 @@ class Discord(Bot, commands.Bot):
                     color=discord.Colour.magenta(),
                 )
                 embed.add_field(name="Data", value=response["data"], inline=False)
-                embed.add_field(
-                    name="Changelog", value=response["changelog"], inline=False
-                )
+                embed.add_field(name="Changelog", value=response["changelog"], inline=False)
                 await ctx.send(embed=embed)
 
         @self.hybrid_command(
@@ -1450,9 +1366,7 @@ class Discord(Bot, commands.Bot):
 
             await ctx.send(embed=embed)
 
-        @self.hybrid_command(
-            name="links", description="Show YugiQuery links.", with_app_command=True
-        )
+        @self.hybrid_command(name="links", description="Show YugiQuery links.", with_app_command=True)
         async def links(ctx) -> None:
             """
             Displays the links to the YugiQuery webpage, repository, and data. Returns the links as an embedded message in
@@ -1488,9 +1402,7 @@ class Discord(Bot, commands.Bot):
                 delete_after=60,
             )
 
-        @self.hybrid_command(
-            name="pull", description="Pull changes from remote.", with_app_command=True
-        )
+        @self.hybrid_command(name="pull", description="Pull changes from remote.", with_app_command=True)
         @commands.is_owner()
         async def pull(ctx, passphrase: str = "") -> None:
             """
@@ -1505,9 +1417,7 @@ class Discord(Bot, commands.Bot):
             response = self.pull(passphrase)
             await ctx.send(content=response)
 
-        @self.hybrid_command(
-            name="push", description="Push repository to remote.", with_app_command=True
-        )
+        @self.hybrid_command(name="push", description="Push repository to remote.", with_app_command=True)
         @commands.is_owner()
         async def push(ctx, passphrase: str = "") -> None:
             """
@@ -1522,13 +1432,9 @@ class Discord(Bot, commands.Bot):
             response = self.push(passphrase)
             await ctx.send(content=response)
 
-        @self.hybrid_command(
-            name="run", description="Run full YugiQuery flow.", with_app_command=True
-        )
+        @self.hybrid_command(name="run", description="Run full YugiQuery flow.", with_app_command=True)
         @commands.is_owner()
-        @commands.cooldown(
-            rate=1, per=self.cooldown_limit, type=commands.BucketType.user
-        )
+        @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
@@ -1542,9 +1448,7 @@ class Discord(Bot, commands.Bot):
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
             """
-            original_response = await ctx.send(
-                content="Initializing...", ephemeral=True, delete_after=60
-            )
+            original_response = await ctx.send(content="Initializing...", ephemeral=True, delete_after=60)
 
             async def callback(content: str) -> None:
                 await original_response.edit(content=content)
@@ -1586,13 +1490,7 @@ class Discord(Bot, commands.Bot):
 
             if len(self.commands):
                 commandsInfo = " • `\\" + "\n • `\\".join(
-                    sorted(
-                        [
-                            f"{i.name}`: {i.description}"
-                            for i in self.commands
-                            if not i.name == "help"
-                        ]
-                    )
+                    sorted([f"{i.name}`: {i.description}" for i in self.commands if not i.name == "help"])
                 )
 
             embed = discord.Embed(color=ctx.me.colour)
@@ -1605,24 +1503,16 @@ class Discord(Bot, commands.Bot):
             embed.add_field(name="Channels", value=channels, inline=True)
             embed.add_field(name="Available Commands", value=commandsInfo, inline=False)
             embed.add_field(name="Bot Version", value=yq.__version__, inline=True)
-            embed.add_field(
-                name="Discord.py Version", value=discord.__version__, inline=True
-            )
-            embed.add_field(
-                name="Python Version", value=platform.python_version(), inline=True
-            )
+            embed.add_field(name="Discord.py Version", value=discord.__version__, inline=True)
+            embed.add_field(name="Python Version", value=platform.python_version(), inline=True)
             embed.add_field(
                 name="Operating System",
                 value=f" • **Name**: {platform.system()}\n • **Release**: {platform.release()}\n • **Machine**: {platform.machine()}\n • **Version**: {platform.version()}",
                 inline=False,
             )
-            await ctx.send(
-                "**:information_source:** Information about this bot:", embed=embed
-            )
+            await ctx.send("**:information_source:** Information about this bot:", embed=embed)
 
-        @self.hybrid_command(
-            name="shutdown", description="Shutdown bot.", with_app_command=True
-        )
+        @self.hybrid_command(name="shutdown", description="Shutdown bot.", with_app_command=True)
         @commands.is_owner()
         async def shutdown(ctx) -> None:
             """
@@ -1656,24 +1546,16 @@ def main(args):
     # Handle bots based on subclass
     if args.subclass == "discord":
         if "DISCORD_TOKEN" not in secrets or "DISCORD_CHANNEL_ID" not in secrets:
-            raise ValueError(
-                "Discord bot requires DISCORD_TOKEN and DISCORD_CHANNEL_ID in secrets."
-            )
+            raise ValueError("Discord bot requires DISCORD_TOKEN and DISCORD_CHANNEL_ID in secrets.")
         # Initialize and run the Discord bot
-        discord_bot = Discord(
-            token=secrets["DISCORD_TOKEN"], channel=secrets["DISCORD_CHANNEL_ID"]
-        )
+        discord_bot = Discord(token=secrets["DISCORD_TOKEN"], channel=secrets["DISCORD_CHANNEL_ID"])
         discord_bot.run()
 
     elif args.subclass == "telegram":
         if "TELEGRAM_TOKEN" not in secrets or "TELEGRAM_CHANNEL_ID" not in secrets:
-            raise ValueError(
-                "Telegram bot requires TELEGRAM_TOKEN and TELEGRAM_CHANNEL_ID in secrets."
-            )
+            raise ValueError("Telegram bot requires TELEGRAM_TOKEN and TELEGRAM_CHANNEL_ID in secrets.")
         # Initialize and run the Telegram bot
-        telegram_bot = Telegram(
-            token=secrets["TELEGRAM_TOKEN"], channel=secrets["TELEGRAM_CHANNEL_ID"]
-        )
+        telegram_bot = Telegram(token=secrets["TELEGRAM_TOKEN"], channel=secrets["TELEGRAM_CHANNEL_ID"])
         telegram_bot.run()
 
 
@@ -1699,9 +1581,7 @@ if __name__ == "__main__":
         required=False,
         help="Enable debug flag",
     )
-    parser.add_argument(
-        "-p", "--paths", action="store_true", help="Print YugiQuery paths and exit"
-    )
+    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     args = parser.parse_args()
 
     if args.paths:

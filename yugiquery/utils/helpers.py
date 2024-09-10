@@ -45,9 +45,7 @@ def ensure_tqdm():
             return discord_tqdm
         except ImportError:
             if loop == 0:
-                print(
-                    "Missing required tqdm fork for Discord progress bar. Trying to install now..."
-                )
+                print("Missing required tqdm fork for Discord progress bar. Trying to install now...")
 
             # Assuming dirs and ASSETS are defined somewhere in your code
             spec = importlib.util.spec_from_file_location(
@@ -70,9 +68,7 @@ def ensure_tqdm():
 # ============ #
 
 
-def load_secrets(
-    requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False
-) -> Dict[str, str]:
+def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False) -> Dict[str, str]:
     """
     Load secrets from environment variables and/or a .env file.
 
@@ -97,21 +93,15 @@ def load_secrets(
     secrets = {
         key: value
         for key in requested_secrets
-        if (
-            value := os.environ.get(key, os.environ.get(f"TQDM_{key}"))
-        )  # Using walrus operator to assign and check value
+        if (value := os.environ.get(key, os.environ.get(f"TQDM_{key}")))  # Using walrus operator to assign and check value
     }
-    if secrets_file and Path(secrets_file).is_file():
+    if secrets_file is not None and Path(secrets_file).is_file():
         secrets = dotenv_values(secrets_file) | secrets
 
         if not requested_secrets:
             return secrets
         else:
-            secrets = {
-                key: secrets[key]
-                for key in requested_secrets
-                if key in secrets.keys() and secrets[key]
-            }
+            secrets = {key: secrets[key] for key in requested_secrets if key in secrets.keys() and secrets[key]}
     if required:
         for i, key in enumerate(requested_secrets):
             check = required if isinstance(required, bool) else required[i]
@@ -195,9 +185,7 @@ def separate_words_and_acronyms(strings: List[str]) -> tuple[list, list]:
     return words, acronyms
 
 
-def make_filename(
-    report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None
-) -> str:
+def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None) -> str:
     """
     Generates a standardized filename based on the provided parameters.
 
