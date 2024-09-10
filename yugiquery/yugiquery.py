@@ -581,7 +581,6 @@ def save_notebook() -> None:
     print("Notebook saved to disk")
 
 
-# TODO: silence alt text warning
 def export_notebook(input_path, template="auto", no_input=True) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
@@ -1556,8 +1555,9 @@ def run_notebooks(
         external_pbar = None
 
     # Initialize iterators
+    # TODO: enable more than one contrib at once
+    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     iterator = None
-
     if not suppress_contribs:
         contribs = ["DISCORD", "TELEGRAM"]
         if telegram_first:
@@ -1682,6 +1682,8 @@ def run_notebooks(
     stream_handler.close()
     # Clear custom handler
     logger.handlers.clear()
+
+    warnings.filterwarnings("default")
 
     if exceptions:
         combined_message = "\n".join(str(e) for e in exceptions)
