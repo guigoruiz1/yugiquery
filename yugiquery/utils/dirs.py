@@ -90,12 +90,6 @@ class Dirs:
         # Determine the SHARE parh from the ASSETS path
         self.SHARE = self.ASSETS.parent
 
-        # Determine the REPORTS path
-        if self.WORK.parent.joinpath("reports").is_dir():
-            self.REPORTS = self.WORK.parent / "reports"
-        else:
-            self.REPORTS = self.WORK / "reports"
-
         # Determine the NOTEBOOKS path based on the environment and hierarchy
         if self.WORK.joinpath("notebooks").is_dir():
             self.NOTEBOOKS = self.WORK / "notebooks"
@@ -104,21 +98,58 @@ class Dirs:
         else:
             self.NOTEBOOKS = self.ASSETS / "notebooks"
 
-        # Define the DATA based on the WORK path
-        if self.WORK.parent.joinpath("data").is_dir():
-            self.DATA = self.WORK.parent / "data"
-        else:
-            self.DATA = self.WORK / "data"
-
         # Redefine the ASSETS based on the hierarchy
         if self.WORK.joinpath("assets").is_dir():
             self.ASSETS = self.WORK / "assets"
         elif self.WORK.parent.joinpath("assets").is_dir():
             self.ASSETS = self.WORK.parent / "assets"
 
+    @property
+    def DATA(self) -> Path:
+        # Get the DATA path based on the WORK path
+        if self.WORK.parent.joinpath("data").is_dir():
+            return self.WORK.parent / "data"
+        else:
+            return self.WORK / "data"
+
+    @property
+    def REPORTS(self) -> Path:
+        # Get the REPORTS path based on the WORK path
+        if self.WORK.parent.joinpath("reports").is_dir():
+            return self.WORK.parent / "reports"
+        else:
+            return self.WORK / "reports"
+
+    @property
+    def is_notebook(self) -> bool:
+        """
+        Check if the current environment is a Jupyter notebook.
+
+        Returns:
+            bool: True if the current environment is a Jupyter notebook, False otherwise.
+        """
+        return get_ipython() is not None
+
+    @property
+    def secrets_file(self) -> Path:
+        """
+        Return the path to the secrets file following the hierarchy: first dirs.ASSETS, then dirs.WORK. Returns none if the file is not found.
+
+        Returns:
+            Path: The path to the secrets file.
+
+        """
+        secrets_file = self.ASSETS / "secrets.env"
+        if not secrets_file.is_file():
+            secrets_file = self.WORK / "secrets.env"
+            if not secrets_file.is_file():
+                secrets_file = None
+
+        return secrets_file
+
     def print(self) -> None:
         """
-        Print the directory paths managed by this class.
+        Prints the directory paths managed by this class.
         """
         print(f"APP: {self.APP}")
         print(f"ASSETS: {self.ASSETS}")
@@ -135,32 +166,6 @@ class Dirs:
         """
         os.makedirs(self.DATA, exist_ok=True)
         os.makedirs(self.REPORTS, exist_ok=True)
-
-    @property
-    def is_notebook(self) -> bool:
-        """
-        Check if the current environment is a Jupyter notebook.
-
-        Returns:
-            bool: True if the current environment is a Jupyter notebook, False otherwise.
-        """
-        return get_ipython() is not None
-
-    def secrets_file(self) -> Path:
-        """
-        Return the path to the secrets file following the hierarchy: first dirs.ASSETS, then dirs.WORK. Returns none if the file is not found.
-
-        Returns:
-            Path: The path to the secrets file.
-
-        """
-        secrets_file = self.ASSETS / "secrets.env"
-        if not secrets_file.is_file():
-            secrets_file = self.WORK / "secrets.env"
-            if not secrets_file.is_file():
-                secrets_file = None
-
-        return secrets_file
 
 
 # Global instance of Dirs

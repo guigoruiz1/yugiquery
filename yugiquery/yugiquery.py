@@ -617,9 +617,9 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
-    warnings.filterwarnings("ignore", module="NbConvertApp", message=".*Alternative text.*")
+    warnings.filterwarnings("ignore", module="IPKernelApp", message=".*Alternative text.*")
     (body, resources) = html_exporter.from_notebook_node(notebook_content)
-    warnings.filterwarnings("default", module="NbConvertApp", message=".*Alternative text.*")
+    warnings.filterwarnings("default", module="IPKernelApp", message=".*Alternative text.*")
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
@@ -1755,8 +1755,6 @@ def run(
 def main(args):
     # Assures the script is within a git repository before proceesing
     _ = git.assure_repo()
-    # Make sure the data and reports directories exist
-    dirs.make()
     # Execute the complete workflow
     run(**vars(args))
     # Exit python

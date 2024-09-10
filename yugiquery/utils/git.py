@@ -55,9 +55,6 @@ def assure_repo() -> git.Repo:
         # Handle any exceptions (e.g., invalid path)
         raise RuntimeError(f"Unable to init Git repository: {e}")
     finally:
-        dirs.DATA = dirs.WORK / "data"
-        dirs.REPORTS = dirs.WORK / "reports"
-
         # Ensure the data and reports directories exist
         dirs.make()
 
