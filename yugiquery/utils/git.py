@@ -80,7 +80,7 @@ def get_repo() -> git.Repo:
         git.Repo: The git repository object.
     """
     try:
-        return git.Repo(dirs.APP, search_parent_directories=True)
+        return git.Repo(dirs.WORK, search_parent_directories=True)
 
     except git.InvalidGitRepositoryError as e:
         raise RuntimeError(f"Unable to find a git repository: {e}")

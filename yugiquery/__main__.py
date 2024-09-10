@@ -12,10 +12,13 @@ def main():
     parser = argparse.ArgumentParser(description="Yugiquery CLI tool")
 
     subparsers = parser.add_subparsers(dest="command")
-    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
-    parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
+    parser.add_argument("-p", "--paths", action="store_true",
+                        help="Print YugiQuery paths and exit")
+    parser.add_argument("-v", "--version", action="store_true",
+                        help="Print YugiQuery version and exit")
     # Subparser for the main yugiquery flow
-    yugiquery_parser = subparsers.add_parser("run", help=" Run the main Yugiquery flow")
+    yugiquery_parser = subparsers.add_parser(
+        "run", help=" Run the main Yugiquery flow")
 
     yugiquery_parser.add_argument(
         "-r",
@@ -95,15 +98,18 @@ def main():
         help="Select between a Discord or a Telegram bot",
     )
     bot_parser.add_argument("-t", "--token", type=str, help="Bot API token")
-    bot_parser.add_argument("-c", "--channel", dest="channel_id", type=int, help="Bot responses channel id")
-    bot_parser.add_argument("--debug", action="store_true", help="Enable debug flag")
+    bot_parser.add_argument(
+        "-c", "--channel", dest="channel_id", type=int, help="Bot responses channel id")
+    bot_parser.add_argument(
+        "--debug", action="store_true", help="Enable debug flag")
 
     # Subparser for the kernel installation
-    post_install_parser = subparsers.add_parser("install", help="Run post-install script")
+    post_install_parser = subparsers.add_parser(
+        "install", help="Run post-install script")
     post_install_parser.add_argument(
         "--tqdm",
         action="store_true",
-        help="Install tqdm fork for Discord bot.",
+        help="Install TQDM fork for Discord bot.",
     )
     post_install_parser.add_argument(
         "--kernel",

@@ -8,22 +8,29 @@ from termcolor import cprint
 
 
 def install_kernel() -> None:
-    from yugiquery.utils import git
+    from yugiquery.utils.git import get_repo
+    from yugiquery.utils.dirs import dirs
     from yugiquery import __url__
 
     venv_name = "yqvenv"
+    venv_path = dirs.WORK / venv_name
+
     # Create a virtual environment.
-    result = subprocess.run([sys.executable, "-m", "venv", venv_name], text=True)
+    result = subprocess.run(
+        [sys.executable, "-m", "venv", venv_path], text=True)
     if result.returncode != 0:
-        cprint(text=f"Failed to create virtual environment '{venv_name}'.", color="red")
+        cprint(
+            text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
         return
     else:
-        print(f"{venv_name} virtual environment created.")
+        cprint(
+            text=f"\n{venv_name} virtual environment created.", color="green")
 
     # Install YugiQuery inside the virtual environment.
-    pip_path = os.path.join(venv_name, "bin", "pip") if os.name != "nt" else os.path.join(venv_name, "Scripts", "pip")
+    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(
+        venv_path, "Scripts", "pip")
     try:
-        remote_url = git.get_repo().remote().url
+        remote_url = get_repo().remote().url
     except:
         remote_url = f"{__url__}.git"
 
@@ -33,14 +40,17 @@ def install_kernel() -> None:
     )
 
     if result.returncode != 0:
-        cprint(text=f"Failed to install YugiQuery in {venv_name}!", color="red")
+        cprint(
+            text=f"\nFailed to install YugiQuery in {venv_name}!", color="red")
         return
     else:
-        print(f"YugiQuery installed in the virtual environment {venv_name}.")
+        cprint(
+            text=f"\nYugiQuery installed in the virtual environment {venv_name}.", color="green")
 
     # Install the Jupyter kernel using ipykernel.
     python_path = (
-        os.path.join(venv_name, "bin", "python3") if os.name != "nt" else os.path.join(venv_name, "Scripts", "python3")
+        os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(
+            venv_path, "Scripts", "python3")
     )
     display_name = "Python3 (yugiquery)"
 
@@ -63,9 +73,9 @@ def install_kernel() -> None:
     )
 
     if result.returncode != 0:
-        cprint(text=f"Failed to install Jupyter kernel 'yugiquery'!", color="red")
+        cprint(text=f"\nFailed to install Jupyter kernel 'yugiquery'!", color="red")
     else:
-        print("Jupyter kernel 'yugiquery' installed.")
+        cprint(text="\nJupyter kernel 'yugiquery' installed.", color="green")
 
 
 def install_tqdm() -> None:
@@ -75,9 +85,9 @@ def install_tqdm() -> None:
     )
 
     if result.returncode == 0:
-        print("tqdm fork for Discord bot installed.")
+        cprint(text="\nTQDM fork for Discord bot installed.", color="green")
     else:
-        cprint(f"Failed to install tqdm fork for Discord bot!", color="red")
+        cprint(text=f"\nFailed to install TQDM fork for Discord bot!", color="red")
         print(result.stderr)
 
 
@@ -88,29 +98,31 @@ def install_nbconvert() -> None:
     dst_dir = dirs.SHARE / "jupyter" / "nbconvert" / "templates"
     try:
         shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
-        print("nbconvert templates installed.")
+        cprint(text="\nnbconvert templates installed.", color="green")
     except Exception as e:
-        cprint(f"Failed to install nbconvert templates", color="red")
+        cprint(text=f"\nFailed to install nbconvert templates", color="red")
         print(e)
 
 
 def install_filters() -> None:
     from yugiquery.utils.dirs import dirs
-    from yugiquery.utils import git
+    from yugiquery.utils.git import get_repo
 
     try:
-        repo_root = git.get_repo().rev_parse("--show-toplevel")
+        repo_root = get_repo().working_dir
         script_path = dirs.ASSETS / "scripts" / "git_filters.sh"
         result = subprocess.run(
-            ["cd", repo_root, "&&", "bash", script_path],
+            ["bash", script_path],
             text=True,
+            cwd=repo_root,
         )
         if result.returncode == 0:
-            print("Git filters have been installed in the current repository.")
+            cprint(
+                text="\nGit filters have been installed in the current repository.", color="green")
         else:
             raise RuntimeError(result.stderr)
     except Exception as e:
-        cprint(f"Failed to install tqdm fork for Discord bot!", color="red")
+        cprint(text=f"\nFailed to install Git filters!", color="red")
         print(e)
 
 
@@ -129,10 +141,14 @@ if __name__ == "__main__":
     import argparse
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--tqdm", action="store_true", help="Install tqdm fork for Discord bot.")
-    argparser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
-    argparser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
-    argparser.add_argument("--filters", action="store_true", help="Install git filters.")
+    argparser.add_argument("--tqdm", action="store_true",
+                           help="Install TQDM fork for Discord bot.")
+    argparser.add_argument("--kernel", action="store_true",
+                           help="Install Jupyter kernel.")
+    argparser.add_argument("--nbconvert", action="store_true",
+                           help="Install nbconvert templates.")
+    argparser.add_argument("--filters", action="store_true",
+                           help="Install git filters.")
     argparser.add_argument("--all", action="store_true", help="Install all.")
     args = argparser.parse_args()
 
