@@ -37,6 +37,7 @@ from typing import (
 
 # Third-party imports
 import pandas as pd
+from termcolor import cprint
 from tqdm.auto import tqdm
 
 # Local application imports
@@ -102,7 +103,7 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
                 required=True,
             )
         except:
-            print("Secrets not found. Exiting...")
+            cprint(text="Secrets not found. Exiting...", color="red")
             exit()
 
         secrets = secrets | loaded_secrets
@@ -721,7 +722,7 @@ class Telegram(Bot):
         """
         Start running the Telegram bot.
         """
-        print("Running Telegram bot...")
+        cprint(text="Running Telegram bot...", color="blue")
         self.application.run_polling(stop_signals=None)
 
     # ======== #

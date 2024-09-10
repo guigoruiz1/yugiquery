@@ -24,6 +24,7 @@ from typing import Literal, List, Dict
 # Third-party imports
 import arrow
 from dotenv import dotenv_values
+from termcolor import cprint
 
 # Local application imports
 from .dirs import dirs
@@ -45,7 +46,7 @@ def ensure_tqdm():
             return discord_tqdm
         except ImportError:
             if loop == 0:
-                print("Missing required tqdm fork for Discord progress bar. Trying to install now...")
+                cprint(text="Missing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow")
 
             # Assuming dirs and ASSETS are defined somewhere in your code
             spec = importlib.util.spec_from_file_location(
@@ -57,7 +58,7 @@ def ensure_tqdm():
             post_install.install_tqdm()
 
             if loop > 1:
-                print("Failed to install tqdm fork twice. Aborting...")
+                cprint(text="Failed to install tqdm fork twice. Aborting...", color="red")
                 quit()
 
             loop += 1
@@ -126,7 +127,7 @@ def load_json(json_file: str) -> dict:
             data = json.load(file)
             return data
     except:
-        print(f"Error loading {json_file}! This may break some features.")
+        cprint(text=f"Error loading {json_file}! This may break some features.", color="yellow")
         return {}
 
 

@@ -30,6 +30,7 @@ import aiohttp
 import numpy as np
 import pandas as pd
 import requests
+from termcolor import cprint
 from tqdm.auto import tqdm, trange
 import wikitextparser as wtp
 
@@ -49,9 +50,7 @@ else:
 # ============ #
 
 #: A dictionary mapping yugipedia API URLs dinamically loaded from the api.json file in the assets directory.
-URLS: Dict[str, Union[str, Dict[str, str]]] = load_json(
-    dirs.ASSETS / "json" / "api.json"
-)
+URLS: Dict[str, Union[str, Dict[str, str]]] = load_json(dirs.ASSETS / "json" / "api.json")
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict: Dict[str, str] = {
@@ -88,20 +87,20 @@ def check_status() -> bool:
     try:
         response = requests.get(URLS["base"], params=params, headers=URLS["headers"])
         response.raise_for_status()
-        print(
-            f"{URLS['base']} is up and running {response.json()['query']['general']['generator']}"
-        )
+        cprint(text=f"{URLS['base']} is up and running {response.json()['query']['general']['generator']}", color="green")
         return True
     except requests.exceptions.RequestException as err:
-        print(f"{URLS['base']} is not alive: {err}")
+        cprint(text=f"{URLS['base']} is not alive", color="red")
+        print(err)
         domain = up.urlparse(URLS["base"]).netloc
         port = 443
 
         try:
             socket.create_connection((domain, port), timeout=2)
-            print(f"{domain} is reachable")
+            cprint(text=f"{domain} is reachable", color="yellow")
         except OSError as err:
-            print(f"{domain} is not reachable: {err}")
+            cprint(text=f"{domain} is not reachable", color="red")
+            print(err)
 
         return False
 
@@ -278,9 +277,7 @@ def fetch_redirects(titles: List[str]) -> Dict[str, str]:
         Dict[str, str]: A dictionary mapping source titles to their corresponding redirect targets.
     """
     results = {}
-    iterator = trange(
-        np.ceil(len(titles) / 50).astype(int), desc="Redirects", leave=False
-    )
+    iterator = trange(np.ceil(len(titles) / 50).astype(int), desc="Redirects", leave=False)
     for i in iterator:
         first = i * 50
         last = (i + 1) * 50
@@ -316,17 +313,15 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
         ).json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
-            if re.match(pattern=r"^[a-zA-Z]+$", string=backlink["title"]) and backlink[
-                "title"
-            ] not in target_title.split(" "):
+            if re.match(pattern=r"^[a-zA-Z]+$", string=backlink["title"]) and backlink["title"] not in target_title.split(
+                " "
+            ):
                 results[backlink["title"]] = target_title
 
     return results
 
 
-def fetch_set_info(
-    sets: List[str], extra_info: List[str] = [], step: int = 15, **kwargs
-) -> pd.DataFrame:
+def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, **kwargs) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
@@ -368,13 +363,9 @@ def fetch_set_info(
         formatted_response.drop(
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(
-            input_df=formatted_response, include_all=(True if extra_info else True)
-        )
+        formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else True))
         if debug:
-            tqdm.write(
-                f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors"
-            )
+            tqdm.write(f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors")
             tqdm.write("-------------------------------------------------")
 
         set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
@@ -382,18 +373,14 @@ def fetch_set_info(
     set_info_df = set_info_df.convert_dtypes()
     set_info_df.sort_index(inplace=True)
 
-    print(
-        f'{"Total:" if debug else ""}{len(set_info_df)} set properties received - {len(sets)-len(set_info_df)} errors'
-    )
+    print(f'{"Total:" if debug else ""}{len(set_info_df)} set properties received - {len(sets)-len(set_info_df)} errors')
 
     return set_info_df
 
 
 # TODO: Refactor
 # TODO: Translate region code?
-def fetch_set_lists(
-    titles: List[str], **kwargs
-) -> None | tuple[pd.DataFrame, int, int]:  # Separate formating function
+def fetch_set_lists(titles: List[str], **kwargs) -> None | tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
@@ -500,11 +487,7 @@ def fetch_set_lists(
 
                             # Handle extra parameters passed as "// descriptions"
                             extra = list_df.map(
-                                lambda x: (
-                                    x.split("//")[1]
-                                    if isinstance(x, str) and "//" in x
-                                    else None
-                                )
+                                lambda x: (x.split("//")[1] if isinstance(x, str) and "//" in x else None)
                             ).dropna(how="all")
                             if not extra.empty:
                                 extra = extra.stack().droplevel(1, axis=0)
@@ -514,13 +497,7 @@ def fetch_set_lists(
                                         col, val = extra_value.split("::")
                                         # Strip and process col and val to extract desired values
                                         col = col.strip().strip("@").lower()
-                                        val = (
-                                            val.strip()
-                                            .strip("(")
-                                            .strip(")")
-                                            .split("]]")[0]
-                                            .split("[[")[-1]
-                                        )
+                                        val = val.strip().strip("(").strip(")").split("]]")[0].split("[[")[-1]
                                         extra_lines.loc[extra_idx, col] = val
 
                                 extra_lines = extra_lines.dropna(how="all")
@@ -528,13 +505,9 @@ def fetch_set_lists(
                                     extra_df = extra_lines
                             ###
 
-                            list_df = list_df.map(
-                                lambda x: x.split("//")[0] if x is not None else x
-                            )
+                            list_df = list_df.map(lambda x: x.split("//")[0] if x is not None else x)
 
-                            list_df = list_df.map(
-                                lambda x: x.strip() if x is not None else x
-                            )
+                            list_df = list_df.map(lambda x: x.strip() if x is not None else x)
                             list_df.replace(
                                 to_replace=r"^\s*$|^@.*$",
                                 value=None,
@@ -545,14 +518,12 @@ def fetch_set_lists(
                     if list_df is None:
                         error += 1
                         if debug:
-                            print(f'Error! Unable to parse template for "{page_name}"')
+                            cprint(text=f'Error! Unable to parse template for "{page_name}"', color="red")
                         continue
 
                     noabbr = opt == "noabbr"
                     set_df["Name"] = list_df[1 - noabbr].apply(
-                        lambda x: (
-                            x.strip("\u200e").split(" (")[0] if x is not None else x
-                        )
+                        lambda x: (x.strip("\u200e").split(" (")[0] if x is not None else x)
                     )
 
                     if not noabbr and len(list_df.columns > 1):
@@ -561,12 +532,7 @@ def fetch_set_lists(
                     if len(list_df.columns) > (2 - noabbr):  # and rare in str
                         set_df["Rarity"] = list_df[2 - noabbr].apply(
                             lambda x: (
-                                tuple(
-                                    [
-                                        rarity_dict.get(y.strip(), y.strip())
-                                        for y in x.split(",")
-                                    ]
-                                )
+                                tuple([rarity_dict.get(y.strip(), y.strip()) for y in x.split(",")])
                                 if x is not None and "description::" not in x
                                 else rarity
                             )
@@ -578,20 +544,14 @@ def fetch_set_lists(
                     if len(list_df.columns) > (3 - noabbr):
                         if card_print is not None:  # and new/reprint in str
                             set_df["Print"] = list_df[3 - noabbr].apply(
-                                lambda x: (
-                                    card_print if (card_print and x is None) else x
-                                )
+                                lambda x: (card_print if (card_print and x is None) else x)
                             )
 
                             if len(list_df.columns) > (4 - noabbr) and qty:
-                                set_df["Quantity"] = list_df[4 - noabbr].apply(
-                                    lambda x: x if x is not None else qty
-                                )
+                                set_df["Quantity"] = list_df[4 - noabbr].apply(lambda x: x if x is not None else qty)
 
                         elif qty:
-                            set_df["Quantity"] = list_df[3 - noabbr].apply(
-                                lambda x: x if x is not None else qty
-                            )
+                            set_df["Quantity"] = list_df[3 - noabbr].apply(lambda x: x if x is not None else qty)
 
                     if not title:
                         title = page_name.split("Lists:")[1]
@@ -600,43 +560,31 @@ def fetch_set_lists(
                     if extra_df is not None:
                         for row in set_df.index:
                             # Handle token name in description
-                            if (
-                                "description" in extra_df
-                                and row in extra_df["description"].dropna().index
-                            ):
+                            if "description" in extra_df and row in extra_df["description"].dropna().index:
                                 if (
                                     set_df.at[row, "Name"] is not None
                                     and "Token" in set_df.at[row, "Name"]
                                     and "Token" in extra_df.at[row, "description"]
                                 ):
-                                    set_df.at[row, "Name"] = extra_df.at[
-                                        row, "description"
-                                    ]
+                                    set_df.at[row, "Name"] = extra_df.at[row, "description"]
 
                             # Handle print in description
-                            if (
-                                "print" in extra_df
-                                and row in extra_df["print"].dropna().index
-                            ):
+                            if "print" in extra_df and row in extra_df["print"].dropna().index:
                                 set_df.at[row, "Print"] = extra_df.at[row, "print"]
                     ###
 
-                    set_df["Set"] = re.sub(
-                        pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title
-                    ).strip()
+                    set_df["Set"] = re.sub(pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title).strip()
                     set_df["Region"] = region.upper()
                     set_df["Page name"] = page_name
                     set_lists_df = (
-                        pd.concat([set_lists_df, set_df], ignore_index=True)
-                        .infer_objects(copy=False)
-                        .fillna(np.nan)
+                        pd.concat([set_lists_df, set_df], ignore_index=True).infer_objects(copy=False).fillna(np.nan)
                     )
                     success += 1
 
         else:
             error += 1
             if debug:
-                print(f"Error! No content for \"{content['title']}\"")
+                cprint(text=f"Error! No content for \"{content['title']}\"", color="red")
 
     if debug:
         print(f"{success} set lists received - {error} missing")
@@ -673,9 +621,7 @@ async def download_images(
             async with session.get(url) as response:
                 save_name = url.split("/")[-1]
                 if response.status != 200:
-                    raise ValueError(
-                        f"URL {url} returned status code {response.status}"
-                    )
+                    raise ValueError(f"URL {url} returned status code {response.status}")
                 total_size = int(response.headers.get("Content-Length", 0))
                 progress = tqdm(
                     unit="B",
@@ -701,9 +647,7 @@ async def download_images(
 
     # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
-    async with aiohttp.ClientSession(
-        base_url=URLS["media"], headers=URLS["headers"]
-    ) as session:
+    async with aiohttp.ClientSession(base_url=URLS["media"], headers=URLS["headers"]) as session:
         save_folder = Path(save_folder)
         if not save_folder.exists():
             save_folder.mkdir(parents=True)
@@ -747,24 +691,16 @@ def extract_results(response: requests.Response) -> pd.DataFrame:
     df = pd.DataFrame(json["query"]["results"]).transpose()
     if "printouts" in df:
         df = pd.DataFrame(df["printouts"].values.tolist(), index=df["printouts"].keys())
-        page_url = (
-            pd.DataFrame(json["query"]["results"])
-            .transpose()["fullurl"]
-            .rename("Page URL")
-        )
+        page_url = pd.DataFrame(json["query"]["results"]).transpose()["fullurl"].rename("Page URL")
         page_name = (
-            pd.DataFrame(json["query"]["results"])
-            .transpose()["fulltext"]
-            .rename("Page name")
+            pd.DataFrame(json["query"]["results"]).transpose()["fulltext"].rename("Page name")
         )  # Not necessarily same as card name (Used to merge errata)
         df = pd.concat([df, page_name, page_url], axis=1)
 
     return df
 
 
-def extract_fulltext(
-    x: List[Union[Dict[str, Any], str]], multiple: bool = False
-) -> str | tuple[str] | float:
+def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False) -> str | tuple[str] | float:
     """
     Extracts fulltext from a list of dictionaries or strings.
     If multiple is True, returns a sorted tuple of all fulltexts.
@@ -857,9 +793,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     # Link arrows styling
     if "Link Arrows" in input_df.columns:
         df["Link Arrows"] = input_df["Link Arrows"].apply(
-            lambda x: (
-                tuple([arrows_dict[i] for i in sorted(x)]) if len(x) > 0 else np.nan
-            )
+            lambda x: (tuple([arrows_dict[i] for i in sorted(x)]) if len(x) > 0 else np.nan)
         )
 
     # Columns with matching name pattern: extraction function
@@ -873,13 +807,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     for col, extract in filter_cols.items():
         col_matches = input_df.filter(like=col).columns
         if len(col_matches) > 0:
-            extracted_cols = input_df[col_matches].map(
-                extract_fulltext if extract else lambda x: x
-            )
+            extracted_cols = input_df[col_matches].map(extract_fulltext if extract else lambda x: x)
             if col == " Material":
-                df["Materials"] = extracted_cols.apply(
-                    lambda x: tuple(elem for tup in col for elem in tup), axis=1
-                )
+                df["Materials"] = extracted_cols.apply(lambda x: tuple(elem for tup in col for elem in tup), axis=1)
             else:
                 df = df.join(extracted_cols)
 
@@ -902,22 +832,14 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
         df = df.join(
             input_df.filter(like=" date").map(
                 lambda x: (
-                    pd.to_datetime(
-                        pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce"
-                    )
-                    if len(x) > 0
-                    else np.nan
+                    pd.to_datetime(pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce") if len(x) > 0 else np.nan
                 )
             )
         )
 
     # Include other unspecified columns
     if include_all:
-        df = df.join(
-            input_df[input_df.columns.difference(df.columns)].map(
-                extract_fulltext, multiple=True
-            )
-        )
+        df = df.join(input_df[input_df.columns.difference(df.columns)].map(extract_fulltext, multiple=True))
 
     return df
 

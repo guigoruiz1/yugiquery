@@ -20,6 +20,7 @@ from typing import (
 
 # Third-party imports
 import git
+from termcolor import cprint
 
 # Local application imports
 from .helpers import *
@@ -49,11 +50,11 @@ def assure_repo() -> git.Repo:
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
         repo = git.Repo.init(dirs.WORK)
-        print(f"Git repository initialized in {dirs.WORK}")
+        cprint(text=f"Git repository initialized in {dirs.WORK}\n", color="blue")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
-        raise RuntimeError(f"Unable to init Git repository: {e}")
+        raise RuntimeError(f"Unable to init Git repository: {e}\n")
     finally:
         # Ensure the data and reports directories exist
         dirs.make()
