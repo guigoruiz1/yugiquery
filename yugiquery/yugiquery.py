@@ -617,12 +617,15 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
-    warnings.filterwarnings("ignore", message=".*Alternative text.*")
+    logger = logging.getLogger("IPKernelApp")
+    logger.setLevel(logging.ERROR)
+
     (body, resources) = html_exporter.from_notebook_node(notebook_content)
-    warnings.filterwarnings("default", message=".*Alternative text.*")
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
+
+    logger.setLevel(logging.WARNING)
 
     print(f"Notebook converted to HTML and saved to {output_path}.html")
 
@@ -1553,13 +1556,7 @@ def run_notebooks(
         external_pbar = None
 
     # Initialize iterators
-    iterator = tqdm(
-        reports,
-        desc="Completion",
-        unit="report",
-        unit_scale=True,
-        dynamic_ncols=True,
-    )
+    iterator = None
 
     if not suppress_contribs:
         contribs = ["DISCORD", "TELEGRAM"]
@@ -1608,6 +1605,15 @@ def run_notebooks(
                 break
             except:
                 pass
+
+    if iterator is None:
+        iterator = tqdm(
+            reports,
+            desc="Completion",
+            unit="report",
+            unit_scale=True,
+            dynamic_ncols=True,
+        )
 
     # Create the main logger
     logger = logging.getLogger("papermill")
