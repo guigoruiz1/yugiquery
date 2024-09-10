@@ -46,7 +46,9 @@ def ensure_tqdm():
             return discord_tqdm
         except ImportError:
             if loop == 0:
-                cprint(text="Missing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow")
+                cprint(
+                    text="\nMissing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow"
+                )
 
             # Assuming dirs and ASSETS are defined somewhere in your code
             spec = importlib.util.spec_from_file_location(
@@ -67,6 +69,22 @@ def ensure_tqdm():
 # ============ #
 # Data loaders #
 # ============ #
+
+
+def find_report(report_name: str, notebooks_dir: Path) -> Path:
+    report_path = Path(report_name)
+    if not report_path.suffix:
+        report_path = report_path.with_suffix(".ipynb")
+
+    if report_path.is_file():
+        return report_path
+
+    # Case insensitive search in notebooks_dir
+    for notebook in notebooks_dir.glob("*.ipynb"):
+        if notebook.name.lower() == report_path.name.lower():
+            return notebook
+
+    return None
 
 
 def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False) -> Dict[str, str]:

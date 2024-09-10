@@ -1526,17 +1526,17 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
 
 def run_notebooks(
-    reports: Union[str, List[str]] = "all",
+    reports: Union[str, List[str]],
     progress_handler: Callable = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
 ) -> None:
     """
-    Execute specified Jupyter notebooks in the source directory using Papermill.
+    Execute specified Jupyter notebooks using Papermill.
 
     Args:
-        reports (Union[str, List[str]]): List of notebooks to execute or 'all' to execute all notebooks in the source directory. Default is 'all'.
+        reports (Union[str, List[str]]): List of notebooks to execute.
         progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
         telegram_first (bool, optional): Default is False.
         suppress_contribs (bool, optional): Default is False.
@@ -1546,12 +1546,6 @@ def run_notebooks(
         None
     """
     debug = kwargs.pop("debug", False)
-
-    if reports == "all":
-        # Get reports
-        reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
-    else:
-        reports = [str(reports)] if not isinstance(reports, list) else reports
 
     if progress_handler:
         external_pbar = progress_handler.pbar(iterable=reports, desc="Completion", unit="report", unit_scale=True)
@@ -1633,9 +1627,6 @@ def run_notebooks(
 
     exceptions = []
     for i, report in enumerate(iterator):
-        if not str(report).endswith(".ipynb"):
-            report += ".ipynb"
-
         iterator.n = i
         iterator.last_print_n = i
         iterator.refresh()
@@ -1650,7 +1641,7 @@ def run_notebooks(
         stream_handler.flush = update_pbar
 
         # Update postfix
-        tqdm.write(f"Generating {report_name} report")
+        tqdm.write(f"\nGenerating {report_name} report")
         iterator.set_postfix(report=report_name)
         if external_pbar:
             external_pbar.set_postfix(report=report_name)
@@ -1716,13 +1707,24 @@ def run(
     Returns:
         None: This function does not return a value.
     """
+    if reports == "all":
+        # Get all reports
+        reports = sorted(dirs.NOTEBOOKS.glob("*.ipynb"))
+    else:
+        if not isinstance(reports, list):
+            reports = [reports]
+
+        reports = [
+            str(report_path) for report in reports if (report_path := find_report(report, dirs.NOTEBOOKS)) is not None
+        ]
+
     # Check API status
     if not api.check_status():
         if progress_handler:
             progress_handler.exit(API_status=False)
         return
 
-    # Execute all notebooks in the source directory
+    # Execute notebooks
     try:
         run_notebooks(
             reports=reports,
