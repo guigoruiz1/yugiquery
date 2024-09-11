@@ -1661,7 +1661,7 @@ def run_notebooks(
         try:
             pm.execute_notebook(
                 input_path=report,
-                output_path=report,
+                output_path=dirs.REPORTS / f"{report_name}.html",
                 log_output=True,
                 progress_bar=True,
                 kernel_name=kernel_name,
