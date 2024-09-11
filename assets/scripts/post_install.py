@@ -87,7 +87,7 @@ def install_nbconvert() -> None:
     from yugiquery.utils.dirs import dirs
 
     src_dir = dirs.ASSETS.pkg / "nbconvert"
-    dst_dir = dirs.JUPYTER / "nbconvert" / "templates"
+    dst_dir = dirs.NBCONVERT
     try:
         shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
         cprint(text="\nnbconvert templates installed.", color="green")

@@ -18,6 +18,7 @@ from types import SimpleNamespace
 
 # Third-party imports
 from IPython import get_ipython
+from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
 
 # ======= #
@@ -91,17 +92,7 @@ class Dirs:
                             self._PKG_ASSETS = None
 
         # Determine the Jupyter path
-        self.JUPYTER = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "jupyter"
-        if not self.JUPYTER.is_dir():
-            self.JUPYTER = Path.home() / ".local" / "share" / "jupyter"
-            if not self.JUPYTER.is_dir():
-                self.JUPYTER = Path(sysconfig.get_path("data")) / "share" / "jupyter"
-                if not self.JUPYTER.is_dir():
-                    self.JUPYTER = Path(user_data_dir("jupyter"))
-                    if not self.JUPYTER.is_dir():
-                        self.JUPYTER = Path(site_data_dir("jupyter"))
-                        if not self.JUPYTER.is_dir():
-                            self.JUPYTER = None
+        self.NBCONVERT = next(Path(path) for path in jupyter_path("nbconvert", "templates") if Path(path).exists())
 
         # Determine the package notebooks path from the ASSETS path
         self._PKG_NOTEBOOKS = None
@@ -221,6 +212,7 @@ class Dirs:
         if assets.user is not None:
             print(f"  User: {assets.user}")
         print(f"Data: {self.DATA}")
+        print(f"NbConvert: {self.NBCONVERT}")
         notebooks = self.NOTEBOOKS
         if notebooks.pkg is not None or notebooks.user is not None:
             print(f"Notebooks:")
@@ -229,7 +221,6 @@ class Dirs:
         if notebooks.user is not None:
             print(f"  User: {notebooks.user}")
         print(f"Reports: {self.REPORTS}")
-        print(f"Jupyter: {self.JUPYTER}")
         print(f"Utils: {self.UTILS}")
         print(f"Work: {self.WORK}")
 

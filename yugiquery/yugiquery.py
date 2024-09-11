@@ -600,7 +600,7 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
 
     # Configure the HTMLExporter
     c = Config()
-    c.HTMLExporter.extra_template_basedirs = [str(dirs.get_asset("nbconvert"))]
+    c.HTMLExporter.extra_template_basedirs = [str(dirs.get_asset("nbconvert")), str(dirs.NBCONVERT)]
     c.HTMLExporter.template_name = template
     if no_input:
         c.TemplateExporter.exclude_output_prompt = True
