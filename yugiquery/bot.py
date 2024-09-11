@@ -579,12 +579,14 @@ class Bot:
             return {"error": "Query already running. Try again after it has finished."}
 
         queue = mp.Queue()
-        stderr_read, stderr_write = mp.Pipe(duplex=False)  # Create a pipe for stderr
+        connection_read, connection_write = mp.Pipe(duplex=False)  # Create a pipe for stderr
 
         if isinstance(self, Discord):
             pbar_kwargs = {"channel_id": channel_id, "token": self.token}
         elif isinstance(self, Telegram):
             pbar_kwargs = {"chat_id": channel_id, "token": self.token}
+        else:
+            pbar_kwargs = {}
 
         progress_handler = ProgressHandler(
             queue=queue,
@@ -598,7 +600,7 @@ class Bot:
                 args=[report.value, progress_handler],
             )
             self.process.start()
-            stderr_write.close()  # Close the write end in the parent process to ensure it only reads
+            connection_write.close()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
             print(e)
@@ -609,9 +611,12 @@ class Bot:
             while self.process.is_alive():
                 await asyncio.sleep(1)
             # Read stderr from the pipe
-            if stderr_read.poll():
-                stderr_output = stderr_read.recv()
-            stderr_read.close()
+            if connection_read.poll():
+                try:
+                    stderr_output = connection_read.recv()  # Read safely
+                finally:
+                    connection_read.close()
+            connection_read.close()
             API_error = False
             while not queue.empty():
                 API_error = not queue.get()
@@ -625,7 +630,6 @@ class Bot:
         if API_error:
             return {"error": "Unable to communicate with the API. Try again later."}
         else:
-            print(exitcode, stderr_output)
             if exitcode is None:
                 return {"error": "Query execution failed!\n\n" + stderr_output}
             elif exitcode == 0:
