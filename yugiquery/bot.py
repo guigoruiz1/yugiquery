@@ -625,6 +625,7 @@ class Bot:
         if API_error:
             return {"error": "Unable to communicate with the API. Try again later."}
         else:
+            print(exitcode, stderr_output)
             if exitcode is None:
                 return {"error": "Query execution failed!\n\n" + stderr_output}
             elif exitcode == 0:
@@ -722,7 +723,7 @@ class Telegram(Bot):
         """
         Start running the Telegram bot.
         """
-        cprint(text="Running Telegram bot...", color="blue")
+        cprint(text="Running Telegram bot...", color="green")
         self.application.run_polling(stop_signals=None)
 
     # ======== #
@@ -1460,6 +1461,7 @@ class Discord(Bot, commands.Bot):
                 channel_id=ctx.channel.id,
                 progress_bar=self.discord_pbar,
             )
+            print(response)
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])
                 # Reset cooldown in case query did not complete

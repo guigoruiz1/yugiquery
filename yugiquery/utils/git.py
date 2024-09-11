@@ -50,7 +50,7 @@ def assure_repo() -> git.Repo:
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
         repo = git.Repo.init(dirs.WORK)
-        cprint(text=f"Git repository initialized in {dirs.WORK}\n", color="blue")
+        cprint(text=f"Git repository initialized in {dirs.WORK}\n", color="yellow")
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)

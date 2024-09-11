@@ -596,12 +596,11 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
     output_path = str(dirs.REPORTS / Path(input_path).stem)
 
     if template == "auto":
-        template = str(dirs.ASSETS / "nbconvert" / "labdynamic")
-    else:
-        template = "lab"
+        template = "labdynamic"
 
     # Configure the HTMLExporter
     c = Config()
+    c.HTMLExporter.extra_template_basedirs = [str(dirs.ASSETS / "nbconvert")]
     c.HTMLExporter.template_name = template
     if no_input:
         c.TemplateExporter.exclude_output_prompt = True
