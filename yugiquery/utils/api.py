@@ -50,7 +50,7 @@ else:
 # ============ #
 
 #: A dictionary mapping yugipedia API URLs dinamically loaded from the api.json file in the assets directory.
-URLS: Dict[str, Union[str, Dict[str, str]]] = load_json(dirs.ASSETS / "json" / "api.json")
+URLS: Dict[str, Union[str, Dict[str, str]]] = load_json(dirs.get_asset("json", "api.json"))
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict: Dict[str, str] = {
@@ -341,7 +341,7 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     if debug:
         print(f"{len(titles)} sets requested")
 
-    regions_dict = load_json(dirs.ASSETS / "json" / "regions.json")
+    regions_dict = load_json(dirs.get_asset("json" / "regions.json"))
     # Info to ask
     info = extra_info + ["Series", "Set type", "Cover card"]
     # Release to ask
@@ -396,7 +396,7 @@ def fetch_set_lists(titles: List[str], **kwargs) -> None | tuple[pd.DataFrame, i
         print(f"{len(titles)} sets requested")
 
     titles = up.quote(string="|".join(titles))
-    rarity_dict = load_json(dirs.ASSETS / "json" / "rarities.json")
+    rarity_dict = load_json(dirs.get_asset("json", "rarities.json"))
     set_lists_df = pd.DataFrame(
         columns=[
             "Set",

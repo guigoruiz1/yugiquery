@@ -50,10 +50,9 @@ def ensure_tqdm():
                     text="\nMissing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow"
                 )
 
-            # Assuming dirs and ASSETS are defined somewhere in your code
             spec = importlib.util.spec_from_file_location(
                 name="post_install",
-                location=dirs.ASSETS / "scripts" / "post_install.py",
+                location=dirs.get_asset("scripts", "post_install.py"),
             )
             post_install = importlib.util.module_from_spec(spec=spec)
             spec.loader.exec_module(post_install)
@@ -69,22 +68,6 @@ def ensure_tqdm():
 # ============ #
 # Data loaders #
 # ============ #
-
-
-def find_report(report_name: str, notebooks_dir: Path) -> Path:
-    report_path = Path(report_name)
-    if not report_path.suffix:
-        report_path = report_path.with_suffix(".ipynb")
-
-    if report_path.is_file():
-        return report_path
-
-    # Case insensitive search in notebooks_dir
-    for notebook in notebooks_dir.glob("*.ipynb"):
-        if notebook.name.lower() == report_path.name.lower():
-            return notebook
-
-    return None
 
 
 def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False) -> Dict[str, str]:

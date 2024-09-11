@@ -427,7 +427,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         pd.DataFrame: A pandas DataFrame with set information merged into it.
     """
     if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(dirs.ASSETS / "json" / "regions.json")
+        regions_dict = load_json(dirs.get_asset("json", "regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
                 input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
@@ -600,7 +600,7 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
 
     # Configure the HTMLExporter
     c = Config()
-    c.HTMLExporter.extra_template_basedirs = [str(dirs.ASSETS / "nbconvert")]
+    c.HTMLExporter.extra_template_basedirs = [str(dirs.get_asset("nbconvert"))]
     c.HTMLExporter.template_name = template
     if no_input:
         c.TemplateExporter.exclude_output_prompt = True
@@ -650,8 +650,8 @@ def update_index() -> None:  # Handle index and readme properly
     index_file_name = "index.md"
     readme_file_name = "README.md"
 
-    index_input_path = dirs.ASSETS / "markdown" / index_file_name
-    readme_input_path = dirs.ASSETS / "markdown" / readme_file_name
+    index_input_path = dirs.get_asset("markdown", index_file_name)
+    readme_input_path = dirs.get_asset("markdown", readme_file_name)
     index_output_path = dirs.WORK / index_file_name
     readme_output_path = dirs.WORK / readme_file_name
 
@@ -665,7 +665,7 @@ def update_index() -> None:  # Handle index and readme properly
     except:
         print('Missing template files in "assets". Aborting...')
 
-    reports = sorted(list(dirs.REPORTS.glob("*.html")))
+    reports = sorted(dirs.REPORTS.glob("*.html"))
     rows = []
     for report in reports:
         rows.append(
@@ -708,7 +708,7 @@ def header(name: str = None) -> Markdown:
     if name is None:
         name = get_notebook_name()
 
-    header_path = dirs.ASSETS / "markdown" / "header.md"
+    header_path = dirs.get_asset("markdown", "header.md")
     try:
         with open(header_path) as f:
             header = f.read()
@@ -734,7 +734,7 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
     Returns:
         Markdown: The generated Markdown footer.
     """
-    footer_path = dirs.ASSETS / "markdown" / "footer.md"
+    footer_path = dirs.get_asset("markdown", "footer.md")
     try:
         with open(footer_path) as f:
             footer = f.read()
@@ -1716,14 +1716,36 @@ def run(
     """
     if reports == "all":
         # Get all reports
-        reports = sorted(dirs.NOTEBOOKS.glob("*.ipynb"))
+        reports_dict = {}
+        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
+            dirs.NOTEBOOKS.user.glob("*.ipynb")
+        )  # First user, then package
+        for report in reports:
+            reports_dict[report.stem.capitalize()] = report  # Will replace package by user if same name
+
+        reports = list(reports_dict.values())
+    elif reports == "user":
+        # Get user reports
+        reports = sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
     else:
         if not isinstance(reports, list):
             reports = [reports]
 
-        reports = [
-            str(report_path) for report in reports if (report_path := find_report(report, dirs.NOTEBOOKS)) is not None
-        ]
+        for i, report in enumerate(reports):
+            report_path = Path(report) if isinstance(report, str) else report
+
+            if report_path.is_file():
+                reports[i] = report_path
+            else:
+                report_name = report_path.name
+                try:
+                    reports[i] = dirs.get_notebook(report_name)
+                except FileNotFoundError:
+                    cprint(f"Report {report_name} not found.", "yellow")
+                    reports[i] = None
+
+        # Remove None values from the list
+        reports = [report for report in reports if report is not None]
 
     # Check API status
     if not api.check_status():
@@ -1749,7 +1771,7 @@ def run(
     # Cleanup redundant data files
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
-        reports_count = len(list(dirs.NOTEBOOKS.glob("*.ipynb")))
+        reports_count = len(list(dirs.REPORTS.glob("*.html")))
         if data_files_count / reports_count > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:

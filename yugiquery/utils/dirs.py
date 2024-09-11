@@ -14,6 +14,7 @@
 import os
 import sysconfig
 from pathlib import Path
+from types import SimpleNamespace
 
 # Third-party imports
 from IPython import get_ipython
@@ -77,35 +78,88 @@ class Dirs:
         self.WORK = Path.cwd()
 
         # Determine the ASSETS path
-        self.ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
-        if not self.ASSETS.is_dir():
-            self.ASSETS = Path.home() / ".local" / "share" / "yugiquery"
-            if not self.ASSETS.is_dir():
-                self.ASSETS = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
-                if not self.ASSETS.is_dir():
-                    self.ASSETS = Path(user_data_dir("yugiquery"))
-                    if not self.ASSETS.is_dir():
-                        self.ASSETS = Path(site_data_dir("yugiquery"))
+        self._PKG_ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
+        if not self._PKG_ASSETS.is_dir():
+            self._PKG_ASSETS = Path.home() / ".local" / "share" / "yugiquery"
+            if not self._PKG_ASSETS.is_dir():
+                self._PKG_ASSETS = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
+                if not self._PKG_ASSETS.is_dir():
+                    self._PKG_ASSETS = Path(user_data_dir("yugiquery"))
+                    if not self._PKG_ASSETS.is_dir():
+                        self._PKG_ASSETS = Path(site_data_dir("yugiquery"))
+                        if not self._PKG_ASSETS.is_dir():
+                            self._PKG_ASSETS = None
 
-        # Determine the SHARE parh from the ASSETS path
-        self.SHARE = self.ASSETS.parent
+        # Determine the Jupyter path
+        self.JUPYTER = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "jupyter"
+        if not self.JUPYTER.is_dir():
+            self.JUPYTER = Path.home() / ".local" / "share" / "jupyter"
+            if not self.JUPYTER.is_dir():
+                self.JUPYTER = Path(sysconfig.get_path("data")) / "share" / "jupyter"
+                if not self.JUPYTER.is_dir():
+                    self.JUPYTER = Path(user_data_dir("jupyter"))
+                    if not self.JUPYTER.is_dir():
+                        self.JUPYTER = Path(site_data_dir("jupyter"))
+                        if not self.JUPYTER.is_dir():
+                            self.JUPYTER = None
 
-        # Determine the NOTEBOOKS path based on the environment and hierarchy
-        if self.WORK.joinpath("notebooks").is_dir():
-            self.NOTEBOOKS = self.WORK / "notebooks"
-        elif self.WORK.parent.joinpath("notebooks").is_dir():
-            self.NOTEBOOKS = self.WORK.parent / "notebooks"
+        # Determine the package notebooks path from the ASSETS path
+        self._PKG_NOTEBOOKS = None
+        if self._PKG_ASSETS is not None:
+            self._PKG_NOTEBOOKS = self._PKG_ASSETS / "notebooks"
+
+    @property
+    def ASSETS(self) -> SimpleNamespace:
+        """
+        Returns a SimpleNamespace object containing the paths to the package and user assets directories.
+
+        Returns:
+            SimpleNamespace: A SimpleNamespace object containing the paths to the package and user assets directories.
+        """
+        assets = SimpleNamespace()
+
+        if self._PKG_ASSETS is not None:
+            assets.pkg = self._PKG_ASSETS
         else:
-            self.NOTEBOOKS = self.ASSETS / "notebooks"
+            assets.pkg = None
 
-        # Redefine the ASSETS based on the hierarchy
-        if self.WORK.joinpath("assets").is_dir():
-            self.ASSETS = self.WORK / "assets"
-        elif self.WORK.parent.joinpath("assets").is_dir():
-            self.ASSETS = self.WORK.parent / "assets"
+        if self.WORK.parent.joinpath("assets").is_dir():
+            assets.user = self.WORK.parent / "assets"
+        elif self.WORK.joinpath("assets").is_dir():
+            assets.user = self.WORK / "assets"
+        else:
+            assets.user = None
+
+        return assets
+
+    @property
+    def NOTEBOOKS(self) -> SimpleNamespace:
+        """
+        Return the path to the notebooks directory.
+
+        Returns:
+            Path: The path to the notebooks directory.
+        """
+        notebooks = SimpleNamespace()
+        if self._PKG_NOTEBOOKS is not None:
+            notebooks.pkg = self._PKG_NOTEBOOKS
+        else:
+            notebooks.pkg = None
+        if self.WORK.parent.joinpath("notebooks").is_dir():
+            notebooks.user = self.WORK.parent / "notebooks"
+        else:
+            notebooks.user = self.WORK / "notebooks"
+
+        return notebooks
 
     @property
     def DATA(self) -> Path:
+        """
+        Return the path to the data directory.
+
+        Returns:
+            Path: The path to the data directory.
+        """
         # Get the DATA path based on the WORK path
         if self.WORK.parent.joinpath("data").is_dir():
             return self.WORK.parent / "data"
@@ -114,6 +168,12 @@ class Dirs:
 
     @property
     def REPORTS(self) -> Path:
+        """
+        Return the path to the reports directory.
+
+        Returns:
+            Path: The path to the reports directory.
+        """
         # Get the REPORTS path based on the WORK path
         if self.WORK.parent.joinpath("reports").is_dir():
             return self.WORK.parent / "reports"
@@ -133,14 +193,15 @@ class Dirs:
     @property
     def secrets_file(self) -> Path:
         """
-        Return the path to the secrets file following the hierarchy: first dirs.ASSETS, then dirs.WORK. Returns none if the file is not found.
+        Return the path to the secrets file following the hierarchy: first ASSETS, then WORK. Returns none if the file is not found.
 
         Returns:
             Path: The path to the secrets file.
 
         """
-        secrets_file = self.ASSETS / "secrets.env"
-        if not secrets_file.is_file():
+        try:
+            secrets_file = self.get_asset("secrets.env")
+        except FileNotFoundError:
             secrets_file = self.WORK / "secrets.env"
             if not secrets_file.is_file():
                 secrets_file = None
@@ -151,14 +212,26 @@ class Dirs:
         """
         Prints the directory paths managed by this class.
         """
-        print(f"APP: {self.APP}")
-        print(f"ASSETS: {self.ASSETS}")
-        print(f"DATA: {self.DATA}")
-        print(f"NOTEBOOKS: {self.NOTEBOOKS}")
-        print(f"REPORTS: {self.REPORTS}")
-        print(f"SHARE: {self.SHARE}")
-        print(f"UTILS: {self.UTILS}")
-        print(f"WORK: {self.WORK}")
+        print(f"App: {self.APP}")
+        assets = self.ASSETS
+        if assets.pkg is not None or assets.user is not None:
+            print(f"Assets:")
+        if assets.pkg is not None:
+            print(f"  Package: {assets.pkg}")
+        if assets.user is not None:
+            print(f"  User: {assets.user}")
+        print(f"Data: {self.DATA}")
+        notebooks = self.NOTEBOOKS
+        if notebooks.pkg is not None or notebooks.user is not None:
+            print(f"Notebooks:")
+        if notebooks.pkg is not None:
+            print(f"  Package: {notebooks.pkg}")
+        if notebooks.user is not None:
+            print(f"  User: {notebooks.user}")
+        print(f"Reports: {self.REPORTS}")
+        print(f"Jupyter: {self.JUPYTER}")
+        print(f"Utils: {self.UTILS}")
+        print(f"Work: {self.WORK}")
 
     def make(self) -> None:
         """
@@ -166,6 +239,53 @@ class Dirs:
         """
         os.makedirs(self.DATA, exist_ok=True)
         os.makedirs(self.REPORTS, exist_ok=True)
+        os.makedirs(self.NOTEBOOKS.user, exist_ok=True)
+
+    def get_asset(self, *parts: str) -> Path:
+        """
+        Return the path to an asset file.
+
+        Args:
+            *parts (str): The path parts to the asset file or directory.
+
+        Returns:
+            Path: The path to the asset file or directory.
+
+        Raises:
+            FileNotFoundError: If the asset file is not found
+        """
+        user_asset_path = self.ASSETS.user.joinpath(*parts) if self.ASSETS.user else None
+        pkg_asset_path = self.ASSETS.pkg.joinpath(*parts) if self.ASSETS.pkg else None
+
+        if user_asset_path and user_asset_path.exists():
+            return user_asset_path
+        elif pkg_asset_path and pkg_asset_path.exists():
+            return pkg_asset_path
+
+        raise FileNotFoundError(f"Asset not found!")
+
+    def get_notebook(self, *parts: str) -> Path:
+        """
+        Return the path to a notebook file.
+
+        Args:
+            *parts (str): The path parts to the notebook file.
+
+        Returns:
+            Path: The path to the notebook file.
+
+        Raises:
+            FileNotFoundError: If the notebook file is not found.
+        """
+        user_notebook_path = self.NOTEBOOKS.user.joinpath(*parts).with_suffix(".ipynb") if self.NOTEBOOKS.user else None
+        pkg_notebook_path = self.NOTEBOOKS.pkg.joinpath(*parts).with_suffix(".ipynb") if self.NOTEBOOKS.pkg else None
+
+        if user_notebook_path and user_notebook_path.exists():
+            return user_notebook_path
+        elif pkg_notebook_path and pkg_notebook_path.exists():
+            return pkg_notebook_path
+
+        raise FileNotFoundError(f"Notebook not found!")
 
 
 # Global instance of Dirs

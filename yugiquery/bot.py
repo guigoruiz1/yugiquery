@@ -81,7 +81,7 @@ discord.VoiceClient.warn_nacl = False
 def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Load secrets from command-line arguments, and update them with values from
-    environment variables or a .env file, placed in the `dirs.ASSETS` directory, if necessary.
+    environment variables or a .env file, placed in the `Assets` directory, if necessary.
 
     Args:
         Dict[str, Any]: A dictionary of secrets.
@@ -318,16 +318,18 @@ class Bot:
     def init_reports_enum(self) -> None:
         """
         Initializes and returns an Enum object containing the available reports.
-        The reports are read from the dirs.NOTEBOOKS directory, where they are expected to be Jupyter notebooks.
+        The reports are read from the NOTEBOOKS directories, where they are expected to be Jupyter notebooks.
         The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
 
         Returns:
             None
         """
-        reports_dict = {"All": "all"}
-        reports = sorted(list(dirs.NOTEBOOKS.glob("*.ipynb")))
+        reports_dict = {"All": "all", "User": "user"}
+        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
+            dirs.NOTEBOOKS.user.glob("*.ipynb")
+        )  # First user, then package
         for report in reports:
-            reports_dict[report.stem.capitalize()] = report
+            reports_dict[report.stem.capitalize()] = report  # Will replace package by user
 
         self.Reports = Enum("Reports", reports_dict)
 
@@ -341,7 +343,7 @@ class Bot:
         try:
             self.process.terminate()
             if self.repo is not None:
-                git.restore(files=list(dirs.NOTEBOOKS.glob("*.ipynb")), repo=self.repo)
+                git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
             return "Aborted"
         except:
             return "Abort failed"
@@ -508,7 +510,7 @@ class Bot:
             dict: A dictionary containing information about the latest reports.
         """
 
-        reports = sorted(list(dirs.REPORTS.glob("*.html")))
+        reports = sorted(dirs.REPORTS.glob("*.html"))
         response = {
             "title": "Latest reports generated",
             "description": "The live reports may not always be up to date with the local reports",
@@ -755,6 +757,10 @@ class Telegram(Bot):
             links - Show YugiQuery links.
 
             ping - Test the bot connection latency.
+
+            pull - Pull latest data files from the repository.
+
+            push - Push latest data files to the repository.
 
             run - Run full YugiQuery flow.
 

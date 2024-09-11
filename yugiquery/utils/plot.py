@@ -49,9 +49,7 @@ if dirs.is_notebook:
 # ========= #
 
 #: Dictionary containing the colors used in the plots.
-colors_dict = load_json(
-    dirs.ASSETS / "json" / "colors.json"
-)  # Colors dictionary to associate to series and cards
+colors_dict = load_json(dirs.get_asset("json", "colors.json"))  # Colors dictionary to associate to series and cards
 # TODO: Adapt colors to style
 
 # ========= #
@@ -164,14 +162,10 @@ def generate_rate_grid(
 
         if len(dy.columns) == 1:
             cumsum_ax.plot(y, label="Cummulative", c=colors[0], antialiased=True)
-            cumsum_ax.fill_between(
-                x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x"
-            )
+            cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
             cumsum_ax.set_ylabel(f"{y.columns[0]}")  # Wrap text
         else:
-            cumsum_ax.stackplot(
-                y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True
-            )
+            cumsum_ax.stackplot(y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
             cumsum_ax.set_ylabel(f"Cumulative {y.index.name.lower()}")
 
         yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
@@ -182,9 +176,7 @@ def generate_rate_grid(
         axes = [yearly_ax]
 
         if len(dy.columns) == 1:
-            yearly_ax.set_ylabel(
-                f"{dy.columns[0]}\nYearly {dy.index.name.lower()} rate"
-            )
+            yearly_ax.set_ylabel(f"{dy.columns[0]}\nYearly {dy.index.name.lower()} rate")
         else:
             yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
 
@@ -213,9 +205,7 @@ def generate_rate_grid(
 
     else:
         dy2 = dy.resample("YE").sum()
-        yearly_ax.stackplot(
-            dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True
-        )
+        yearly_ax.stackplot(dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True)
         if not cumsum:
             yearly_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 8 + 1))
 
@@ -280,9 +270,7 @@ def rate_subplots(
     if figsize is None:
         figsize = (12, len(df.columns) * 2 * (1 + cumsum))
 
-    fig, axes = plt.subplots(
-        nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True
-    )
+    fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
     fig.suptitle(
         f'{title if title is not None else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}',
         y=1,
@@ -292,13 +280,7 @@ def rate_subplots(
         cmap = plt.cm.tab20
     else:
         if len(colors) == len(df.columns):
-            cmap = ListedColormap(
-                [
-                    adjust_lightness(color=c, amount=i * 0.5 + 0.75)
-                    for c in colors
-                    for i in (0, 1)
-                ]
-            )
+            cmap = ListedColormap([adjust_lightness(color=c, amount=i * 0.5 + 0.75) for c in colors for i in (0, 1)])
         else:
             cmap = ListedColormap(colors)
 
@@ -337,9 +319,7 @@ def rate_subplots(
                     if row > pd.to_datetime(ax.get_xlim()[0], unit="d"):
                         line = ax.axvline(row, ls="-.", c="maroon", lw=1)
                         if i == 0 and ix == 0:
-                            (x0, y0), (x1, y1) = (
-                                line.get_path().get_extents().get_points()
-                            )
+                            (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
                             ax.text(
                                 (x0 + x1) / 2 + 25,
                                 (0.02 if cumsum else 0.98),
@@ -487,9 +467,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> No
     # Create a polar plot
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(polar=True)
-    ax.bar(
-        x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs
-    )
+    ax.bar(x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
 
     # Set the label for each arrow
     ax.set_xticks(list(angle_map.values()))
@@ -533,9 +511,7 @@ def box(df, mean=True, **kwargs) -> None:
 
     sns.boxplot(ax=ax, data=df, y=col, x="year", width=0.5, **kwargs)
     if mean:
-        df.groupby("year").mean(numeric_only=True).plot(
-            ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False
-        )
+        df.groupby("year").mean(numeric_only=True).plot(ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False)
 
     if df[col].max() < 5000:
         ax.set_yticks(np.arange(0, df[col].max() + 1, 1))

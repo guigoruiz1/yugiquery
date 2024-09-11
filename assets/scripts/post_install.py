@@ -86,8 +86,8 @@ def install_tqdm() -> None:
 def install_nbconvert() -> None:
     from yugiquery.utils.dirs import dirs
 
-    src_dir = dirs.ASSETS / "nbconvert"
-    dst_dir = dirs.SHARE / "jupyter" / "nbconvert" / "templates"
+    src_dir = dirs.ASSETS.pkg / "nbconvert"
+    dst_dir = dirs.JUPYTER / "nbconvert" / "templates"
     try:
         shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
         cprint(text="\nnbconvert templates installed.", color="green")
@@ -102,7 +102,7 @@ def install_filters() -> None:
 
     try:
         repo_root = get_repo().working_dir
-        script_path = dirs.ASSETS / "scripts" / "git_filters.sh"
+        script_path = dirs.get_asset("scripts", "git_filters.sh")
         result = subprocess.run(
             ["bash", script_path],
             text=True,
@@ -111,10 +111,11 @@ def install_filters() -> None:
         if result.returncode == 0:
             cprint(text="\nGit filters have been installed in the current repository.", color="green")
             return
+        else:
+            cprint(text=f"\nFailed to install Git filters!", color="red")
     except Exception as e:
-        print(e)
-    finally:
         cprint(text=f"\nFailed to install Git filters!", color="red")
+        print(e)
 
 
 def main(args):

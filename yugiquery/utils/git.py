@@ -96,11 +96,14 @@ def unlock(passphrase: str = "") -> str:
     Returns:
         str: The result of the unlock operation.
     """
+    # TODO: Better error handling
+    script = dirs.get_asset("scripts", "unlock_git.sh")
+
     result = subprocess.run(
         [
             "sh",
-            dirs.ASSETS / "scripts" / "unlock_git.sh",
-            passphrase if passphrase else "",
+            script,
+            passphrase,
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -188,16 +191,19 @@ def pull(passphrase: str = "", repo: git.Repo = None) -> str:
     if repo is None:
         repo = get_repo()
     with repo:
-        result = unlock(passphrase)
-        if result.returncode != 0:
-            return result.stdout.decode("utf-8")
-        else:
-            try:
-                return repo.git.pull()
-            except git.GitCommandError as e:
-                raise RuntimeError(f"Failed to pull changes: {e}")
-            except Exception as e:
-                raise RuntimeError(f"An unexpected error occurred: {e}")
+        try:
+            result = unlock(passphrase)
+            if result.returncode != 0:
+                return result.stdout.decode("utf-8")
+        except Exception as e:
+            cprint(text="Failed to unlock Git credential store.", color="yellow")
+            print(e)
+        try:
+            return repo.git.pull()
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to pull changes: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
 def push(passphrase: str = "", repo: git.Repo = None) -> str:
@@ -218,13 +224,17 @@ def push(passphrase: str = "", repo: git.Repo = None) -> str:
     if repo is None:
         repo = get_repo()
     with repo:
-        result = unlock()
-        if result.returncode != 0:
-            return result.stdout.decode("utf-8")
-        else:
-            try:
-                return repo.git.push()
-            except git.GitCommandError as e:
-                raise RuntimeError(f"Failed to push changes: {e}")
-            except Exception as e:
-                raise RuntimeError(f"An unexpected error occurred: {e}")
+        try:
+            result = unlock()
+            if result.returncode != 0:
+                return result.stdout.decode("utf-8")
+        except Exception as e:
+            cprint(text="Failed to unlock Git credential store.", color="yellow")
+            print(e)
+
+        try:
+            return repo.git.push()
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to push changes: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
