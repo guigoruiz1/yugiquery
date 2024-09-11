@@ -282,9 +282,9 @@ class Bot:
         """
         Property to get the URLs for the remote repository and webpage.
         """
-        repository_api_url = None
-        repository_url = None
-        webpage_url = None
+        repository_api_url = ""
+        repository_url = ""
+        webpage_url = ""
         try:
             # Get the remote repository
             remote = self.repo.remote()
@@ -658,7 +658,7 @@ class Bot:
         Returns:
             str: The result message indicating whether the push was successful
         """
-        if self.URLS.repo is None:
+        if not self.URLS.repo:
             return "No github repository."
         try:
             # Attempt to call git.push and return its result if successful
@@ -677,7 +677,7 @@ class Bot:
         Returns:
             str: The result message indicating whether the pull was successful
         """
-        if self.URLS.repo is None:
+        if not self.URLS.repo:
             return "No github repository."
         try:
             # Attempt to call git.pull and return its result if successful
