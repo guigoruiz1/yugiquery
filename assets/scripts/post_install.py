@@ -73,7 +73,7 @@ def install_kernel() -> None:
 
 def install_tqdm() -> None:
     result = subprocess.run(
-        ["pip", "install", "--no-deps", "git+https://github.com/guigoruiz1/tqdm.git"],
+        ["pip", "install", "--no-deps", "tqdm[notebook] @ git+https://github.com/guigoruiz1/tqdm.git"],
         text=True,
     )
 
