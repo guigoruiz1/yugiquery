@@ -49,7 +49,7 @@ if dirs.is_notebook:
 # ========= #
 
 #: Dictionary containing the colors used in the plots.
-colors_dict = load_json(dirs.get_asset("json", "colors.json"))  # Colors dictionary to associate to series and cards
+colors_dict = load_json(dirs.get_asset("json", "colors.json"))
 # TODO: Adapt colors to style
 
 # ========= #
@@ -66,9 +66,6 @@ def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, flo
 
     Returns:
         tuple: The adjusted color in RGB format.
-
-    Raises:
-        KeyError: If the specified color is not a valid Matplotlib color name.
     """
 
     try:
@@ -245,7 +242,6 @@ def rate_subplots(
     df: pd.DataFrame,
     figsize: Tuple[int, int] = None,
     title: str = "",
-    xlabel: str = "Date",
     colors: List[str] = None,
     cumsum: bool = True,
     bg: pd.DataFrame = None,
@@ -355,7 +351,6 @@ def rate(
     dy: pd.DataFrame,
     figsize: Tuple[int, int] = (12, 6),
     title: str = None,
-    xlabel: str = "Date",
     colors: List[str] = None,
     cumsum: bool = True,
     bg: pd.DataFrame = None,

@@ -876,7 +876,7 @@ def extract_artwork(row: pd.Series) -> float | tuple[str]:
         return result
 
 
-def extract_primary_type(x: Union[str, List[str], Tuple[str]]) -> str:
+def extract_primary_type(row: Union[str, List[str], Tuple[str]]) -> str:
     """
     Extracts the primary type of a card.
     If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
@@ -885,24 +885,24 @@ def extract_primary_type(x: Union[str, List[str], Tuple[str]]) -> str:
     Otherwise, returns the input.
 
     Args:
-        x (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
+        row (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
 
     Returns:
         Union[str, List[str]]: The extracted primary type(s).
     """
-    if isinstance(x, list) or isinstance(x, tuple):
-        if "Monster Token" in x:
+    if isinstance(row, list) or isinstance(row, tuple):
+        if "Monster Token" in row:
             return "Monster Token"
         else:
-            x = [z for z in x if (z != "Pendulum Monster") and (z != "Maximum Monster")]
-            if len(x) == 1 and "Effect Monster" in x:
+            row = [z for z in row if (z != "Pendulum Monster") and (z != "Maximum Monster")]
+            if len(row) == 1 and "Effect Monster" in row:
                 return "Effect Monster"
-            elif len(x) > 0:
-                return [z for z in x if z != "Effect Monster"][0]
+            elif len(row) > 0:
+                return [z for z in row if z != "Effect Monster"][0]
             else:
                 return "???"
 
-    return x
+    return row
 
 
 def extract_misc(x: Union[str, List[str], Tuple[str]]) -> pd.Series:

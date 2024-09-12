@@ -41,6 +41,9 @@ def assure_repo() -> git.Repo:
 
     Returns:
         git.Repo: The git repository object.
+
+    Raises:
+        RuntimeError: If a Git repository cannot be initialized.
     """
     try:
         # Try to create a Repo object
@@ -65,9 +68,6 @@ def assure_repo() -> git.Repo:
 def get_repo() -> git.Repo:
     """
     Gets the current git repository if there is one.
-
-    Args:
-        None
 
     Raises:
         git.InvalidGitRepositoryError: If the dirs.SCRIPT is not in a git repository.
@@ -164,7 +164,6 @@ def restore(files: Union[str, List[str]], repo: git.Repo = None) -> str:
     if repo is None:
         repo = get_repo()
     with repo:
-        # Stage the files before committing
         try:
             return repo.git.restore(*files)
         except git.GitCommandError as e:
@@ -225,7 +224,7 @@ def push(passphrase: str = "", repo: git.Repo = None) -> str:
         repo = get_repo()
     with repo:
         try:
-            result = unlock()
+            result = unlock(passphrase)
             if result.returncode != 0:
                 return result.stdout.decode("utf-8")
         except Exception as e:

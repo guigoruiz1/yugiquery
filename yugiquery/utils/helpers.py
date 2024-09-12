@@ -36,7 +36,7 @@ from .dirs import dirs
 
 def ensure_tqdm():
     """
-    Ensure the required tqdm fork for the Discord API is installed.
+    Ensure the required tqdm fork for the Discord API is installed. Exits the program if the installation fails.
     """
     loop = 0
     while True:
@@ -128,7 +128,7 @@ def load_json(json_file: str) -> dict:
             data = json.load(file)
             return data
     except:
-        cprint(text=f"Error loading {json_file}! This may break some features.", color="yellow")
+        cprint(text=f"Error loading {json_file}! Returning empty dictionary. This may break some features.", color="yellow")
         return {}
 
 

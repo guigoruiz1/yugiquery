@@ -82,15 +82,13 @@ def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
     """
     Load secrets from command-line arguments, and update them with values from
     environment variables or a .env file, placed in the `Assets` directory, if necessary.
+    If the required secrets are not found, the function will exit the program.
 
     Args:
         Dict[str, Any]: A dictionary of secrets.
 
     Returns:
         Dict[str, str]: A dictionary containing the loaded secrets.
-
-    Raises:
-        KeyError: If a required secret is not found in the loaded secrets.
     """
 
     secrets = {key: value for key, value in args.items() if value is not None}
@@ -598,7 +596,6 @@ class Bot:
         try:
             self.process = mp.Process(
                 target=yq.run,
-                # isinstance(self,Telegram)
                 args=[report.value, progress_handler],
             )
             self.process.start()

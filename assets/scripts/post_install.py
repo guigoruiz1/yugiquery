@@ -10,6 +10,9 @@ from termcolor import cprint
 
 
 def install_kernel() -> None:
+    """
+    Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
+    """
     from yugiquery.utils.git import get_repo
     from yugiquery.utils.dirs import dirs
     from yugiquery import __url__
@@ -74,6 +77,9 @@ def install_kernel() -> None:
 
 
 def install_tqdm() -> None:
+    """
+    Install a fork of TQDM that works with the Discord REST API without requiring deprecated `disco-py` package.
+    """
     result = subprocess.run(
         ["pip", "install", "--no-deps", "tqdm[notebook] @ git+https://github.com/guigoruiz1/tqdm.git"],
         text=True,
@@ -86,6 +92,9 @@ def install_tqdm() -> None:
 
 
 def install_nbconvert() -> None:
+    """
+    Copy the nbconvert templates from YugiQuery to the appropriate Jupyter NbConvert directory.
+    """
     from yugiquery.utils.dirs import dirs
 
     src_dir = dirs.ASSETS.pkg / "nbconvert"
@@ -99,11 +108,15 @@ def install_nbconvert() -> None:
 
 
 def install_filters() -> None:
+    """
+    Install Git filters to automatically clean notebooks before committing them and redacting secrets from "secrets" files.
+    Will initializes a new Git repository if one does not exist.
+    """
     from yugiquery.utils.dirs import dirs
-    from yugiquery.utils.git import get_repo
+    from yugiquery.utils.git import assure_repo
 
     try:
-        repo_root = get_repo().working_dir
+        repo_root = assure_repo().working_dir # Still unsure about this
         script_path = dirs.get_asset("scripts", "git_filters.sh")
         result = subprocess.run(
             ["bash", script_path],
@@ -121,6 +134,7 @@ def install_filters() -> None:
 
 
 def main(args):
+    # If no flags are passed, install everything.
     if not (args.tqdm or args.kernel or args.nbconvert or args.filters):
         args.tqdm = args.kernel = args.nbconvert = args.filters = True
 

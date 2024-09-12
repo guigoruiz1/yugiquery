@@ -140,7 +140,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
 
     Args:
         timestamp (arrow.Arrow): The timestamp when the report execution began.
-         report (str): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
+        report (str): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
 
     Returns:
         None
@@ -151,10 +151,8 @@ def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
     now = arrow.utcnow()
     timedelta = now - timestamp
     benchmark_file = dirs.DATA / "benchmark.json"
-    if benchmark_file.is_file():
-        data = load_json(benchmark_file)
-    else:
-        data = {}
+    data = load_json(benchmark_file)
+
     # Add the new data to the existing data
     if report not in data:
         data[report] = []
@@ -376,7 +374,7 @@ def cleanup_data(dry_run=False) -> None:
         )
         print(result)
 
-
+# TODO: Rename and automate tuple cols
 def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> tuple[pd.DataFrame, arrow.Arrow]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
@@ -430,8 +428,8 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         regions_dict = load_json(dirs.get_asset("json", "regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
-                input_info_df[regions_dict[x["Region"]] + " release date"][x["Set"]]
-                if (x["Region"] in regions_dict.keys() and x["Set"] in input_info_df.index)
+                input_info_df[regions_dict.get(x["Region"],x["Region"]) + " release date"][x["Set"]]
+                if x["Set"] in input_info_df.index
                 else np.nan
             ),
             axis=1,
@@ -580,20 +578,22 @@ def save_notebook() -> None:
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
 
-
-def export_notebook(input_path, template="auto", no_input=True) -> None:
+# TODO: check if Path works or need converting to str
+def export_notebook(input_path: str, output_path: str = None, template: str = "auto", no_input: bool = True) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
 
     Args:
         input_path (str): The path to the Jupyter notebook file to convert.
+        output_path (str, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
         template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
 
     Returns:
         None
     """
-    output_path = str(dirs.REPORTS / Path(input_path).stem)
+    if output_path is None:
+        output_path = str(dirs.REPORTS / Path(input_path).stem)
 
     if template == "auto":
         template = "labdynamic"
@@ -633,15 +633,12 @@ def export_notebook(input_path, template="auto", no_input=True) -> None:
 # ================ #
 
 
-def update_index() -> None:  # Handle index and readme properly
+def update_index() -> None:
     """
-    Update the index.md and README.md files with a table of links to all HTML reports in the parent directory.
+    Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
     If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
-    If there is no index.md or README.md files in the assets directory, print an error message and abort.
-
-    Raises:
-        FileNotFoundError: If the "index.md" or "README.md" files in "assets" are not found.
+    If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
 
     Returns:
         None
@@ -695,12 +692,10 @@ def update_index() -> None:  # Handle index and readme properly
 def header(name: str = None) -> Markdown:
     """
     Generates a Markdown header with a timestamp and the name of the notebook (if provided).
+    If there is no header.md file in the `ASSETS` directory, prints an error message and returns None.
 
     Args:
         name (str, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
-
-    Raises:
-        FileNotFoundError: If the "header.md" file in "assets" it not found.
 
     Returns:
         Markdown: The generated Markdown header.
@@ -714,6 +709,7 @@ def header(name: str = None) -> Markdown:
             header = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
+        return None
 
     header = header.replace(
         "@TIMESTAMP@",
@@ -726,11 +722,11 @@ def header(name: str = None) -> Markdown:
 def footer(timestamp: arrow.Arrow = None) -> Markdown:
     """
     Generates a Markdown footer with a timestamp.
+    If there is no footer.md file in the `ASSETS` directory, prints error message and  an returns None.
 
     Args:
         timestamp (arrow.Arrow, optional): The timestamp to use. If None, uses the current time. Defaults to None.
-    Raises:
-            FileNotFoundError: If the "header.md" file in "assets" it not found.
+
     Returns:
         Markdown: The generated Markdown footer.
     """
@@ -740,6 +736,7 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
             footer = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
+        return None
 
     now = arrow.utcnow()
     footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
@@ -1054,6 +1051,7 @@ def fetch_st(
 
     Raises:
         ValueError: Raised if the "st" argument is not one of "spell", "trap", "both", or "all".
+        ValueError: Raised if the "cg" argument is not a valid CG.
     """
     debug = kwargs.get("debug", False)
     st = st.capitalize()
@@ -1103,6 +1101,9 @@ def fetch_monster(
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched monster cards.
+
+    Raises:
+        ValueError: Raised if the "cg" argument is not a valid CG.
     """
     debug = kwargs.get("debug", False)
     valid_cg = cg.value
@@ -1159,6 +1160,8 @@ def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched token cards.
 
+    Raises:
+        ValueError: Raised if the "cg" argument is not a valid CG.
     """
     valid_cg = cg.value
     print("Downloading tokens")
@@ -1191,6 +1194,9 @@ def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: 
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched counter cards.
+
+    Raises:
+        ValueError: Raised if the "cg" argument is not a valid CG.
     """
     valid_cg = cg.value
     print("Downloading counters")
@@ -1329,6 +1335,9 @@ def fetch_unusable(
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched spell/trap cards.
 
+    Raises:
+        ValueError: Raised if the "cg" argument is not a valid CG.
+
     """
     debug = kwargs.get("debug", False)
     concept = "[[Category:Unusable cards]]"
@@ -1435,6 +1444,9 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
 
     Returns:
         pd.DataFrame: A DataFrame containing the titles of the set list pages.
+
+    Raises:
+        ValueError: Raised if the "cg" argument is not a valid CG.
 
     """
     debug = kwargs.get("debug", False)
@@ -1549,6 +1561,9 @@ def run_notebooks(
 
     Returns:
         None
+
+    Raises:
+        Exception: Raised if any exceptions occur during notebook execution.
     """
     debug = kwargs.pop("debug", False)
 
@@ -1707,7 +1722,7 @@ def run(
     **kwargs,
 ) -> None:
     """
-    Executes all notebooks in the source directory that match the specified report, updates the page index
+    Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
@@ -1718,6 +1733,9 @@ def run(
         cleanup (Union[bool,str], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
+
+    Raises:
+        Exception: Raised if any exceptions occur during notebook execution.
 
     Returns:
         None: This function does not return a value.
