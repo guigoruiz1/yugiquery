@@ -770,28 +770,30 @@ def card_query(default: str = None, *args, **kwargs) -> str:
         str: A string containing the arguments to be passed to the API for the card search query.
     """
     # Default card query
-    prop_bool = {
-        "password": True,
-        "card_type": True,
-        "property": True,
-        "primary": True,
-        "secondary": True,
-        "attribute": True,
-        "monster_type": True,
-        "stars": True,
-        "atk": True,
-        "def": True,
-        "scale": True,
-        "link": True,
-        "arrows": True,
-        "effect_type": True,
-        "archseries": True,
-        "alternate_artwork": True,
-        "edited_artwork": True,
-        "tcg": True,
-        "ocg": True,
-        "date": True,
-    }
+    default_props = pd.Series(
+        [
+            "password",
+            "card_type",
+            "property",
+            "primary",
+            "secondary",
+            "attribute",
+            "monster_type",
+            "stars",
+            "atk",
+            "def",
+            "scale",
+            "link",
+            "arrows",
+            "effect_type",
+            "archseries",
+            "alternate_artwork",
+            "edited_artwork",
+            "tcg",
+            "ocg",
+            "date",
+        ]
+    )
 
     if default is not None:
         default = default.lower()
@@ -808,143 +810,148 @@ def card_query(default: str = None, *args, **kwargs) -> str:
     }
     if default not in valid_default:
         raise ValueError("results: default must be one of %r." % valid_default)
+    elif default is None:
+        props = default_props
     elif default == "monster":
-        prop_bool.update({"property": False})
+        props = default_props[default_props.notin(["property"])]
     elif default == "st" or default == "trap" or default == "spell":
-        prop_bool.update(
-            {
-                "primary": False,
-                "secondary": False,
-                "attribute": False,
-                "monster_type": False,
-                "stars": False,
-                "atk": False,
-                "def": False,
-                "scale": False,
-                "link": False,
-                "arrows": False,
-            }
-        )
+        props = default_props[
+            default_props.notin(
+                [
+                    "primary",
+                    "secondary",
+                    "attribute",
+                    "monster_type",
+                    "stars",
+                    "atk",
+                    "def",
+                    "scale",
+                    "link",
+                    "arrows",
+                ]
+            )
+        ]
     elif default == "counter":
-        prop_bool.update(
-            {
-                "primary": False,
-                "secondary": False,
-                "attribute": False,
-                "monster_type": False,
-                "property": False,
-                "stars": False,
-                "atk": False,
-                "def": False,
-                "scale": False,
-                "link": False,
-                "arrows": False,
-            }
-        )
+        props = default_props[
+            default_props.notin(
+                [
+                    "primary",
+                    "secondary",
+                    "attribute",
+                    "monster_type",
+                    "property",
+                    "stars",
+                    "atk",
+                    "def",
+                    "scale",
+                    "link",
+                    "arrows",
+                ]
+            )
+        ]
     elif default == "skill":
-        prop_bool.update(
-            {
-                "password": False,
-                "primary": False,
-                "secondary": False,
-                "attribute": False,
-                "monster_type": False,
-                "stars": False,
-                "atk": False,
-                "def": False,
-                "scale": False,
-                "link": False,
-                "arrows": False,
-                "effect_type": False,
-                "edited_artwork": False,
-                "alternate_artwork": False,
-                "ocg": False,
-                "speed": True,
-                "character": True,
-            }
-        )
+        props = default_props[
+            default_props.notin(
+                [
+                    "password",
+                    "primary",
+                    "secondary",
+                    "attribute",
+                    "monster_type",
+                    "stars",
+                    "atk",
+                    "def",
+                    "scale",
+                    "link",
+                    "arrows",
+                    "effect_type",
+                    "edited_artwork",
+                    "alternate_artwork",
+                    "ocg",
+                ]
+            )
+        ]
+        props = pd.concat([props, pd.Series(["speed", "character"])], ignore_index=True)
+
     elif default == "speed":
-        prop_bool.update(
-            {
-                "speed": True,
-                "scale": False,
-                "link": False,
-                "arrows": False,
-            }
-        )
+        props = default_props[default_props.notin(["scale", "link", "arrows"])]
+        props = pd.concat([props, pd.Series(["speed"])], ignore_index=True)
     elif default == "rush":
-        prop_bool.update(
-            {
-                "password": False,
-                "secondary": False,
-                "scale": False,
-                "link": False,
-                "arrows": False,
-                "tcg": False,
-                "ocg": False,
-                "maximum_atk": True,
-                "edited_artwork": False,
-                "alternate_artwork": False,
-                "rush_alt_artwork": True,
-                "rush_edited_artwork": True,
-                "misc": True,
-            }
+        props = default_props[
+            default_props.notin(
+                [
+                    "password",
+                    "secondary",
+                    "scale",
+                    "link",
+                    "arrows",
+                    "tcg",
+                    "ocg",
+                    "edited_artwork",
+                    "alternate_artwork",
+                ]
+            )
+        ]
+        props = pd.concat(
+            [props, pd.Series(["rush_alt_artwork", "rush_edited_artwork", "maximum_atk", "misc"])], ignore_index=True
         )
+    elif default == "bandai":
+        props = ["card_type", "level", "atk", "def", "number", "monster_type", "rule", "sets", "rarity", "ability", "date"]
 
     # Card properties dictionary
-    # TODO: Move to json in assets
+    # TODO: Move to json in assets?
     prop_dict = {
-        "password": "|?Password",
-        "card_type": "|?Card%20type",
-        "property": "|?Property",
-        "primary": "|?Primary%20type",
-        "secondary": "|?Secondary%20type",
-        "attribute": "|?Attribute",
-        "monster_type": "|?Type=Monster%20type",
-        "stars": "|?Stars%20string=Level%2FRank%20",
-        "atk": "|?ATK%20string=ATK",
-        "def": "|?DEF%20string=DEF",
-        "scale": "|?Pendulum%20Scale",
-        "link": "|?Link%20Rating=Link",
-        "arrows": "|?Link%20Arrows",
-        "effect_type": "|?Effect%20type",
-        "archseries": "|?Archseries",
-        "alternate_artwork": "|?Category:OCG/TCG%20cards%20with%20alternate%20artworks",
-        "edited_artwork": "|?Category:OCG/TCG%20cards%20with%20edited%20artworks",
-        "tcg": "|?TCG%20status",
-        "ocg": "|?OCG%20status",
-        "date": "|?Modification%20date",
-        "image_URL": "|?Card%20image",
-        "misc": "|?Misc",
-        "summoning": "|?Summoning",
+        "password": "Password",
+        "card_type": "Card type",
+        "property": "Property",
+        "primary": "Primary type",
+        "secondary": "Secondary type",
+        "attribute": "Attribute",
+        "monster_type": "Type=Monster type",
+        "stars": "Stars string=Level/Rank",
+        "atk": "ATK string=ATK",
+        "def": "DEF string=DEF",
+        "scale": "Pendulum Scale",
+        "link": "Link Rating=Link",
+        "arrows": "Link Arrows",
+        "effect_type": "Effect type",
+        "archseries": "Archseries",
+        "alternate_artwork": "Category:OCG/TCG cards with alternate artworks",
+        "edited_artwork": "Category:OCG/TCG cards% with edited artworks",
+        "tcg": "TCG status",
+        "ocg": "OCG status",
+        "date": "Modification date",
+        "image_URL": "Card image",
+        "misc": "Misc",
+        "summoning": "Summoning",
         # Speed duel specific
-        "speed": "|?TCG%20Speed%20Duel%20status",
-        "character": "|?Character",
+        "speed": "TCG Speed Duel status",
+        "character": "Character",
         # Rush duel specific
-        "rush_alt_artwork": "|?Category:Rush%20Duel%20cards%20with%20alternate%20artworks",
-        "rush_edited_artwork": "|?Category:Rush%20Duel%20cards%20with%20edited%20artworks",
-        "maximum_atk": "|?MAXIMUM%20ATK",
+        "rush_alt_artwork": "Category:Rush Duel cards with alternate artworks",
+        "rush_edited_artwork": "Category:Rush Duel cards with edited artworks",
+        "maximum_atk": "MAXIMUM ATK",
+        # Bandai specific
+        "level": "Level",
+        "number": "Bandai number=Card number",
+        "rule": "Bandai rule=Rule",
+        "sets": "Sets=set",
+        "rarity": "Rarity",
+        "ability": "Ability",
         # Deprecated - Use for debuging
-        "category": "|?category",
+        "category": "category",
     }
-    # Change default values to kwargs values
-    prop_bool.update(kwargs)
     # Initialize string
     search_string = "|?English%20name=Name"
     # Iterate default plus kwargs items
-    for arg, value in prop_bool.items():
-        # If property is true
-        if value:
-            # If property in the dictionary, get its value
-            if arg in prop_dict.keys():
-                search_string += f"{prop_dict[arg]}"
-            # If property is not in the dictionary, assume generic property
-            else:
-                print(f"Unrecognized property {arg}. Assuming |?{up.quote(arg)}.")
-                search_string += f"|?{up.quote(arg)}"
+    for prop in props:
+        if prop in kwargs and not kwargs[prop]:
+            kwargs.pop(prop)
+        else:
+            search_string += f"|?{prop_dict.get(prop, up.quote(prop))}"
 
     for arg in args:
-        search_string += f"|?{up.quote(arg)}"
+        search_string += f"|?{prop_dict.get(arg, up.quote(arg))}"
 
     return search_string
 
@@ -976,46 +983,25 @@ def fetch_rarities_dict(rarities_list: List[str] = []) -> Dict[str, str]:
 
 
 # Bandai
-def fetch_bandai(limit: int = 200, *args, **kwargs) -> pd.DataFrame:
+def fetch_bandai(bandai_query: str = None, limit: int = 200, **kwargs) -> pd.DataFrame:
     """
     Fetch Bandai cards.
 
     Args:
+        bandai_query (str, optional): A string representing a SMW query to search for. Defaults to None.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
-        *args: Additional properties to query.
-        **kwargs: keyword arguments to disable specific properties from query. Remaining keword arguments are passed to fetch_properties()
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
     """
     debug = kwargs.get("debug", False)
-    bandai_query = "|?English%20name=Name"
-    # TODO: Move to json in assets
-    bandai_prop_dict = {
-        "card_type": "|?Card%20type",
-        "level": "|?Level",
-        "atk": "|?ATK",
-        "def": "|?DEF",
-        "number": "|?Bandai%20number=Card%20number",
-        "type": "|?Type=Monster%20type",
-        "rule": "|?Bandai%20rule=Rule",
-        "sets": "|?Sets=Set",
-        "rarity": "|?Rarity",
-        "ability": "|?Ability",
-        "date": "|?Modification%20date",
-    }
-    for key, value in bandai_prop_dict.items():
-        if key in kwargs:
-            disable = not kwargs.pop(key)
-            if disable:
-                continue
-        bandai_query += value
 
-    for arg in args:
-        bandai_query += f"|?{up.quote(arg)}"
+    concept = "[[Medium::Bandai]]"
+    if bandai_query is None:
+        bandai_query = card_query(default="bandai")
 
     print(f"Downloading bandai cards")
-    concept = "[[Medium::Bandai]]"
     bandai_df = api.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
         bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])  # Temporary
@@ -1069,10 +1055,11 @@ def fetch_st(
         concept += f"[[Card type::{st} card]]"
     if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
-    print(f"Downloading {st}s")
+
     if st_query is None:
         st_query = card_query(default="st")
 
+    print(f"Downloading {st}s")
     st_df = api.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
 
     if debug:
@@ -1111,10 +1098,10 @@ def fetch_monster(
     debug = kwargs.get("debug", False)
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
-    print("Downloading monsters")
     if monster_query is None:
         monster_query = card_query(default="monster")
 
+    print("Downloading monsters")
     monster_df = pd.DataFrame()
     iterator = tqdm(
         attributes,
@@ -1166,8 +1153,8 @@ def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int 
     Raises:
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
+
     valid_cg = cg.value
-    print("Downloading tokens")
 
     concept = f"[[Category:Tokens]]"
     if valid_cg != "CG":
@@ -1178,6 +1165,7 @@ def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int 
     if token_query is None:
         token_query = card_query(default="monster")
 
+    print("Downloading tokens")
     token_df = api.fetch_properties(concept, token_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
@@ -1202,7 +1190,6 @@ def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: 
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
     valid_cg = cg.value
-    print("Downloading counters")
 
     concept = f"[[Category:Counters]][[Page%20type::Card%20page]]"
     if valid_cg != "CG":
@@ -1211,6 +1198,7 @@ def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: 
     if counter_query is None:
         counter_query = card_query(default="counter")
 
+    print("Downloading counters")
     counter_df = api.fetch_properties(concept, counter_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
@@ -1236,11 +1224,11 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     """
     debug = kwargs.get("debug", False)
 
-    print(f"Downloading Speed duel cards")
     concept = "[[Category:TCG Speed Duel cards]]"
     if speed_query is None:
         speed_query = card_query(default="speed")
 
+    print(f"Downloading Speed duel cards")
     speed_df = api.fetch_properties(
         concept,
         speed_query,
@@ -1270,12 +1258,12 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     Returns:
         A pandas DataFrame containing the fetched skill cards.
     """
-    print("Downloading skill cards")
 
     concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
     if skill_query is None:
         skill_query = card_query(default="skill")
 
+    print("Downloading skill cards")
     skill_df = api.fetch_properties(concept, skill_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
@@ -1296,13 +1284,11 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
     Returns:
         A pandas DataFrame containing the fetched Rush Duel cards.
     """
-    debug = kwargs.get("debug", False)
-    print("Downloading Rush Duel cards")
-
     concept = f"[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]"
     if rush_query is None:
         rush_query = card_query(default="rush")
 
+    print("Downloading Rush Duel cards")
     rush_df = api.fetch_properties(concept, rush_query, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
@@ -1353,10 +1339,10 @@ def fetch_unusable(
 
     concept = up.quote(concept)
 
-    print(f"Downloading unusable cards")
     if query is None:
         query = card_query()
 
+    print(f"Downloading unusable cards")
     unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     if filter and "Card type" in unusable_df:
@@ -1461,7 +1447,6 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
 
     print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
-    result = pd.DataFrame()
     iterator = tqdm(
         category,
         leave=False,
