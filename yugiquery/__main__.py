@@ -134,25 +134,35 @@ def main():
 
         exit()
 
-    elif args.command == "install":
-        spec = importlib.util.spec_from_file_location(
-            name="post_install",
-            location=dirs.get_asset("scripts", "post_install.py"),
-        )
-        post_install = importlib.util.module_from_spec(spec=spec)
-        spec.loader.exec_module(post_install)
-        post_install.main(args)
-
-    elif args.command == "bot":
-        # Call the bot main function with parsed arguments
-        from .bot import main
-
-        main(args)
     else:
-        # Main Yugiquery flow
-        from .yugiquery import main
+        print("""                                                               
+         ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ 
+          ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  
+           ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   
+            ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    
+            ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    
+                                           ▀▀                                     
+        """)
 
-        main(args)
+        if args.command == "install":
+            spec = importlib.util.spec_from_file_location(
+                name="post_install",
+                location=dirs.get_asset("scripts", "post_install.py"),
+            )
+            post_install = importlib.util.module_from_spec(spec=spec)
+            spec.loader.exec_module(post_install)
+            post_install.main(args)
+
+        elif args.command == "bot":
+            # Call the bot main function with parsed arguments
+            from .bot import main
+
+            main(args)
+        else:
+            # Main Yugiquery flow
+            from .yugiquery import main
+
+            main(args)
 
 
 if __name__ == "__main__":

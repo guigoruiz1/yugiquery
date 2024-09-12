@@ -280,7 +280,7 @@ class Bot:
     @property
     def URLS(self) -> StrEnum:
         """
-        Property to get the URLs for the remote repository and webpage.
+        Property to get the URLs of the remote repository and webpage.
         """
         repository_api_url = ""
         repository_url = ""
