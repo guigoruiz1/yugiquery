@@ -1740,8 +1740,7 @@ def run(
             reports = [reports]
 
         for i, report in enumerate(reports):
-            report_path = Path(report) if isinstance(report, str) else report
-
+            report_path = Path(report)
             if report_path.is_file():
                 reports[i] = report_path
             else:
@@ -1763,13 +1762,14 @@ def run(
 
     # Execute notebooks
     try:
-        run_notebooks(
-            reports=reports,
-            progress_handler=progress_handler,
-            telegram_first=telegram_first,
-            suppress_contribs=suppress_contribs,
-            **kwargs,
-        )
+        if len(reports) > 0:
+            run_notebooks(
+                reports=reports,
+                progress_handler=progress_handler,
+                telegram_first=telegram_first,
+                suppress_contribs=suppress_contribs,
+                **kwargs,
+            )
     except Exception as e:
         raise e
     finally:
