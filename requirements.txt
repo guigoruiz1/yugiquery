@@ -22,5 +22,5 @@ seaborn>=0.13.2
 sphinx>=7.2.6
 sphinx_rtd_theme>=2.0.0
 termcolor>=2.4.0
-tqdm>=4.62.3
+tqdm[notebook]>=4.62.3
 wikitextparser>=0.55.8

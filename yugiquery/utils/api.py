@@ -304,7 +304,7 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
         Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
     """
     results = {}
-    iterator = tqdm(titles, desc="Backlinks", leave=False)
+    iterator = tqdm(titles, dynamic_ncols=True, desc="Backlinks", leave=False)
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
@@ -630,6 +630,7 @@ async def download_images(
                     unit_divisor=1024,
                     desc=save_name,
                     leave=False,
+                    dynamic_ncols=True,
                     disable=("PM_IN_EXECUTION" in os.environ),
                 )
                 save_file = Path(save_folder).joinpath(save_name)
@@ -655,6 +656,7 @@ async def download_images(
             total=len(urls),
             unit_scale=True,
             unit="file",
+            dynamic_ncols=True,
             disable=("PM_IN_EXECUTION" in os.environ),
         ) as pbar:
             tasks = [

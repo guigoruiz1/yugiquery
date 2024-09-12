@@ -1116,6 +1116,7 @@ def fetch_monster(
         attributes,
         leave=False,
         unit="attribute",
+        dynamic_ncols=True,
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for att in iterator:
@@ -1398,6 +1399,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         categories,
         leave=False,
         unit="initial",
+        dynamic_ncols=True,
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
@@ -1449,6 +1451,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         category,
         leave=False,
         unit="category",
+        dynamic_ncols=True,
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
@@ -1459,6 +1462,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             sub_categories,
             leave=False,
             unit="subcategory",
+            dynamic_ncols=True,
             disable=("PM_IN_EXECUTION" in os.environ),
         )
         for sub_cat in sub_iterator:
@@ -1549,7 +1553,9 @@ def run_notebooks(
     debug = kwargs.pop("debug", False)
 
     if progress_handler:
-        external_pbar = progress_handler.pbar(iterable=reports, desc="Completion", unit="report", unit_scale=True)
+        external_pbar = progress_handler.pbar(
+            iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True
+        )
     else:
         external_pbar = None
 
@@ -1597,6 +1603,7 @@ def run_notebooks(
                     unit_scale=True,
                     dynamic_ncols=True,
                     token=token,
+                    delay=1,
                     # Needed to handle Telegram using chat_ID instaed of channel_ID.
                     **channel_id_dict,
                 )
@@ -1612,6 +1619,7 @@ def run_notebooks(
             unit="report",
             unit_scale=True,
             dynamic_ncols=True,
+            delay=1,
         )
 
     # Create the main logger
