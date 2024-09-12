@@ -119,25 +119,27 @@ def install_filters() -> None:
 
 
 def main(args):
-    if args.tqdm or args.all:
+    if not (args.tqdm or args.kernel or args.nbconvert or args.filters):
+        args.tqdm = args.kernel = args.nbconvert = args.filters = True
+
+    if args.tqdm:
         install_tqdm()
-    if args.kernel or args.all:
+    if args.kernel:
         install_kernel()
-    if args.nbconvert or args.all:
+    if args.nbconvert:
         install_nbconvert()
-    if args.filters or args.all:
+    if args.filters:
         install_filters()
 
 
 if __name__ == "__main__":
     import argparse
 
-    argparser = argparse.ArgumentParser()
+    argparser = argparse.ArgumentParser(description="Install various additional components. If no flags are passed, all components will be installed.")
     argparser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
     argparser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
     argparser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
     argparser.add_argument("--filters", action="store_true", help="Install git filters.")
-    argparser.add_argument("--all", action="store_true", help="Install all.")
     args = argparser.parse_args()
 
     main(args)

@@ -20,6 +20,7 @@ from types import SimpleNamespace
 from IPython import get_ipython
 from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
+from termcolor import cprint
 
 # ======= #
 # Classes #
@@ -203,26 +204,42 @@ class Dirs:
         """
         Prints the directory paths managed by this class.
         """
-        print(f"App: {self.APP}")
+        def exists(path: Path) -> str:
+            if path.exists():
+                cprint("exists", color="green")
+            else:
+                cprint("missing", color="red")
+
+        print(f"App: {self.APP} - ", end="",flush=True)
+        exists(self.APP)
         assets = self.ASSETS
         if assets.pkg is not None or assets.user is not None:
             print(f"Assets:")
         if assets.pkg is not None:
-            print(f"  Package: {assets.pkg}")
+            print(f"  Package: {assets.pkg} - ", end="",flush=True)
+            exists(assets.pkg)
         if assets.user is not None:
-            print(f"  User: {assets.user}")
-        print(f"Data: {self.DATA}")
-        print(f"NbConvert: {self.NBCONVERT}")
+            print(f"  User: {assets.user} - ",end="",flush=True)
+            exists(assets.user)
+        print(f"Data: {self.DATA} - ", end="", flush=True)
+        exists(self.DATA)
+        print(f"NbConvert: {self.NBCONVERT} - ", end="", flush=True)
+        exists(self.NBCONVERT)
         notebooks = self.NOTEBOOKS
         if notebooks.pkg is not None or notebooks.user is not None:
             print(f"Notebooks:")
         if notebooks.pkg is not None:
-            print(f"  Package: {notebooks.pkg}")
+            print(f"  Package: {notebooks.pkg} - ", end="", flush=True)
+            exists(notebooks.pkg)
         if notebooks.user is not None:
-            print(f"  User: {notebooks.user}")
-        print(f"Reports: {self.REPORTS}")
-        print(f"Utils: {self.UTILS}")
-        print(f"Work: {self.WORK}")
+            print(f"  User: {notebooks.user} - ", end="", flush=True)
+            exists(notebooks.user)
+        print(f"Reports: {self.REPORTS} - ", end="", flush=True)
+        exists(self.REPORTS)
+        print(f"Utils: {self.UTILS} - ", end="", flush=True)
+        exists(self.UTILS)
+        print(f"Work: {self.WORK} - ", end="", flush=True)
+        exists(self.WORK)
 
     def make(self) -> None:
         """

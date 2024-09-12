@@ -15,7 +15,7 @@ def main():
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
     # Subparser for the main yugiquery flow
-    yugiquery_parser = subparsers.add_parser("run", help=" Run the main Yugiquery flow")
+    yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow")
 
     yugiquery_parser.add_argument(
         "-r",
@@ -99,7 +99,7 @@ def main():
     bot_parser.add_argument("--debug", action="store_true", help="Enable debug flag")
 
     # Subparser for the kernel installation
-    post_install_parser = subparsers.add_parser("install", help="Run post-install script")
+    post_install_parser = subparsers.add_parser("install", help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.")
     post_install_parser.add_argument(
         "--tqdm",
         action="store_true",
@@ -120,21 +120,20 @@ def main():
         action="store_true",
         help="Install Git filters.",
     )
-    post_install_parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Install all.",
-    )
 
     # Parse initial arguments
     args = parser.parse_args()
 
-    if args.paths:
-        dirs.print()
-    elif args.version:
-        from .metadata import __title__, __version__
+    if args.paths or args.version:
+        if args.paths:
+            dirs.print()
+        if args.version:
+            from .metadata import __title__, __version__
 
-        print(f"{__title__} {__version__}")
+            print(f"{__title__} {__version__}")
+
+        exit()
+
     elif args.command == "install":
         spec = importlib.util.spec_from_file_location(
             name="post_install",
