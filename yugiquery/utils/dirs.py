@@ -204,22 +204,23 @@ class Dirs:
         """
         Prints the directory paths managed by this class.
         """
+
         def exists(path: Path) -> str:
             if path.exists():
                 cprint("exists", color="green")
             else:
                 cprint("missing", color="red")
 
-        print(f"App: {self.APP} - ", end="",flush=True)
+        print(f"App: {self.APP} - ", end="", flush=True)
         exists(self.APP)
         assets = self.ASSETS
         if assets.pkg is not None or assets.user is not None:
             print(f"Assets:")
         if assets.pkg is not None:
-            print(f"  Package: {assets.pkg} - ", end="",flush=True)
+            print(f"  Package: {assets.pkg} - ", end="", flush=True)
             exists(assets.pkg)
         if assets.user is not None:
-            print(f"  User: {assets.user} - ",end="",flush=True)
+            print(f"  User: {assets.user} - ", end="", flush=True)
             exists(assets.user)
         print(f"Data: {self.DATA} - ", end="", flush=True)
         exists(self.DATA)
@@ -270,7 +271,9 @@ class Dirs:
         elif pkg_asset_path and pkg_asset_path.exists():
             return pkg_asset_path
 
-        raise FileNotFoundError(f"Asset not found!")
+        print(self.ASSETS)
+
+        raise FileNotFoundError(f'Asset "{Path(*parts)}" not found!')
 
     def get_notebook(self, *parts: str) -> Path:
         """

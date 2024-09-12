@@ -146,7 +146,8 @@ def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
         None
     """
     if report is None:
-        report = get_notebook_name()
+        path = get_notebook_path()
+        report = path.stem if path else "Unnamed"
 
     now = arrow.utcnow()
     timedelta = now - timestamp
@@ -209,7 +210,7 @@ def condense_changelogs(files: pd.DataFrame) -> tuple[pd.DataFrame, str]:
     )
     new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
     index = new_changelog.drop(["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
-    new_filename = Path(file).joinpath(
+    new_filename = Path(file).parent.joinpath(
         make_filename(
             report=changelog_name,
             timestamp=arrow.get(last_date),
@@ -307,8 +308,6 @@ def cleanup_data(dry_run=False) -> None:
         "data": last_month_files[~last_month_files["Group"].str.contains("changelog")]["Name"].tolist(),
     }
 
-    print(last_month_files)
-
     # Remove the last_month_files from the same_month_files
     same_month_files["changelog"] = [
         files for files in same_month_files["changelog"] if files not in last_month_files["changelog"]
@@ -374,6 +373,7 @@ def cleanup_data(dry_run=False) -> None:
         )
         print(result)
 
+
 # TODO: Rename and automate tuple cols
 def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> tuple[pd.DataFrame, arrow.Arrow]:
     """
@@ -428,7 +428,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         regions_dict = load_json(dirs.get_asset("json", "regions.json"))
         input_df["Release"] = input_df[["Set", "Region"]].apply(
             lambda x: (
-                input_info_df[regions_dict.get(x["Region"],x["Region"]) + " release date"][x["Set"]]
+                input_info_df[regions_dict.get(x["Region"], x["Region"]) + " release date"][x["Set"]]
                 if x["Set"] in input_info_df.index
                 else np.nan
             ),
@@ -536,32 +536,26 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
 # =================== #
 
 
-def get_notebook_name() -> str:
+def get_notebook_path() -> Path:
     """
-    Gets the name of the current notebook opened in JupyterLab.
+    Gets the path of the current notebook opened in JupyterLab.
+    If the path cannot be obtained, returns None.
 
     Args:
         None
 
     Returns:
-        str: The name of the current notebook.
+        Path: The path of the current notebook.
     """
-    try:
-        file_path = getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__", "")
-    except Exception:
-        file_path = ""
 
-    if not file_path:
-        file_path = os.environ.get("JPY_SESSION_NAME", default="")
+    file_path = (
+        getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__")
+        or os.environ.get("JPY_SESSION_NAME")
+        or os.environ.get("PM_IN_EXECUTION")
+        or JupyterFrontEnd().sessions.current_session.get("name")
+    )
 
-    if not file_path:
-        try:
-            app = JupyterFrontEnd()
-            file_path = app.sessions.current_session.get("name", "")
-        except Exception:
-            file_path = ""
-
-    return Path(file_path).stem
+    return Path(file_path) if file_path else None
 
 
 def save_notebook() -> None:
@@ -578,20 +572,28 @@ def save_notebook() -> None:
     app.commands.execute("docmanager:save")
     print("Notebook saved to disk")
 
-# TODO: check if Path works or need converting to str
-def export_notebook(input_path: str, output_path: str = None, template: str = "auto", no_input: bool = True) -> None:
+
+def export_notebook(input_path: str = None, output_path: str = None, template: str = "auto", no_input: bool = True) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
 
     Args:
-        input_path (str): The path to the Jupyter notebook file to convert.
+        input_path (str, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
         output_path (str, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
         template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
 
+    Raises:
+        ValueError: If no notebook path is provided and cannot be found with `get_notebook_path`.
+
     Returns:
         None
     """
+    if input_path is None:
+        input_path = get_notebook_path()
+        if input_path is None:
+            raise ValueError("No notebook path provided")
+        input_path = str(get_notebook_path())
     if output_path is None:
         output_path = str(dirs.REPORTS / Path(input_path).stem)
 
@@ -701,7 +703,8 @@ def header(name: str = None) -> Markdown:
         Markdown: The generated Markdown header.
     """
     if name is None:
-        name = get_notebook_name()
+        path = get_notebook_path()
+        name = path.name if path else "Unnamed"
 
     header_path = dirs.get_asset("markdown", "header.md")
     try:
@@ -1675,7 +1678,8 @@ def run_notebooks(
             external_pbar.set_postfix(report=report_name)
 
         # execute the notebook with papermill
-        os.environ["PM_IN_EXECUTION"] = "True"
+        dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
+        os.environ["PM_IN_EXECUTION"] = dest_report
         if "yugiquery" in jupyter_client.kernelspec.find_kernel_specs():
             kernel_name = "yugiquery"
         else:
@@ -1684,7 +1688,7 @@ def run_notebooks(
         try:
             pm.execute_notebook(
                 input_path=report,
-                output_path=dirs.REPORTS / f"{report_name}.html",
+                output_path=dest_report,
                 log_output=True,
                 progress_bar=True,
                 kernel_name=kernel_name,
