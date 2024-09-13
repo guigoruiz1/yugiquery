@@ -281,7 +281,7 @@ class Dirs:
 
     def get_notebook(self, *parts: str) -> Path:
         """
-        Return the path to a notebook file.
+        Return the path to a notebook file. Names are case insensitive. If more than one occurrence is found, the first path will be returned. Notebooks in the user directory will take precedence over the pkg director.  
 
         Args:
             *parts (str): The path parts to the notebook file.
@@ -292,13 +292,20 @@ class Dirs:
         Raises:
             FileNotFoundError: If the notebook file is not found.
         """
-        user_notebook_path = self.NOTEBOOKS.user.joinpath(*parts).with_suffix(".ipynb") if self.NOTEBOOKS.user else None
-        pkg_notebook_path = self.NOTEBOOKS.pkg.joinpath(*parts).with_suffix(".ipynb") if self.NOTEBOOKS.pkg else None
+        # Convert the parts to a lowercase target name for case-insensitive matching
+        target_name = Path(*parts).with_suffix(".ipynb").name.lower()
 
-        if user_notebook_path and user_notebook_path.exists():
-            return user_notebook_path
-        elif pkg_notebook_path and pkg_notebook_path.exists():
-            return pkg_notebook_path
+        # Search in user notebooks
+        if self.NOTEBOOKS.user:
+            for notebook_path in self.NOTEBOOKS.user.rglob("*.ipynb"):
+                if notebook_path.name.lower() == target_name:
+                    return notebook_path
+
+        # Search in package notebooks
+        if self.NOTEBOOKS.pkg:
+            for notebook_path in self.NOTEBOOKS.pkg.rglob("*.ipynb"):
+                if notebook_path.name.lower() == target_name:
+                    return notebook_path
 
         raise FileNotFoundError(f"Notebook not found!")
 
