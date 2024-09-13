@@ -351,7 +351,7 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     if debug:
         print(f"{len(titles)} sets requested")
 
-    regions_dict = load_json(dirs.get_asset("json" / "regions.json"))
+    regions_dict = load_json(dirs.get_asset("json", "regions.json"))
     # Info to ask
     info = extra_info + ["Series", "Set type", "Cover card"]
     # Release to ask
