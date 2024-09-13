@@ -4,8 +4,9 @@
 git config filter.strip_secrets.clean "sed 's/=[^=]*/=REDACTED/'"
 git config filter.strip_secrets.smudge "cat"
 
-# Write the filter definition to the repository root .gitattributes file
-echo "**/*secret* filter=strip_secrets" >> .gitattributes
+# Check if the filter definition is already in the .gitattributes file, add it if not
+if ! grep -Fxq "**/*secret* filter=strip_secrets" .gitattributes; then
+    echo "**/*secret* filter=strip_secrets" >> .gitattributes
 
 # Install nbstripout with the specified attributes file in the notebooks directory
 pip install nbstripout
