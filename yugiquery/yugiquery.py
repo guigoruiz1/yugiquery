@@ -256,7 +256,7 @@ def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
     print(result)
 
 
-def condense_changelogs(files: pd.DataFrame) -> tuple[pd.DataFrame, str]:
+def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     """
     Condenses multiple changelog files into a consolidated dataframe and generates a new filename.
 
@@ -307,7 +307,7 @@ def condense_changelogs(files: pd.DataFrame) -> tuple[pd.DataFrame, str]:
     return new_changelog.loc[index], new_filename
 
 
-def condense_benchmark(benchmark: dict) -> dict:
+def condense_benchmark(benchmark: dict) -> Dict[str, List[Dict[str, Union[str, float]]]]:
     """
     Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
 
@@ -462,7 +462,7 @@ def cleanup_data(dry_run=False) -> None:
 
 
 # TODO: Rename and automate tuple cols
-def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> tuple[pd.DataFrame, arrow.Arrow]:
+def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> Tuple[pd.DataFrame, arrow.Arrow]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -498,8 +498,6 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> tupl
 
 
 # Sets
-
-
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.DataFrame:
     """
     Merges set information from an input set info DataFrame into an input set list DataFrame based on set and region.
