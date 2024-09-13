@@ -101,13 +101,16 @@ def main():
     # Subparser for the kernel installation
     try:
         spec = importlib.util.spec_from_file_location(
-                name="post_install",
-                location=dirs.get_asset("scripts", "post_install.py"),
-            )
+            name="post_install",
+            location=dirs.get_asset("scripts", "post_install.py"),
+        )
         post_install = importlib.util.module_from_spec(spec=spec)
         spec.loader.exec_module(post_install)
 
-        post_install_parser = subparsers.add_parser("install", help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.")
+        post_install_parser = subparsers.add_parser(
+            "install",
+            help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.",
+        )
         post_install.set_parser(post_install_parser)
     except:
         pass
@@ -126,14 +129,14 @@ def main():
         exit()
 
     else:
-        print("""                                                               
-         ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ 
-          ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  
-           ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   
-            ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    
-            ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    
-                                           ▀▀                                     
-        """)
+        print(
+            " ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ \n"
+            "  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  \n"
+            "   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   \n"
+            "    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    \n"
+            "    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    \n"
+            "                                   ▀▀                                     \n"
+        )
 
         if args.command == "install":
             post_install.main(args)
