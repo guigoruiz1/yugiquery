@@ -150,7 +150,7 @@ def fetch_categorymembers(
                     headers=URLS["headers"],
                 )
                 if debug:
-                    print(response.url)
+                    tqdm.write("\n" + response.url)
                 if response.status_code != 200:
                     spinner.fail(f"HTTP error code {response.status_code}")
                     break
@@ -164,6 +164,8 @@ def fetch_categorymembers(
                     # print(result['warnings'])
                 if "query" in result:
                     all_results += result["query"]["categorymembers"]
+                    if debug:
+                        tqdm.write(f"\nIteration {i+1}: {len(result["query"]["categorymembers"])} results")
                 if "continue" not in result:
                     spinner.succeed("Fetch completed")
                     break
@@ -234,7 +236,7 @@ def fetch_properties(
                     headers=URLS["headers"],
                 )
                 if debug:
-                    print(response.url)
+                    tqdm.write("\n" + response.url)
                 if response.status_code != 200:
                     spinner.fail(f"HTTP error code {response.status_code}")
                     break
@@ -244,7 +246,7 @@ def fetch_properties(
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
                 if debug:
-                    tqdm.write(f"Iteration {i+1}: {len(formatted_df.index)} results")
+                    tqdm.write(f"\nIteration {i+1}: {len(formatted_df.index)} results")
 
                 if len(formatted_df.index) < step or (i + 1) * step >= limit:
                     spinner.succeed("Fetch completed")
@@ -261,7 +263,8 @@ def fetch_properties(
                 time.sleep(0.5)
             raise
 
-        spinner.output.close()
+        if dirs.is_notebook:
+            spinner.output.close()
 
     return df
 

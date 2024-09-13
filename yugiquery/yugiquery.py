@@ -937,7 +937,7 @@ def card_query(default: bool = False, *args, **kwargs) -> str:
 
     # Build the search string
     for prop in props:
-        search_string += f"|?{property_dict.get(prop, up.quote(prop))}"
+        search_string += f"|?{up.quote(property_dict.get(prop, prop))}"
 
     return search_string
 
