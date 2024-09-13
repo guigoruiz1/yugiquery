@@ -16,6 +16,7 @@ import os
 import re
 import socket
 import time
+from types import SimpleNamespace
 from typing import (
     Any,
     Dict,
@@ -49,8 +50,18 @@ else:
 # Dictionaries #
 # ============ #
 
-#: A dictionary mapping yugipedia API URLs dinamically loaded from the api.json file in the assets directory.
-URLS: Dict[str, Union[str, Dict[str, str]]] = load_json(dirs.get_asset("json", "api.json"))
+#: A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
+URLS: SimpleNamespace = SimpleNamespace(
+    base="https://yugipedia.com/api.php",
+    media="https://ms.yugipedia.com/",
+    revisions_action="?action=query&format=json&prop=revisions&rvprop=content&titles=",
+    ask_action="?action=ask&format=json&query=",
+    askargs_action="?action=askargs&format=json&conditions=",
+    categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
+    redirects_action="?action=query&format=json&redirects=True&titles=",
+    backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
+    headers=load_json(dirs.get_asset("json", "headers.json")),
+)
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict: Dict[str, str] = {
@@ -85,14 +96,14 @@ def check_status() -> bool:
     }
 
     try:
-        response = requests.get(URLS["base"], params=params, headers=URLS["headers"])
+        response = requests.get(URLS.base, params=params, headers=URLS.headers)
         response.raise_for_status()
-        cprint(text=f"{URLS['base']} is up and running {response.json()['query']['general']['generator']}", color="green")
+        cprint(text=f"{URLS.base} is up and running {response.json()['query']['general']['generator']}", color="green")
         return True
     except requests.exceptions.RequestException as err:
-        cprint(text=f"{URLS['base']} is not alive", color="red")
+        cprint(text=f"{URLS.base} is not alive", color="red")
         print(err)
-        domain = up.urlparse(URLS["base"]).netloc
+        domain = up.urlparse(URLS.base).netloc
         port = 443
 
         try:
@@ -145,9 +156,9 @@ def fetch_categorymembers(
                 params = params.copy()
                 params.update(lastContinue)
                 response = requests.get(
-                    URLS["base"] + URLS["categorymembers_action"] + category,
+                    URLS.base + URLS.categorymembers_action + category,
                     params=params,
-                    headers=URLS["headers"],
+                    headers=URLS.headers,
                 )
                 if debug:
                     tqdm.write("\n" + response.url)
@@ -228,12 +239,8 @@ def fetch_properties(
                     iterator.set_postfix(it=i + 1)
 
                 response = requests.get(
-                    url=URLS["base"]
-                    + URLS["ask_action"]
-                    + condition
-                    + query
-                    + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
-                    headers=URLS["headers"],
+                    url=URLS.base + URLS.ask_action + condition + query + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
+                    headers=URLS.headers,
                 )
                 if debug:
                     tqdm.write("\n" + response.url)
@@ -286,8 +293,8 @@ def fetch_redirects(titles: List[str]) -> Dict[str, str]:
         last = (i + 1) * 50
         target_titles = "|".join(titles[first:last])
         response = requests.get(
-            url=URLS["base"] + URLS["redirects_action"] + target_titles,
-            headers=URLS["headers"],
+            url=URLS.base + URLS.redirects_action + target_titles,
+            headers=URLS.headers,
         ).json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
@@ -311,8 +318,8 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
-            url=URLS["base"] + URLS["backlinks_action"] + target_title,
-            headers=URLS["headers"],
+            url=URLS.base + URLS.backlinks_action + target_title,
+            headers=URLS.headers,
         ).json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
@@ -359,8 +366,8 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
         last = (i + 1) * step
         titles = up.quote(string="]]OR[[".join(sets[first:last]))
         response = requests.get(
-            url=URLS["base"] + URLS["askargs_action"] + titles + f"&printouts={ask}",
-            headers=URLS["headers"],
+            url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
+            headers=URLS.headers,
         )
         formatted_response = extract_results(response)
         formatted_response.drop(
@@ -416,8 +423,8 @@ def fetch_set_lists(titles: List[str], **kwargs) -> None | tuple[pd.DataFrame, i
     error = 0
 
     response = requests.get(
-        url=URLS["base"] + URLS["revisions_action"] + titles,
-        headers=URLS["headers"],
+        url=URLS.base + URLS.revisions_action + titles,
+        headers=URLS.headers,
     )
     if debug:
         print(response.url)
@@ -651,7 +658,7 @@ async def download_images(
 
     # Parallelize image downloads
     semaphore = asyncio.Semaphore(max_tasks)
-    async with aiohttp.ClientSession(base_url=URLS["media"], headers=URLS["headers"]) as session:
+    async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
         save_folder = Path(save_folder)
         if not save_folder.exists():
             save_folder.mkdir(parents=True)
