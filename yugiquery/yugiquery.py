@@ -913,7 +913,7 @@ def card_query(default: bool = False, *args, **kwargs) -> str:
         "level": "Level",
         "number": "Bandai number=Card number",
         "rule": "Bandai rule=Rule",
-        "sets": "Sets=set",
+        "sets": "Sets=Set",
         "rarity": "Rarity",
         "ability": "Ability",
         # Deprecated - Use for debuging
@@ -1655,7 +1655,7 @@ def run_notebooks(
                 kernel_name=kernel_name,
             )
         except pm.PapermillExecutionError as e:
-            tqdm.write(e)
+            tqdm.write(str(e))
             exceptions.append(e)
         finally:
             os.environ.pop("PM_IN_EXECUTION", default=None)
@@ -1763,7 +1763,7 @@ def run(
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        if data_files_count / reports_count > 10:
+        if data_files_count / max(reports_count,1) > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)

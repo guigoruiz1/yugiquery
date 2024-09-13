@@ -132,6 +132,11 @@ def install_filters() -> None:
         cprint(text=f"\nFailed to install Git filters!", color="red")
         print(e)
 
+def set_parser(parser):
+    parser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
+    parser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
+    parser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
+    parser.add_argument("--filters", action="store_true", help="Install git filters.")
 
 def main(args):
     # If no flags are passed, install everything.
@@ -151,11 +156,8 @@ def main(args):
 if __name__ == "__main__":
     import argparse
 
-    argparser = argparse.ArgumentParser(description="Install various additional components. If no flags are passed, all components will be installed.")
-    argparser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
-    argparser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
-    argparser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
-    argparser.add_argument("--filters", action="store_true", help="Install git filters.")
-    args = argparser.parse_args()
+    parser = argparse.ArgumentParser(description="Install various additional components. If no flags are passed, all components will be installed.")
+    set_parser(parser)
+    args = parser.parse_args()
 
     main(args)

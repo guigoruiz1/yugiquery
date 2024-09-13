@@ -99,27 +99,18 @@ def main():
     bot_parser.add_argument("--debug", action="store_true", help="Enable debug flag")
 
     # Subparser for the kernel installation
-    post_install_parser = subparsers.add_parser("install", help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.")
-    post_install_parser.add_argument(
-        "--tqdm",
-        action="store_true",
-        help="Install TQDM fork for Discord bot.",
-    )
-    post_install_parser.add_argument(
-        "--kernel",
-        action="store_true",
-        help="Install Jupyter kernel for Yugiquery.",
-    )
-    post_install_parser.add_argument(
-        "--nbconvert",
-        action="store_true",
-        help="Install nbconvert templates.",
-    )
-    post_install_parser.add_argument(
-        "--filters",
-        action="store_true",
-        help="Install Git filters.",
-    )
+    try:
+        spec = importlib.util.spec_from_file_location(
+                name="post_install",
+                location=dirs.get_asset("scripts", "post_install.py"),
+            )
+        post_install = importlib.util.module_from_spec(spec=spec)
+        spec.loader.exec_module(post_install)
+
+        post_install_parser = subparsers.add_parser("install", help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.")
+        post_install.set_parser(post_install_parser)
+    except:
+        pass
 
     # Parse initial arguments
     args = parser.parse_args()
@@ -145,12 +136,6 @@ def main():
         """)
 
         if args.command == "install":
-            spec = importlib.util.spec_from_file_location(
-                name="post_install",
-                location=dirs.get_asset("scripts", "post_install.py"),
-            )
-            post_install = importlib.util.module_from_spec(spec=spec)
-            spec.loader.exec_module(post_install)
             post_install.main(args)
 
         elif args.command == "bot":
