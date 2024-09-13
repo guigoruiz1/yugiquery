@@ -176,7 +176,7 @@ def fetch_categorymembers(
                 if "query" in result:
                     all_results += result["query"]["categorymembers"]
                     if debug:
-                        tqdm.write(f"\nIteration {i+1}: {len(result["query"]["categorymembers"])} results")
+                        tqdm.write(f"\nIteration {i+1}: {len(result['query']['categorymembers'])} results")
                 if "continue" not in result:
                     spinner.succeed("Fetch completed")
                     break
