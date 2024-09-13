@@ -90,7 +90,11 @@ class Dirs:
                     if not self._PKG_ASSETS.is_dir():
                         self._PKG_ASSETS = Path(site_data_dir("yugiquery"))
                         if not self._PKG_ASSETS.is_dir():
-                            self._PKG_ASSETS = None
+                            self._PKG_ASSETS = self.APP.parent / "assets"
+                            if not self._PKG_ASSETS.is_dir():
+                                self._PKG_ASSETS = self.APP / "assets"
+                                if not self._PKG_ASSETS.is_dir():
+                                    self._PKG_ASSETS = None
 
         # Determine the Jupyter path
         self.NBCONVERT = next(Path(path) for path in jupyter_path("nbconvert", "templates") if Path(path).exists())
