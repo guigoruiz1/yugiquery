@@ -23,7 +23,7 @@
 
 # What is it?
 
-YugiQuery is a Python package to query and display Yu-Gi-Oh! data extracted from the [yugipedia](http://yugipedia.com) database. It is entirely built on Jupyter notebooks and Git. The notebooks are rendered as HTML reports and can be displayed as an "always up to date" static web page by laveraging on GitHub pages. The raw data is kept as CSV files with timestamps and changelogs for a thorough record of the game's history. Every operation is recorded on git with a descriptive commit message. 
+YugiQuery is a Python script to query and display Yu-Gi-Oh! data extracted from the [yugipedia](http://yugipedia.com) database. It is entirely built on Jupyter notebooks and Git. The notebooks are rendered as HTML reports and can be displayed as an "always up to date" static web page by laveraging on GitHub pages. The raw data is kept as CSV files with timestamps and changelogs for a thorough record of the game's history. Every operation is recorded on git with a descriptive commit message. 
 
 # Reports
 
@@ -31,60 +31,47 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](reports/Bandai.html) | 11/09/2024 00:28 UTC |
-| [Cards](reports/Cards.html) | 08/09/2024 19:38 UTC |
-| [Debug](reports/Debug.html) | 12/09/2024 20:40 UTC |
-| [Rush](reports/Rush.html) | 08/09/2024 19:39 UTC |
-| [Sets](reports/Sets.html) | 08/09/2024 19:43 UTC |
-| [Speed](reports/Speed.html) | 08/09/2024 19:44 UTC |
-| [Timeline](reports/Timeline.html) | 08/09/2024 19:45 UTC |
+| [Bandai](Bandai.html) | 09/09/2024 12:18 UTC |
+| [Cards](Cards.html) | 09/09/2024 12:22 UTC |
+| [Rush](Rush.html) | 09/09/2024 12:23 UTC |
+| [Sets](Sets.html) | 09/09/2024 12:48 UTC |
+| [Speed](Speed.html) | 02/09/2024 04:25 UTC |
+| [Timeline](Timeline.html) | 02/09/2024 04:29 UTC |
 
 
-The full YugiQuery flow was last executed at `12/09/2024 20:40 UTC`
+The full YugiQuery flow was last executed at `09/09/2024 12:48 UTC`
 
 # Usage
 
-The full YugiQuery workflow can be run directly with 
+The full YugiQuery workflow can be run with 
 
 ```
->> yugiquery
+python yugiquery.py
 ```
 
-All commands and options can be displayed with the command
-```
->> yugiquery -h
-```
+Any Jupyter notebook in the ***source*** directory will be assumed to be a report and will be executed and exported to HTML. The index.md and README.md files will be updated, using their respective template files in the ***assets*** directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be commited to Git.
 
-Any Jupyter notebook in the ***notebooks*** directory will be assumed to be a report and will be executed and saved as HTML in the ***reports*** directory. The index.md and README.md files will be updated, using their respective template files in the ***assets*** directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be commited to Git.
-
-Template notebooks are included in the `notebooks/templates` folder.
-
-Further user input can be made through the command
-```
->> yugiquery run
-```
+Report templates are included in the `assets/notebook` folder. Moving them to the source folder will enable them for execution.
 
 To use the optional Discord bot, run
-```
->> yugiquery bot SUBCLASS
-```
-Where `SUBCLASS` can be either `telegram` or `discord`.
 
-Both the `yugiquery.py` and `bot.py` modules within the `yugiquery` package accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage.
+```
+python bot.py discord
+```
+
+Alternatively, to use the optional Telegram bot, run
+
+```
+python bot.py telegram
+```
+
+Both `yugiquery.py` and `bot.py` accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage. It is also possible to call the script directly as an executable using `./`, although that may be OS dependant.
+
+Further use cases can be found in the [documentation](#documentation).
 
 ## Installation
 
-YugiQuery is meant to be user friendly to users without much coding experience. It can be used "as is" from the repository, or installed via pip.
-
-The `post_install.py` script in the assets directory has options to install: 
-1 - A nbconvert template which adds dynamic light and dark modes to the exported html report. This is the default template used by YugiQuery.
-2 - The TQDM fork needed to run the discord bot subclass.
-3 - A jupyter kernel for the current envyronment.
-
-It can be run from the main yugiquery CLI with the command
-```
->> yugiquery install
-```
+YugiQuery is meant to be user friendly to users without much coding experience. Provided you have Python and Git installed, upon first execution YugiQuery will try to install all its dependencies. If the operation is not succesfull, the user may try to install the dependencies manually, relying on the `install.sh` script and the pip `requirements.txt` file provided. The `install.sh`` script also install a nbconvert template which adds dynamic light and dark modes to the exported html report. This is the default template used by YugiQuery. In case it cannot be installed, the user should change the selected template on each report notebook.
 
 Further details can be found the [documentation](#documentation).
 
@@ -105,52 +92,41 @@ yugiquery/
 │  │  ├─ header.md
 │  │  ├─ index.md
 │  │  └─ REAMDME.md
-│  ├─ scripts/
-│  │  ├─ unlock_git.sh
-│  │  └─ post_install.py
 │  ├─ nbconvert/
-|  |  └─ labdynamic/
-|  │      ├─ conf.json
-|  │      ├─ dynamic.css
-|  │      └─ index.html.j2
+│  │  ├─ conf.json
+│  │  ├─ dynamic.css
+│  │  └─ index.html.j2
+│  ├─ notebook/
+│  │  └─ Template.ipynb
 │  ├─ Gateway.html
 │  └─ secrets.env
 ├─ data/
 │  ├─ benchmark.json
-│  ├─ report_data.bz2
-│  └─ report_changelog.bz2
+│  ├─ report_data.csv
+│  └─ report_changelog.csv
 ├─ docs/
 │  ├─ Makefile
 │  ├─ make.bat
 │  ├─ conf.py
-│  ├─ utils.rst
 │  ├─ index.rst
 │  ├─ bot.rst
 │  └─ yugiquery.rst
-├─ yugiquery/
-│  ├─ utils
-│  |  ├─ __init__.py
-│  |  ├─ api.py
-│  |  ├─ dirs.py
-│  |  ├─ git.py
-│  |  ├─ helpers.py
-│  |  └─ plot.py
-│  ├─ __init__.py
-│  ├─ __main__.py
+├─ source/
+│  ├─ install.sh
+│  ├─ requirements.txt
+│  ├─ Report.ipynb
 │  ├─ bot.py
-│  ├─ metadata.py
 │  └─ yugiquery.py
 ├─ _config.yml
 ├─ .devcontainer.json
 ├─ .readthedocs.yaml
 ├─ index.md
 ├─ LICENSE.md
-├─ pyproject.toml
 ├─ README.md
-└─ requirements.txt
+└─ Report.html
 ```
 
-Ideally, files in the ***assets*** directory should not be edited unless you know what you are doing. Files in the ***data*** directory are read and write files for the generation of the reports. HTML reports are saved in the ***reports*** folder. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
+Ideally, files in the ***assets*** directory should be read-only files exclusively for reference. Files in the ***data*** directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 
