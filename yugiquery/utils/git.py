@@ -97,14 +97,15 @@ def unlock(passphrase: str = "") -> str:
         str: The result of the unlock operation.
     """
     # TODO: Better error handling
-    script = dirs.get_asset("scripts", "unlock_git.sh")
+    if os.name == "nt":
+        script = dirs.get_asset("scripts", "unlock_git.bat")
+        args = [script, passphrase]
+    else:
+        script = dirs.get_asset("scripts", "unlock_git.sh")
+        args = ["sh", script, passphrase]
 
     result = subprocess.run(
-        [
-            "sh",
-            script,
-            passphrase,
-        ],
+        args=args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )

@@ -134,9 +134,13 @@ def install_filters() -> None:
 
     try:
         repo_root = assure_repo().working_dir  # Still unsure about this
-        script_path = dirs.get_asset("scripts", "git_filters.sh")
+        if os.name == "nt":
+            args = [dirs.get_asset("scripts", "git_filters.bat")]
+        else:
+            args = ["sh", dirs.get_asset("scripts", "git_filters.sh")]
+
         result = subprocess.run(
-            ["bash", script_path],
+            args=args,
             text=True,
             cwd=repo_root,
         )
