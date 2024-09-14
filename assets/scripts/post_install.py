@@ -48,21 +48,27 @@ def install_kernel() -> None:
         cprint(text=f"\nYugiQuery installed in the virtual environment {venv_name}.", color="green")
 
     # Create an IPython profile for YugiQuery.
-    # Step 1: Initialize the profile creation process
-    profile_creator = ProfileCreate(profile="yugiquery")
+    try:
+        # Step 1: Initialize the profile creation process
+        profile_creator = ProfileCreate(profile="yugiquery")
 
-    # Step 2: Create the profile directory and default config files
-    profile_creator.init_config_files()
+        # Step 2: Create the profile directory and default config files
+        profile_creator.init_config_files()
 
-    # Step 3: Manually write the config to ipython_config.py
-    profile_dir = profile_creator.profile_dir.location
-    config_file = os.path.join(profile_dir, "ipython_config.py")
+        # Step 3: Manually write the config to ipython_config.py
+        profile_dir = profile_creator.profile_dir.location
+        config_file = os.path.join(profile_dir, "ipython_config.py")
 
-    # Step 4: Write the configuration manually
-    with open(config_file, "w") as f:
-        f.write("c = get_config()\n")
-        f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
-        f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
+        # Step 4: Write the configuration manually
+        with open(config_file, "w") as f:
+            f.write("c = get_config()\n")
+            f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
+            f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
+    except:
+        cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")
+        return
+    else:
+        cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
 
     # Install the Jupyter kernel using ipykernel.
     python_path = (
@@ -89,6 +95,7 @@ def install_kernel() -> None:
 
     if result.returncode != 0:
         cprint(text=f"\nFailed to install Jupyter kernel '{__title__.lower()}'!", color="red")
+        return
     else:
         cprint(text=f"\nJupyter kernel '{__title__.lower()}' installed.", color="green")
 
