@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the custom filter in the local Git configuration
-git config filter.strip_secrets.clean "sed 's/=[^=]*/=REDACTED/'"
+git config filter.strip_secrets.clean "sed 's/=[^=]*/=/'"
 git config filter.strip_secrets.smudge "cat"
 
 # Check if the .gitattributes file exists and if it contains the filter definition

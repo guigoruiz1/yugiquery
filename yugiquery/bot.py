@@ -1446,7 +1446,7 @@ class Discord(Bot, commands.Bot):
         @self.hybrid_command(name="run", description="Run full YugiQuery flow.", with_app_command=True)
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
-        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
+        async def run_query(ctx, report: Enum = self.Reports.All) -> None:
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -1454,7 +1454,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (Reports): An Enum value indicating which YugiQuery report to run.
+                report (Enum): An Enum value indicating which YugiQuery report to run.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.

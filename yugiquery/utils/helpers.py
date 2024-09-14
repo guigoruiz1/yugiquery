@@ -200,6 +200,6 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
         str: The generated filename.
     """
     if previous_timestamp is None:
-        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}.bz2"
     else:
-        return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}.bz2"

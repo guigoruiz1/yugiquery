@@ -741,10 +741,10 @@ def update_index() -> None:
 
     timestamp = arrow.utcnow()
     try:
-        with open(index_input_path) as f:
+        with open(index_input_path, encoding="utf-8") as f:
             index = f.read()
 
-        with open(readme_input_path) as f:
+        with open(readme_input_path, encoding="utf-8") as f:
             readme = f.read()
     except:
         print('Missing template files in "assets". Aborting...')
@@ -760,13 +760,13 @@ def update_index() -> None:
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
     index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(index_output_path, "w+") as o:
+    with open(index_output_path, "w+", encoding="utf-8") as o:
         print(index, file=o)
 
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
     readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(readme_output_path, "w+") as o:
+    with open(readme_output_path, "w+", encoding="utf-8") as o:
         print(readme, file=o)
 
     result = git.commit(
@@ -793,7 +793,7 @@ def header(name: str = None) -> Markdown:
 
     header_path = dirs.get_asset("markdown", "header.md")
     try:
-        with open(header_path) as f:
+        with open(header_path, encoding="utf-8") as f:
             header = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
@@ -820,7 +820,7 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
     """
     footer_path = dirs.get_asset("markdown", "footer.md")
     try:
-        with open(footer_path) as f:
+        with open(footer_path, encoding="utf-8") as f:
             footer = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
@@ -838,7 +838,7 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
 
 
 # Query builder
-def card_query(default: bool = False, *args, **kwargs) -> str:
+def card_query(*args, **kwargs) -> str:
     """
     Builds a query string to be passed to the yugipedia Wiki API for a card search query.
 
@@ -923,6 +923,7 @@ def card_query(default: bool = False, *args, **kwargs) -> str:
     search_string = "|?English%20name=Name"
 
     # Initialize props list
+    default = kwargs.pop("default", False)
     props = set(default_properties) if default else set()
 
     # Add args to props
@@ -1763,7 +1764,7 @@ def run(
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        if data_files_count / max(reports_count,1) > 10:
+        if data_files_count / max(reports_count, 1) > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
