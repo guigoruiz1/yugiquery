@@ -1031,6 +1031,8 @@ class Telegram(Bot):
         self.application.add_handler(CommandHandler(command="latest", callback=latest))
         self.application.add_handler(CommandHandler(command="links", callback=links))
         self.application.add_handler(CommandHandler(command="ping", callback=ping))
+        self.application.add_handler(CommandHandler(command="pull", callback=pull))
+        self.application.add_handler(CommandHandler(command="push", callback=push))
         self.application.add_handler(CommandHandler(command="run", callback=run_query, block=False))
         self.application.add_handler(CommandHandler(command="status", callback=status))
         self.application.add_handler(
