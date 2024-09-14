@@ -16,7 +16,7 @@ def main():
     parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow")
-
+    # TODO: Make --reports positional
     yugiquery_parser.add_argument(
         "-r",
         "--reports",
@@ -130,6 +130,7 @@ def main():
 
     else:
         print(
+            "\n"
             " ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ \n"
             "  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  \n"
             "   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   \n"

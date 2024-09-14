@@ -15,7 +15,8 @@ def install_kernel() -> None:
     """
     from yugiquery.utils.git import get_repo
     from yugiquery.utils.dirs import dirs
-    from yugiquery import __url__
+    from yugiquery import __url__, __title__
+    from IPython.core.profileapp import ProfileCreate
 
     venv_name = "yqvenv"
     venv_path = dirs.WORK / venv_name
@@ -46,11 +47,28 @@ def install_kernel() -> None:
     else:
         cprint(text=f"\nYugiQuery installed in the virtual environment {venv_name}.", color="green")
 
+    # Create an IPython profile for YugiQuery.
+    # Step 1: Initialize the profile creation process
+    profile_creator = ProfileCreate(profile="yugiquery")
+
+    # Step 2: Create the profile directory and default config files
+    profile_creator.init_config_files()
+
+    # Step 3: Manually write the config to ipython_config.py
+    profile_dir = profile_creator.profile_dir.location
+    config_file = os.path.join(profile_dir, "ipython_config.py")
+
+    # Step 4: Write the configuration manually
+    with open(config_file, "w") as f:
+        f.write("c = get_config()\n")
+        f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
+        f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
+
     # Install the Jupyter kernel using ipykernel.
     python_path = (
         os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
     )
-    display_name = "Python3 (yugiquery)"
+    display_name = f"Python3 ({__title__})"
 
     result = subprocess.run(
         [
@@ -60,20 +78,19 @@ def install_kernel() -> None:
             "install",
             "--user",
             "--name",
-            venv_name,
+            __title__.lower(),
             "--display-name",
             display_name,
-            "--matplotlib",
-            "svg",
-            "--IPKernelApp.exec_lines=['from yugiquery import *']",
+            "--profile",
+            __title__.lower(),
         ],
         text=True,
     )
 
     if result.returncode != 0:
-        cprint(text=f"\nFailed to install Jupyter kernel 'yugiquery'!", color="red")
+        cprint(text=f"\nFailed to install Jupyter kernel '{__title__.lower()}'!", color="red")
     else:
-        cprint(text="\nJupyter kernel 'yugiquery' installed.", color="green")
+        cprint(text=f"\nJupyter kernel '{__title__.lower()}' installed.", color="green")
 
 
 def install_tqdm() -> None:
@@ -116,7 +133,7 @@ def install_filters() -> None:
     from yugiquery.utils.git import assure_repo
 
     try:
-        repo_root = assure_repo().working_dir # Still unsure about this
+        repo_root = assure_repo().working_dir  # Still unsure about this
         script_path = dirs.get_asset("scripts", "git_filters.sh")
         result = subprocess.run(
             ["bash", script_path],
@@ -132,11 +149,13 @@ def install_filters() -> None:
         cprint(text=f"\nFailed to install Git filters!", color="red")
         print(e)
 
+
 def set_parser(parser):
     parser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
     parser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
     parser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
     parser.add_argument("--filters", action="store_true", help="Install git filters.")
+
 
 def main(args):
     # If no flags are passed, install everything.
@@ -156,7 +175,9 @@ def main(args):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Install various additional components. If no flags are passed, all components will be installed.")
+    parser = argparse.ArgumentParser(
+        description="Install various additional components. If no flags are passed, all components will be installed."
+    )
     set_parser(parser)
     args = parser.parse_args()
 
