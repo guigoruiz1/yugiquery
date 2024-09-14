@@ -70,7 +70,9 @@ def ensure_tqdm():
 # ============ #
 
 
-def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False) -> Dict[str, str]:
+def load_secrets(
+    requested_secrets: List[str] = [], secrets_file: str | None = None, required: bool = False
+) -> Dict[str, str]:
     """
     Load secrets from environment variables and/or a .env file.
 
@@ -82,7 +84,7 @@ def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, re
 
     Args:
         requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
-        secrets_file (str, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        secrets_file (str | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
         required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
@@ -187,19 +189,23 @@ def separate_words_and_acronyms(strings: List[str]) -> tuple[list, list]:
     return words, acronyms
 
 
-def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None) -> str:
+def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:
     """
     Generates a standardized filename based on the provided parameters.
 
     Args:
         report (str): The name or identifier of the report.
         timestamp (arrow.Arrow): The timestamp to be included in the filename.
-        previous_timestamp (arrow.Arrow): The previous timestamp, if applicable. Defaults to None.
+        previous_timestamp (arrow.Arrow | None): The previous timestamp, if applicable. Defaults to None.
 
     Returns:
         str: The generated filename.
     """
+    formated_ts = timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "").replace("-", "")
     if previous_timestamp is None:
-        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}.bz2"
+        return f"{report}_data_{formated_ts}.bz2"
     else:
-        return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z').replace(':','')}.bz2"
+        formated_previous_ts = (
+            previous_timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "-").replace("-", "")
+        )
+        return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"

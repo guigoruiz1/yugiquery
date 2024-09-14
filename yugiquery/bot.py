@@ -21,7 +21,6 @@
 # Standard library packages
 import argparse
 import asyncio
-import io
 import multiprocessing as mp
 import os
 import platform
@@ -32,7 +31,6 @@ from typing import (
     Callable,
     Dict,
     List,
-    Union,
 )
 
 # Third-party imports
@@ -155,73 +153,6 @@ def get_humanize_granularity(seconds: int) -> list[str]:
             seconds %= divisor
 
     return selected_granularity
-
-
-# ====================== #
-# Progress handler class #
-# ====================== #
-
-
-class ProgressHandler:
-    """
-    Progress handler class.
-
-    Args:
-        queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
-        progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
-        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
-
-    Attributes:
-        queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
-        progress_bar (tqdm, optional): The tqdm progress bar implementation.
-        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar.
-    """
-
-    def __init__(
-        self,
-        queue: mp.Queue,
-        progress_bar: tqdm = None,
-        pbar_kwargs: Dict[str, Any] = {},
-    ):
-        """
-        Initializes the ProgressHandler class.
-
-        Args:
-            queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
-            progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
-            pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
-        """
-        self.queue = queue
-        self.progress_bar = progress_bar
-        self.pbar_kwargs = pbar_kwargs
-
-    def pbar(self, iterable, **kwargs) -> None | tqdm:
-        """
-        Initializes and returns a progress bar instance if progress_bar is not None.
-
-        Args:
-            iterable (iterable): The iterable to track progress.
-            **kwargs: Additional keyword arguments for the progress bar.
-
-        Returns:
-            Progress bar instance or None: The initialized progress bar instance or None if progress_bar is None.
-        """
-        if self.progress_bar is None:
-            return None
-        else:
-            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
-
-    def exit(self, API_status: bool = True) -> None:
-        """
-        Puts the API status in the queue.
-
-        Args:
-            API_status (bool, optional): The status to put in the queue. Defaults to True.
-
-        Returns:
-            None
-        """
-        self.queue.put(API_status)
 
 
 # ============== #
@@ -697,20 +628,20 @@ class Telegram(Bot):
 
     Args:
         token (str): The token for the Telegram bot.
-        channel (Union[str, int]): The Telegram channel ID.
+        channel (str | int): The Telegram channel ID.
 
     Attributes:
         application (telegram.Application): The Telegram Application bot instance.
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: Union[str, int]):
+    def __init__(self, token: str, channel: str | int):
         """
         Initialize Telegram Bot subclass.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (Union[str, int]): The Telegram channel ID.
+            channel (str | int): The Telegram channel ID.
 
         """
         from tqdm.contrib.telegram import tqdm as telegram_pbar
@@ -1096,20 +1027,20 @@ class Discord(Bot, commands.Bot):
 
     Args:
         token (str): The token for the Discord bot.
-        channel (Union[str, int]): The channel for the bot.
+        channel (str | int): The channel for the bot.
 
     Attributes:
         discord.ext.commands.Bot attributes
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: Union[str, int]):
+    def __init__(self, token: str, channel: str | int):
         """
         Initializes the Discord bot subclass.
 
         Args:
             token (str): The token for the Discord bot.
-            channel (Union[str, int]): The channel for the bot.
+            channel (str | int): The channel for the bot.
 
         """
 

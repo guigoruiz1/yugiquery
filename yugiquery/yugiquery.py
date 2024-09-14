@@ -29,11 +29,9 @@ import time
 from enum import Enum
 from pathlib import Path
 from typing import (
-    Callable,
     Dict,
     List,
     Tuple,
-    Union,
 )
 
 # Third-party imports
@@ -183,14 +181,14 @@ card_properties = {
 # =============== #
 
 
-def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]) -> pd.DataFrame:
+def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str | List[str]) -> pd.DataFrame:
     """
     Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
 
     Args:
         previous_df (pd.DataFrame): A DataFrame containing the previous version of the data.
         current_df (pd.DataFrame): A DataFrame containing the current version of the data.
-        col (Union[str, List[str]]): The name of the column to compare the DataFrames on.
+        col (str | List[str]): The name of the column to compare the DataFrames on.
 
     Returns:
         pd.DataFrame: A DataFrame containing the changes made between the previous and current versions of the data. The DataFrame will have the following columns: the specified column name, the modified data, and the indicator for whether the data is new or modified renamed as version (either "Old" or "New"). If there are no changes, the function will return a DataFrame with no rows.
@@ -221,13 +219,13 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
     return changelog
 
 
-def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
+def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     """
     Records the execution time of a report and saves the data to a JSON file.
 
     Args:
         timestamp (arrow.Arrow): The timestamp when the report execution began.
-        report (str): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
+        report (str | None, optional): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
 
     Returns:
         None
@@ -307,15 +305,15 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     return new_changelog.loc[index], new_filename
 
 
-def condense_benchmark(benchmark: dict) -> Dict[str, List[Dict[str, Union[str, float]]]]:
+def condense_benchmark(benchmark: Dict[str, List[Dict[str, str | float]]]) -> Dict[str, List[Dict[str, str | float]]]:
     """
     Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
 
     Args:
-        benchmark (dict): A dictionary containing benchmark data.
+        benchmark (Dict[str, List[Dict[str, str | float]]]): A dictionary containing benchmark data.
 
     Returns:
-        dict: The condensed benchmark dictionary with updated entries.
+        Dict[str, List[Dict[str, str | float]]]: The condensed benchmark dictionary with updated entries.
     """
     now = arrow.utcnow()
     for key, pair in benchmark.items():
@@ -462,7 +460,9 @@ def cleanup_data(dry_run=False) -> None:
 
 
 # TODO: Rename and automate tuple cols
-def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> Tuple[pd.DataFrame, arrow.Arrow]:
+def load_corrected_latest(
+    name_pattern: str, tuple_cols: List[str] = []
+) -> Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -658,13 +658,15 @@ def save_notebook() -> None:
     print("Notebook saved to disk")
 
 
-def export_notebook(input_path: str = None, output_path: str = None, template: str = "auto", no_input: bool = True) -> None:
+def export_notebook(
+    input_path: str | None = None, output_path: str | None = None, template: str = "auto", no_input: bool = True
+) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
 
     Args:
-        input_path (str, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
-        output_path (str, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
+        input_path (str | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
+        output_path (str | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
         template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
 
@@ -776,13 +778,13 @@ def update_index() -> None:
     print(result)
 
 
-def header(name: str = None) -> Markdown:
+def header(name: str | None = None) -> Markdown:
     """
     Generates a Markdown header with a timestamp and the name of the notebook (if provided).
     If there is no header.md file in the `ASSETS` directory, prints an error message and returns None.
 
     Args:
-        name (str, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
+        name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
 
     Returns:
         Markdown: The generated Markdown header.
@@ -807,13 +809,13 @@ def header(name: str = None) -> Markdown:
     return Markdown(header)
 
 
-def footer(timestamp: arrow.Arrow = None) -> Markdown:
+def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
     """
     Generates a Markdown footer with a timestamp.
     If there is no footer.md file in the `ASSETS` directory, prints error message and  an returns None.
 
     Args:
-        timestamp (arrow.Arrow, optional): The timestamp to use. If None, uses the current time. Defaults to None.
+        timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
         Markdown: The generated Markdown footer.
@@ -970,12 +972,12 @@ def fetch_rarities_dict(rarities_list: List[str] = []) -> Dict[str, str]:
 
 
 # Bandai
-def fetch_bandai(bandai_query: str = None, limit: int = 200, **kwargs) -> pd.DataFrame:
+def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) -> pd.DataFrame:
     """
     Fetch Bandai cards.
 
     Args:
-        bandai_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        bandai_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
@@ -1004,7 +1006,7 @@ def fetch_bandai(bandai_query: str = None, limit: int = 200, **kwargs) -> pd.Dat
 
 # Cards
 def fetch_st(
-    st_query: str = None,
+    st_query: str | None = None,
     st: str = "both",
     cg: CG = CG.ALL,
     step: int = 500,
@@ -1015,7 +1017,7 @@ def fetch_st(
     Fetch spell or trap cards based on query and properties of the cards.
 
     Args:
-        st_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        st_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         st (str, optional): A string representing the type of cards to fetch, either "spell", "trap", "both", or "all". Defaults to "both".
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1058,7 +1060,7 @@ def fetch_st(
 
 
 def fetch_monster(
-    monster_query: str = None,
+    monster_query: str | None = None,
     cg: CG = CG.ALL,
     step: int = 500,
     limit: int = 5000,
@@ -1069,7 +1071,7 @@ def fetch_monster(
     Fetch monster cards based on query and properties of the cards.
 
     Args:
-        monster_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        monster_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
@@ -1122,12 +1124,12 @@ def fetch_monster(
 
 
 # Non deck cards
-def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
     Args:
-        token_query (str, optional): A string representing a SWM query to search for. Defaults to None.
+        token_query (str | None, optional): A string representing a SWM query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1158,12 +1160,12 @@ def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int 
     return token_df
 
 
-def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
     Args:
-        counter_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        counter_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1192,14 +1194,14 @@ def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: 
 
 
 # Alternative formats
-def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
     Args:
-        speed_query (str):  A string representing a SMW query to search for. Defaults to None.
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        speed_query (str | None, optional):  A string representing a SMW query to search for. Defaults to None.
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1228,14 +1230,14 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     return speed_df
 
 
-def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
     Args:
-        skill_query (str): A string representing a SMW query to search for. Defaults to None.
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        skill_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1254,14 +1256,14 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     return skill_df
 
 
-def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
     Args:
-        rush_query (str): A search query to filter the results. If not provided, it defaults to "rush".
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        rush_query (str | None, optional): A search query to filter the results. If not provided, it defaults to "rush".
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1281,7 +1283,7 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
 
 # Unusable cards
 def fetch_unusable(
-    query: str = None,
+    query: str | None = None,
     cg: CG = CG.ALL,
     filter=True,
     step: int = 500,
@@ -1295,7 +1297,7 @@ def fetch_unusable(
     of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
 
     Args:
-        query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         filter (bool, optional): Keep only "Character Cards", "Non-game cards" and "Ticket Cards".
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1508,8 +1510,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
 
 def run_notebooks(
-    reports: Union[str, List[str]],
-    progress_handler: Callable = None,
+    reports: str | List[str],
+    progress_handler: ProgressHandler | None = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
@@ -1518,8 +1520,8 @@ def run_notebooks(
     Execute specified Jupyter notebooks using Papermill.
 
     Args:
-        reports (Union[str, List[str]]): List of notebooks to execute.
-        progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
+        reports (str | List[str]): List of notebooks to execute.
+        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
         telegram_first (bool, optional): Default is False.
         suppress_contribs (bool, optional): Default is False.
         **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
@@ -1678,12 +1680,13 @@ def run_notebooks(
         raise Exception(combined_message)
 
 
+# TODO: User progress_handler class for typehinting
 def run(
-    reports: Union[str, List[str]] = "all",
-    progress_handler=None,
+    reports: str | List[str] = "all",
+    progress_handler: ProgressHandler | None = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
-    cleanup: Union[bool, str] = False,
+    cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
     **kwargs,
 ) -> None:
@@ -1692,11 +1695,11 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        reports (str, optional): The report to generate. Defaults to 'all'.
-        progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
+        reports (str | List[str], optional): The report to generate. Defaults to 'all'.
+        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         telegram_first (bool, optional): Defaults to False.
         suppress_contribs (bool, optional): Defaults to False.
-        cleanup (Union[bool,str], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
+        cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 

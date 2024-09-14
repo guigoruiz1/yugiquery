@@ -62,7 +62,7 @@ def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, flo
 
     Args:
         color (str): The color to be adjusted, in string format.
-        amount (float): The amount by which to adjust the lightness of the color. Default value is 0.5.
+        amount (float, optional): The amount by which to adjust the lightness of the color. Default value is 0.5.
 
     Returns:
         tuple: The adjusted color in RGB format.
@@ -126,7 +126,7 @@ def generate_rate_grid(
     xlabel: str = "Date",
     size: str = "150%",
     pad: int = 0,
-    colors: List[str] = None,
+    colors: List[str] | None = None,
     cumsum: bool = True,
 ) -> plt.axes:
     """
@@ -135,11 +135,11 @@ def generate_rate_grid(
     Args:
         dy (pd.DataFrame): A Pandas DataFrame containing the data to be plotted.
         ax (AxesSubplot): The subplot onto which to plot the grid.
-        xlabel (str): The label to be used for the x-axis. Default value is 'Date'.
-        size (str): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
-        pad (int): The amount of padding between the two subplots in pixels. Default value is 0.
-        colors (List[str]): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
-        cumsum (bool): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
+        xlabel (str, optional): The label to be used for the x-axis. Default value is 'Date'.
+        size (str, optional): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
+        pad (int, optional): The amount of padding between the two subplots in pixels. Default value is 0.
+        colors (List[str] | None, optional): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
+        cumsum (bool, optional): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
 
     Returns:
         matplotlib.axes.Axes: The generated subplot axes.
@@ -240,25 +240,24 @@ def generate_rate_grid(
 
 def rate_subplots(
     df: pd.DataFrame,
-    figsize: Tuple[int, int] = None,
+    figsize: Tuple[int, int] | None = None,
     title: str = "",
-    colors: List[str] = None,
+    colors: List[str] | None = None,
     cumsum: bool = True,
-    bg: pd.DataFrame = None,
-    vlines: pd.DataFrame = None,
+    bg: pd.DataFrame | None = None,
+    vlines: pd.DataFrame | None = None,
 ) -> None:
     """
     Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
 
     Args:
         df (pd.DataFrame): The pandas DataFrame containing the data to plot.
-        figsize (Tuple[int, int] or None): The size of the figure to create. If None, default size is (16, len(df.columns)*2*(1+cumsum)).
-        title (str): The title of the figure. Default is an empty string.
-        xlabel (str): The label of the x-axis. Default is 'Date'.
-        colors (List[str]): The list of colors to use for the lines. If None, default colors are used.
-        cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
-        bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
-        vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
+        figsize (Tuple[int, int] | None, optional): The size of the figure to create. If None, default size is (16, len(df.columns)*2*(1+cumsum)).
+        title (str, optional): The title of the figure. Default is an empty string.
+        colors (List[str] | None, optional): The list of colors to use for the lines. If None, default colors are used.
+        cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
+        bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
+        vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
 
     Returns:
         None: Displays the generated plot.
@@ -350,24 +349,23 @@ def rate_subplots(
 def rate(
     dy: pd.DataFrame,
     figsize: Tuple[int, int] = (12, 6),
-    title: str = None,
-    colors: List[str] = None,
+    title: str | None = None,
+    colors: List[str] | None = None,
     cumsum: bool = True,
-    bg: pd.DataFrame = None,
-    vlines: pd.DataFrame = None,
+    bg: pd.DataFrame | None = None,
+    vlines: pd.DataFrame | None = None,
 ) -> None:
     """
     Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
 
     Args:
         dy (pd.DataFrame): The pandas DataFrame containing the data to plot.
-        figsize (Tuple[int, int]): The size of the figure to create. Default is (16, 6).
-        title (str): The title of the figure. Default is None.
-        xlabel (str): The label of the x-axis. Default is 'Date'.
-        colors (List[str]): The list of colors to use for the lines. If None, default colors are used.
-        cumsum (bool): Whether to plot the cumulative sum of the data. Default is True.
-        bg (pd.DataFrame): A DataFrame containing the background shading data. Default is None.
-        vlines (pd.DataFrame): A DataFrame containing the vertical line data. Default is None.
+        figsize (Tuple[int, int], optional): The size of the figure to create. Default is (16, 6).
+        title (str | None, optional): The title of the figure. Default is None.
+        colors (List[str] | None, optional): The list of colors to use for the lines. If None, default colors are used.
+        cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
+        bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
+        vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
 
     Returns:
         None: Displays the generated plot.
@@ -482,7 +480,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> No
     plt.show()
 
 
-def box(df, mean=True, **kwargs) -> None:
+def box(df, mean: bool = True, **kwargs) -> None:
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
 
