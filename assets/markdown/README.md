@@ -92,6 +92,7 @@ yugiquery/
 │  ├─ json/
 │  │  ├─ colors.json
 │  │  ├─ dates.json
+│  │  ├─ headers.json
 │  │  ├─ rarities.json
 │  │  └─ regions.json
 │  ├─ markdown/
@@ -100,8 +101,9 @@ yugiquery/
 │  │  ├─ index.md
 │  │  └─ REAMDME.md
 │  ├─ scripts/
-│  │  ├─ unlock_git.sh
-│  │  └─ post_install.py
+│  │  ├─ git_filters.sh
+│  │  ├─ post_install.py
+│  │  └─ unlock_git.sh
 │  ├─ nbconvert/
 |  |  └─ labdynamic/
 |  │      ├─ conf.json

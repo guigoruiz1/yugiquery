@@ -50,7 +50,8 @@ else:
 # Dictionaries #
 # ============ #
 
-#: A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
+#:A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
+#::meta hide-value:
 URLS: SimpleNamespace = SimpleNamespace(
     base="https://yugipedia.com/api.php",
     media="https://ms.yugipedia.com/",
@@ -62,6 +63,8 @@ URLS: SimpleNamespace = SimpleNamespace(
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
     headers=load_json(dirs.get_asset("json", "headers.json")),
 )
+"""
+"""
 
 #: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict: Dict[str, str] = {
