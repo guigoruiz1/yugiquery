@@ -128,6 +128,8 @@ def generate_rate_grid(
     pad: int = 0,
     colors: List[str] | None = None,
     cumsum: bool = True,
+    fill: bool = False,
+    limit_year: bool = False,
 ) -> plt.axes:
     """
     Generate a grid of subplots displaying yearly and monthly rates from a Pandas DataFrame.
@@ -140,6 +142,8 @@ def generate_rate_grid(
         pad (int, optional): The amount of padding between the two subplots in pixels. Default value is 0.
         colors (List[str] | None, optional): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
         cumsum (bool, optional): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
+        fill (bool, optional): If True, fill the area under the cumulative sum curve. Default value is False.
+        limit_year (bool, optional): If True, limit the x-axis to the next full year. Default value is False.
 
     Returns:
         matplotlib.axes.Axes: The generated subplot axes.
@@ -159,7 +163,8 @@ def generate_rate_grid(
 
         if len(dy.columns) == 1:
             cumsum_ax.plot(y, label="Cummulative", c=colors[0], antialiased=True)
-            cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
+            if fill:
+                cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
             cumsum_ax.set_ylabel(f"{y.columns[0]}")  # Wrap text
         else:
             cumsum_ax.stackplot(y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
@@ -190,9 +195,14 @@ def generate_rate_grid(
         )
         monthly_ax.set_ylabel(f"Monthly {dy.index.name.lower()} rate")
         monthly_ax.legend(loc="upper right")
+        yearly_rate = dy.resample("YE").sum()
+
+        # Remove the last year if it is incomplete
+        if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
+            yearly_rate = yearly_rate[:-1]
 
         yearly_ax.plot(
-            dy.resample("YE").sum(),
+            yearly_rate,
             label="Yearly rate",
             ls="--",
             c=colors[1],
@@ -246,6 +256,8 @@ def rate_subplots(
     cumsum: bool = True,
     bg: pd.DataFrame | None = None,
     vlines: pd.DataFrame | None = None,
+    fill: bool = False,
+    limit_year: bool = False,
 ) -> None:
     """
     Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
@@ -258,6 +270,8 @@ def rate_subplots(
         cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
         bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
         vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
+        fill (bool, optional): If True, fill the area under the cumulative sum curve. Default is False.
+        limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
 
     Returns:
         None: Displays the generated plot.
@@ -295,6 +309,8 @@ def rate_subplots(
             size="100%",
             xlabel="Date" if (i + 1) == len(df.columns) else None,
             cumsum=cumsum,
+            fill=fill,
+            limit_year=limit_year,
         )
 
         for ix, ax in enumerate(sub_axes[:2]):
@@ -354,6 +370,8 @@ def rate(
     cumsum: bool = True,
     bg: pd.DataFrame | None = None,
     vlines: pd.DataFrame | None = None,
+    fill: bool = False,
+    limit_year: bool = False,
 ) -> None:
     """
     Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
@@ -366,6 +384,8 @@ def rate(
         cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
         bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
         vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
+        fill (bool, optional): If True, fill the area under the cumulative sum curve. Default is False.
+        limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
 
     Returns:
         None: Displays the generated plot.
@@ -376,7 +396,7 @@ def rate(
         f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
     )
 
-    axes = generate_rate_grid(dy=dy, ax=ax, size="100%", colors=colors, cumsum=cumsum)
+    axes = generate_rate_grid(dy=dy, ax=ax, size="100%", colors=colors, cumsum=cumsum, fill=fill, limit_year=limit_year)
     if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
         bg = bg.copy()
         bg["end"] = bg["end"].fillna(dy.index.max())

@@ -26,6 +26,9 @@ import logging
 import os
 import re
 import time
+import urllib.parse as up
+import warnings
+from ast import literal_eval
 from enum import Enum
 from pathlib import Path
 from typing import (
@@ -36,7 +39,6 @@ from typing import (
 
 # Third-party imports
 import arrow
-from ast import literal_eval
 from ipylab import JupyterFrontEnd
 from IPython import get_ipython
 from IPython.display import Markdown, display
@@ -49,8 +51,6 @@ import pandas as pd
 import papermill as pm
 from tqdm.auto import tqdm, trange
 from traitlets.config import Config
-import urllib.parse as up
-import warnings
 
 # Local application imports
 if __package__:
@@ -270,7 +270,7 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     last_date = None
     for file in files:
         match = re.search(
-            r"(\w+)_\w+_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+            r"(\w+)_\w+_(\d{8}T\d{4})Z_(\d{8}T\d{4})Z.bz2",
             Path(file).name,
         )
         name = match.group(1)
@@ -839,6 +839,28 @@ def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
 # ================== #
 
 
+# Rarities dictionary
+def fetch_rarities_dict(abreviations: List[str] = [], rarities: List[str] = []) -> Dict[str, str]:
+    """
+    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
+
+    Args:
+        rarities (List[str], optional): A list of rarity names, i.e. "Super Rare" to search for an abreviation.
+        abreviations (List[str], optional): A list of rarity abbreviations, i.e. "SR" to search for a name.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
+
+    """
+    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
+    rarities = rarities + titles.tolist()
+    rarity_backlinks = api.fetch_backlinks(rarities)
+    rarity_redirects = api.fetch_redirects(abreviations)
+    rarity_dict = rarity_backlinks | rarity_redirects
+
+    return rarity_dict
+
+
 # Query builder
 def card_query(*args, **kwargs) -> str:
     """
@@ -943,32 +965,6 @@ def card_query(*args, **kwargs) -> str:
         search_string += f"|?{up.quote(property_dict.get(prop, prop))}"
 
     return search_string
-
-
-# Rarities dictionary
-def fetch_rarities_dict(rarities_list: List[str] = []) -> Dict[str, str]:
-    """
-    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
-
-    Args:
-        rarities_list (List[str]): A list of rarities.
-
-    Returns:
-        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
-
-    """
-    words, acronyms = separate_words_and_acronyms(rarities_list)
-    if len(rarities_list) > 0:
-        print(f"Words: {words}")
-        print(f"Acronyms: {acronyms}")
-
-    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
-    words = words + titles.tolist()
-    rarity_backlinks = api.fetch_backlinks(words)
-    rarity_redirects = api.fetch_redirects(acronyms)
-    rarity_dict = rarity_backlinks | rarity_redirects
-
-    return rarity_dict
 
 
 # Bandai

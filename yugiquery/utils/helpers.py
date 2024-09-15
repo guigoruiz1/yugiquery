@@ -17,7 +17,6 @@ import importlib.util
 import json
 import re
 import os
-
 from pathlib import Path
 from typing import Literal, List, Dict
 
@@ -165,28 +164,6 @@ def md5(name: str) -> str:
     hash_md5 = hashlib.md5()
     hash_md5.update(name.encode())
     return hash_md5.hexdigest()
-
-
-def separate_words_and_acronyms(strings: List[str]) -> tuple[list, list]:
-    """
-    Separates a list of strings into words and acronyms.
-
-    Args:
-        strings (List[str]): A list of strings to be categorized.
-
-    Returns:
-        Tuple[List[str], List[str]]: A tuple containing two lists:
-            - The first list contains words (strings starting with an uppercase letter followed by lowercase letters).
-            - The second list contains acronyms (strings not meeting the word criteria).
-    """
-    words = []
-    acronyms = []
-    for string in strings:
-        if re.match(pattern=r"^[A-Z][a-z]+$", string=string):
-            words.append(string)
-        else:
-            acronyms.append(string)
-    return words, acronyms
 
 
 def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:
