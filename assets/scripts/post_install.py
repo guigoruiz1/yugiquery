@@ -13,39 +13,54 @@ def install_kernel() -> None:
     """
     Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
     """
-    from yugiquery.utils.git import get_repo
     from yugiquery.utils.dirs import dirs
-    from yugiquery import __url__, __title__
+    from yugiquery import __url__, __title__, __version__
     from IPython.core.profileapp import ProfileCreate
 
-    venv_name = "yqvenv"
+    venv_name = "venv"
     venv_path = dirs.WORK / venv_name
-
-    # Create a virtual environment.
-    result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
-    if result.returncode != 0:
-        cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
-        return
-    else:
-        cprint(text=f"\n{venv_name} virtual environment created.", color="green")
-
-    # Install YugiQuery inside the virtual environment.
-    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
-    try:
-        remote_url = get_repo().remote().url
-    except:
-        remote_url = f"{__url__}.git"
-
-    result = subprocess.run(
-        [pip_path, "install", f"git+{remote_url}"],
-        text=True,
+    python_path = (
+        os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
     )
 
+    # Create a virtual environment.
+    if not os.path.exists(venv_path):
+        result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
+        if result.returncode != 0:
+            cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
+            return
+        else:
+            cprint(text=f"\n{__title__} virtual environment created at {venv_path}.", color="green")
+
+    # Install YugiQuery inside the virtual environment.
+    cache_dir = subprocess.run(
+        args=f"{sys.executable} -m pip freeze | grep {__title__.lower()}",
+        capture_output=True,
+        text=True,
+        shell=True,
+    ).stdout.strip()
+    result = subprocess.run([python_path, "-m", "pip", "install", "--force-reinstall", cache_dir], text=True)
+
+    # If cache not found, install from GitHub with the same version
     if result.returncode != 0:
-        cprint(text=f"\nFailed to install YugiQuery in {venv_name}!", color="red")
+        github_url = f"git+{__url__}.git@V{__version__}"
+        result = subprocess.run(
+            args=[
+                python_path,
+                "-m",
+                "pip",
+                "install",
+                "--force-reinstall",
+                github_url,
+            ],
+            text=True,
+        )
+
+    if result.returncode != 0:
+        cprint(text=f"Error installing {__title__} in {venv_name}", color="red")
         return
     else:
-        cprint(text=f"\nYugiQuery installed in the virtual environment {venv_name}.", color="green")
+        cprint(text=f"\n{__title__} installed in {venv_name}.", color="green")
 
     # Create an IPython profile for YugiQuery.
     try:
@@ -71,9 +86,6 @@ def install_kernel() -> None:
         cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
 
     # Install the Jupyter kernel using ipykernel.
-    python_path = (
-        os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
-    )
     display_name = f"Python3 ({__title__})"
 
     result = subprocess.run(
