@@ -473,6 +473,7 @@ def load_corrected_latest(
     Returns:
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
+    name_pattern = name_pattern.lower()
     files = sorted(
         list(dirs.DATA.glob(f"{name_pattern}_data_*.bz2")),
         key=os.path.getctime,
