@@ -14,7 +14,7 @@ def install_kernel() -> None:
     Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
     """
     from yugiquery.utils.dirs import dirs
-    from yugiquery import __url__, __title__, __version__
+    from yugiquery import __url__, __title__
     from IPython.core.profileapp import ProfileCreate
 
     venv_name = "venv"
@@ -43,7 +43,25 @@ def install_kernel() -> None:
 
     # If cache not found, install from GitHub with the same version
     if result.returncode != 0:
-        github_url = f"git+{__url__}.git@V{__version__}"
+        commit_hash = None
+        try:
+            from yugiquery import __version__, __version_tuple__
+
+            # If __version_tuple__ exists, extract parts from the version tuple
+            if len(__version_tuple__) > 3:
+                commit_hash = __version_tuple__[-1].split("g")[-1].split(".")[0]
+        except ImportError:
+            # Fallback to __version__ if __version_tuple__ is not available
+            from yugiquery import __version__
+
+        # Check if there's a commit hash in the version string
+        if commit_hash:
+            git_ref = commit_hash
+        else:
+            git_ref = f"V{__version__}"
+
+        github_url = f"{__url__}.git@{git_ref}"
+
         result = subprocess.run(
             args=[
                 python_path,

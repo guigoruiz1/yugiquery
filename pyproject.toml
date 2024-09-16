@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -63,7 +63,10 @@ all = ["sphinx", "sphinx_rtd_theme", "python-telegram-bot", "discord.py", "pytes
 yugiquery = "yugiquery.__main__:main"
 
 [tool.hatch.version]
-path = "yugiquery/metadata.py"
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "yugiquery/_version.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
