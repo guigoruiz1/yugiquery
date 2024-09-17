@@ -136,7 +136,11 @@ def commit(files: str | List[str], commit_message: str = "", repo: git.Repo | No
         # Stage the files before committing
         try:
             repo.git.add(*files)
-            return repo.git.commit(message=commit_message)
+            diff = repo.index.diff("HEAD")
+            if diff:
+                return repo.git.commit(message=commit_message)
+            else:
+                return "No changes to commit."
         except git.GitCommandError as e:
             raise RuntimeError(f"Failed to commit changes: {e}")
         except Exception as e:
