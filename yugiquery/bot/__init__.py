@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 import importlib
-from .base import Bot, set_parser
+from .base import Bot, set_parser, main
 
 
 class _LazyLoader:

@@ -6,20 +6,18 @@ build-backend = "hatchling.build"
 name = "yugiquery"
 description = "Python package to query and display Yu-Gi-Oh! data built on Jupyter notebooks and Git."
 authors = [
-    {name = "Guilherme Ruiz", email = "57478888+guigoruiz1@users.noreply.github.com"}
+    { name = "Guilherme Ruiz", email = "57478888+guigoruiz1@users.noreply.github.com" },
 ]
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 keywords = ["CLI", "yugiquery", "bot", "Discord", "Telegram"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Development Status :: 4 - Beta"
+    "Development Status :: 4 - Beta",
 ]
-dynamic = [
-   "version"
-]
+dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
     "aiohttp>=3.7.4",
@@ -45,7 +43,7 @@ dependencies = [
     "tqdm[notebook]>=4.62.3",
     "termcolor>=2.4.0",
     "wikitextparser>=0.55.8",
-    "halo @ git+https://github.com/guigoruiz1/halo.git"
+    "halo @ git+https://github.com/guigoruiz1/halo.git",
 ]
 
 [project.urls]
@@ -66,6 +64,7 @@ yugiquery = "yugiquery.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
+fallback-version = '2.0.1'
 
 [tool.hatch.build.hooks.vcs]
 version-file = "yugiquery/_version.py"
@@ -74,11 +73,7 @@ version-file = "yugiquery/_version.py"
 allow-direct-references = true
 
 [tool.hatch.build.targets.sdist]
-exclude = [
-  "reports",
-  "data",
-  ".github"
-]
+exclude = ["reports", "data", ".github"]
 
 [tool.hatch.build.targets.wheel.shared-data]
 "assets" = "share/yugiquery"
