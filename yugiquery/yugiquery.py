@@ -1777,11 +1777,9 @@ def run(
 
 def main(args):
     # Assures the script is within a git repository before proceesing
-    _ = git.assure_repo()
+    _ = git.ensure_repo()
     # Execute the complete workflow
     run(**vars(args))
-    # Exit python
-    quit()
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
@@ -1864,6 +1862,6 @@ if __name__ == "__main__":
 
     if args.paths:
         dirs.print()
-        quit()
+        exit()
 
     main(args)

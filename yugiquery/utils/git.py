@@ -29,9 +29,9 @@ from .dirs import dirs
 # ========= #
 
 
-def assure_repo() -> git.Repo:
+def ensure_repo() -> git.Repo:
     """
-    Assures the script is inside a git repository. Initializes a repository if one is not found.
+    Ensures the execution happens inside a git repository. Initializes a repository if one is not found.
 
     Raises:
         git.InvalidGitRepositoryError: If the dirs.SCRIPT is not in a git repository.

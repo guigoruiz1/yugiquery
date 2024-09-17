@@ -175,10 +175,10 @@ def install_filters() -> None:
     Will initializes a new Git repository if one does not exist.
     """
     from yugiquery.utils.dirs import dirs
-    from yugiquery.utils.git import assure_repo
+    from yugiquery.utils.git import ensure_repo
 
     try:
-        repo_root = assure_repo().working_dir  # Still unsure about this
+        repo_root = ensure_repo().working_dir  # Still unsure about this
         if os.name == "nt":
             args = [dirs.get_asset("scripts", "git_filters.bat")]
         else:

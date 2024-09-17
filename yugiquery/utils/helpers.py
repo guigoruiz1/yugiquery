@@ -15,7 +15,6 @@ import calendar  # Used in notebooks
 import hashlib
 import importlib.util
 import json
-import re
 import os
 from pathlib import Path
 from typing import Literal, List, Dict
@@ -48,6 +47,9 @@ def ensure_tqdm():
                 cprint(
                     text="\nMissing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow"
                 )
+            elif loop > 1:
+                cprint(text="\nFailed to import TQDM fork twice. Aborting...", color="red")
+                raise
 
             spec = importlib.util.spec_from_file_location(
                 name="post_install",
@@ -56,10 +58,6 @@ def ensure_tqdm():
             post_install = importlib.util.module_from_spec(spec=spec)
             spec.loader.exec_module(post_install)
             post_install.install_tqdm()
-
-            if loop > 1:
-                cprint(text="Failed to install tqdm fork twice. Aborting...", color="red")
-                quit()
 
             loop += 1
 
@@ -164,6 +162,64 @@ def md5(name: str) -> str:
     hash_md5 = hashlib.md5()
     hash_md5.update(name.encode())
     return hash_md5.hexdigest()
+
+
+# =================== #
+# String Manipulators #
+# =================== #
+
+
+def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
+    """
+    Escapes specified characters in a given string by adding a backslash before each occurrence.
+
+    Args:
+        string (str): The input string to be processed.
+        chars (list, optional): A list of characters to be escaped. Default is ["_", ".", "-", "+", "#", "@", "="].
+
+    Returns:
+        str: The input string with the specified characters escaped.
+    """
+    for char in chars:
+        string = string.replace(char, "\\" + char)
+    return string
+
+
+# ====================== #
+# Timestamp Manipulators #
+# ====================== #
+
+
+def get_granularity(seconds: int) -> list[str]:
+    """
+    Humanizes a time interval given in seconds.
+
+    Args:
+        seconds (int): The time interval in seconds.
+
+    Returns:
+        list: A list of human-readable granularities for the time interval.
+    """
+    granularities = [
+        ("year", 31536000),  # seconds in a year
+        ("quarter", 7776000),  # seconds in a quarter
+        ("month", 2592000),  # seconds in a month
+        ("week", 604800),  # seconds in a week
+        ("day", 86400),  # seconds in a day
+        ("hour", 3600),  # seconds in an hour
+        ("minute", 60),  # seconds in a minute
+        ("second", 1),
+    ]
+
+    selected_granularity = []
+
+    for granularity, divisor in granularities:
+        value = seconds // divisor
+        if value > 0:
+            selected_granularity.append(granularity)
+            seconds %= divisor
+
+    return selected_granularity
 
 
 def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:

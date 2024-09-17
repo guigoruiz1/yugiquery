@@ -4,16 +4,6 @@
 
 # -*- coding: utf-8 -*-
 
-# ======================================================================== #
-#                                                                          #
-# ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ #
-#  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  #
-#   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   #
-#    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    #
-#    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    #
-#                                   ▀▀                                     #
-# ======================================================================== #
-
 # ======= #
 # Imports #
 # ======= #
@@ -29,7 +19,7 @@ from typing import (
     Any,
     Callable,
     Dict,
-    List,
+    Tuple,
 )
 
 # Third-party imports
@@ -39,94 +29,10 @@ from tqdm.auto import tqdm
 
 # Local application imports
 from ..utils import *
+from ..yugiquery import run
 
 # Set multiprocessing start method
 mp.set_start_method("spawn")
-
-# ================ #
-# Helper functions #
-# ================ #
-
-
-# Data loaders
-def load_secrets_with_args(args: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Load secrets from command-line arguments, and update them with values from
-    environment variables or a .env file, placed in the `Assets` directory, if necessary.
-    If the required secrets are not found, the function will exit the program.
-
-    Args:
-        Dict[str, Any]: A dictionary of secrets.
-
-    Returns:
-        Dict[str, str]: A dictionary containing the loaded secrets.
-    """
-
-    secrets = {key: value for key, value in args.items() if value is not None}
-    missing = [key for key, value in args.items() if value is None]
-    if len(missing) > 0:
-        try:
-            loaded_secrets = load_secrets(
-                requested_secrets=missing,
-                secrets_file=dirs.secrets_file,
-                required=True,
-            )
-        except:
-            cprint(text="Secrets not found. Exiting...", color="red")
-            exit()
-
-        secrets = secrets | loaded_secrets
-
-    return secrets
-
-
-def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
-    """
-    Escapes specified characters in a given string by adding a backslash before each occurrence.
-
-    Args:
-        string (str): The input string to be processed.
-        chars (list, optional): A list of characters to be escaped. Default is ["_", ".", "-", "+", "#", "@", "="].
-
-    Returns:
-        str: The input string with the specified characters escaped.
-    """
-    for char in chars:
-        string = string.replace(char, "\\" + char)
-    return string
-
-
-def get_humanize_granularity(seconds: int) -> list[str]:
-    """
-    Humanizes a time interval given in seconds.
-
-    Args:
-        seconds (int): The time interval in seconds.
-
-    Returns:
-        list: A list of human-readable granularities for the time interval.
-    """
-    granularities = [
-        ("year", 31536000),  # seconds in a year
-        ("quarter", 7776000),  # seconds in a quarter
-        ("month", 2592000),  # seconds in a month
-        ("week", 604800),  # seconds in a week
-        ("day", 86400),  # seconds in a day
-        ("hour", 3600),  # seconds in an hour
-        ("minute", 60),  # seconds in a minute
-        ("second", 1),
-    ]
-
-    selected_granularity = []
-
-    for granularity, divisor in granularities:
-        value = seconds // divisor
-        if value > 0:
-            selected_granularity.append(granularity)
-            seconds %= divisor
-
-    return selected_granularity
-
 
 # ============== #
 # Bot Superclass #
@@ -167,7 +73,7 @@ class Bot:
         self.init_reports_enum()
         try:
             # Open the repository
-            self.repo = git.assure_repo()
+            self.repo = git.ensure_repo()
         except:
             self.repo = None
 
@@ -340,15 +246,13 @@ class Bot:
             latest_time = entry["average"]
 
             avg_time_str = (
-                arrow.now()
-                .shift(seconds=avg_time)
-                .humanize(granularity=get_humanize_granularity(avg_time), only_distance=True)
+                arrow.now().shift(seconds=avg_time).humanize(granularity=get_granularity(avg_time), only_distance=True)
             )
             latest_time_str = (
                 arrow.now()
                 .shift(seconds=latest_time)
                 .humanize(
-                    granularity=get_humanize_granularity(latest_time),
+                    granularity=get_granularity(latest_time),
                     only_distance=True,
                 )
             )
@@ -497,8 +401,6 @@ class Bot:
             pbar_kwargs=pbar_kwargs,
         )
         try:
-            from ..yugiquery import run
-
             self.process = mp.Process(
                 target=run,
                 args=[report.value, progress_handler],
@@ -548,7 +450,7 @@ class Bot:
         Returns humanized bot uptime.
         """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
-        granularity = get_humanize_granularity(time_difference)
+        granularity = get_granularity(time_difference)
         humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
 
@@ -596,6 +498,39 @@ class Bot:
 # ========= #
 
 
+# Helper function
+def load_secrets_with_args(args: Any) -> Tuple[str, int | str]:
+    """
+    Load secrets from command-line arguments, and update them with values from
+    environment variables or a .env file, placed in the `Assets` directory, if necessary.
+    If the required secrets are not found, the function will exit the program.
+
+    Args:
+        args (Any): The parsed command-line arguments.
+
+    Returns:
+        (str, int): The token and channel ID.
+    """
+    subclass_upper = args.subclass.upper()
+    secrets_args = {
+        f"{subclass_upper}_TOKEN": args.token,
+        f"{subclass_upper}_CHANNEL_ID": args.channel,
+    }
+
+    secrets = {key: value for key, value in secrets_args.items() if value}
+    missing = [key for key, value in secrets_args.items() if not value]
+
+    if missing:
+        loaded_secrets = load_secrets(
+            requested_secrets=missing,
+            secrets_file=dirs.secrets_file,
+            required=True,
+        )
+        secrets.update(loaded_secrets)
+
+    return secrets[f"{subclass_upper}_TOKEN"], secrets[f"{subclass_upper}_CHANNEL_ID"]
+
+
 def set_parser(parser: argparse.ArgumentParser) -> None:
     """
     Set the parser arguments for the bot mode.
@@ -628,17 +563,14 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 def main(args) -> None:
     # Make sure the data and reports directories exist
     dirs.make()
-    # Load secrets
-    secrets_args = {
-        f"{args.subclass.upper()}_TOKEN": args.token,
-        f"{args.subclass.upper()}": args.channel,
-    }
-    secrets = load_secrets_with_args(secrets_args)
 
-    if f"{args.subclass.upper()}_TOKEN" not in secrets or f"{args.subclass.upper()}_CHANNEL_ID" not in secrets:
-        raise ValueError(
-            f"{args.subclass} bot requires {args.subclass.upper()}_TOKEN and {args.subclass.upper()}_CHANNEL_ID in secrets."
-        )
+    # Load secrets
+    try:
+        token, channel = load_secrets_with_args(args)
+    except KeyError as e:
+        cprint(text=f"{e}. Aborting...", color="red")
+        return
+
     # Handle bots based on subclass
     if args.subclass == "discord":
         # Initialize and run the Discord bot
@@ -649,5 +581,5 @@ def main(args) -> None:
         from .telegram import Telegram as Subclass
 
     # Run the bot subclass
-    bot = Subclass(token=args.token, channel=args.channel, debug=args.debug)
+    bot = Subclass(token=token, channel=channel, debug=args.debug)
     bot.run()
