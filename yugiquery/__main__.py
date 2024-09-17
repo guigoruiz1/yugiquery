@@ -2,9 +2,14 @@
 
 # -*- coding: utf-8 -*-
 
+# Standard library imports
 import argparse
 import importlib
-from .utils import auto_or_bool, dirs
+
+# Local application imports
+from .utils import dirs
+from . import yugiquery as yq
+from . import bot
 
 
 def main():
@@ -14,89 +19,13 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
+
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow")
-    # TODO: Make --reports positional
-    yugiquery_parser.add_argument(
-        "-r",
-        "--reports",
-        nargs="+",
-        dest="reports",
-        default="all",
-        type=str,
-        required=False,
-        help="The report(s) to be generated.",
-    )
-    yugiquery_parser.add_argument(
-        "-t",
-        "--telegram-token",
-        dest="telegram_token",
-        type=str,
-        required=False,
-        help="Telegram API token.",
-    )
-    yugiquery_parser.add_argument(
-        "-d",
-        "--discord-token",
-        dest="discord_token",
-        type=str,
-        required=False,
-        help="Discord API token.",
-    )
-    yugiquery_parser.add_argument(
-        "-c",
-        "--channel",
-        dest="channel_id",
-        type=int,
-        required=False,
-        help="Discord or Telegram Channel/chat ID.",
-    )
-    yugiquery_parser.add_argument(
-        "-s",
-        "--suppress-contribs",
-        action="store_true",
-        required=False,
-        help="Disables using TQDM contribs entirely.",
-    )
-    yugiquery_parser.add_argument(
-        "-f",
-        "--telegram-first",
-        action="store_true",
-        required=False,
-        help="Force TQDM to try using Telegram as progress bar before Discord.",
-    )
-    yugiquery_parser.add_argument(
-        "--cleanup",
-        default="auto",
-        type=auto_or_bool,
-        nargs="?",
-        const=True,
-        action="store",
-        help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto.",
-    )
-    yugiquery_parser.add_argument(
-        "--dryrun",
-        action="store_true",
-        required=False,
-        help="Whether to dry run the cleanup routine. No effect if cleanup is False.",
-    )
-    yugiquery_parser.add_argument(
-        "--debug",
-        action="store_true",
-        required=False,
-        help="Enables debug flag.",
-    )
-
+    yq.set_parser(yugiquery_parser)  # TODO: Make --reports positional
     # Subparser for the bot mode
     bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot")
-    bot_parser.add_argument(
-        "subclass",
-        choices=["discord", "telegram"],
-        help="Select between a Discord or a Telegram bot",
-    )
-    bot_parser.add_argument("-t", "--token", type=str, help="Bot API token")
-    bot_parser.add_argument("-c", "--channel", dest="channel_id", type=int, help="Bot responses channel id")
-    bot_parser.add_argument("--debug", action="store_true", help="Enable debug flag")
+    bot.set_parser(bot_parser)
 
     # Subparser for the kernel installation
     try:
@@ -144,14 +73,10 @@ def main():
 
         elif args.command == "bot":
             # Call the bot main function with parsed arguments
-            from .bot import main
-
-            main(args)
+            bot.main(args)
         else:
             # Main Yugiquery flow
-            from .yugiquery import main
-
-            main(args)
+            yq.main(args)
 
 
 if __name__ == "__main__":

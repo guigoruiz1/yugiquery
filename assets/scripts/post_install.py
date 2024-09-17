@@ -9,76 +9,83 @@ import shutil
 from termcolor import cprint
 
 
-def install_kernel() -> None:
+def install_kernel(venv: bool = False) -> None:
     """
     Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
+
+    Args:
+        venv (bool, optional): Whether to create a virtual environment. Default is True.
     """
-    from yugiquery.utils.dirs import dirs
-    from yugiquery import __url__, __title__
+    from yugiquery import __title__
     from IPython.core.profileapp import ProfileCreate
 
-    venv_name = "venv"
-    venv_path = dirs.WORK / venv_name
-    python_path = (
-        os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
-    )
+    if venv:
+        from yugiquery.utils.dirs import dirs
 
-    # Create a virtual environment.
-    if not os.path.exists(venv_path):
-        result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
-        if result.returncode != 0:
-            cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
-            return
-        else:
-            cprint(text=f"\n{__title__} virtual environment created at {venv_path}.", color="green")
-
-    # Install YugiQuery inside the virtual environment.
-    cache_dir = subprocess.run(
-        args=f"{sys.executable} -m pip freeze | grep {__title__.lower()}",
-        capture_output=True,
-        text=True,
-        shell=True,
-    ).stdout.strip()
-    result = subprocess.run([python_path, "-m", "pip", "install", "--force-reinstall", cache_dir], text=True)
-
-    # If cache not found, install from GitHub with the same version
-    if result.returncode != 0:
-        commit_hash = None
-        try:
-            from yugiquery import __version__, __version_tuple__
-
-            # If __version_tuple__ exists, extract parts from the version tuple
-            if len(__version_tuple__) > 3:
-                commit_hash = __version_tuple__[-1].split("g")[-1].split(".")[0]
-        except ImportError:
-            # Fallback to __version__ if __version_tuple__ is not available
-            from yugiquery import __version__
-
-        # Check if there's a commit hash in the version string
-        if commit_hash:
-            git_ref = commit_hash
-        else:
-            git_ref = f"V{__version__}"
-
-        github_url = f"{__url__}.git@{git_ref}"
-
-        result = subprocess.run(
-            args=[
-                python_path,
-                "-m",
-                "pip",
-                "install",
-                "--force-reinstall",
-                github_url,
-            ],
-            text=True,
+        venv_name = "venv"
+        venv_path = dirs.WORK / venv_name
+        python_path = (
+            os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
         )
 
-    if result.returncode != 0:
-        cprint(text=f"Error installing {__title__} in {venv_name}", color="red")
-        return
+        # Create a virtual environment.
+        if not os.path.exists(venv_path):
+            result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
+            if result.returncode != 0:
+                cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
+                return
+            else:
+                cprint(text=f"\n{__title__} virtual environment created at {venv_path}.", color="green")
+
+        # Install YugiQuery inside the virtual environment.
+        cache_dir = subprocess.run(
+            args=f"{sys.executable} -m pip freeze | grep {__title__.lower()}",
+            capture_output=True,
+            text=True,
+            shell=True,
+        ).stdout.strip()
+        result = subprocess.run([python_path, "-m", "pip", "install", "--force-reinstall", cache_dir], text=True)
+
+        # If cache not found, install from GitHub with the same version
+        if result.returncode != 0:
+            commit_hash = None
+            try:
+                from yugiquery import __version__, __version_tuple__, __url__
+
+                # If __version_tuple__ exists, extract parts from the version tuple
+                if len(__version_tuple__) > 3:
+                    commit_hash = __version_tuple__[-1].split("g")[-1].split(".")[0]
+            except ImportError:
+                # Fallback to __version__ if __version_tuple__ is not available
+                from yugiquery import __version__, __url__
+
+            # Check if there's a commit hash in the version string
+            if commit_hash:
+                git_ref = commit_hash
+            else:
+                git_ref = f"V{__version__}"
+
+            github_url = f"{__url__}.git@{git_ref}"
+
+            result = subprocess.run(
+                args=[
+                    python_path,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    github_url,
+                ],
+                text=True,
+            )
+
+        if result.returncode != 0:
+            cprint(text=f"Error installing {__title__} in {venv_name}", color="red")
+            return
+        else:
+            cprint(text=f"\n{__title__} installed in {venv_name}.", color="green")
     else:
-        cprint(text=f"\n{__title__} installed in {venv_name}.", color="green")
+        python_path = sys.executable
 
     # Create an IPython profile for YugiQuery.
     try:
@@ -191,14 +198,22 @@ def install_filters() -> None:
         print(e)
 
 
-def set_parser(parser):
+def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
     parser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
     parser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
     parser.add_argument("--filters", action="store_true", help="Install git filters.")
+    parser.add_argument(
+        "--venv",
+        action="store_true",
+        help="Whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed.",
+    )
 
 
 def main(args):
+    if args.venv and not args.kernel:
+        cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
+
     # If no flags are passed, install everything.
     if not (args.tqdm or args.kernel or args.nbconvert or args.filters):
         args.tqdm = args.kernel = args.nbconvert = args.filters = True
@@ -206,7 +221,7 @@ def main(args):
     if args.tqdm:
         install_tqdm()
     if args.kernel:
-        install_kernel()
+        install_kernel(venv=args.venv)
     if args.nbconvert:
         install_nbconvert()
     if args.filters:

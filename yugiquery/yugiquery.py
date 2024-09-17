@@ -1784,8 +1784,7 @@ def main(args):
     quit()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-r",
         "--reports",
@@ -1856,6 +1855,11 @@ if __name__ == "__main__":
         help="Enables debug flag.",
     )
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    set_parser(parser)
     args = parser.parse_args()
 
     if args.paths:
