@@ -38,7 +38,6 @@ from termcolor import cprint
 from tqdm.auto import tqdm
 
 # Local application imports
-from ..yugiquery import run
 from ..utils import *
 
 # Set multiprocessing start method
@@ -498,6 +497,8 @@ class Bot:
             pbar_kwargs=pbar_kwargs,
         )
         try:
+            from ..yugiquery import run
+
             self.process = mp.Process(
                 target=run,
                 args=[report.value, progress_handler],

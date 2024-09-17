@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+import argparse
 import os
 import subprocess
 import sys
@@ -229,8 +230,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Install various additional components. If no flags are passed, all components will be installed."
     )

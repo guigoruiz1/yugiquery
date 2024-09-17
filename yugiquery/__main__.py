@@ -41,7 +41,8 @@ def main():
             help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.",
         )
         post_install.set_parser(post_install_parser)
-    except:
+    except Exception as e:
+        print(e)
         pass
 
     # Parse initial arguments
