@@ -249,7 +249,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
 
     result = git.commit(
         files=[benchmark_file],
-        commit_message=f"{report} report benchmarked - {now.isoformat()}",
+        message=f"{report} report benchmarked - {now.isoformat()}",
     )
     print(result)
 
@@ -454,7 +454,7 @@ def cleanup_data(dry_run=False) -> None:
                 dirs.DATA / "benchmark.json",
                 dirs.DATA / "*bz2",
             ],
-            commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
+            message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
         print(result)
 
@@ -774,7 +774,7 @@ def update_index() -> None:
 
     result = git.commit(
         files=[index_output_path, readme_output_path],
-        commit_message=f"Index and README timestamp update - {timestamp.isoformat()}",
+        message=f"Index and README timestamp update - {timestamp.isoformat()}",
     )
     print(result)
 
@@ -792,7 +792,7 @@ def header(name: str | None = None) -> Markdown:
     """
     if name is None:
         path = get_notebook_path()
-        name = path.name if path else "Unnamed"
+        name = path.stem if path else "Unnamed"
 
     header_path = dirs.get_asset("markdown", "header.md")
     try:
@@ -1685,6 +1685,7 @@ def run(
     suppress_contribs: bool = False,
     cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
+    squash: bool = True,
     **kwargs,
 ) -> None:
     """
@@ -1698,6 +1699,7 @@ def run(
         suppress_contribs (bool, optional): Defaults to False.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
+        squash (bool, optional): squash commits after execution. Defaults to True.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 
     Raises:
@@ -1706,43 +1708,17 @@ def run(
     Returns:
         None: This function does not return a value.
     """
-    if reports == "all":
-        # Get all reports
-        reports_dict = {}
-        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
-            dirs.NOTEBOOKS.user.glob("*.ipynb")
-        )  # First user, then package
-        for report in reports:
-            reports_dict[report.stem.capitalize()] = report  # Will replace package by user if same name
-
-        reports = list(reports_dict.values())
-    elif reports == "user":
-        # Get user reports
-        reports = sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
-    else:
-        if not isinstance(reports, list):
-            reports = [reports]
-
-        for i, report in enumerate(reports):
-            report_path = Path(report)
-            if report_path.is_file():
-                reports[i] = report_path
-            else:
-                report_name = report_path.name
-                try:
-                    reports[i] = dirs.get_notebook(report_name)
-                except FileNotFoundError:
-                    cprint(f"Report {report_name} not found.", "yellow")
-                    reports[i] = None
-
-        # Remove None values from the list
-        reports = [report for report in reports if report is not None]
+    reports = dirs.find_notebooks(reports)
 
     # Check API status
-    if not api.check_status():
-        if progress_handler:
-            progress_handler.exit(API_status=False)
+    api_status = api.check_status()
+    if progress_handler:
+        progress_handler.check(success=api_status)
+    if not api_status:
         return
+
+    # Get the current commit hash
+    start_commit = git.get_repo().head.commit
 
     # Execute notebooks
     try:
@@ -1768,6 +1744,10 @@ def run(
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
+
+    # Squash commits if any
+    if squash:
+        print(git.squash_commits(start_commit))
 
 
 # ========= #

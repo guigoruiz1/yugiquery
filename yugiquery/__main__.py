@@ -7,7 +7,7 @@ import argparse
 import importlib
 
 # Local application imports
-from .utils import dirs
+from .utils import dirs, api
 from . import yugiquery as yq
 from . import bot
 
@@ -19,6 +19,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
+    parser.add_argument("--api", action="store_true", help="Print API status and exit")
 
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow")
@@ -47,17 +48,17 @@ def main():
 
     # Parse initial arguments
     args = parser.parse_args()
-
-    if args.paths or args.version:
-        if args.paths:
-            dirs.print()
+    if args.command is None:
         if args.version:
             from .metadata import __title__, __version__
 
             print(f"{__title__} {__version__}")
+        if args.api:
+            api.check_status()
+        if args.paths:
+            dirs.print()
 
         exit()
-
     else:
         print(
             "\n"

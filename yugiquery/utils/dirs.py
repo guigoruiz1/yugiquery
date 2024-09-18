@@ -15,6 +15,7 @@ import os
 import sysconfig
 from pathlib import Path
 from types import SimpleNamespace
+from typing import List
 
 # Third-party imports
 from IPython import get_ipython
@@ -281,7 +282,7 @@ class Dirs:
 
     def get_notebook(self, *parts: str) -> Path:
         """
-        Return the path to a notebook file. Names are case insensitive. If more than one occurrence is found, the first path will be returned. Notebooks in the user directory will take precedence over the pkg director.  
+        Return the path to a notebook file. Names are case insensitive. If more than one occurrence is found, the first path will be returned. Notebooks in the user directory will take precedence over the pkg director.
 
         Args:
             *parts (str): The path parts to the notebook file.
@@ -308,6 +309,46 @@ class Dirs:
                     return notebook_path
 
         raise FileNotFoundError(f"Notebook not found!")
+
+    def find_notebooks(self, notebooks: str | List[str] = "all") -> List[Path]:
+        """
+        Finds the paths of the specified notebooks.
+
+        Args:
+            notebooks (str | List[str], optional): A list of notebook names or paths. If "all", finds all notebooks in the `NOTEBOOKS` directory. If "user", finds all notebooks in the user directory. Defaults to "all".
+        """
+        if notebooks == "all":
+            # Get all reports
+            notebooks_dict = {}
+            notebooks = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
+                self.NOTEBOOKS.user.glob("*.ipynb")
+            )  # First user, then package
+            for notebook in notebooks:
+                notebooks_dict[notebook.stem.capitalize()] = notebook  # Will replace package by user if same name
+
+            notebooks = list(notebooks_dict.values())
+        elif notebooks == "user":
+            # Get user reports
+            notebooks = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
+        else:
+            if not isinstance(notebooks, list):
+                notebooks = [notebooks]
+
+            for i, notebook in enumerate(notebooks):
+                notebook_path = Path(notebook)
+                if notebook_path.is_file():
+                    notebooks[i] = notebook_path
+                else:
+                    notebook_name = notebook_path.name
+                    try:
+                        notebooks[i] = self.get_notebook(notebook_name)
+                    except FileNotFoundError:
+                        cprint(f"Notebook {notebook_name} not found.", "yellow")
+                        notebooks[i] = None
+
+            # Remove None values from the list
+            notebooks = [notebook for notebook in notebooks if notebook is not None]
+            return notebooks
 
 
 # Global instance of Dirs
