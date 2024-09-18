@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+import argparse
 import os
 import subprocess
 import sys
@@ -9,65 +10,108 @@ import shutil
 from termcolor import cprint
 
 
-def install_kernel() -> None:
+def install_kernel(venv: bool = False) -> None:
     """
     Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
+
+    Args:
+        venv (bool, optional): Whether to create a virtual environment. Default is True.
     """
-    from yugiquery.utils.git import get_repo
-    from yugiquery.utils.dirs import dirs
-    from yugiquery import __url__, __title__
+    from yugiquery import __title__
     from IPython.core.profileapp import ProfileCreate
 
-    venv_name = "yqvenv"
-    venv_path = dirs.WORK / venv_name
+    if venv:
+        from yugiquery.utils.dirs import dirs
 
-    # Create a virtual environment.
-    result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
-    if result.returncode != 0:
-        cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
-        return
+        venv_name = "venv"
+        venv_path = dirs.WORK / venv_name
+        python_path = (
+            os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
+        )
+
+        # Create a virtual environment.
+        if not os.path.exists(venv_path):
+            result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
+            if result.returncode != 0:
+                cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
+                return
+            else:
+                cprint(text=f"\n{__title__} virtual environment created at {venv_path}.", color="green")
+
+        # Install YugiQuery inside the virtual environment.
+        cache_dir = subprocess.run(
+            args=f"{sys.executable} -m pip freeze | grep {__title__.lower()}",
+            capture_output=True,
+            text=True,
+            shell=True,
+        ).stdout.strip()
+        result = subprocess.run([python_path, "-m", "pip", "install", "--force-reinstall", cache_dir], text=True)
+
+        # If cache not found, install from GitHub with the same version
+        if result.returncode != 0:
+            commit_hash = None
+            try:
+                from yugiquery import __version__, __version_tuple__, __url__
+
+                # If __version_tuple__ exists, extract parts from the version tuple
+                if len(__version_tuple__) > 3:
+                    commit_hash = __version_tuple__[-1].split("g")[-1].split(".")[0]
+            except ImportError:
+                # Fallback to __version__ if __version_tuple__ is not available
+                from yugiquery import __version__, __url__
+
+            # Check if there's a commit hash in the version string
+            if commit_hash:
+                git_ref = commit_hash
+            else:
+                git_ref = f"V{__version__}"
+
+            github_url = f"{__url__}.git@{git_ref}"
+
+            result = subprocess.run(
+                args=[
+                    python_path,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    github_url,
+                ],
+                text=True,
+            )
+
+        if result.returncode != 0:
+            cprint(text=f"Error installing {__title__} in {venv_name}", color="red")
+            return
+        else:
+            cprint(text=f"\n{__title__} installed in {venv_name}.", color="green")
     else:
-        cprint(text=f"\n{venv_name} virtual environment created.", color="green")
-
-    # Install YugiQuery inside the virtual environment.
-    pip_path = os.path.join(venv_path, "bin", "pip") if os.name != "nt" else os.path.join(venv_path, "Scripts", "pip")
-    try:
-        remote_url = get_repo().remote().url
-    except:
-        remote_url = f"{__url__}.git"
-
-    result = subprocess.run(
-        [pip_path, "install", f"git+{remote_url}"],
-        text=True,
-    )
-
-    if result.returncode != 0:
-        cprint(text=f"\nFailed to install YugiQuery in {venv_name}!", color="red")
-        return
-    else:
-        cprint(text=f"\nYugiQuery installed in the virtual environment {venv_name}.", color="green")
+        python_path = sys.executable
 
     # Create an IPython profile for YugiQuery.
-    # Step 1: Initialize the profile creation process
-    profile_creator = ProfileCreate(profile="yugiquery")
+    try:
+        # Step 1: Initialize the profile creation process
+        profile_creator = ProfileCreate(profile="yugiquery")
 
-    # Step 2: Create the profile directory and default config files
-    profile_creator.init_config_files()
+        # Step 2: Create the profile directory and default config files
+        profile_creator.init_config_files()
 
-    # Step 3: Manually write the config to ipython_config.py
-    profile_dir = profile_creator.profile_dir.location
-    config_file = os.path.join(profile_dir, "ipython_config.py")
+        # Step 3: Manually write the config to ipython_config.py
+        profile_dir = profile_creator.profile_dir.location
+        config_file = os.path.join(profile_dir, "ipython_config.py")
 
-    # Step 4: Write the configuration manually
-    with open(config_file, "w") as f:
-        f.write("c = get_config()\n")
-        f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
-        f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
+        # Step 4: Write the configuration manually
+        with open(config_file, "w") as f:
+            f.write("c = get_config()\n")
+            f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
+            f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
+    except:
+        cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")
+        return
+    else:
+        cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
 
     # Install the Jupyter kernel using ipykernel.
-    python_path = (
-        os.path.join(venv_path, "bin", "python3") if os.name != "nt" else os.path.join(venv_path, "Scripts", "python3")
-    )
     display_name = f"Python3 ({__title__})"
 
     result = subprocess.run(
@@ -89,6 +133,7 @@ def install_kernel() -> None:
 
     if result.returncode != 0:
         cprint(text=f"\nFailed to install Jupyter kernel '{__title__.lower()}'!", color="red")
+        return
     else:
         cprint(text=f"\nJupyter kernel '{__title__.lower()}' installed.", color="green")
 
@@ -130,13 +175,17 @@ def install_filters() -> None:
     Will initializes a new Git repository if one does not exist.
     """
     from yugiquery.utils.dirs import dirs
-    from yugiquery.utils.git import assure_repo
+    from yugiquery.utils.git import ensure_repo
 
     try:
-        repo_root = assure_repo().working_dir  # Still unsure about this
-        script_path = dirs.get_asset("scripts", "git_filters.sh")
+        repo_root = ensure_repo().working_dir  # Still unsure about this
+        if os.name == "nt":
+            args = [dirs.get_asset("scripts", "git_filters.bat")]
+        else:
+            args = ["sh", dirs.get_asset("scripts", "git_filters.sh")]
+
         result = subprocess.run(
-            ["bash", script_path],
+            args=args,
             text=True,
             cwd=repo_root,
         )
@@ -150,14 +199,22 @@ def install_filters() -> None:
         print(e)
 
 
-def set_parser(parser):
+def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
     parser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
     parser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
     parser.add_argument("--filters", action="store_true", help="Install git filters.")
+    parser.add_argument(
+        "--venv",
+        action="store_true",
+        help="Whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed.",
+    )
 
 
 def main(args):
+    if args.venv and not args.kernel:
+        cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
+
     # If no flags are passed, install everything.
     if not (args.tqdm or args.kernel or args.nbconvert or args.filters):
         args.tqdm = args.kernel = args.nbconvert = args.filters = True
@@ -165,7 +222,7 @@ def main(args):
     if args.tqdm:
         install_tqdm()
     if args.kernel:
-        install_kernel()
+        install_kernel(venv=args.venv)
     if args.nbconvert:
         install_nbconvert()
     if args.filters:
@@ -173,8 +230,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Install various additional components. If no flags are passed, all components will be installed."
     )

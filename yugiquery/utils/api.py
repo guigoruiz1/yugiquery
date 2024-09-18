@@ -22,7 +22,6 @@ from typing import (
     Dict,
     List,
     Tuple,
-    Union,
 )
 import urllib.parse as up
 
@@ -39,6 +38,7 @@ import wikitextparser as wtp
 # Local application imports
 from .helpers import *
 from .dirs import dirs
+from ..metadata import __title__, __url__, __version__
 
 # Import Halo according to the environment
 if dirs.is_notebook:
@@ -50,8 +50,6 @@ else:
 # Dictionaries #
 # ============ #
 
-#:A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
-#::meta hide-value:
 URLS: SimpleNamespace = SimpleNamespace(
     base="https://yugipedia.com/api.php",
     media="https://ms.yugipedia.com/",
@@ -61,12 +59,14 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
-    headers=load_json(dirs.get_asset("json", "headers.json")),
+    headers={"User-Agent": f"{__title__} V{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
-"""
+"""A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
+
+:meta hide-value:
+
 """
 
-#: A dictionary mapping link arrow positions to their corresponding Unicode characters.
 arrows_dict: Dict[str, str] = {
     "Middle-Left": "←",
     "Middle-Right": "→",
@@ -77,6 +77,11 @@ arrows_dict: Dict[str, str] = {
     "Bottom-Center": "↓",
     "Bottom-Right": "↘",
 }
+"""A dictionary mapping link arrow positions to their corresponding Unicode characters.
+
+:meta hide-value:
+
+"""
 
 
 # ========= #
@@ -123,7 +128,7 @@ def fetch_categorymembers(
     category: str,
     namespace: int = 0,
     step: int = 500,
-    iterator=None,
+    iterator: tqdm | None = None,
     debug: bool = False,
 ) -> pd.DataFrame:
     """
@@ -133,7 +138,7 @@ def fetch_categorymembers(
         category (str): The category to retrieve members for.
         namespace (int, optional): The namespace ID to filter the members by. Defaults to 0 (main namespace).
         step (int, optional): The number of members to retrieve in each request. Defaults to 500.
-        iterator (tqdm.std.tqdm, optional): A tqdm iterator to display progress updates. Defaults to None.
+        iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
         debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
 
     Returns:
@@ -206,7 +211,7 @@ def fetch_properties(
     query: str,
     step: int = 500,
     limit: int = 5000,
-    iterator=None,
+    iterator: tqdm | None = None,
     include_all: bool = False,
     debug: bool = False,
 ) -> pd.DataFrame:
@@ -218,7 +223,7 @@ def fetch_properties(
         query (str): The query to retrieve the properties.
         step (int, optional): The number of properties to retrieve in each request. Defaults to 500.
         limit (int, optional): The maximum number of properties to retrieve. Defaults to 5000.
-        iterator (tqdm.std.tqdm, optional): A tqdm iterator to display progress updates. Defaults to None.
+        iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
         include_all (bool, optional): If True, includes all properties in the DataFrame. If False, includes only properties that have values. Defaults to False.
         debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
 
@@ -393,7 +398,7 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
 
 # TODO: Refactor
 # TODO: Translate region code?
-def fetch_set_lists(titles: List[str], **kwargs) -> None | tuple[pd.DataFrame, int, int]:  # Separate formating function
+def fetch_set_lists(titles: List[str], **kwargs) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
@@ -402,7 +407,7 @@ def fetch_set_lists(titles: List[str], **kwargs) -> None | tuple[pd.DataFrame, i
         **kwargs: Additional keyword arguments.
 
     Returns:
-        pd.DataFrame: A DataFrame containing the parsed card set lists.
+        Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
     debug = kwargs.get("debug", False)
     if debug:
@@ -618,8 +623,8 @@ async def download_images(
 
     Args:
         file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
-        save_folder (str): The path to the folder where the downloaded images will be saved. Defaults to "images".
-        max_tasks (int): The maximum number of images to download at once. Defaults to 10.
+        save_folder (str, optional): The path to the folder where the downloaded images will be saved. Defaults to "images".
+        max_tasks (int, optional): The maximum number of images to download at once. Defaults to 10.
 
     Returns:
         None
@@ -715,7 +720,7 @@ def extract_results(response: requests.Response) -> pd.DataFrame:
     return df
 
 
-def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False) -> str | tuple[str] | float:
+def extract_fulltext(x: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str] | float:
     """
     Extracts fulltext from a list of dictionaries or strings.
     If multiple is True, returns a sorted tuple of all fulltexts.
@@ -723,8 +728,8 @@ def extract_fulltext(x: List[Union[Dict[str, Any], str]], multiple: bool = False
     If the input list is empty, returns np.nan.
 
     Args:
-        x (List[Union[Dict[str, Any], str]]): A list of dictionaries or strings to extract fulltext from.
-        multiple (bool): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
+        x (List[Dict[str, Any] | str]): A list of dictionaries or strings to extract fulltext from.
+        multiple (bool, optional): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
 
     Returns:
         str or Tuple[str] or np.nan: The extracted fulltext(s).
@@ -753,7 +758,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
 
     Args:
         input_df (pd.DataFrame): The input dataframe to format.
-        include_all (bool): If True, include all unspecified columns in the output dataframe. Default is False.
+        include_all (bool, optional): If True, include all unspecified columns in the output dataframe. Default is False.
 
     Returns:
         pd.DataFrame: The formatted dataframe.
@@ -860,7 +865,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
 
 
 # Cards
-def extract_artwork(row: pd.Series) -> float | tuple[str]:
+def extract_artwork(row: pd.Series) -> float | Tuple[str]:
     """
     Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
@@ -889,7 +894,7 @@ def extract_artwork(row: pd.Series) -> float | tuple[str]:
         return result
 
 
-def extract_primary_type(row: Union[str, List[str], Tuple[str]]) -> str:
+def extract_primary_type(row: str | List[str] | Tuple[str]) -> str | List[str]:
     """
     Extracts the primary type of a card.
     If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
@@ -898,10 +903,10 @@ def extract_primary_type(row: Union[str, List[str], Tuple[str]]) -> str:
     Otherwise, returns the input.
 
     Args:
-        row (Union[str, List[str], Tuple[str]]): The input type(s) to extract the primary type from.
+        row (str | List[str] | Tuple[str]): The input type(s) to extract the primary type from.
 
     Returns:
-        Union[str, List[str]]: The extracted primary type(s).
+        str | List[str]: The extracted primary type(s).
     """
     if isinstance(row, list) or isinstance(row, tuple):
         if "Monster Token" in row:
@@ -918,13 +923,13 @@ def extract_primary_type(row: Union[str, List[str], Tuple[str]]) -> str:
     return row
 
 
-def extract_misc(x: Union[str, List[str], Tuple[str]]) -> pd.Series:
+def extract_misc(x: str | List[str] | Tuple[str]) -> pd.Series:
     """
     Extracts the misc properties of a card.
     Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
 
     Args:
-        x (Union[str, List[str], Tuple[str]]): The Misc values to generate the boolean table from.
+        x (str | List[str] | Tuple[str]): The Misc values to generate the boolean table from.
 
     Returns:
         pd.Series: A pandas Series of boolean values indicating whether "Legend Card" and "Requires Maximum Mode" are present in the input.
@@ -949,7 +954,7 @@ def extract_category_bool(x: List[str]) -> float | bool:
         x (List[str]): The input list of strings to extract a boolean value from.
 
     Returns:
-        Union[bool, np.nan]: The extracted boolean value.
+        bool | np.nan: The extracted boolean value.
     """
     if len(x) > 0:
         if x[0] == "f":

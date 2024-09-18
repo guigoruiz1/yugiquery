@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
 credential_store=$(git config --get credential.credentialstore)
 

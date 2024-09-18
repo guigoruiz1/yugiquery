@@ -26,19 +26,19 @@ import logging
 import os
 import re
 import time
+import urllib.parse as up
+import warnings
+from ast import literal_eval
 from enum import Enum
 from pathlib import Path
 from typing import (
-    Callable,
     Dict,
     List,
     Tuple,
-    Union,
 )
 
 # Third-party imports
 import arrow
-from ast import literal_eval
 from ipylab import JupyterFrontEnd
 from IPython import get_ipython
 from IPython.display import Markdown, display
@@ -51,8 +51,6 @@ import pandas as pd
 import papermill as pm
 from tqdm.auto import tqdm, trange
 from traitlets.config import Config
-import urllib.parse as up
-import warnings
 
 # Local application imports
 if __package__:
@@ -183,14 +181,14 @@ card_properties = {
 # =============== #
 
 
-def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: Union[str, List[str]]) -> pd.DataFrame:
+def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str | List[str]) -> pd.DataFrame:
     """
     Generates a changelog DataFrame by comparing two DataFrames based on a specified column.
 
     Args:
         previous_df (pd.DataFrame): A DataFrame containing the previous version of the data.
         current_df (pd.DataFrame): A DataFrame containing the current version of the data.
-        col (Union[str, List[str]]): The name of the column to compare the DataFrames on.
+        col (str | List[str]): The name of the column to compare the DataFrames on.
 
     Returns:
         pd.DataFrame: A DataFrame containing the changes made between the previous and current versions of the data. The DataFrame will have the following columns: the specified column name, the modified data, and the indicator for whether the data is new or modified renamed as version (either "Old" or "New"). If there are no changes, the function will return a DataFrame with no rows.
@@ -221,13 +219,13 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
     return changelog
 
 
-def benchmark(timestamp: arrow.Arrow, report: str = None) -> None:
+def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     """
     Records the execution time of a report and saves the data to a JSON file.
 
     Args:
         timestamp (arrow.Arrow): The timestamp when the report execution began.
-        report (str): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
+        report (str | None, optional): The name of the report being benchmarked. If None, tries obtaining report name from JPY_SESSION_NAME environment variable.
 
     Returns:
         None
@@ -272,7 +270,7 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     last_date = None
     for file in files:
         match = re.search(
-            r"(\w+)_\w+_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z_(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+            r"(\w+)_\w+_(\d{8}T\d{4})Z_(\d{8}T\d{4})Z.bz2",
             Path(file).name,
         )
         name = match.group(1)
@@ -307,15 +305,15 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     return new_changelog.loc[index], new_filename
 
 
-def condense_benchmark(benchmark: dict) -> Dict[str, List[Dict[str, Union[str, float]]]]:
+def condense_benchmark(benchmark: Dict[str, List[Dict[str, str | float]]]) -> Dict[str, List[Dict[str, str | float]]]:
     """
     Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
 
     Args:
-        benchmark (dict): A dictionary containing benchmark data.
+        benchmark (Dict[str, List[Dict[str, str | float]]]): A dictionary containing benchmark data.
 
     Returns:
-        dict: The condensed benchmark dictionary with updated entries.
+        Dict[str, List[Dict[str, str | float]]]: The condensed benchmark dictionary with updated entries.
     """
     now = arrow.utcnow()
     for key, pair in benchmark.items():
@@ -462,7 +460,9 @@ def cleanup_data(dry_run=False) -> None:
 
 
 # TODO: Rename and automate tuple cols
-def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> Tuple[pd.DataFrame, arrow.Arrow]:
+def load_corrected_latest(
+    name_pattern: str, tuple_cols: List[str] = []
+) -> Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -473,6 +473,7 @@ def load_corrected_latest(name_pattern: str, tuple_cols: List[str] = []) -> Tupl
     Returns:
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
+    name_pattern = name_pattern.lower()
     files = sorted(
         list(dirs.DATA.glob(f"{name_pattern}_data_*.bz2")),
         key=os.path.getctime,
@@ -658,13 +659,15 @@ def save_notebook() -> None:
     print("Notebook saved to disk")
 
 
-def export_notebook(input_path: str = None, output_path: str = None, template: str = "auto", no_input: bool = True) -> None:
+def export_notebook(
+    input_path: str | None = None, output_path: str | None = None, template: str = "auto", no_input: bool = True
+) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
 
     Args:
-        input_path (str, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
-        output_path (str, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
+        input_path (str | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
+        output_path (str | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
         template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
 
@@ -741,10 +744,10 @@ def update_index() -> None:
 
     timestamp = arrow.utcnow()
     try:
-        with open(index_input_path) as f:
+        with open(index_input_path, encoding="utf-8") as f:
             index = f.read()
 
-        with open(readme_input_path) as f:
+        with open(readme_input_path, encoding="utf-8") as f:
             readme = f.read()
     except:
         print('Missing template files in "assets". Aborting...')
@@ -760,13 +763,13 @@ def update_index() -> None:
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
     index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(index_output_path, "w+") as o:
+    with open(index_output_path, "w+", encoding="utf-8") as o:
         print(index, file=o)
 
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
     readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(readme_output_path, "w+") as o:
+    with open(readme_output_path, "w+", encoding="utf-8") as o:
         print(readme, file=o)
 
     result = git.commit(
@@ -776,13 +779,13 @@ def update_index() -> None:
     print(result)
 
 
-def header(name: str = None) -> Markdown:
+def header(name: str | None = None) -> Markdown:
     """
     Generates a Markdown header with a timestamp and the name of the notebook (if provided).
     If there is no header.md file in the `ASSETS` directory, prints an error message and returns None.
 
     Args:
-        name (str, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
+        name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
 
     Returns:
         Markdown: The generated Markdown header.
@@ -793,7 +796,7 @@ def header(name: str = None) -> Markdown:
 
     header_path = dirs.get_asset("markdown", "header.md")
     try:
-        with open(header_path) as f:
+        with open(header_path, encoding="utf-8") as f:
             header = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
@@ -807,20 +810,20 @@ def header(name: str = None) -> Markdown:
     return Markdown(header)
 
 
-def footer(timestamp: arrow.Arrow = None) -> Markdown:
+def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
     """
     Generates a Markdown footer with a timestamp.
     If there is no footer.md file in the `ASSETS` directory, prints error message and  an returns None.
 
     Args:
-        timestamp (arrow.Arrow, optional): The timestamp to use. If None, uses the current time. Defaults to None.
+        timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
         Markdown: The generated Markdown footer.
     """
     footer_path = dirs.get_asset("markdown", "footer.md")
     try:
-        with open(footer_path) as f:
+        with open(footer_path, encoding="utf-8") as f:
             footer = f.read()
     except:
         print('Missing template file in "assets". Aborting...')
@@ -837,8 +840,30 @@ def footer(timestamp: arrow.Arrow = None) -> Markdown:
 # ================== #
 
 
+# Rarities dictionary
+def fetch_rarities_dict(abreviations: List[str] = [], rarities: List[str] = []) -> Dict[str, str]:
+    """
+    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
+
+    Args:
+        rarities (List[str], optional): A list of rarity names, i.e. "Super Rare" to search for an abreviation.
+        abreviations (List[str], optional): A list of rarity abbreviations, i.e. "SR" to search for a name.
+
+    Returns:
+        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
+
+    """
+    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
+    rarities = rarities + titles.tolist()
+    rarity_backlinks = api.fetch_backlinks(rarities)
+    rarity_redirects = api.fetch_redirects(abreviations)
+    rarity_dict = rarity_backlinks | rarity_redirects
+
+    return rarity_dict
+
+
 # Query builder
-def card_query(default: bool = False, *args, **kwargs) -> str:
+def card_query(*args, **kwargs) -> str:
     """
     Builds a query string to be passed to the yugipedia Wiki API for a card search query.
 
@@ -923,6 +948,7 @@ def card_query(default: bool = False, *args, **kwargs) -> str:
     search_string = "|?English%20name=Name"
 
     # Initialize props list
+    default = kwargs.pop("default", False)
     props = set(default_properties) if default else set()
 
     # Add args to props
@@ -942,39 +968,13 @@ def card_query(default: bool = False, *args, **kwargs) -> str:
     return search_string
 
 
-# Rarities dictionary
-def fetch_rarities_dict(rarities_list: List[str] = []) -> Dict[str, str]:
-    """
-    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
-
-    Args:
-        rarities_list (List[str]): A list of rarities.
-
-    Returns:
-        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
-
-    """
-    words, acronyms = separate_words_and_acronyms(rarities_list)
-    if len(rarities_list) > 0:
-        print(f"Words: {words}")
-        print(f"Acronyms: {acronyms}")
-
-    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
-    words = words + titles.tolist()
-    rarity_backlinks = api.fetch_backlinks(words)
-    rarity_redirects = api.fetch_redirects(acronyms)
-    rarity_dict = rarity_backlinks | rarity_redirects
-
-    return rarity_dict
-
-
 # Bandai
-def fetch_bandai(bandai_query: str = None, limit: int = 200, **kwargs) -> pd.DataFrame:
+def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) -> pd.DataFrame:
     """
     Fetch Bandai cards.
 
     Args:
-        bandai_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        bandai_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 200.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
@@ -1003,7 +1003,7 @@ def fetch_bandai(bandai_query: str = None, limit: int = 200, **kwargs) -> pd.Dat
 
 # Cards
 def fetch_st(
-    st_query: str = None,
+    st_query: str | None = None,
     st: str = "both",
     cg: CG = CG.ALL,
     step: int = 500,
@@ -1014,7 +1014,7 @@ def fetch_st(
     Fetch spell or trap cards based on query and properties of the cards.
 
     Args:
-        st_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        st_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         st (str, optional): A string representing the type of cards to fetch, either "spell", "trap", "both", or "all". Defaults to "both".
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1057,7 +1057,7 @@ def fetch_st(
 
 
 def fetch_monster(
-    monster_query: str = None,
+    monster_query: str | None = None,
     cg: CG = CG.ALL,
     step: int = 500,
     limit: int = 5000,
@@ -1068,7 +1068,7 @@ def fetch_monster(
     Fetch monster cards based on query and properties of the cards.
 
     Args:
-        monster_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        monster_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
@@ -1121,12 +1121,12 @@ def fetch_monster(
 
 
 # Non deck cards
-def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
     Args:
-        token_query (str, optional): A string representing a SWM query to search for. Defaults to None.
+        token_query (str | None, optional): A string representing a SWM query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1157,12 +1157,12 @@ def fetch_token(token_query: str = None, cg=CG.ALL, step: int = 500, limit: int 
     return token_df
 
 
-def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
     Args:
-        counter_query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        counter_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1191,14 +1191,14 @@ def fetch_counter(counter_query: str = None, cg=CG.ALL, step: int = 500, limit: 
 
 
 # Alternative formats
-def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
     Args:
-        speed_query (str):  A string representing a SMW query to search for. Defaults to None.
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        speed_query (str | None, optional):  A string representing a SMW query to search for. Defaults to None.
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1227,14 +1227,14 @@ def fetch_speed(speed_query: str = None, step: int = 500, limit: int = 5000, **k
     return speed_df
 
 
-def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
     Args:
-        skill_query (str): A string representing a SMW query to search for. Defaults to None.
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        skill_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1253,14 +1253,14 @@ def fetch_skill(skill_query: str = None, step: int = 500, limit: int = 5000, **k
     return skill_df
 
 
-def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
     Args:
-        rush_query (str): A search query to filter the results. If not provided, it defaults to "rush".
-        step (int): The number of results to fetch in each API call. Defaults to 500.
-        limit (int): The maximum number of results to fetch. Defaults to 5000.
+        rush_query (str | None, optional): A search query to filter the results. If not provided, it defaults to "rush".
+        step (int, optional): The number of results to fetch in each API call. Defaults to 500.
+        limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
 
     Returns:
@@ -1280,7 +1280,7 @@ def fetch_rush(rush_query: str = None, step: int = 500, limit: int = 5000, **kwa
 
 # Unusable cards
 def fetch_unusable(
-    query: str = None,
+    query: str | None = None,
     cg: CG = CG.ALL,
     filter=True,
     step: int = 500,
@@ -1294,7 +1294,7 @@ def fetch_unusable(
     of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
 
     Args:
-        query (str, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         filter (bool, optional): Keep only "Character Cards", "Non-game cards" and "Ticket Cards".
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1507,8 +1507,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
 
 def run_notebooks(
-    reports: Union[str, List[str]],
-    progress_handler: Callable = None,
+    reports: str | List[str],
+    progress_handler: ProgressHandler | None = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
@@ -1517,8 +1517,8 @@ def run_notebooks(
     Execute specified Jupyter notebooks using Papermill.
 
     Args:
-        reports (Union[str, List[str]]): List of notebooks to execute.
-        progress_handler (callable): An optional callable to provide progress bar functionality. Default is None.
+        reports (str | List[str]): List of notebooks to execute.
+        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
         telegram_first (bool, optional): Default is False.
         suppress_contribs (bool, optional): Default is False.
         **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
@@ -1677,12 +1677,13 @@ def run_notebooks(
         raise Exception(combined_message)
 
 
+# TODO: User progress_handler class for typehinting
 def run(
-    reports: Union[str, List[str]] = "all",
-    progress_handler=None,
+    reports: str | List[str] = "all",
+    progress_handler: ProgressHandler | None = None,
     telegram_first: bool = False,
     suppress_contribs: bool = False,
-    cleanup: Union[bool, str] = False,
+    cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
     **kwargs,
 ) -> None:
@@ -1691,11 +1692,11 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        reports (str, optional): The report to generate. Defaults to 'all'.
-        progress_handler (function, optional): A progress handler function to report execution progress. Defaults to None.
+        reports (str | List[str], optional): The report to generate. Defaults to 'all'.
+        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         telegram_first (bool, optional): Defaults to False.
         suppress_contribs (bool, optional): Defaults to False.
-        cleanup (Union[bool,str], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
+        cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         **kwargs: Additional keyword arguments to pass to run_notebook.
 
@@ -1763,7 +1764,7 @@ def run(
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        if data_files_count / max(reports_count,1) > 10:
+        if data_files_count / max(reports_count, 1) > 10:
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
@@ -1776,15 +1777,12 @@ def run(
 
 def main(args):
     # Assures the script is within a git repository before proceesing
-    _ = git.assure_repo()
+    _ = git.ensure_repo()
     # Execute the complete workflow
     run(**vars(args))
-    # Exit python
-    quit()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-r",
         "--reports",
@@ -1855,10 +1853,15 @@ if __name__ == "__main__":
         help="Enables debug flag.",
     )
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    set_parser(parser)
     args = parser.parse_args()
 
     if args.paths:
         dirs.print()
-        quit()
+        exit()
 
     main(args)

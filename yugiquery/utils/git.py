@@ -13,10 +13,8 @@
 # Standard library imports
 import subprocess
 from pathlib import Path
-from typing import (
-    List,
-    Union,
-)
+from typing import List
+
 
 # Third-party imports
 import git
@@ -31,9 +29,9 @@ from .dirs import dirs
 # ========= #
 
 
-def assure_repo() -> git.Repo:
+def ensure_repo() -> git.Repo:
     """
-    Assures the script is inside a git repository. Initializes a repository if one is not found.
+    Ensures the execution happens inside a git repository. Initializes a repository if one is not found.
 
     Raises:
         git.InvalidGitRepositoryError: If the dirs.SCRIPT is not in a git repository.
@@ -97,28 +95,29 @@ def unlock(passphrase: str = "") -> str:
         str: The result of the unlock operation.
     """
     # TODO: Better error handling
-    script = dirs.get_asset("scripts", "unlock_git.sh")
+    if os.name == "nt":
+        script = dirs.get_asset("scripts", "unlock_git.bat")
+        args = [script, passphrase]
+    else:
+        script = dirs.get_asset("scripts", "unlock_git.sh")
+        args = ["sh", script, passphrase]
 
     result = subprocess.run(
-        [
-            "sh",
-            script,
-            passphrase,
-        ],
+        args=args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
     return result
 
 
-def commit(files: Union[str, List[str]], commit_message: str = "", repo: git.Repo = None) -> str:
+def commit(files: str | List[str], commit_message: str = "", repo: git.Repo | None = None) -> str:
     """
     Commits the specified files to the git repository after staging them.
 
     Args:
-        files (Union[str, List[str]]): A list of file paths to be committed.
+        files (str | List[str]): A list of file paths to be committed.
         commit_message (str, optional): The commit message. If not provided, a default message will be used.
-        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+        repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
     Raises:
         git.GitCommandError: If an error occurs while committing the changes.
@@ -137,20 +136,24 @@ def commit(files: Union[str, List[str]], commit_message: str = "", repo: git.Rep
         # Stage the files before committing
         try:
             repo.git.add(*files)
-            return repo.git.commit(message=commit_message)
+            diff = repo.index.diff("HEAD")
+            if diff:
+                return repo.git.commit(message=commit_message)
+            else:
+                return "No changes to commit."
         except git.GitCommandError as e:
             raise RuntimeError(f"Failed to commit changes: {e}")
         except Exception as e:
             raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def restore(files: Union[str, List[str]], repo: git.Repo = None) -> str:
+def restore(files: str | List[str], repo: git.Repo | None = None) -> str:
     """
     Restores the specified files on the git repository.
 
     Args:
-        files (Union[str, List[str]]): A list of file paths to be restored.
-        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+        files (str | List[str]): A list of file paths to be restored.
+        repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
     Raises:
         git.GitCommandError: If an error occurs while committing the changes.
@@ -172,13 +175,13 @@ def restore(files: Union[str, List[str]], repo: git.Repo = None) -> str:
             raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def pull(passphrase: str = "", repo: git.Repo = None) -> str:
+def pull(passphrase: str = "", repo: git.Repo | None = None) -> str:
     """
     Pulls changes from the remote git repository.
 
     Args:
         passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
-        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+        repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
     Raises:
         git.GitCommandError: If an error occurs while committing the changes.
@@ -205,13 +208,13 @@ def pull(passphrase: str = "", repo: git.Repo = None) -> str:
             raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def push(passphrase: str = "", repo: git.Repo = None) -> str:
+def push(passphrase: str = "", repo: git.Repo | None = None) -> str:
     """
     Pushes commits to the remote git repository.
 
     Args:
         passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
-        repo (git.Repo, optional): The git repository object. If not provided, the current repository will be used.
+        repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
     Raises:
         git.GitCommandError: If an error occurs while committing the changes.

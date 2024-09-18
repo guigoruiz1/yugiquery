@@ -3,10 +3,6 @@ Utils Subpackage
 
 This subpackage contains the utility modules used by the YugiQuery package.
 
-.. automodule:: yugiquery.utils
-   :members:
-   :show-inheritance:
-
 Api Module
 ----------------
 
@@ -39,5 +35,12 @@ Plot Module
 ----------------
 
 .. automodule:: yugiquery.utils.plot
+   :members:
+   :show-inheritance:
+
+Progress Handler Module
+-----------------------
+
+.. automodule:: yugiquery.bot.progress_handler
    :members:
    :show-inheritance:

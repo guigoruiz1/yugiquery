@@ -13,12 +13,12 @@ Under active development.
    :caption: Main:
 
    yugiquery
-   bot
 
 .. toctree::
    :maxdepth: 3
-   :caption: Utilities:
+   :caption: Subpackages:
 
+   bot
    utils
 
 Indices and tables

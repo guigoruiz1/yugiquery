@@ -15,9 +15,7 @@ import calendar  # Used in notebooks
 import hashlib
 import importlib.util
 import json
-import re
 import os
-
 from pathlib import Path
 from typing import Literal, List, Dict
 
@@ -49,6 +47,9 @@ def ensure_tqdm():
                 cprint(
                     text="\nMissing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow"
                 )
+            elif loop > 1:
+                cprint(text="\nFailed to import TQDM fork twice. Aborting...", color="red")
+                raise
 
             spec = importlib.util.spec_from_file_location(
                 name="post_install",
@@ -58,10 +59,6 @@ def ensure_tqdm():
             spec.loader.exec_module(post_install)
             post_install.install_tqdm()
 
-            if loop > 1:
-                cprint(text="Failed to install tqdm fork twice. Aborting...", color="red")
-                quit()
-
             loop += 1
 
 
@@ -70,7 +67,9 @@ def ensure_tqdm():
 # ============ #
 
 
-def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, required: bool = False) -> Dict[str, str]:
+def load_secrets(
+    requested_secrets: List[str] = [], secrets_file: str | None = None, required: bool = False
+) -> Dict[str, str]:
     """
     Load secrets from environment variables and/or a .env file.
 
@@ -82,7 +81,7 @@ def load_secrets(requested_secrets: List[str] = [], secrets_file: str = None, re
 
     Args:
         requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
-        secrets_file (str, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        secrets_file (str | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
         required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
@@ -165,41 +164,82 @@ def md5(name: str) -> str:
     return hash_md5.hexdigest()
 
 
-def separate_words_and_acronyms(strings: List[str]) -> tuple[list, list]:
+# =================== #
+# String Manipulators #
+# =================== #
+
+
+def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
     """
-    Separates a list of strings into words and acronyms.
+    Escapes specified characters in a given string by adding a backslash before each occurrence.
 
     Args:
-        strings (List[str]): A list of strings to be categorized.
+        string (str): The input string to be processed.
+        chars (list, optional): A list of characters to be escaped. Default is ["_", ".", "-", "+", "#", "@", "="].
 
     Returns:
-        Tuple[List[str], List[str]]: A tuple containing two lists:
-            - The first list contains words (strings starting with an uppercase letter followed by lowercase letters).
-            - The second list contains acronyms (strings not meeting the word criteria).
+        str: The input string with the specified characters escaped.
     """
-    words = []
-    acronyms = []
-    for string in strings:
-        if re.match(pattern=r"^[A-Z][a-z]+$", string=string):
-            words.append(string)
-        else:
-            acronyms.append(string)
-    return words, acronyms
+    for char in chars:
+        string = string.replace(char, "\\" + char)
+    return string
 
 
-def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow = None) -> str:
+# ====================== #
+# Timestamp Manipulators #
+# ====================== #
+
+
+def get_granularity(seconds: int) -> list[str]:
+    """
+    Humanizes a time interval given in seconds.
+
+    Args:
+        seconds (int): The time interval in seconds.
+
+    Returns:
+        list: A list of human-readable granularities for the time interval.
+    """
+    granularities = [
+        ("year", 31536000),  # seconds in a year
+        ("quarter", 7776000),  # seconds in a quarter
+        ("month", 2592000),  # seconds in a month
+        ("week", 604800),  # seconds in a week
+        ("day", 86400),  # seconds in a day
+        ("hour", 3600),  # seconds in an hour
+        ("minute", 60),  # seconds in a minute
+        ("second", 1),
+    ]
+
+    selected_granularity = []
+
+    for granularity, divisor in granularities:
+        value = seconds // divisor
+        if value > 0:
+            selected_granularity.append(granularity)
+            seconds %= divisor
+
+    return selected_granularity
+
+
+def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:
     """
     Generates a standardized filename based on the provided parameters.
 
     Args:
         report (str): The name or identifier of the report.
         timestamp (arrow.Arrow): The timestamp to be included in the filename.
-        previous_timestamp (arrow.Arrow): The previous timestamp, if applicable. Defaults to None.
+        previous_timestamp (arrow.Arrow | None): The previous timestamp, if applicable. Defaults to None.
 
     Returns:
         str: The generated filename.
     """
+    report = report.lower()
+    formated_ts = timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "").replace("-", "")
     if previous_timestamp is None:
-        return f"{report}_data_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        return f"{report}_data_{formated_ts}.bz2"
     else:
-        return f"{report}_changelog_{previous_timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}_{timestamp.isoformat(timespec='minutes').replace('+00:00', 'Z')}.bz2"
+        formated_previous_ts = (
+            previous_timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "-").replace("-", "")
+        )
+        return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
