@@ -1509,7 +1509,6 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 def run_notebooks(
     reports: str | List[str],
     progress_handler: ProgressHandler | None = None,
-    telegram_first: bool = False,
     suppress_contribs: bool = False,
     **kwargs,
 ) -> None:
@@ -1519,7 +1518,6 @@ def run_notebooks(
     Args:
         reports (str | List[str]): List of notebooks to execute.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
-        telegram_first (bool, optional): Default is False.
         suppress_contribs (bool, optional): Default is False.
         **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
 
@@ -1531,67 +1529,63 @@ def run_notebooks(
     """
     debug = kwargs.pop("debug", False)
 
-    if progress_handler:
-        external_pbar = progress_handler.pbar(
-            iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True
-        )
-    else:
-        external_pbar = None
-
     # Initialize iterators
     # TODO: enable more than one contrib at once
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    iterator = None
+    pbars = []
     if not suppress_contribs:
-        contribs = ["DISCORD", "TELEGRAM"]
-        if telegram_first:
-            contribs = contribs[::-1]
-        secrets = {
-            key: value for key, value in kwargs.items() if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
-        }
+        contribs = ["discord", "telegram"]
         for contrib in contribs:
-            required_secrets = [
-                f"{contrib}_" + key if key == "CHANNEL_ID" else key
-                for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"]
-                if key not in secrets
-            ]
-            try:
-                loaded_secrets = load_secrets(
-                    required_secrets,
-                    secrets_file=dirs.secrets_file,
-                    required=True,
-                )
-                secrets = secrets | loaded_secrets
+            if contrib in kwargs and kwargs[contrib]:
+                token = kwargs[contrib][0]
+                channel_id = kwargs[contrib][1]
+            else:
+                required_secrets = [f"{contrib.upper()}_TOKEN", f"{contrib.upper()}_CHANNEL_ID"]
+                try:
+                    secrets = load_secrets(
+                        required_secrets,
+                        secrets_file=dirs.secrets_file,
+                        required=True,
+                    )
 
-                token = secrets.get(f"{contrib}_TOKEN")
-                channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
-                if contrib == "DISCORD":
+                    token = secrets.get(f"{contrib.upper()}_TOKEN")
+                    channel_id = secrets.get(f"{contrib.upper()}_CHANNEL_ID")
+                except:
+                    continue
+            try:
+                if contrib == "discord":
                     contrib_tqdm = ensure_tqdm()
 
                     channel_id_dict = {"channel_id": channel_id}
 
-                elif contrib == "TELEGRAM":
+                elif contrib == "telegram":
                     from tqdm.contrib.telegram import tqdm as contrib_tqdm
 
                     channel_id_dict = {"chat_id": channel_id}
 
-                iterator = contrib_tqdm(
-                    reports,
-                    desc="Completion",
-                    unit="report",
-                    unit_scale=True,
-                    dynamic_ncols=True,
-                    token=token,
-                    delay=1,
-                    # Needed to handle Telegram using chat_ID instaed of channel_ID.
-                    **channel_id_dict,
+                pbars.append(
+                    contrib_tqdm(
+                        reports,
+                        desc="Completion",
+                        unit="report",
+                        unit_scale=True,
+                        dynamic_ncols=True,
+                        token=token,
+                        delay=1,
+                        file=os.devnull if len(pbars) > 0 else None,
+                        # Needed to handle Telegram using chat_ID instaed of channel_ID.
+                        **channel_id_dict,
+                    )
                 )
-
-                break
             except:
                 pass
 
-    if iterator is None:
+    if progress_handler:
+        pbars.append(
+            progress_handler.pbar(iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True)
+        )
+
+    if len(pbars) == (not progress_handler is None):
         iterator = tqdm(
             reports,
             desc="Completion",
@@ -1600,6 +1594,9 @@ def run_notebooks(
             dynamic_ncols=True,
             delay=1,
         )
+        pbars.append(iterator)
+    else:
+        iterator = pbars[0]
 
     # Create the main logger
     logger = logging.getLogger("papermill")
@@ -1613,16 +1610,19 @@ def run_notebooks(
 
     # Define a function to update the output variable
     def update_pbar():
-        iterator.update((1 / cells))
-        if external_pbar:
-            external_pbar.update((1 / cells))
+        for pbar in pbars:
+            pbar.update((1 / cells))
 
     exceptions = []
     for i, report in enumerate(iterator):
-        iterator.n = i
-        iterator.last_print_n = i
-        iterator.refresh()
         report_name = Path(report).stem
+        dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
+
+        for pbar in pbars:
+            pbar.n = i
+            pbar.last_print_n = i
+            pbar.refresh()
+            pbar.set_postfix(report=report_name)
 
         with open(report) as f:
             nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
@@ -1631,15 +1631,10 @@ def run_notebooks(
 
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
-
         # Update postfix
         tqdm.write(f"\nGenerating {report_name} report")
-        iterator.set_postfix(report=report_name)
-        if external_pbar:
-            external_pbar.set_postfix(report=report_name)
 
         # execute the notebook with papermill
-        dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
         os.environ["PM_IN_EXECUTION"] = dest_report
         if "yugiquery" in jupyter_client.kernelspec.find_kernel_specs():
             kernel_name = "yugiquery"
@@ -1661,9 +1656,9 @@ def run_notebooks(
             os.environ.pop("PM_IN_EXECUTION", default=None)
 
     # Close the iterator
-    iterator.close()
-    if external_pbar:
-        external_pbar.close()
+    pbar.close()
+    for pbar in pbars:
+        pbar.close()
 
     # Close the stream_handler
     stream_handler.close()
@@ -1681,7 +1676,6 @@ def run_notebooks(
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
-    telegram_first: bool = False,
     suppress_contribs: bool = False,
     cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
@@ -1695,7 +1689,6 @@ def run(
     Args:
         reports (str | List[str], optional): The report to generate. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
-        telegram_first (bool, optional): Defaults to False.
         suppress_contribs (bool, optional): Defaults to False.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
@@ -1726,7 +1719,6 @@ def run(
             run_notebooks(
                 reports=reports,
                 progress_handler=progress_handler,
-                telegram_first=telegram_first,
                 suppress_contribs=suppress_contribs,
                 **kwargs,
             )
@@ -1774,42 +1766,26 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="The report(s) to be generated.",
     )
     parser.add_argument(
-        "-t",
-        "--telegram-token",
-        dest="telegram_token",
-        type=str,
-        required=False,
-        help="Telegram API token.",
-    )
-    parser.add_argument(
         "-d",
-        "--discord-token",
-        dest="discord_token",
-        type=str,
-        required=False,
-        help="Discord API token.",
+        nargs=2,
+        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL"),
+        dest="discord",
+        help="Discord TOKEN and CHANNEL_ID respectively",
     )
     parser.add_argument(
-        "-c",
-        "--channel",
-        dest="channel_id",
-        type=int,
-        required=False,
-        help="Discord or Telegram Channel/chat ID.",
+        "-t",
+        nargs=2,
+        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHANNEL"),
+        dest="telegram",
+        help="Telegram TOKEN and CHAT_ID respectively",
     )
+
     parser.add_argument(
         "-s",
         "--suppress-contribs",
         action="store_true",
         required=False,
         help="Disables using TQDM contribs entirely.",
-    )
-    parser.add_argument(
-        "-f",
-        "--telegram-first",
-        action="store_true",
-        required=False,
-        help="Force TQDM to try using Telegram as progress bar before Discord.",
     )
     parser.add_argument(
         "--cleanup",

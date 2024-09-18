@@ -59,6 +59,7 @@ def main():
             dirs.print()
 
         exit()
+
     else:
         print(
             "\n"
