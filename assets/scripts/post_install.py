@@ -108,8 +108,8 @@ def install_kernel(venv: bool = False) -> None:
     except:
         cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")
         return
-    else:
-        cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
+
+    cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
 
     # Install the Jupyter kernel using ipykernel.
     display_name = f"Python3 ({__title__})"

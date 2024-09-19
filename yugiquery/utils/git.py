@@ -110,13 +110,13 @@ def unlock(passphrase: str = "") -> str:
     return result
 
 
-def commit(files: str | List[str], commit_message: str = "", repo: git.Repo | None = None) -> str:
+def commit(files: str | List[str], message: str = "", repo: git.Repo | None = None) -> str:
     """
     Commits the specified files to the git repository after staging them.
 
     Args:
         files (str | List[str]): A list of file paths to be committed.
-        commit_message (str, optional): The commit message. If not provided, a default message will be used.
+        message (str, optional): The commit message. If not provided, a default message will be used.
         repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
     Raises:
@@ -126,8 +126,8 @@ def commit(files: str | List[str], commit_message: str = "", repo: git.Repo | No
     Returns:
         str: The commit result.
     """
-    if commit_message is None:
-        commit_message = f"Commit - {arrow.utcnow().isoformat()}"
+    if message is None:
+        message = f"Commit - {arrow.utcnow().isoformat()}"
     if isinstance(files, str):
         files = [files]
     if repo is None:
@@ -138,7 +138,7 @@ def commit(files: str | List[str], commit_message: str = "", repo: git.Repo | No
             repo.git.add(*files)
             diff = repo.index.diff("HEAD")
             if diff:
-                return repo.git.commit(message=commit_message)
+                return repo.git.commit(message=message)
             else:
                 return "No changes to commit."
         except git.GitCommandError as e:
@@ -238,5 +238,36 @@ def push(passphrase: str = "", repo: git.Repo | None = None) -> str:
             return repo.git.push()
         except git.GitCommandError as e:
             raise RuntimeError(f"Failed to push changes: {e}")
+        except Exception as e:
+            raise RuntimeError(f"An unexpected error occurred: {e}")
+
+
+def squash_commits(start_commit: git.Commit, repo: git.Repo | None = None, message: str = "") -> str:
+    """
+    Squashes all commits from the start_commit to HEAD into a single commit.
+
+    Args:
+        start_commit (git.Commit): The commit object to start squashing from.
+        repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
+        message (str, optional): The commit message. If not provided, a default message will generated from commits.
+    """
+    if repo is None:
+        repo = get_repo()
+    with repo:
+        try:
+            # Get all commits from start_commit to HEAD
+            commits = list(repo.iter_commits(f"{start_commit.hexsha}..HEAD"))
+            if not message:
+                # Collect commit messages from the range
+                commit_messages = [commit.message.strip() for commit in commits]
+                # Form a single commit message by joining the individual messages
+                message = "\n\n".join(commit_messages)
+            # Reset the branch to the start_commit (soft reset)
+            repo.git.reset("--soft", start_commit.hexsha)
+            # Create a new commit with the combined commit message
+            return repo.git.commit(message=message)
+
+        except git.GitCommandError as e:
+            raise RuntimeError(f"Failed to commit changes: {e}")
         except Exception as e:
             raise RuntimeError(f"An unexpected error occurred: {e}")

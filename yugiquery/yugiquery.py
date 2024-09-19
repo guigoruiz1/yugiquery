@@ -249,7 +249,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
 
     result = git.commit(
         files=[benchmark_file],
-        commit_message=f"{report} report benchmarked - {now.isoformat()}",
+        message=f"{report} report benchmarked - {now.isoformat()}",
     )
     print(result)
 
@@ -454,7 +454,7 @@ def cleanup_data(dry_run=False) -> None:
                 dirs.DATA / "benchmark.json",
                 dirs.DATA / "*bz2",
             ],
-            commit_message=f"Data cleanup {arrow.utcnow().isoformat()}",
+            message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
         print(result)
 
@@ -542,8 +542,8 @@ def format_artwork(row: pd.Series) -> Tuple[str]:
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
     If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
     Returns the result tuple.
-
     Args:
+
         row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
 
     Returns:
@@ -723,15 +723,18 @@ def export_notebook(
 # ================ #
 
 
-def update_index() -> None:
+def update_index(dry_run: bool = False) -> str:
     """
     Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
     If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
     If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
 
+    Args:
+        dry_run (bool, optional): If True, the function will not commit the changes to Git. Defaults to False.
+
     Returns:
-        None
+        str: The result of the Git commit if not `dry_run`, otherwise advisory message.
     """
 
     index_file_name = "index.md"
@@ -772,11 +775,14 @@ def update_index() -> None:
     with open(readme_output_path, "w+", encoding="utf-8") as o:
         print(readme, file=o)
 
-    result = git.commit(
-        files=[index_output_path, readme_output_path],
-        commit_message=f"Index and README timestamp update - {timestamp.isoformat()}",
-    )
-    print(result)
+    if dry_run:
+        return "Dry run - README and index updated"
+    else:
+        result = git.commit(
+            files=[index_output_path, readme_output_path],
+            message=f"Index and README timestamp update - {timestamp.isoformat()}",
+        )
+        return result
 
 
 def header(name: str | None = None) -> Markdown:
@@ -792,7 +798,7 @@ def header(name: str | None = None) -> Markdown:
     """
     if name is None:
         path = get_notebook_path()
-        name = path.name if path else "Unnamed"
+        name = path.stem if path else "Unnamed"
 
     header_path = dirs.get_asset("markdown", "header.md")
     try:
@@ -902,7 +908,6 @@ def card_query(*args, **kwargs) -> str:
     ]
 
     # Card properties dictionary
-    # TODO: Move to json in assets?
     property_dict = {
         "password": "Password",
         "card_type": "Card type",
@@ -1506,12 +1511,14 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 # ======================= #
 
 
+# TODO: Propagate the debug flag to notebooks
 def run_notebooks(
-    reports: str | List[str],
+    reports: str | list[str],
     progress_handler: ProgressHandler | None = None,
-    telegram_first: bool = False,
-    suppress_contribs: bool = False,
-    **kwargs,
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+    dry_run: bool = False,
+    debug: bool = False,
 ) -> None:
     """
     Execute specified Jupyter notebooks using Papermill.
@@ -1519,9 +1526,10 @@ def run_notebooks(
     Args:
         reports (str | List[str]): List of notebooks to execute.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
-        telegram_first (bool, optional): Default is False.
-        suppress_contribs (bool, optional): Default is False.
-        **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        dry_run (bool, optional): Whether to run in dry run mode. Default is False.
+        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Returns:
         None
@@ -1529,77 +1537,85 @@ def run_notebooks(
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
     """
-    debug = kwargs.pop("debug", False)
-
-    if progress_handler:
-        external_pbar = progress_handler.pbar(
-            iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True
-        )
-    else:
-        external_pbar = None
+    contribs = {"discord": discord, "telegram": telegram}
 
     # Initialize iterators
-    # TODO: enable more than one contrib at once
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    iterator = None
-    if not suppress_contribs:
-        contribs = ["DISCORD", "TELEGRAM"]
-        if telegram_first:
-            contribs = contribs[::-1]
-        secrets = {
-            key: value for key, value in kwargs.items() if (value is not None) and ("TOKEN" in key) or ("CHANNEL_ID") in key
-        }
-        for contrib in contribs:
-            required_secrets = [
-                f"{contrib}_" + key if key == "CHANNEL_ID" else key
-                for key in [f"{contrib}_TOKEN", f"CHANNEL_ID"]
-                if key not in secrets
-            ]
+    pbars = []
+
+    # Add progress handler if provided
+    if progress_handler:
+        pbars.append(
+            progress_handler.pbar(
+                iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True, delay=1, position=0
+            )
+        )
+    else:
+        pbars.append(
+            tqdm(
+                iterable=reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                delay=1,
+                position=0,
+            )
+        )
+
+    # Helper to handle each contrib
+    def setup_contrib(contrib: str) -> None:
+        contrib_value = contribs.get(contrib)
+        if contrib_value is True:
+            required_secrets = [f"{contrib.upper()}_TOKEN", f"{contrib.upper()}_CHANNEL_ID"]
             try:
-                loaded_secrets = load_secrets(
+                secrets = load_secrets(
                     required_secrets,
                     secrets_file=dirs.secrets_file,
                     required=True,
                 )
-                secrets = secrets | loaded_secrets
-
-                token = secrets.get(f"{contrib}_TOKEN")
-                channel_id = secrets.get(f"{contrib}_CHANNEL_ID", secrets.get("CHANNEL_ID"))
-                if contrib == "DISCORD":
-                    contrib_tqdm = ensure_tqdm()
-
-                    channel_id_dict = {"channel_id": channel_id}
-
-                elif contrib == "TELEGRAM":
-                    from tqdm.contrib.telegram import tqdm as contrib_tqdm
-
-                    channel_id_dict = {"chat_id": channel_id}
-
-                iterator = contrib_tqdm(
-                    reports,
-                    desc="Completion",
-                    unit="report",
-                    unit_scale=True,
-                    dynamic_ncols=True,
-                    token=token,
-                    delay=1,
-                    # Needed to handle Telegram using chat_ID instaed of channel_ID.
-                    **channel_id_dict,
-                )
-
-                break
+                token = secrets.get(f"{contrib.upper()}_TOKEN")
+                channel = secrets.get(f"{contrib.upper()}_CHANNEL_ID")
             except:
-                pass
+                cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
+                return
+        elif isinstance(contrib_value, argparse.Namespace):
+            token = contrib_value.token
+            channel = contrib_value.channel
+        else:
+            return
 
-    if iterator is None:
-        iterator = tqdm(
-            reports,
-            desc="Completion",
-            unit="report",
-            unit_scale=True,
-            dynamic_ncols=True,
-            delay=1,
-        )
+        try:
+            if contrib == "discord":
+                from tqdm.contrib.discord import tqdm as contrib_tqdm
+
+                channel_dict = {"channel_id": channel}
+            elif contrib == "telegram":
+                from tqdm.contrib.telegram import tqdm as contrib_tqdm
+
+                channel_dict = {"chat_id": channel}
+            else:
+                cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+
+            return contrib_tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                token=token,
+                delay=1,
+                file=open(file=os.devnull, mode="w"),
+                **channel_dict,
+            )
+        except:
+            pass
+
+    # Iterate over potential contrib names
+    for contrib in contribs:
+        pbar = setup_contrib(contrib)
+        if pbar:
+            pbars.append(pbar)
 
     # Create the main logger
     logger = logging.getLogger("papermill")
@@ -1611,35 +1627,37 @@ def run_notebooks(
     stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
     logger.addHandler(stream_handler)
 
-    # Define a function to update the output variable
-    def update_pbar():
-        iterator.update((1 / cells))
-        if external_pbar:
-            external_pbar.update((1 / cells))
-
     exceptions = []
-    for i, report in enumerate(iterator):
-        iterator.n = i
-        iterator.last_print_n = i
-        iterator.refresh()
+    tqdm.write("\nExecution started")
+    for i, report in enumerate(reports):
         report_name = Path(report).stem
+        dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
+
+        # Update the postfix
+        for pbar in pbars:
+            pbar.set_postfix(report=report_name)
+
+        if dry_run:
+            tqdm.write(f"Dry run - Generating {report_name} report")
+            continue
 
         with open(report) as f:
             nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
             cells = len(nb.cells)
             # print(f'Number of Cells: {cells}')
 
+        # Define a function to update the output variable
+        def update_pbar():
+            for pbar in pbars:
+                pbar.update(1 / cells)
+                pbar.refresh()
+
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
 
-        # Update postfix
         tqdm.write(f"\nGenerating {report_name} report")
-        iterator.set_postfix(report=report_name)
-        if external_pbar:
-            external_pbar.set_postfix(report=report_name)
 
         # execute the notebook with papermill
-        dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
         os.environ["PM_IN_EXECUTION"] = dest_report
         if "yugiquery" in jupyter_client.kernelspec.find_kernel_specs():
             kernel_name = "yugiquery"
@@ -1659,11 +1677,17 @@ def run_notebooks(
             exceptions.append(e)
         finally:
             os.environ.pop("PM_IN_EXECUTION", default=None)
+            for pbar in pbars:
+                pbar.update(1 + i - pbar.n)
+                pbar.refresh()
+
+    tqdm.write("\nExecution completed")  # Empty character for better readability
 
     # Close the iterator
-    iterator.close()
-    if external_pbar:
-        external_pbar.close()
+    for pbar in pbars:
+        pbar.close()
+        if pbar.fp:
+            pbar.fp.close()
 
     # Close the stream_handler
     stream_handler.close()
@@ -1677,15 +1701,15 @@ def run_notebooks(
         raise Exception(combined_message)
 
 
-# TODO: User progress_handler class for typehinting
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
-    telegram_first: bool = False,
-    suppress_contribs: bool = False,
     cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
-    **kwargs,
+    squash: bool = True,
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+    debug: bool = False,
 ) -> None:
     """
     Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
@@ -1694,11 +1718,12 @@ def run(
     Args:
         reports (str | List[str], optional): The report to generate. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
-        telegram_first (bool, optional): Defaults to False.
-        suppress_contribs (bool, optional): Defaults to False.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
-        **kwargs: Additional keyword arguments to pass to run_notebook.
+        squash (bool, optional): squash commits after execution. Defaults to True.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
@@ -1706,43 +1731,17 @@ def run(
     Returns:
         None: This function does not return a value.
     """
-    if reports == "all":
-        # Get all reports
-        reports_dict = {}
-        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
-            dirs.NOTEBOOKS.user.glob("*.ipynb")
-        )  # First user, then package
-        for report in reports:
-            reports_dict[report.stem.capitalize()] = report  # Will replace package by user if same name
-
-        reports = list(reports_dict.values())
-    elif reports == "user":
-        # Get user reports
-        reports = sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
-    else:
-        if not isinstance(reports, list):
-            reports = [reports]
-
-        for i, report in enumerate(reports):
-            report_path = Path(report)
-            if report_path.is_file():
-                reports[i] = report_path
-            else:
-                report_name = report_path.name
-                try:
-                    reports[i] = dirs.get_notebook(report_name)
-                except FileNotFoundError:
-                    cprint(f"Report {report_name} not found.", "yellow")
-                    reports[i] = None
-
-        # Remove None values from the list
-        reports = [report for report in reports if report is not None]
+    reports = dirs.find_notebooks(reports)
 
     # Check API status
-    if not api.check_status():
-        if progress_handler:
-            progress_handler.exit(API_status=False)
+    api_status = api.check_status()
+    if progress_handler:
+        progress_handler.check(success=api_status)
+    if not api_status:
         return
+
+    # Get the current commit hash
+    start_commit = git.get_repo().head.commit
 
     # Execute notebooks
     try:
@@ -1750,15 +1749,16 @@ def run(
             run_notebooks(
                 reports=reports,
                 progress_handler=progress_handler,
-                telegram_first=telegram_first,
-                suppress_contribs=suppress_contribs,
-                **kwargs,
+                discord=discord,
+                telegram=telegram,
+                debug=debug,
+                dry_run=dry_run,
             )
     except Exception as e:
         raise e
     finally:
         # Update page index to reflect last execution timestamp
-        update_index()
+        print("\n", update_index(dry_run=dry_run))
 
     # Cleanup redundant data files
     if cleanup == "auto":
@@ -1768,6 +1768,14 @@ def run(
             cleanup_data(dry_run=dry_run)
     elif cleanup:
         cleanup_data(dry_run=dry_run)
+
+    # Squash commits if any
+    if squash:
+        if dry_run:
+            print("\nDry run - Squashing commits")
+        else:
+            print("\nSquashing commits")
+            print(git.squash_commits(start_commit))
 
 
 # ========= #
@@ -1779,14 +1787,22 @@ def main(args):
     # Assures the script is within a git repository before proceesing
     _ = git.ensure_repo()
     # Execute the complete workflow
-    run(**vars(args))
+    run(
+        reports=args.reports,
+        cleanup=args.cleanup,
+        dry_run=args.dryrun,
+        discord=args.discord,
+        telegram=args.telegram,
+        debug=args.debug,
+    )
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-r",
-        "--reports",
+        "--report",
         nargs="+",
+        metavar="REPORT",
         dest="reports",
         default="all",
         type=str,
@@ -1794,44 +1810,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="The report(s) to be generated.",
     )
     parser.add_argument(
-        "-t",
-        "--telegram-token",
-        dest="telegram_token",
-        type=str,
-        required=False,
-        help="Telegram API token.",
-    )
-    parser.add_argument(
-        "-d",
-        "--discord-token",
-        dest="discord_token",
-        type=str,
-        required=False,
-        help="Discord API token.",
-    )
-    parser.add_argument(
         "-c",
-        "--channel",
-        dest="channel_id",
-        type=int,
-        required=False,
-        help="Discord or Telegram Channel/chat ID.",
-    )
-    parser.add_argument(
-        "-s",
-        "--suppress-contribs",
-        action="store_true",
-        required=False,
-        help="Disables using TQDM contribs entirely.",
-    )
-    parser.add_argument(
-        "-f",
-        "--telegram-first",
-        action="store_true",
-        required=False,
-        help="Force TQDM to try using Telegram as progress bar before Discord.",
-    )
-    parser.add_argument(
         "--cleanup",
         default="auto",
         type=auto_or_bool,
@@ -1840,23 +1819,46 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         action="store",
         help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto.",
     )
-    parser.add_argument(
+    pbar_group = parser.add_argument_group("Progress bars")
+    pbar_group.add_argument(
+        "-d",
+        "--discord",
+        nargs="*",
+        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL_ID"),
+        dest="discord",
+        default=False,
+        action=CredAction,
+        help="Discord TOKEN and CHANNEL_ID respectively or no arguments to search for values in secrets.",
+    )
+
+    pbar_group.add_argument(
+        "-t",
+        "--telegram",
+        nargs="*",
+        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"),
+        dest="telegram",
+        default=False,
+        action=CredAction,
+        help="Telegram TOKEN and CHAT_ID respectively or no arguments to search for values in secrets.",
+    )
+    debug_group = parser.add_argument_group("Debugging")
+    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
+    debug_group.add_argument(
         "--dryrun",
         action="store_true",
         required=False,
         help="Whether to dry run the cleanup routine. No effect if cleanup is False.",
     )
-    parser.add_argument(
+    debug_group.add_argument(
         "--debug",
         action="store_true",
         required=False,
         help="Enables debug flag.",
     )
-    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)
     set_parser(parser)
     args = parser.parse_args()
 

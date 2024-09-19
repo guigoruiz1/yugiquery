@@ -386,18 +386,17 @@ class Bot:
             return {"error": "Query already running. Try again after it has finished."}
 
         queue = mp.Queue()
-        connection_read, connection_write = mp.Pipe(duplex=False)  # Create a pipe for stderr
 
-        if type(self).__name__ == "DiscordBot":
+        if type(self).__name__ == "Discord":
             pbar_kwargs = {"channel_id": channel_id, "token": self.token}
-        elif type(self).__name__ == "TelegramBot":
+        elif type(self).__name__ == "Telegram":
             pbar_kwargs = {"chat_id": channel_id, "token": self.token}
         else:
             pbar_kwargs = {}
 
         progress_handler = ProgressHandler(
             queue=queue,
-            progress_bar=(progress_bar if ((channel_id != self.channel) or type(self).__name__ == "TelegramBot") else None),
+            progress_bar=progress_bar,
             pbar_kwargs=pbar_kwargs,
         )
         try:
@@ -405,30 +404,23 @@ class Bot:
                 target=run,
                 args=[report.value, progress_handler],
             )
-            self.process.start()
-            connection_write.close()  # Close the write end in the parent process to ensure it only reads
+            self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
             print(e)
             await callback("Initialization failed!")
 
         async def await_result():
-            stderr_output = ""
             while self.process.is_alive():
                 await asyncio.sleep(1)
-            # Read stderr from the pipe
-            if connection_read.poll():
-                try:
-                    stderr_output = connection_read.recv()  # Read safely
-                finally:
-                    connection_read.close()
-            connection_read.close()
+
             API_error = False
             while not queue.empty():
                 API_error = not queue.get()
-            return self.process.exitcode, API_error, stderr_output
+            return self.process.exitcode, API_error
 
-        exitcode, API_error, stderr_output = await await_result()
+        # Wait for the process to finish and get the result
+        exitcode, API_error = await await_result()
         self.process.close()
         self.process = None
         queue.close()
@@ -437,13 +429,13 @@ class Bot:
             return {"error": "Unable to communicate with the API. Try again later."}
         else:
             if exitcode is None:
-                return {"error": "Query execution failed!\n\n" + stderr_output}
+                return {"error": "Query execution failed!"}
             elif exitcode == 0:
                 return {"content": "Query execution completed!"}
             elif exitcode == -15:
                 return {"error": "Query execution aborted!"}
             else:
-                return {"error": f"Query execution exited with exit code: {exitcode}\n\n" + stderr_output}
+                return {"error": f"Query execution exited with exit code: {exitcode}"}
 
     def uptime(self):
         """

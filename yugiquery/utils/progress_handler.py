@@ -21,7 +21,7 @@ from tqdm.auto import tqdm
 
 class ProgressHandler:
     """
-    Progress handler class.
+    A progress handler class to comunicate progress of a process execution.
 
     Args:
         queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
@@ -30,8 +30,8 @@ class ProgressHandler:
 
     Attributes:
         queue (multiprocessing.Queue): The multiprocessing queue to communicate progress status.
-        progress_bar (tqdm, optional): The tqdm progress bar implementation.
-        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar.
+        progress_bar (tqdm, optional): The tqdm progress bar implementation. Defaults to None.
+        pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
     """
 
     def __init__(
@@ -66,16 +66,16 @@ class ProgressHandler:
         if self.progress_bar is None:
             return None
         else:
-            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
+            return self.progress_bar(iterable, **self.pbar_kwargs, **kwargs)
 
-    def exit(self, API_status: bool = True) -> None:
+    def check(self, success: bool = True) -> None:
         """
-        Puts the API status in the queue.
+        Puts a bool in the multiprocessing the queue indicaating the success of a check.
 
         Args:
-            API_status (bool, optional): The status to put in the queue. Defaults to True.
+            success (bool, optional): Whether the checkk was successful. Defaults to True.
 
         Returns:
             None
         """
-        self.queue.put(API_status)
+        self.queue.put(success)

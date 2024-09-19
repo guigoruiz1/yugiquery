@@ -339,7 +339,7 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
     return results
 
 
-def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, **kwargs) -> pd.DataFrame:
+def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
@@ -347,7 +347,7 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
         sets (List[str]): A list of set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
-        **kwargs: Additional keyword arguments.
+        debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         pd.DataFrame: A DataFrame containing information for all sets in the list.
@@ -355,7 +355,6 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     Raises:
         Any exceptions raised by requests.get().
     """
-    debug = kwargs.get("debug", False)
     if debug:
         print(f"{len(titles)} sets requested")
 
@@ -398,18 +397,19 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
 
 # TODO: Refactor
 # TODO: Translate region code?
-def fetch_set_lists(titles: List[str], **kwargs) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
+def fetch_set_lists(
+    titles: List[str], debug: bool = False
+) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
     Args:
         titles (List[str]): A list of page titles from which to fetch set lists.
-        **kwargs: Additional keyword arguments.
+        debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
-    debug = kwargs.get("debug", False)
     if debug:
         print(f"{len(titles)} sets requested")
 

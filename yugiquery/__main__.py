@@ -7,24 +7,26 @@ import argparse
 import importlib
 
 # Local application imports
-from .utils import dirs
+from .metadata import __title__, __version__
+from .utils import dirs, api, CustomHelpFormatter
 from . import yugiquery as yq
 from . import bot
 
 
 def main():
     # Create the primary parser
-    parser = argparse.ArgumentParser(description="Yugiquery CLI tool")
+    parser = argparse.ArgumentParser(description="Yugiquery CLI tool", prog=__title__, formatter_class=CustomHelpFormatter)
 
     subparsers = parser.add_subparsers(dest="command")
+    parser.add_argument("-a", "--api", action="store_true", help="Print API status and exit")
     parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
 
     # Subparser for the main yugiquery flow
-    yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow")
+    yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow", formatter_class=CustomHelpFormatter)
     yq.set_parser(yugiquery_parser)  # TODO: Make --reports positional
     # Subparser for the bot mode
-    bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot")
+    bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
     bot.set_parser(bot_parser)
 
     # Subparser for the kernel installation
@@ -47,14 +49,13 @@ def main():
 
     # Parse initial arguments
     args = parser.parse_args()
-
-    if args.paths or args.version:
+    if args.command is None:
+        if args.version:
+            print(f"{__title__} {__version__}")
+        if args.api:
+            api.check_status()
         if args.paths:
             dirs.print()
-        if args.version:
-            from .metadata import __title__, __version__
-
-            print(f"{__title__} {__version__}")
 
         exit()
 
