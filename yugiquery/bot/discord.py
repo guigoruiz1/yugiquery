@@ -415,7 +415,6 @@ class Discord(Bot, commands.Bot):
                 channel_id=ctx.channel.id,
                 progress_bar=self.discord_pbar,
             )
-            print(response)
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])
                 # Reset cooldown in case query did not complete

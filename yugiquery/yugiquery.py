@@ -777,7 +777,7 @@ def update_index(dry_run: bool = False) -> str:
 
     if dry_run:
         return "Dry run - README and index updated"
-    if dry_run:
+    else:
         result = git.commit(
             files=[index_output_path, readme_output_path],
             message=f"Index and README timestamp update - {timestamp.isoformat()}",
@@ -1593,6 +1593,7 @@ def run_notebooks(
                 delay=1,
                 file=open(file=os.devnull, mode="w") if len(pbars) > 0 else None,
                 position=0,
+                total=len(reports),
                 **channel_dict,
             )
         except:
@@ -1604,19 +1605,19 @@ def run_notebooks(
         if pbar:
             pbars.append(pbar)
 
-    if len(pbars) == 0:  # (not progress_handler is None):
-        iterator = tqdm(
-            reports,
-            desc="Completion",
-            unit="report",
-            unit_scale=True,
-            dynamic_ncols=True,
-            delay=1,
-            position=0,
+    if len(pbars) == 0:
+        pbars.append(
+            tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                delay=1,
+                position=0,
+                total=len(reports),
+            )
         )
-        pbars.append(iterator)
-    else:
-        iterator = pbars[0]
 
     # Create the main logger
     logger = logging.getLogger("papermill")
@@ -1628,23 +1629,17 @@ def run_notebooks(
     stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
     logger.addHandler(stream_handler)
 
-    # Define a function to update the output variable
-    def update_pbar():
-        for pbar in pbars:
-            pbar.update((1 / cells))
-
-    # print([pbar.pos for pbar in pbars])
     exceptions = []
-    tqdm.write("\nExecution started\n")
-    for i, report in enumerate(iterator):
+    tqdm.write("\nExecution started")
+    for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
 
+        # Update the postfix
         for pbar in pbars:
-            pbar.n = i
-            pbar.last_print_n = i
-            pbar.refresh()
             pbar.set_postfix(report=report_name)
+            pbar.n = i
+            pbar.refresh()
 
         if dry_run:
             tqdm.write(f"Dry run - Generating {report_name} report")
@@ -1655,10 +1650,15 @@ def run_notebooks(
             cells = len(nb.cells)
             # print(f'Number of Cells: {cells}')
 
+        # Define a function to update the output variable
+        def update_pbar():
+            for pbar in pbars:
+                pbar.update(1 / cells)
+
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
-        # Update postfix
-        tqdm.write(f"Generating {report_name} report")
+
+        tqdm.write(f"\nGenerating {report_name} report")
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = dest_report
@@ -1679,11 +1679,11 @@ def run_notebooks(
             tqdm.write(str(e))
             exceptions.append(e)
         finally:
-            tqdm.write("")  # Empty line for better readability
-            os.environ.pop("PM_IN_EXECUTION", default=None)
+            os.environ.pop("PM_IN_EXECUTION", default=None)  # Empty character for better readability
+
+    tqdm.write("\nExecution completed")
 
     # Close the iterator
-    tqdm.write("\nExecution completed\n")
     for pbar in pbars:
         pbar.close()
         if pbar.fp:
@@ -1758,9 +1758,7 @@ def run(
         raise e
     finally:
         # Update page index to reflect last execution timestamp
-        result = update_index(dry_run=dry_run)
-        if (not squash or dry_run) and result:
-            print(result)
+        print("\n", update_index(dry_run=dry_run))
 
     # Cleanup redundant data files
     if cleanup == "auto":
@@ -1774,9 +1772,9 @@ def run(
     # Squash commits if any
     if squash:
         if dry_run:
-            print("Dry run - Squashing commits")
+            print("\nDry run - Squashing commits")
         else:
-            print("Squashing commits")
+            print("\nSquashing commits")
             print(git.squash_commits(start_commit))
 
 

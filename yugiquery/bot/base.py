@@ -387,9 +387,9 @@ class Bot:
 
         queue = mp.Queue()
 
-        if type(self).__name__ == "DiscordBot":
+        if type(self).__name__ == "Discord":
             pbar_kwargs = {"channel_id": channel_id, "token": self.token}
-        elif type(self).__name__ == "TelegramBot":
+        elif type(self).__name__ == "Telegram":
             pbar_kwargs = {"chat_id": channel_id, "token": self.token}
         else:
             pbar_kwargs = {}
