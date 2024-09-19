@@ -542,8 +542,8 @@ def format_artwork(row: pd.Series) -> Tuple[str]:
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
     If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
     Returns the result tuple.
-
     Args:
+
         row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
 
     Returns:
@@ -1507,10 +1507,11 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
 
 def run_notebooks(
-    reports: str | List[str],
+    reports: str | list[str],
     progress_handler: ProgressHandler | None = None,
-    suppress_contribs: bool = False,
-    **kwargs,
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+    debug: bool = False,
 ) -> None:
     """
     Execute specified Jupyter notebooks using Papermill.
@@ -1518,8 +1519,9 @@ def run_notebooks(
     Args:
         reports (str | List[str]): List of notebooks to execute.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
-        suppress_contribs (bool, optional): Default is False.
-        **kwargs: Additional keyword arguments containing secrets key-value pairs to pass to TQDM contrib iterators.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Returns:
         None
@@ -1527,65 +1529,74 @@ def run_notebooks(
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
     """
-    debug = kwargs.pop("debug", False)
+    contribs = {"discord": discord, "telegram": telegram}
 
     # Initialize iterators
-    # TODO: enable more than one contrib at once
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = []
-    if not suppress_contribs:
-        contribs = ["discord", "telegram"]
-        for contrib in contribs:
-            if contrib in kwargs and kwargs[contrib]:
-                token = kwargs[contrib][0]
-                channel_id = kwargs[contrib][1]
-            else:
-                required_secrets = [f"{contrib.upper()}_TOKEN", f"{contrib.upper()}_CHANNEL_ID"]
-                try:
-                    secrets = load_secrets(
-                        required_secrets,
-                        secrets_file=dirs.secrets_file,
-                        required=True,
-                    )
 
-                    token = secrets.get(f"{contrib.upper()}_TOKEN")
-                    channel_id = secrets.get(f"{contrib.upper()}_CHANNEL_ID")
-                except:
-                    continue
-            try:
-                if contrib == "discord":
-                    contrib_tqdm = ensure_tqdm()
-
-                    channel_id_dict = {"channel_id": channel_id}
-
-                elif contrib == "telegram":
-                    from tqdm.contrib.telegram import tqdm as contrib_tqdm
-
-                    channel_id_dict = {"chat_id": channel_id}
-                pbars.append(
-                    contrib_tqdm(
-                        reports,
-                        desc="Completion",
-                        unit="report",
-                        unit_scale=True,
-                        dynamic_ncols=True,
-                        token=token,
-                        delay=1,
-                        file=open(file=os.devnull, mode="w") if len(pbars) > 0 else None,
-                        position=0,
-                        # Needed to handle Telegram using chat_ID instaed of channel_ID.
-                        **channel_id_dict,
-                    )
-                )
-            except:
-                pass
-
+    # Add progress handler if provided
     if progress_handler:
         pbars.append(
             progress_handler.pbar(iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True)
         )
 
-    if len(pbars) == (not progress_handler is None):
+    # Helper to handle each contrib
+    def setup_contrib(contrib: str) -> None:
+        contrib_value = contribs.get(contrib)
+        if contrib_value is True:
+            required_secrets = [f"{contrib.upper()}_TOKEN", f"{contrib.upper()}_CHANNEL_ID"]
+            try:
+                secrets = load_secrets(
+                    required_secrets,
+                    secrets_file=dirs.secrets_file,
+                    required=True,
+                )
+                token = secrets.get(f"{contrib.upper()}_TOKEN")
+                channel = secrets.get(f"{contrib.upper()}_CHANNEL_ID")
+            except:
+                cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
+                return
+        elif isinstance(contrib_value, argparse.Namespace):
+            token = contrib_value.token
+            channel = contrib_value.channel
+        else:
+            return
+
+        try:
+            if contrib == "discord":
+                from tqdm.contrib.discord import tqdm as contrib_tqdm
+
+                channel_dict = {"channel_id": channel}
+            elif contrib == "telegram":
+                from tqdm.contrib.telegram import tqdm as contrib_tqdm
+
+                channel_dict = {"chat_id": channel}
+            else:
+                cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+
+            return contrib_tqdm(
+                reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                token=token,
+                delay=1,
+                file=open(file=os.devnull, mode="w") if len(pbars) > 0 else None,
+                position=0,
+                **channel_dict,
+            )
+        except:
+            pass
+
+    # Iterate over potential contrib names
+    for contrib in contribs:
+        pbar = setup_contrib(contrib)
+        if pbar:
+            pbars.append(pbar)
+
+    if len(pbars) == 0:  # (not progress_handler is None):
         iterator = tqdm(
             reports,
             desc="Completion",
@@ -1681,11 +1692,12 @@ def run_notebooks(
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
-    suppress_contribs: bool = False,
     cleanup: bool | Literal["auto"] = False,
     dry_run: bool = False,
     squash: bool = True,
-    **kwargs,
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+    debug: bool = False,
 ) -> None:
     """
     Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
@@ -1694,11 +1706,12 @@ def run(
     Args:
         reports (str | List[str], optional): The report to generate. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
-        suppress_contribs (bool, optional): Defaults to False.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
         squash (bool, optional): squash commits after execution. Defaults to True.
-        **kwargs: Additional keyword arguments to pass to run_notebook.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
@@ -1724,8 +1737,9 @@ def run(
             run_notebooks(
                 reports=reports,
                 progress_handler=progress_handler,
-                suppress_contribs=suppress_contribs,
-                **kwargs,
+                discord=discord,
+                telegram=telegram,
+                debug=debug,
             )
     except Exception as e:
         raise e
@@ -1756,14 +1770,22 @@ def main(args):
     # Assures the script is within a git repository before proceesing
     _ = git.ensure_repo()
     # Execute the complete workflow
-    run(**vars(args))
+    run(
+        reports=args.reports,
+        cleanup=args.cleanup,
+        dry_run=args.dryrun,
+        discord=args.discord,
+        telegram=args.telegram,
+        debug=args.debug,
+    )
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-r",
-        "--reports",
+        "--report",
         nargs="+",
+        metavar="REPORT",
         dest="reports",
         default="all",
         type=str,
@@ -1771,28 +1793,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="The report(s) to be generated.",
     )
     parser.add_argument(
-        "-d",
-        nargs=2,
-        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL"),
-        dest="discord",
-        help="Discord TOKEN and CHANNEL_ID respectively",
-    )
-    parser.add_argument(
-        "-t",
-        nargs=2,
-        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHANNEL"),
-        dest="telegram",
-        help="Telegram TOKEN and CHAT_ID respectively",
-    )
-
-    parser.add_argument(
-        "-s",
-        "--suppress-contribs",
-        action="store_true",
-        required=False,
-        help="Disables using TQDM contribs entirely.",
-    )
-    parser.add_argument(
+        "-c",
         "--cleanup",
         default="auto",
         type=auto_or_bool,
@@ -1801,25 +1802,51 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         action="store",
         help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto.",
     )
-    parser.add_argument(
+    pbar_group = parser.add_argument_group("Progress bars")
+    pbar_group.add_argument(
+        "-d",
+        "--discord",
+        nargs="*",
+        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL_ID"),
+        dest="discord",
+        default=False,
+        action=CredAction,
+        help="Discord TOKEN and CHANNEL_ID respectively or no arguments to search for values in secrets.",
+    )
+
+    pbar_group.add_argument(
+        "-t",
+        "--telegram",
+        nargs="*",
+        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"),
+        dest="telegram",
+        default=False,
+        action=CredAction,
+        help="Telegram TOKEN and CHAT_ID respectively or no arguments to search for values in secrets.",
+    )
+    debug_group = parser.add_argument_group("Debugging")
+    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
+    debug_group.add_argument(
         "--dryrun",
         action="store_true",
         required=False,
         help="Whether to dry run the cleanup routine. No effect if cleanup is False.",
     )
-    parser.add_argument(
+    debug_group.add_argument(
         "--debug",
         action="store_true",
         required=False,
         help="Enables debug flag.",
     )
-    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)
     set_parser(parser)
     args = parser.parse_args()
+    print(args)
+
+    exit()
 
     if args.paths:
         dirs.print()

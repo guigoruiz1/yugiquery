@@ -346,9 +346,9 @@ class Dirs:
                         cprint(f"Notebook {notebook_name} not found.", "yellow")
                         notebooks[i] = None
 
-            # Remove None values from the list
-            notebooks = [notebook for notebook in notebooks if notebook is not None]
-            return notebooks
+        # Remove None values from the list
+        notebooks = [notebook for notebook in notebooks if notebook is not None]
+        return notebooks
 
 
 # Global instance of Dirs

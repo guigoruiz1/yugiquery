@@ -66,7 +66,7 @@ class ProgressHandler:
         if self.progress_bar is None:
             return None
         else:
-            return self.progress_bar(iterable, file=io.StringIO(), **self.pbar_kwargs, **kwargs)
+            return self.progress_bar(iterable, **self.pbar_kwargs, **kwargs)
 
     def check(self, success: bool = True) -> None:
         """

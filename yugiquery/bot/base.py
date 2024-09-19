@@ -396,7 +396,7 @@ class Bot:
 
         progress_handler = ProgressHandler(
             queue=queue,
-            progress_bar=(progress_bar if ((channel_id != self.channel) or type(self).__name__ == "TelegramBot") else None),
+            progress_bar=progress_bar,
             pbar_kwargs=pbar_kwargs,
         )
         try:
@@ -413,6 +413,7 @@ class Bot:
         async def await_result():
             while self.process.is_alive():
                 await asyncio.sleep(1)
+
             API_error = False
             while not queue.empty():
                 API_error = not queue.get()
