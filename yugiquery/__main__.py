@@ -77,7 +77,6 @@ def main():
             # Call the bot main function with parsed arguments
             bot.main(args)
         else:
-            print(args)
             # Main Yugiquery flow
             yq.main(args)
 

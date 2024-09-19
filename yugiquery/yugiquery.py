@@ -723,15 +723,18 @@ def export_notebook(
 # ================ #
 
 
-def update_index() -> None:
+def update_index(dry_run: bool = False) -> str:
     """
     Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
     Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
     If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
     If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
 
+    Args:
+        dry_run (bool, optional): If True, the function will not commit the changes to Git. Defaults to False.
+
     Returns:
-        None
+        str: The result of the Git commit if not `dry_run`, otherwise advisory message.
     """
 
     index_file_name = "index.md"
@@ -772,11 +775,14 @@ def update_index() -> None:
     with open(readme_output_path, "w+", encoding="utf-8") as o:
         print(readme, file=o)
 
-    result = git.commit(
-        files=[index_output_path, readme_output_path],
-        message=f"Index and README timestamp update - {timestamp.isoformat()}",
-    )
-    print(result)
+    if dry_run:
+        return "Dry run - README and index updated"
+    if dry_run:
+        result = git.commit(
+            files=[index_output_path, readme_output_path],
+            message=f"Index and README timestamp update - {timestamp.isoformat()}",
+        )
+        return result
 
 
 def header(name: str | None = None) -> Markdown:
@@ -902,7 +908,6 @@ def card_query(*args, **kwargs) -> str:
     ]
 
     # Card properties dictionary
-    # TODO: Move to json in assets?
     property_dict = {
         "password": "Password",
         "card_type": "Card type",
@@ -1506,11 +1511,13 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 # ======================= #
 
 
+# TODO: Propagate the debug flag to notebooks
 def run_notebooks(
     reports: str | list[str],
     progress_handler: ProgressHandler | None = None,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
+    dry_run: bool = False,
     debug: bool = False,
 ) -> None:
     """
@@ -1521,6 +1528,7 @@ def run_notebooks(
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        dry_run (bool, optional): Whether to run in dry run mode. Default is False.
         debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Returns:
@@ -1638,6 +1646,10 @@ def run_notebooks(
             pbar.refresh()
             pbar.set_postfix(report=report_name)
 
+        if dry_run:
+            tqdm.write(f"Dry run - Generating {report_name} report")
+            continue
+
         with open(report) as f:
             nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
             cells = len(nb.cells)
@@ -1740,12 +1752,15 @@ def run(
                 discord=discord,
                 telegram=telegram,
                 debug=debug,
+                dry_run=dry_run,
             )
     except Exception as e:
         raise e
     finally:
         # Update page index to reflect last execution timestamp
-        update_index()
+        result = update_index(dry_run=dry_run)
+        if (not squash or dry_run) and result:
+            print(result)
 
     # Cleanup redundant data files
     if cleanup == "auto":
@@ -1758,7 +1773,11 @@ def run(
 
     # Squash commits if any
     if squash:
-        print(git.squash_commits(start_commit))
+        if dry_run:
+            print("Dry run - Squashing commits")
+        else:
+            print("Squashing commits")
+            print(git.squash_commits(start_commit))
 
 
 # ========= #
@@ -1844,9 +1863,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)
     set_parser(parser)
     args = parser.parse_args()
-    print(args)
-
-    exit()
 
     if args.paths:
         dirs.print()
