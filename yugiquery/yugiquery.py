@@ -1562,7 +1562,6 @@ def run_notebooks(
                     from tqdm.contrib.telegram import tqdm as contrib_tqdm
 
                     channel_id_dict = {"chat_id": channel_id}
-
                 pbars.append(
                     contrib_tqdm(
                         reports,
@@ -1572,7 +1571,8 @@ def run_notebooks(
                         dynamic_ncols=True,
                         token=token,
                         delay=1,
-                        file=os.devnull if len(pbars) > 0 else None,
+                        file=open(file=os.devnull, mode="w") if len(pbars) > 0 else None,
+                        position=0,
                         # Needed to handle Telegram using chat_ID instaed of channel_ID.
                         **channel_id_dict,
                     )
@@ -1593,6 +1593,7 @@ def run_notebooks(
             unit_scale=True,
             dynamic_ncols=True,
             delay=1,
+            position=0,
         )
         pbars.append(iterator)
     else:
@@ -1613,7 +1614,9 @@ def run_notebooks(
         for pbar in pbars:
             pbar.update((1 / cells))
 
+    # print([pbar.pos for pbar in pbars])
     exceptions = []
+    tqdm.write("\nExecution started\n")
     for i, report in enumerate(iterator):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
@@ -1632,7 +1635,7 @@ def run_notebooks(
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
         # Update postfix
-        tqdm.write(f"\nGenerating {report_name} report")
+        tqdm.write(f"Generating {report_name} report")
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = dest_report
@@ -1653,12 +1656,15 @@ def run_notebooks(
             tqdm.write(str(e))
             exceptions.append(e)
         finally:
+            tqdm.write("")  # Empty line for better readability
             os.environ.pop("PM_IN_EXECUTION", default=None)
 
     # Close the iterator
-    pbar.close()
+    tqdm.write("\nExecution completed\n")
     for pbar in pbars:
         pbar.close()
+        if pbar.fp:
+            pbar.fp.close()
 
     # Close the stream_handler
     stream_handler.close()
@@ -1672,7 +1678,6 @@ def run_notebooks(
         raise Exception(combined_message)
 
 
-# TODO: User progress_handler class for typehinting
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
