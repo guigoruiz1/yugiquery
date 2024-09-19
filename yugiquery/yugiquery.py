@@ -1546,7 +1546,21 @@ def run_notebooks(
     # Add progress handler if provided
     if progress_handler:
         pbars.append(
-            progress_handler.pbar(iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True)
+            progress_handler.pbar(
+                iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True, delay=1, position=0
+            )
+        )
+    else:
+        pbars.append(
+            tqdm(
+                iterable=reports,
+                desc="Completion",
+                unit="report",
+                unit_scale=True,
+                dynamic_ncols=True,
+                delay=1,
+                position=0,
+            )
         )
 
     # Helper to handle each contrib
@@ -1591,9 +1605,7 @@ def run_notebooks(
                 dynamic_ncols=True,
                 token=token,
                 delay=1,
-                file=open(file=os.devnull, mode="w") if len(pbars) > 0 else None,
-                position=0,
-                total=len(reports),
+                file=open(file=os.devnull, mode="w"),
                 **channel_dict,
             )
         except:
@@ -1604,20 +1616,6 @@ def run_notebooks(
         pbar = setup_contrib(contrib)
         if pbar:
             pbars.append(pbar)
-
-    if len(pbars) == 0:
-        pbars.append(
-            tqdm(
-                reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
-                delay=1,
-                position=0,
-                total=len(reports),
-            )
-        )
 
     # Create the main logger
     logger = logging.getLogger("papermill")
@@ -1638,8 +1636,6 @@ def run_notebooks(
         # Update the postfix
         for pbar in pbars:
             pbar.set_postfix(report=report_name)
-            pbar.n = i
-            pbar.refresh()
 
         if dry_run:
             tqdm.write(f"Dry run - Generating {report_name} report")
@@ -1654,6 +1650,7 @@ def run_notebooks(
         def update_pbar():
             for pbar in pbars:
                 pbar.update(1 / cells)
+                pbar.refresh()
 
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
@@ -1679,9 +1676,12 @@ def run_notebooks(
             tqdm.write(str(e))
             exceptions.append(e)
         finally:
-            os.environ.pop("PM_IN_EXECUTION", default=None)  # Empty character for better readability
+            os.environ.pop("PM_IN_EXECUTION", default=None)
+            for pbar in pbars:
+                pbar.update(1 + i - pbar.n)
+                pbar.refresh()
 
-    tqdm.write("\nExecution completed")
+    tqdm.write("\nExecution completed")  # Empty character for better readability
 
     # Close the iterator
     for pbar in pbars:
