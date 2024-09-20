@@ -369,6 +369,10 @@ def get_granularity(seconds: int) -> list[str]:
             selected_granularity.append(granularity)
             seconds %= divisor
 
+    # Ensure at least "second" is returned
+    if not selected_granularity:
+        selected_granularity.append("second")
+
     return selected_granularity
 
 
