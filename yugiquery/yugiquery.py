@@ -350,7 +350,6 @@ def cleanup_data(dry_run=False) -> None:
         None
     """
     # Benchmark
-    now = arrow.utcnow()
     benchmark_file = dirs.DATA / "benchmark.json"
     if benchmark_file.is_file():
         benchmark = load_json(benchmark_file)
@@ -753,7 +752,7 @@ def update_index(dry_run: bool = False) -> str:
         with open(readme_input_path, encoding="utf-8") as f:
             readme = f.read()
     except:
-        print('Missing template files in "assets". Aborting...')
+        raise FileNotFoundError('Missing template files in "assets"')
 
     reports = sorted(dirs.REPORTS.glob("*.html"))
     rows = []
@@ -1514,7 +1513,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 # TODO: Propagate the debug flag to notebooks
 def run_notebooks(
     reports: str | list[str],
-    progress_handler: ProgressHandler | None = None,
+    external_pbar: tqdm | None = None,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
     dry_run: bool = False,
@@ -1525,7 +1524,7 @@ def run_notebooks(
 
     Args:
         reports (str | List[str]): List of notebooks to execute.
-        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
+        external_pbar (tqdm | None, optional): An external tqdm progress bar to update. Defaults to None.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
         dry_run (bool, optional): Whether to run in dry run mode. Default is False.
@@ -1543,23 +1542,23 @@ def run_notebooks(
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = []
 
+    pbar_kwargs = dict(
+        iterable=reports,
+        unit="report",
+        unit_scale=True,
+        dynamic_ncols=True,
+        delay=1,
+        desc="Completion",
+    )
+
     # Add progress handler if provided
-    if progress_handler:
-        pbars.append(
-            progress_handler.pbar(
-                iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True, delay=1, position=0
-            )
-        )
+    if external_pbar:
+        pbars.append(external_pbar(position=0, **pbar_kwargs))
     else:
         pbars.append(
             tqdm(
-                iterable=reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
-                delay=1,
                 position=0,
+                **pbar_kwargs,
             )
         )
 
@@ -1598,15 +1597,10 @@ def run_notebooks(
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
 
             return contrib_tqdm(
-                reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
                 token=token,
-                delay=1,
                 file=open(file=os.devnull, mode="w"),
                 **channel_dict,
+                **pbar_kwargs,
             )
         except:
             pass
@@ -1632,6 +1626,8 @@ def run_notebooks(
     for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
+
+        lock(report_name)
 
         # Update the postfix
         for pbar in pbars:
@@ -1681,6 +1677,8 @@ def run_notebooks(
                 pbar.update(1 + i - pbar.n)
                 pbar.refresh()
 
+            unlock(report_name)
+
     tqdm.write("\nExecution completed")  # Empty character for better readability
 
     # Close the iterator
@@ -1704,7 +1702,7 @@ def run_notebooks(
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
-    cleanup: bool | Literal["auto"] = False,
+    cleanup: bool | Literal["auto"] = "auto",
     dry_run: bool = False,
     squash: bool = True,
     discord: bool | argparse.Namespace = False,
@@ -1736,37 +1734,52 @@ def run(
     # Check API status
     api_status = api.check_status()
     if progress_handler:
-        progress_handler.check(success=api_status)
+        progress_handler.send(API_status=api_status)
     if not api_status:
         return
 
     # Get the current commit hash
     start_commit = git.get_repo().head.commit
 
+    # TODO: Error handling
+    lock("run")
+
     # Execute notebooks
     try:
         if len(reports) > 0:
             run_notebooks(
                 reports=reports,
-                progress_handler=progress_handler,
+                progress_handler=progress_handler.pbar if progress_handler else None,
                 discord=discord,
                 telegram=telegram,
                 debug=debug,
                 dry_run=dry_run,
             )
+        else:
+            cprint(text="No reports found. Ignoring... \n", color="yellow")
     except Exception as e:
+        if progress_handler:
+            progress_handler.send(error=str(e))
         raise e
     finally:
         # Update page index to reflect last execution timestamp
-        print("\n", update_index(dry_run=dry_run))
+        # Error is not critical but should be noted
+        try:
+            index_result = update_index(dry_run=dry_run)
+            print(index_result)
+        except Exception as e:
+            if progress_handler:
+                progress_handler.send(error=str(e))
+            cprint(text=f"Error updating index. Ignoring... \n", color="yellow")
+            print(e)
 
     # Cleanup redundant data files
+    # TODO: Check error handling
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        if data_files_count / max(reports_count, 1) > 10:
-            cleanup_data(dry_run=dry_run)
-    elif cleanup:
+        cleanup = data_files_count / max(reports_count, 1) > 10
+    if cleanup:
         cleanup_data(dry_run=dry_run)
 
     # Squash commits if any
@@ -1774,8 +1787,17 @@ def run(
         if dry_run:
             print("\nDry run - Squashing commits")
         else:
+            # Error is not critical but should be noted
             print("\nSquashing commits")
-            print(git.squash_commits(start_commit))
+            try:
+                squash_results = git.squash_commits(start_commit)
+                print(squash_results)
+            except Exception as e:
+                cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
+                print(e)
+
+    # TODO: Error handling
+    unlock("run")
 
 
 # ========= #
@@ -1853,7 +1875,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         "--debug",
         action="store_true",
         required=False,
-        help="Enables debug flag.",
+        help="Enables debug flag (not implemented).",
     )
 
 

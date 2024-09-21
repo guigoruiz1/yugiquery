@@ -54,20 +54,20 @@ class Telegram(Bot):
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: str | int, debug: bool = False):
+    def __init__(self, token: str, channel: str | int):
         """
         Initialize the Telegram Bot subclass.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (str | int): The Telegram channel ID.
-            debug (bool, optional): Whether to run the bot in debug mode. Defaults to False.
-
+            channel (str | int): The chat ID for the Telegram bot.
         """
         from tqdm.contrib.telegram import tqdm as telegram_pbar
 
         self.telegram_pbar = telegram_pbar
-        Bot.__init__(self, token=token, channel=channel)
+        Bot.__init__(self)
+        self.token = token
+        self.channel = int(channel)
         # Initialize the Telegram bot
         self.application = ApplicationBuilder().token(token).build()
         self.register_commands()
@@ -324,8 +324,9 @@ class Telegram(Bot):
             response = await self.run_query(
                 callback=callback,
                 report=report,
-                channel_id=update.effective_chat.id,
                 progress_bar=self.telegram_pbar,
+                channel_id=update.effective_chat.id,
+                token=self.token,
             )
             if "error" in response.keys():
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])

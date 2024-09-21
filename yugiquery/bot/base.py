@@ -10,7 +10,6 @@
 
 # Standard library packages
 import argparse
-import asyncio
 import multiprocessing as mp
 import os
 import random
@@ -44,32 +43,24 @@ class Bot:
     Bot superclass.
 
     Args:
-        token (str): The token for bot authentication.
-        channel (int): The bot channel ID.
         **kwargs: Additional keyword arguments.
 
     Attributes:
         start_time (arrow.Arrow): The bot initialization timestamp.
-        token (str): The token for bot authentication.
-        channel (int): The bot channel ID.
         repo (git.Repo): The git repository object, if there is a repository, else None.
         process (multiprocessing.Process): The variable to hold a process spawned by run_query.
         cooldown_limit (Tnt): The cooldown time in seconds to wait between consecutive calls to run_query.
 
     """
 
-    def __init__(self, token: str, channel: int, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initializes the Bot base class.
 
         Args:
-            token (str): The token for the Telegram bot.
-            channel (int): The Telegram channel ID.
             **kwargs: Additional keyword arguments.
         """
         self.start_time = arrow.utcnow()
-        self.token = token
-        self.channel = int(channel)
         self.init_reports_enum()
         try:
             # Open the repository
@@ -155,12 +146,12 @@ class Bot:
         except:
             return "Abort failed"
 
-    async def battle(self, callback: Callable, atk_weight: int = 4, def_weight: int = 1) -> dict:
+    async def battle(self, callback: Callable[[str], None], atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
         Args:
-            callback: Callable: A callback function which receives a string argument.
+            callback (Callable[[str], None]): A callback function which receives a string argument.
             atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
             def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
 
@@ -365,19 +356,19 @@ class Bot:
 
     async def run_query(
         self,
-        callback: Callable,
-        channel_id: int,
+        callback: Callable[[str], None],
         report: Reports = Reports.All,
         progress_bar: tqdm = None,
+        **pbar_kwargs,
     ) -> Dict[str, str]:
         """
         Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
 
         Args:
-            callback (Callable): A callback function which receives a string argument.
-            channel_id (int): The channel ID to display the progress bar.
+            callback (Callable[[str], None]): A callback function which receives a string argument.
             report (Reports, optional): The report to run. Defaults to All.
             progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+            **pbar_kwargs: Additional Keyword arguments to customize the progress bar..
 
         Returns:
             dict: A dictionary containing the result of the query execution.
@@ -385,17 +376,7 @@ class Bot:
         if self.process is not None:
             return {"error": "Query already running. Try again after it has finished."}
 
-        queue = mp.Queue()
-
-        if type(self).__name__ == "Discord":
-            pbar_kwargs = {"channel_id": channel_id, "token": self.token}
-        elif type(self).__name__ == "Telegram":
-            pbar_kwargs = {"chat_id": channel_id, "token": self.token}
-        else:
-            pbar_kwargs = {}
-
         progress_handler = ProgressHandler(
-            queue=queue,
             progress_bar=progress_bar,
             pbar_kwargs=pbar_kwargs,
         )
@@ -408,34 +389,27 @@ class Bot:
             await callback("Running...")
         except Exception as e:
             print(e)
-            await callback("Initialization failed!")
-
-        async def await_result():
-            while self.process.is_alive():
-                await asyncio.sleep(1)
-
-            API_error = False
-            while not queue.empty():
-                API_error = not queue.get()
-            return self.process.exitcode, API_error
+            await callback(f"Initialization failed!\n{e}")
 
         # Wait for the process to finish and get the result
-        exitcode, API_error = await await_result()
+        API_status, errors = await progress_handler.await_result(self.process)
+        exitcode = self.process.exitcode
         self.process.close()
         self.process = None
-        queue.close()
 
-        if API_error:
-            return {"error": "Unable to communicate with the API. Try again later."}
+        error_message = "\n".join(errors)
+
+        if API_status is not None and not API_status:
+            return {"error": f"Unable to communicate with the API. Try again later.\n{error_message}"}
         else:
             if exitcode is None:
-                return {"error": "Query execution failed!"}
+                return {"error": f"Query execution failed!\n{error_message}"}
             elif exitcode == 0:
                 return {"content": "Query execution completed!"}
             elif exitcode == -15:
                 return {"error": "Query execution aborted!"}
             else:
-                return {"error": f"Query execution exited with exit code: {exitcode}"}
+                return {"error": f"Query execution exited with exit code: {exitcode}\n{error_message}"}
 
     def uptime(self):
         """
@@ -534,21 +508,21 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "subclass",
         choices=["discord", "telegram"],
-        help="Select between a Discord or a Telegram bot",
+        help="Select between a Discord or a Telegram bot.",
     )
-    parser.add_argument("-t", "--token", type=str, help="Bot API token")
+    parser.add_argument("-t", "--token", type=str, help="Bot API token.")
     parser.add_argument(
         "-c",
         "--channel",
         dest="channel",
         type=int,
-        help="Bot responses channel id",
+        help="Bot responses Channel/Chat ID.",
     )
     parser.add_argument(
         "--debug",
         action="store_true",
         required=False,
-        help="Enable debug flag",
+        help="Enable debug flag (not implemented).",
     )
 
 
@@ -573,5 +547,5 @@ def main(args) -> None:
         from .telegram import Telegram as Subclass
 
     # Run the bot subclass
-    bot = Subclass(token=token, channel=channel, debug=args.debug)
+    bot = Subclass(token=token, channel=channel)
     bot.run()

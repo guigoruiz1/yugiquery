@@ -41,6 +41,6 @@ Plot Module
 Progress Handler Module
 -----------------------
 
-.. automodule:: yugiquery.bot.progress_handler
+.. automodule:: yugiquery.utils.progress_handler
    :members:
    :show-inheritance:

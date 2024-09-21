@@ -47,19 +47,19 @@ class Discord(Bot, commands.Bot):
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: str | int, debug: bool = False):
+    def __init__(self, token: str, channel: str | int):
         """
         Initializes the Discord bot subclass.
 
         Args:
             token (str): The token for the Discord bot.
-            channel (str | int): The channel for the bot.
-            debug (bool, optional): Whether to run the bot in debug mode. Defaults to False.
-
+            channel (str | int): The channel for the Discord bot.
         """
 
         self.discord_pbar = ensure_tqdm()
-        Bot.__init__(self, token=token, channel=channel)
+        Bot.__init__(self)
+        self.token = token
+        self.channel = int(channel)
         # Initialize the Discord bot
         intents = discord.Intents(messages=True, guilds=True, members=True)
         help_command = commands.DefaultHelpCommand(no_category="Commands")
@@ -412,8 +412,9 @@ class Discord(Bot, commands.Bot):
             response = await self.run_query(
                 callback=callback,
                 report=report,
-                channel_id=ctx.channel.id,
                 progress_bar=self.discord_pbar,
+                channel_id=ctx.channel.id,
+                token=self.token,
             )
             if "error" in response.keys():
                 await ctx.channel.send(content=response["error"])
