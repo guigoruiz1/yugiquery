@@ -1749,7 +1749,7 @@ def run(
         if len(reports) > 0:
             run_notebooks(
                 reports=reports,
-                progress_handler=progress_handler.pbar if progress_handler else None,
+                external_pbar=progress_handler.pbar if progress_handler else None,
                 discord=discord,
                 telegram=telegram,
                 debug=debug,
