@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import (
     Dict,
     List,
+    Literal,
     Tuple,
 )
 
@@ -49,6 +50,7 @@ from nbconvert.writers import FilesWriter
 import numpy as np
 import pandas as pd
 import papermill as pm
+from termcolor import cprint
 from tqdm.auto import tqdm, trange
 from traitlets.config import Config
 
@@ -1016,7 +1018,7 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Medium::Bandai]]"
     if bandai_query is None:
@@ -1063,7 +1065,7 @@ def fetch_st(
         ValueError: Raised if the "st" argument is not one of "spell", "trap", "both", or "all".
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
@@ -1116,7 +1118,7 @@ def fetch_monster(
     Raises:
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
     if monster_query is None:
@@ -1239,7 +1241,7 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     Returns:
         A pandas DataFrame containing the fetched TCG Speed Duel cards.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Category:TCG Speed Duel cards]]"
     if speed_query is None:
@@ -1343,7 +1345,7 @@ def fetch_unusable(
         ValueError: Raised if the "cg" argument is not a valid CG.
 
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     concept = "[[Category:Unusable cards]]"
 
     valid_cg = cg.value
@@ -1388,7 +1390,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     Returns:
         pandas.DataFrame: A pandas DataFrame containing a boolean table indicating whether each card has errata information for the specified type.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     errata = errata.lower()
     valid = {"name", "type", "all"}
     categories = {
@@ -1449,7 +1451,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         ValueError: Raised if the "cg" argument is not a valid CG.
 
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
@@ -1506,7 +1508,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     Raises:
         Any exceptions raised by fetch_set_list_pages() or fetch_set_lists().
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     sets = fetch_set_list_pages(cg, **kwargs)  # Get list of sets
     keys = sets["Page name"]
 
@@ -1567,6 +1569,7 @@ def run_notebooks(
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
     """
+
     contribs = {"discord": discord, "telegram": telegram}
 
     # Initialize iterators
@@ -1582,7 +1585,7 @@ def run_notebooks(
         desc="Completion",
     )
 
-    # Add progress handler if provided
+    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     if external_pbar:
         pbars.append(external_pbar(position=0, **pbar_kwargs))
     else:
@@ -1653,6 +1656,7 @@ def run_notebooks(
     logger.addHandler(stream_handler)
 
     exceptions = []
+    os.environ["YQ_DEBUG"] = str(check_debug(debug))
     tqdm.write("\nExecution started")
     for i, report in enumerate(reports):
         report_name = Path(report).stem
@@ -1711,6 +1715,7 @@ def run_notebooks(
             unlock(report_name)
 
     tqdm.write("\nExecution completed")  # Empty character for better readability
+    os.environ.pop("YQ_DEBUG", default=None)
 
     # Close the iterator
     for pbar in pbars:
@@ -1760,6 +1765,8 @@ def run(
     Returns:
         None: This function does not return a value.
     """
+    # debug = check_debug(debug)
+
     reports = dirs.find_notebooks(reports)
 
     # Check API status
@@ -1895,7 +1902,6 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="Telegram TOKEN and CHAT_ID respectively or no arguments to search for values in secrets.",
     )
     debug_group = parser.add_argument_group("Debugging")
-    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     debug_group.add_argument(
         "--dryrun",
         action="store_true",
@@ -1908,6 +1914,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         required=False,
         help="Enables debug flag (not implemented).",
     )
+    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":

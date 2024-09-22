@@ -19,6 +19,7 @@ import json
 import os
 import re
 import platform
+from ast import literal_eval
 from pathlib import Path
 from typing import Literal, List, Dict
 
@@ -29,6 +30,26 @@ from termcolor import cprint
 
 # Local application imports
 from .dirs import dirs
+
+
+# ============ #
+# Global Debug #
+# ============ #
+
+
+# TODO: find more elegant way to handle debuging
+def check_debug(local_debug: bool = False) -> bool:
+    """
+    Check if the debug mode is enabled.
+
+    Args:
+        local_debug (bool, optional): A boolean indicating whether the debug mode is enabled locally. Defaults to False.
+
+    Returns:
+        bool: A boolean indicating whether the debug mode is enabled.
+    """
+    return literal_eval(os.environ.get("YQ_DEBUG", "False")) or local_debug
+
 
 # ================== #
 # TQDM temporary fix #

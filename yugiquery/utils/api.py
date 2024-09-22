@@ -144,6 +144,7 @@ def fetch_categorymembers(
     Returns:
         pandas.DataFrame: A DataFrame containing the members of the category.
     """
+    debug = check_debug(debug)
     params = {"cmlimit": step, "cmnamespace": namespace}
 
     lastContinue = {}
@@ -231,6 +232,7 @@ def fetch_properties(
     Returns:
         pandas.DataFrame: A DataFrame containing the properties matching the query and condition.
     """
+    debug = check_debug(debug)
     df = pd.DataFrame()
     i = 0
     complete = False
@@ -379,6 +381,7 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     Raises:
         Any exceptions raised by requests.get().
     """
+    debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
 
@@ -434,6 +437,7 @@ def fetch_set_lists(
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
+    debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
 
