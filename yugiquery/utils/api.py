@@ -200,7 +200,8 @@ def fetch_categorymembers(
                 time.sleep(0.5)
             raise
 
-        spinner.output.close()
+        if dirs.is_notebook:
+            spinner.output.close()
 
     results_df = pd.DataFrame(all_results)
     return results_df
@@ -337,6 +338,29 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
                 results[backlink["title"]] = target_title
 
     return results
+
+
+# Wrapper for dictionaries
+def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: str = "", **kwargs) -> Dict[str, str]:
+    """
+    Fetches a dictionary mapping rarity codes to their corresponding names by searching for backlinks and redirects.
+
+    Args:
+        names (List[str], optional): A list of names, i.e. "Super Rare" to search for a backling.
+        codes (List[str], optional): A list of codes, i.e. "SR" to search for a redirect.
+        category (str, optional): A category to search for backlinks. Defaults to empty.
+        **kwargs: Additional keyword arguments to pass to the fetch_categorymembers
+
+    Returns:
+        Dict[str, str]: A dictionary mapping codes to their corresponding names.
+
+    """
+    if category:
+        names.extend(fetch_categorymembers(category=category, **kwargs)["title"])
+
+    backlinks = fetch_backlinks(names)
+    redirects = fetch_redirects(codes)
+    return backlinks | redirects
 
 
 def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:

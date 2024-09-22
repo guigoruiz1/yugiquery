@@ -845,26 +845,57 @@ def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
 # ================== #
 
 
-# Rarities dictionary
-def fetch_rarities_dict(abreviations: List[str] = [], rarities: List[str] = []) -> Dict[str, str]:
+# Assets JSON dictionary updating
+def update_rarities(save: bool = True) -> Dict[str, str]:
     """
-    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
+    Updates the rarities.json file by fetching redirects and backlinks for the rarity codes and names.
 
     Args:
-        rarities (List[str], optional): A list of rarity names, i.e. "Super Rare" to search for an abreviation.
-        abreviations (List[str], optional): A list of rarity abbreviations, i.e. "SR" to search for a name.
+        save (bool, optional): Whether to save the new dictionary. Defaults to True.
 
     Returns:
-        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
-
+        Dict[str, str]: The updated rarities dictionary.
     """
-    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
-    rarities = rarities + titles.tolist()
-    rarity_backlinks = api.fetch_backlinks(rarities)
-    rarity_redirects = api.fetch_redirects(abreviations)
-    rarity_dict = rarity_backlinks | rarity_redirects
+    rarities_file = dirs.get_asset("json", "rarities.json")
+    rarity_dict = load_json(rarities_file)
+
+    codes = list(rarity_dict.keys())
+    names = list(rarity_dict.values())
+    new_rarity_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Rarities", namespace=0)
+
+    rarity_dict = rarity_dict | new_rarity_dict
+
+    if save:
+        with open(rarities_file, "w+") as file:
+            json.dump(rarity_dict, file)
 
     return rarity_dict
+
+
+def update_regions(save: bool = True) -> Dict[str, str]:
+    """
+    Updates the regions.json file by fetching backlinks and redirects for the region names and codes.
+    Note: The category "Termonology" holds the regions in the wiki.
+
+    Args:
+        save (bool, optional): Whether to save the new dictionary. Defaults to True.
+
+    Returns:
+        Dict[str, str]: The updated regions dictionary.
+    """
+    regions_file = dirs.get_asset("json", "regions.json")
+    regions_dict = load_json(regions_file)
+
+    codes = list(regions_dict.keys())
+    names = list(regions_dict.values())
+    new_regions_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Terminology", namespace=0)
+
+    regions_dict = regions_dict | new_regions_dict
+    if save:
+        with open(regions_file, "w+") as file:
+            json.dump(regions_dict, file)
+
+    return regions_dict
 
 
 # Query builder
