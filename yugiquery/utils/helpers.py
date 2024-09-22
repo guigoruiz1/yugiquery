@@ -18,6 +18,8 @@ import importlib.util
 import json
 import os
 import re
+import platform
+from ast import literal_eval
 from pathlib import Path
 from typing import Literal, List, Dict
 
@@ -28,6 +30,26 @@ from termcolor import cprint
 
 # Local application imports
 from .dirs import dirs
+
+
+# ============ #
+# Global Debug #
+# ============ #
+
+
+# TODO: find more elegant way to handle debuging
+def check_debug(local_debug: bool = False) -> bool:
+    """
+    Check if the debug mode is enabled.
+
+    Args:
+        local_debug (bool, optional): A boolean indicating whether the debug mode is enabled locally. Defaults to False.
+
+    Returns:
+        bool: A boolean indicating whether the debug mode is enabled.
+    """
+    return literal_eval(os.environ.get("YQ_DEBUG", "False")) or local_debug
+
 
 # ================== #
 # TQDM temporary fix #
@@ -369,6 +391,10 @@ def get_granularity(seconds: int) -> list[str]:
             selected_granularity.append(granularity)
             seconds %= divisor
 
+    # Ensure at least "second" is returned
+    if not selected_granularity:
+        selected_granularity.append("second")
+
     return selected_granularity
 
 
@@ -393,3 +419,75 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
             previous_timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "-").replace("-", "")
         )
         return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
+
+
+# ============== #
+# Lock Mechanism #
+# ============== #
+
+
+def lock(file_name: str) -> None:
+    """
+    Acquire a file lock and handle stale locks using the same lock file.
+
+    Args:
+        file_name (str): The name of the lock file to create
+
+    Raises:
+        RuntimeError: If another instance is already running.
+    """
+    lock_file_path = dirs.temp.joinpath(file_name).with_suffix(".lock")
+
+    # Open (or create if doesn't exist) the lock file in a+ mode
+    with open(lock_file_path, "a+") as lock_file:
+        try:
+            # Try to acquire an exclusive lock on the file
+            if platform.system() == "Windows":
+                import msvcrt
+
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+            # Read the existing PID in the file (if any)
+            existing_pid = lock_file.read().strip()
+
+            if existing_pid:
+                print(f"Stale lock file held by process {existing_pid}. Replacing with current PID.")
+
+            # Write the current process PID into the file
+            lock_file.seek(0)  # Go back to the beginning of the file
+            lock_file.write(str(os.getpid()))
+            lock_file.truncate()  # Ensure to remove any leftover content
+        except (OSError, IOError):
+            raise RuntimeError("Another instance is running")
+
+
+def unlock(file_name: str) -> None:
+    """
+    Release a file lock and remove the lock file.
+
+    Args:
+        file_name (str): The name of the lock file to remove
+
+    """
+    lock_file_path = dirs.temp.joinpath(file_name).with_suffix(".lock")
+
+    if not lock_file_path.exists():
+        print("Lock file does not exist. Ignoring unlock request.")
+
+    lock_file = open(lock_file_path, "w")
+    try:
+        if platform.system() == "Windows":
+            import msvcrt
+
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+    finally:
+        lock_file.close()
+        os.remove(lock_file_path)

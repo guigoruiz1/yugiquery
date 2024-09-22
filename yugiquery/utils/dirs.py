@@ -22,6 +22,7 @@ from IPython import get_ipython
 from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
 from termcolor import cprint
+import tempfile
 
 # ======= #
 # Classes #
@@ -79,6 +80,10 @@ class Dirs:
         self.UTILS = Path(__file__).resolve().parent
         self.APP = self.UTILS.parent
         self.WORK = Path.cwd()
+
+        # Get the temp directory
+        self.temp = Path(tempfile.gettempdir()).joinpath("yugiquery")
+        self.temp.mkdir(parents=True, exist_ok=True)
 
         # Determine the ASSETS path
         self._PKG_ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"

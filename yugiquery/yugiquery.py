@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import (
     Dict,
     List,
+    Literal,
     Tuple,
 )
 
@@ -49,6 +50,7 @@ from nbconvert.writers import FilesWriter
 import numpy as np
 import pandas as pd
 import papermill as pm
+from termcolor import cprint
 from tqdm.auto import tqdm, trange
 from traitlets.config import Config
 
@@ -350,7 +352,6 @@ def cleanup_data(dry_run=False) -> None:
         None
     """
     # Benchmark
-    now = arrow.utcnow()
     benchmark_file = dirs.DATA / "benchmark.json"
     if benchmark_file.is_file():
         benchmark = load_json(benchmark_file)
@@ -753,7 +754,7 @@ def update_index(dry_run: bool = False) -> str:
         with open(readme_input_path, encoding="utf-8") as f:
             readme = f.read()
     except:
-        print('Missing template files in "assets". Aborting...')
+        raise FileNotFoundError('Missing template files in "assets"')
 
     reports = sorted(dirs.REPORTS.glob("*.html"))
     rows = []
@@ -846,26 +847,57 @@ def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
 # ================== #
 
 
-# Rarities dictionary
-def fetch_rarities_dict(abreviations: List[str] = [], rarities: List[str] = []) -> Dict[str, str]:
+# Assets JSON dictionary updating
+def update_rarities(save: bool = True) -> Dict[str, str]:
     """
-    Fetches backlinks and redirects for a list of rarities, including abbreviations, to generate a map of rarity abbreviations to their corresponding names.
+    Updates the rarities.json file by fetching redirects and backlinks for the rarity codes and names.
 
     Args:
-        rarities (List[str], optional): A list of rarity names, i.e. "Super Rare" to search for an abreviation.
-        abreviations (List[str], optional): A list of rarity abbreviations, i.e. "SR" to search for a name.
+        save (bool, optional): Whether to save the new dictionary. Defaults to True.
 
     Returns:
-        Dict[str, str]: A dictionary mapping rarity abbreviations to their corresponding names.
-
+        Dict[str, str]: The updated rarities dictionary.
     """
-    titles = api.fetch_categorymembers(category="Rarities", namespace=0)["title"]
-    rarities = rarities + titles.tolist()
-    rarity_backlinks = api.fetch_backlinks(rarities)
-    rarity_redirects = api.fetch_redirects(abreviations)
-    rarity_dict = rarity_backlinks | rarity_redirects
+    rarities_file = dirs.get_asset("json", "rarities.json")
+    rarity_dict = load_json(rarities_file)
+
+    codes = list(rarity_dict.keys())
+    names = list(rarity_dict.values())
+    new_rarity_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Rarities", namespace=0)
+
+    rarity_dict = rarity_dict | new_rarity_dict
+
+    if save:
+        with open(rarities_file, "w+") as file:
+            json.dump(rarity_dict, file)
 
     return rarity_dict
+
+
+def update_regions(save: bool = True) -> Dict[str, str]:
+    """
+    Updates the regions.json file by fetching backlinks and redirects for the region names and codes.
+    Note: The category "Termonology" holds the regions in the wiki.
+
+    Args:
+        save (bool, optional): Whether to save the new dictionary. Defaults to True.
+
+    Returns:
+        Dict[str, str]: The updated regions dictionary.
+    """
+    regions_file = dirs.get_asset("json", "regions.json")
+    regions_dict = load_json(regions_file)
+
+    codes = list(regions_dict.keys())
+    names = list(regions_dict.values())
+    new_regions_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Terminology", namespace=0)
+
+    regions_dict = regions_dict | new_regions_dict
+    if save:
+        with open(regions_file, "w+") as file:
+            json.dump(regions_dict, file)
+
+    return regions_dict
 
 
 # Query builder
@@ -986,7 +1018,7 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
     Returns:
         pandas.DataFrame: A pandas DataFrame object containing the properties of the fetched Bandai cards.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Medium::Bandai]]"
     if bandai_query is None:
@@ -1033,7 +1065,7 @@ def fetch_st(
         ValueError: Raised if the "st" argument is not one of "spell", "trap", "both", or "all".
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
@@ -1086,7 +1118,7 @@ def fetch_monster(
     Raises:
         ValueError: Raised if the "cg" argument is not a valid CG.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
     if monster_query is None:
@@ -1209,7 +1241,7 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     Returns:
         A pandas DataFrame containing the fetched TCG Speed Duel cards.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Category:TCG Speed Duel cards]]"
     if speed_query is None:
@@ -1313,7 +1345,7 @@ def fetch_unusable(
         ValueError: Raised if the "cg" argument is not a valid CG.
 
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     concept = "[[Category:Unusable cards]]"
 
     valid_cg = cg.value
@@ -1358,7 +1390,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     Returns:
         pandas.DataFrame: A pandas DataFrame containing a boolean table indicating whether each card has errata information for the specified type.
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     errata = errata.lower()
     valid = {"name", "type", "all"}
     categories = {
@@ -1419,7 +1451,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         ValueError: Raised if the "cg" argument is not a valid CG.
 
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
@@ -1476,7 +1508,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     Raises:
         Any exceptions raised by fetch_set_list_pages() or fetch_set_lists().
     """
-    debug = kwargs.get("debug", False)
+    debug = check_debug(kwargs.get("debug", False))
     sets = fetch_set_list_pages(cg, **kwargs)  # Get list of sets
     keys = sets["Page name"]
 
@@ -1514,7 +1546,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 # TODO: Propagate the debug flag to notebooks
 def run_notebooks(
     reports: str | list[str],
-    progress_handler: ProgressHandler | None = None,
+    external_pbar: tqdm | None = None,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
     dry_run: bool = False,
@@ -1525,7 +1557,7 @@ def run_notebooks(
 
     Args:
         reports (str | List[str]): List of notebooks to execute.
-        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to provide progress bar functionality. Default is None.
+        external_pbar (tqdm | None, optional): An external tqdm progress bar to update. Defaults to None.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
         dry_run (bool, optional): Whether to run in dry run mode. Default is False.
@@ -1537,29 +1569,30 @@ def run_notebooks(
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
     """
+
     contribs = {"discord": discord, "telegram": telegram}
 
     # Initialize iterators
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = []
 
-    # Add progress handler if provided
-    if progress_handler:
-        pbars.append(
-            progress_handler.pbar(
-                iterable=reports, dynamic_ncols=True, desc="Completion", unit="report", unit_scale=True, delay=1, position=0
-            )
-        )
+    pbar_kwargs = dict(
+        iterable=reports,
+        unit="report",
+        unit_scale=True,
+        dynamic_ncols=True,
+        delay=1,
+        desc="Completion",
+    )
+
+    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
+    if external_pbar:
+        pbars.append(external_pbar(position=0, **pbar_kwargs))
     else:
         pbars.append(
             tqdm(
-                iterable=reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
-                delay=1,
                 position=0,
+                **pbar_kwargs,
             )
         )
 
@@ -1598,15 +1631,10 @@ def run_notebooks(
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
 
             return contrib_tqdm(
-                reports,
-                desc="Completion",
-                unit="report",
-                unit_scale=True,
-                dynamic_ncols=True,
                 token=token,
-                delay=1,
                 file=open(file=os.devnull, mode="w"),
                 **channel_dict,
+                **pbar_kwargs,
             )
         except:
             pass
@@ -1628,10 +1656,13 @@ def run_notebooks(
     logger.addHandler(stream_handler)
 
     exceptions = []
+    os.environ["YQ_DEBUG"] = str(check_debug(debug))
     tqdm.write("\nExecution started")
     for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
+
+        lock(report_name)
 
         # Update the postfix
         for pbar in pbars:
@@ -1681,7 +1712,10 @@ def run_notebooks(
                 pbar.update(1 + i - pbar.n)
                 pbar.refresh()
 
+            unlock(report_name)
+
     tqdm.write("\nExecution completed")  # Empty character for better readability
+    os.environ.pop("YQ_DEBUG", default=None)
 
     # Close the iterator
     for pbar in pbars:
@@ -1704,7 +1738,7 @@ def run_notebooks(
 def run(
     reports: str | List[str] = "all",
     progress_handler: ProgressHandler | None = None,
-    cleanup: bool | Literal["auto"] = False,
+    cleanup: bool | Literal["auto"] = "auto",
     dry_run: bool = False,
     squash: bool = True,
     discord: bool | argparse.Namespace = False,
@@ -1731,42 +1765,59 @@ def run(
     Returns:
         None: This function does not return a value.
     """
+    # debug = check_debug(debug)
+
     reports = dirs.find_notebooks(reports)
 
     # Check API status
     api_status = api.check_status()
     if progress_handler:
-        progress_handler.check(success=api_status)
+        progress_handler.send(API_status=api_status)
     if not api_status:
         return
 
     # Get the current commit hash
     start_commit = git.get_repo().head.commit
 
+    # TODO: Error handling
+    lock("run")
+
     # Execute notebooks
     try:
         if len(reports) > 0:
             run_notebooks(
                 reports=reports,
-                progress_handler=progress_handler,
+                external_pbar=progress_handler.pbar if progress_handler else None,
                 discord=discord,
                 telegram=telegram,
                 debug=debug,
                 dry_run=dry_run,
             )
+        else:
+            cprint(text="No reports found. Ignoring... \n", color="yellow")
     except Exception as e:
+        if progress_handler:
+            progress_handler.send(error=str(e))
         raise e
     finally:
         # Update page index to reflect last execution timestamp
-        print("\n", update_index(dry_run=dry_run))
+        # Error is not critical but should be noted
+        try:
+            index_result = update_index(dry_run=dry_run)
+            print(index_result)
+        except Exception as e:
+            if progress_handler:
+                progress_handler.send(error=str(e))
+            cprint(text=f"Error updating index. Ignoring... \n", color="yellow")
+            print(e)
 
     # Cleanup redundant data files
+    # TODO: Check error handling
     if cleanup == "auto":
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        if data_files_count / max(reports_count, 1) > 10:
-            cleanup_data(dry_run=dry_run)
-    elif cleanup:
+        cleanup = data_files_count / max(reports_count, 1) > 10
+    if cleanup:
         cleanup_data(dry_run=dry_run)
 
     # Squash commits if any
@@ -1774,8 +1825,17 @@ def run(
         if dry_run:
             print("\nDry run - Squashing commits")
         else:
+            # Error is not critical but should be noted
             print("\nSquashing commits")
-            print(git.squash_commits(start_commit))
+            try:
+                squash_results = git.squash_commits(start_commit)
+                print(squash_results)
+            except Exception as e:
+                cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
+                print(e)
+
+    # TODO: Error handling
+    unlock("run")
 
 
 # ========= #
@@ -1842,7 +1902,6 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="Telegram TOKEN and CHAT_ID respectively or no arguments to search for values in secrets.",
     )
     debug_group = parser.add_argument_group("Debugging")
-    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
     debug_group.add_argument(
         "--dryrun",
         action="store_true",
@@ -1853,8 +1912,9 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         "--debug",
         action="store_true",
         required=False,
-        help="Enables debug flag.",
+        help="Enables debug flag (not implemented).",
     )
+    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":
