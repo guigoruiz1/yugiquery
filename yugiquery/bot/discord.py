@@ -40,26 +40,26 @@ class Discord(Bot, commands.Bot):
 
     Args:
         token (str): The token for the Discord bot.
-        channel (str | int): The channel for the bot.
+        channel_id (str | int): The channel ID for the bot.
 
     Attributes:
         discord.ext.commands.Bot attributes
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: str | int):
+    def __init__(self, token: str, channel_id: str | int):
         """
         Initializes the Discord bot subclass.
 
         Args:
             token (str): The token for the Discord bot.
-            channel (str | int): The channel for the Discord bot.
+            channel_id (str | int): The channel ID for the Discord bot.
         """
 
         self.discord_pbar = ensure_tqdm()
         Bot.__init__(self)
         self.token = token
-        self.channel = int(channel)
+        self.channel_id = int(channel_id)
         # Initialize the Discord bot
         intents = discord.Intents(messages=True, guilds=True, members=True)
         help_command = commands.DefaultHelpCommand(no_category="Commands")
