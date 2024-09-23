@@ -160,7 +160,7 @@ class Discord(Bot, commands.Bot):
             links - Show YugiQuery links.
 
             ping - Test the bot connection latency.
-            
+
             pull - Pull latest data files from the repository.
 
             push - Push latest data files to the repository.
@@ -298,8 +298,9 @@ class Discord(Bot, commands.Bot):
                     description=response["description"],
                     color=discord.Colour.magenta(),
                 )
-                embed.add_field(name="Data", value=response["data"], inline=False)
-                embed.add_field(name="Changelog", value=response["changelog"], inline=False)
+                for field, content in response["fields"].items():
+                    embed.add_field(name=field, value=content, inline=False)
+
                 await ctx.send(embed=embed)
 
         @self.hybrid_command(

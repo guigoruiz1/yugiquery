@@ -214,7 +214,9 @@ class Telegram(Bot):
             if "error" in response.keys():
                 message = response["error"]
             else:
-                message = f"*{response['title']}*\n{response['description']}\n\nData:\n{response['data']}\nChangelog:\n{response['changelog']}"
+                message = f"*{response['title']}*\n{response['description']}\n\n"
+                for field, content in response["fields"].items():
+                    message += f"*{field}*:\n{content}\n"
 
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
