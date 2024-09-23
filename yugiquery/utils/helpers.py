@@ -298,7 +298,7 @@ class CredAction(argparse.Action):
         if len(values) == 0:
             setattr(namespace, self.dest, True)
         elif len(values) == 2:
-            setattr(namespace, self.dest, argparse.Namespace(token=values[0], channel=values[1]))
+            setattr(namespace, self.dest, argparse.Namespace(tkn=values[0], ch=values[1]))
         else:
             raise argparse.ArgumentError(self, "must provide either zero or exactly two arguments")
 

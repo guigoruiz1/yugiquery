@@ -18,9 +18,9 @@ def main():
     parser = argparse.ArgumentParser(description="Yugiquery CLI tool", prog=__title__, formatter_class=CustomHelpFormatter)
 
     subparsers = parser.add_subparsers(dest="command")
-    parser.add_argument("-a", "--api", action="store_true", help="Print API status and exit")
-    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
-    parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
+    parser.add_argument("-a", "--api", action="store_true", help="print API status and exit")
+    parser.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")
+    parser.add_argument("-v", "--version", action="store_true", help="print YugiQuery version and exit")
 
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow", formatter_class=CustomHelpFormatter)

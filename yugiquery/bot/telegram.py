@@ -47,27 +47,27 @@ class Telegram(Bot):
 
     Args:
         token (str): The token for the Telegram bot.
-        channel (str | int): The Telegram channel ID.
+        chat_id (str | int): The Telegram chat ID.
 
     Attributes:
         application (telegram.Application): The Telegram Application bot instance.
         Bot attributes
     """
 
-    def __init__(self, token: str, channel: str | int):
+    def __init__(self, token: str, chat_id: str | int):
         """
         Initialize the Telegram Bot subclass.
 
         Args:
             token (str): The token for the Telegram bot.
-            channel (str | int): The chat ID for the Telegram bot.
+            chat_id (str | int): The chat ID for the Telegram bot.
         """
         from tqdm.contrib.telegram import tqdm as telegram_pbar
 
         self.telegram_pbar = telegram_pbar
         Bot.__init__(self)
         self.token = token
-        self.channel = int(channel)
+        self.chat_id = int(chat_id)
         # Initialize the Telegram bot
         self.application = ApplicationBuilder().token(token).build()
         self.register_commands()
@@ -325,7 +325,7 @@ class Telegram(Bot):
                 callback=callback,
                 report=report,
                 progress_bar=self.telegram_pbar,
-                channel_id=update.effective_chat.id,
+                chat_id=update.effective_chat.id,
                 token=self.token,
             )
             if "error" in response.keys():
@@ -389,7 +389,7 @@ class Telegram(Bot):
             CommandHandler(
                 command="shutdown",
                 callback=shutdown,
-                filters=filters.Chat(chat_id=int(self.channel)),
+                filters=filters.Chat(chat_id=int(self.chat_id)),
             )
         )
 
@@ -429,7 +429,7 @@ class Telegram(Bot):
             if update is not None:
                 await update.message.reply_text(error.message)
             else:
-                await context.bot.send_message(chat_id=self.channel, text=error.message)
+                await context.bot.send_message(chat_id=self.chat_id, text=error.message)
 
         self.application.add_handler(CommandHandler(command="start", callback=start))
         self.application.add_error_handler(callback=on_command_error)

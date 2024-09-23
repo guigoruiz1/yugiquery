@@ -10,6 +10,22 @@ import shutil
 from termcolor import cprint
 
 
+def install_templates() -> None:
+    """
+    Copy the notebook templates from the package's `ASSETS` directory to the user's `NOTEBOOKS` directory.
+    """
+    from yugiquery.utils.dirs import dirs
+
+    src_dir = dirs.ASSETS.pkg / "templates"
+    dst_dir = dirs.NOTEBOOKS.user
+    try:
+        shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
+        cprint(text=f"\nTemplates copied to {dst_dir}.", color="green")
+    except Exception as e:
+        cprint(text=f"\nFailed to copy templates.", color="red")
+        print(e)
+
+
 def install_kernel(venv: bool = False) -> None:
     """
     Create a virtual environment, install YugiQuery inside it, and install it as a Jupyter kernel.
@@ -200,14 +216,15 @@ def install_filters() -> None:
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--tqdm", action="store_true", help="Install TQDM fork for Discord bot.")
-    parser.add_argument("--kernel", action="store_true", help="Install Jupyter kernel.")
-    parser.add_argument("--nbconvert", action="store_true", help="Install nbconvert templates.")
-    parser.add_argument("--filters", action="store_true", help="Install git filters.")
+    parser.add_argument("--templates", action="store_true", help="install template notebooks")
+    parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates")
+    parser.add_argument("--tqdm", action="store_true", help="install TQDM fork for Discord bot")
+    parser.add_argument("--filters", action="store_true", help="install git filters")
+    parser.add_argument("--kernel", action="store_true", help="install Jupyter kernel")
     parser.add_argument(
         "--venv",
         action="store_true",
-        help="Whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed.",
+        help="whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed",
     )
 
 
@@ -216,9 +233,11 @@ def main(args):
         cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
 
     # If no flags are passed, install everything.
-    if not (args.tqdm or args.kernel or args.nbconvert or args.filters):
-        args.tqdm = args.kernel = args.nbconvert = args.filters = True
+    if not (args.templates or args.tqdm or args.kernel or args.nbconvert or args.filters):
+        args.templates = args.tqdm = args.kernel = args.nbconvert = args.filters = True
 
+    if args.templates:
+        install_templates()
     if args.tqdm:
         install_tqdm()
     if args.kernel:
@@ -231,7 +250,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Install various additional components. If no flags are passed, all components will be installed."
+        description="Install various additional components. If no flags are passed, all components will be installed"
     )
     set_parser(parser)
     args = parser.parse_args()

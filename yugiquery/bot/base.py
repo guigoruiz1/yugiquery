@@ -268,7 +268,7 @@ class Bot:
             files[["Group", "Timestamp"]] = (
                 files["name"]
                 .str.extract(
-                    pat=r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+                    pat=r"(\w+_\w+)_(.*)(\d{8}T\d{4})Z.bz2",
                     expand=True,
                 )
                 .drop(1, axis=1)
@@ -299,8 +299,7 @@ class Bot:
         """
         Displays the timestamp of the latest local and live reports generated.
         Reads the report files from `dirs.REPORTS` and queries the GitHub API
-        for the latest commit timestamp for each file. Returns the result as an
-        message in the channel.
+        for the latest commit timestamp for each file.
 
         Returns:
             dict: A dictionary containing information about the latest reports.
@@ -315,7 +314,9 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += f'• {report.stem}: {pd.to_datetime(report.stats()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            local_value += (
+                f'• {report.stem}: {pd.to_datetime(report.stat()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            )
 
         response["local"] = local_value
 
@@ -478,10 +479,15 @@ def load_secrets_with_args(args: Any) -> Tuple[str, int | str]:
         (str, int): The token and channel ID.
     """
     subclass_upper = args.subclass.upper()
+    if subclass_upper == "DISCORD":
+        ch_key = "CHANNEL_ID"
+    elif subclass_upper == "TELEGRAM":
+        ch_key = "CHAT_ID"
+
     secrets_args = {
         f"{subclass_upper}_TOKEN": args.token,
-        f"{subclass_upper}_CHANNEL_ID": args.channel,
     }
+    secrets_args[f"{subclass_upper}_{ch_key}"] = args.ch
 
     secrets = {key: value for key, value in secrets_args.items() if value}
     missing = [key for key, value in secrets_args.items() if not value]
@@ -494,7 +500,10 @@ def load_secrets_with_args(args: Any) -> Tuple[str, int | str]:
         )
         secrets.update(loaded_secrets)
 
-    return secrets[f"{subclass_upper}_TOKEN"], secrets[f"{subclass_upper}_CHANNEL_ID"]
+    tkn = secrets[f"{subclass_upper}_TOKEN"]
+    ch = secrets[f"{subclass_upper}_{ch_key}"]
+
+    return tkn, ch
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
@@ -508,21 +517,22 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "subclass",
         choices=["discord", "telegram"],
-        help="Select between a Discord or a Telegram bot.",
+        help="select between a Discord or a Telegram bot",
     )
-    parser.add_argument("-t", "--token", type=str, help="Bot API token.")
+    parser.add_argument("-t", "--token", type=str, help="bot API token")
     parser.add_argument(
         "-c",
         "--channel",
-        dest="channel",
+        "--chat",
+        dest="ch",
         type=int,
-        help="Bot responses Channel/Chat ID.",
+        help="bot responses Channel/Chat ID",
     )
     parser.add_argument(
         "--debug",
         action="store_true",
         required=False,
-        help="Enable debug flag (not implemented).",
+        help="run in debug mode (not implemented)",
     )
 
 
@@ -532,7 +542,7 @@ def main(args) -> None:
 
     # Load secrets
     try:
-        token, channel = load_secrets_with_args(args)
+        tkn, ch = load_secrets_with_args(args)
     except KeyError as e:
         cprint(text=f"{e}. Aborting...", color="red")
         return
@@ -542,10 +552,13 @@ def main(args) -> None:
         # Initialize and run the Discord bot
         from .discord import Discord as Subclass
 
+        bot = Subclass(token=tkn, channel_id=ch)
+
     elif args.subclass == "telegram":
         # Initialize and run the Telegram bot
         from .telegram import Telegram as Subclass
 
+        bot = Subclass(token=tkn, chat_id=ch)
+
     # Run the bot subclass
-    bot = Subclass(token=token, channel=channel)
     bot.run()

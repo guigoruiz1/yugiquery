@@ -767,18 +767,17 @@ def update_index(dry_run: bool = False) -> str:
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
     index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
-    with open(index_output_path, "w+", encoding="utf-8") as o:
-        print(index, file=o)
-
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
     readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
-
-    with open(readme_output_path, "w+", encoding="utf-8") as o:
-        print(readme, file=o)
 
     if dry_run:
         return "Dry run - README and index updated"
     else:
+        with open(index_output_path, "w+", encoding="utf-8") as o:
+            print(index, file=o)
+        with open(readme_output_path, "w+", encoding="utf-8") as o:
+            print(readme, file=o)
+
         result = git.commit(
             files=[index_output_path, readme_output_path],
             message=f"Index and README timestamp update - {timestamp.isoformat()}",
@@ -1597,43 +1596,45 @@ def run_notebooks(
         )
 
     # Helper to handle each contrib
-    def setup_contrib(contrib: str) -> None:
+    def setup_contrib(contrib: str) -> tqdm | None:
+        contrib_upper = contrib.upper()
         contrib_value = contribs.get(contrib)
+        if contrib_upper == "DISCORD":
+            ch_key = "CHANNEL_ID"
+        elif contrib_upper == "TELEGRAM":
+            ch_key = "CHAT_ID"
         if contrib_value is True:
-            required_secrets = [f"{contrib.upper()}_TOKEN", f"{contrib.upper()}_CHANNEL_ID"]
+
+            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key}"]
             try:
                 secrets = load_secrets(
                     required_secrets,
                     secrets_file=dirs.secrets_file,
                     required=True,
                 )
-                token = secrets.get(f"{contrib.upper()}_TOKEN")
-                channel = secrets.get(f"{contrib.upper()}_CHANNEL_ID")
+                tkn = secrets.get(required_secrets[0])
+                ch = secrets.get(required_secrets[1])
             except:
                 cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
                 return
         elif isinstance(contrib_value, argparse.Namespace):
-            token = contrib_value.token
-            channel = contrib_value.channel
+            tkn = contrib_value.tkn
+            ch = contrib_value.ch
         else:
             return
 
         try:
-            if contrib == "discord":
+            if contrib_upper == "DISCORD":
                 from tqdm.contrib.discord import tqdm as contrib_tqdm
-
-                channel_dict = {"channel_id": channel}
-            elif contrib == "telegram":
+            elif contrib_upper == "TELEGRAM":
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
-
-                channel_dict = {"chat_id": channel}
             else:
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
 
             return contrib_tqdm(
-                token=token,
+                token=tkn,
                 file=open(file=os.devnull, mode="w"),
-                **channel_dict,
+                **{ch_key: ch},
                 **pbar_kwargs,
             )
         except:
@@ -1859,15 +1860,12 @@ def main(args):
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "-r",
-        "--report",
-        nargs="+",
+        "reports",
+        nargs="*",
         metavar="REPORT",
-        dest="reports",
         default="all",
         type=str,
-        required=False,
-        help="The report(s) to be generated.",
+        help="the report(s) to be generated. Defaults to 'all'",
     )
     parser.add_argument(
         "-c",
@@ -1877,7 +1875,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         nargs="?",
         const=True,
         action="store",
-        help="Wether to run the cleanup routine. Options are True, False and 'auto'. Defaults to auto.",
+        help="wether to run the cleanup routine. Options: {True,False,'auto'}. Defaults to auto",
     )
     pbar_group = parser.add_argument_group("Progress bars")
     pbar_group.add_argument(
@@ -1888,7 +1886,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         dest="discord",
         default=False,
         action=CredAction,
-        help="Discord TOKEN and CHANNEL_ID respectively or no arguments to search for values in secrets.",
+        help="Discord TOKEN and CHANNEL_ID, respectively, or no arguments to search for values in secrets",
     )
 
     pbar_group.add_argument(
@@ -1899,22 +1897,22 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         dest="telegram",
         default=False,
         action=CredAction,
-        help="Telegram TOKEN and CHAT_ID respectively or no arguments to search for values in secrets.",
+        help="Telegram TOKEN and CHAT_ID, respectively, or no arguments to search for values in secrets",
     )
     debug_group = parser.add_argument_group("Debugging")
     debug_group.add_argument(
         "--dryrun",
         action="store_true",
         required=False,
-        help="Whether to dry run the cleanup routine. No effect if cleanup is False.",
+        help="run in dry run mode",
     )
     debug_group.add_argument(
         "--debug",
         action="store_true",
         required=False,
-        help="Enables debug flag (not implemented).",
+        help="run in debug mode",
     )
-    debug_group.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
+    debug_group.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":
