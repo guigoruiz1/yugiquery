@@ -125,11 +125,14 @@ class Discord(Bot, commands.Bot):
             error (commands.CommandError): The error received.
         """
         print(error)
+        # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):
             await ctx.send(content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.CheckFailure):
+            await ctx.send(content=error, ephemeral=True, delete_after=60)
+        else:
             await ctx.send(content=error, ephemeral=True, delete_after=60)
 
     # ======== #
