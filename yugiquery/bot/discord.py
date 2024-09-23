@@ -160,6 +160,10 @@ class Discord(Bot, commands.Bot):
             links - Show YugiQuery links.
 
             ping - Test the bot connection latency.
+            
+            pull - Pull latest data files from the repository.
+
+            push - Push latest data files to the repository.
 
             run - Run full YugiQuery flow.
 
