@@ -268,7 +268,7 @@ class Bot:
             files[["Group", "Timestamp"]] = (
                 files["name"]
                 .str.extract(
-                    pat=r"(\w+_\w+)_(.*)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})Z.bz2",
+                    pat=r"(\w+_\w+)_(.*)(\d{8}T\d{4})Z.bz2",
                     expand=True,
                 )
                 .drop(1, axis=1)
@@ -315,7 +315,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += f'• {report.stem}: {pd.to_datetime(report.stats()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+            local_value += f'• {report.stem}: {pd.to_datetime(report.stat()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 
