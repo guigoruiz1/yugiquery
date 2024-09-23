@@ -265,14 +265,10 @@ class Bot:
         try:
             files = pd.read_json(f"{self.URLS.api}/contents/data")
             files = files[files["name"].str.endswith(".bz2")]  # Remove .json files from lists
-            files[["Group", "Timestamp"]] = (
-                files["name"]
-                .str.extract(
-                    pat=r"(\w+_\w+)_(.*)(\d{8}T\d{4})Z.bz2",
-                    expand=True,
-                )
-                .drop(1, axis=1)
-            )
+            extracted = files["name"].str.extract(pat=r"^(.+?)_(\d{8}T\d{4}Z)?_?(\d{8}T\d{4}Z)?\.bz2$", expand=True)
+            extracted[1] = extracted[2].fillna(extracted[1])
+            # Drop the unneeded third column and assign the result back to the DataFrame
+            files[["Group", "Timestamp"]] = extracted.iloc[:, [0, 1]]
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
             index = files.groupby("Group")["Timestamp"].idxmax()
             latest_files = files.loc[index, ["name", "download_url"]]
@@ -314,9 +310,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += (
-                f'• {report.stem}: {pd.to_datetime(report.stat().st_mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
-            )
+            local_value += f'• {report.stem}: {pd.to_datetime(report.stat().st_mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 
