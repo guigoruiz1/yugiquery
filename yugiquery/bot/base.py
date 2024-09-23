@@ -315,7 +315,7 @@ class Bot:
         local_value = ""
         for report in reports:
             local_value += (
-                f'• {report.stem}: {pd.to_datetime(report.stat()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
+                f'• {report.stem}: {pd.to_datetime(report.stat().st_mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
             )
 
         response["local"] = local_value

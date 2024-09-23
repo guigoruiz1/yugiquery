@@ -15,7 +15,6 @@ __all__ = [
     "__author_email__",
     "__license__",
     "__copyright__",
-    "__version__",
     "__maintainer__",
     "__status__",
 ]
