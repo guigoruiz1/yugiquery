@@ -59,7 +59,7 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
-    headers={"User-Agent": f"{__title__} V{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
+    headers={"User-Agent": f"{__title__} v{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
 """A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
 
