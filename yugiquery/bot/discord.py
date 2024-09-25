@@ -14,7 +14,7 @@ import platform
 # Local application imports
 from ..metadata import __version__
 from ..utils import ensure_tqdm
-from .base import Bot
+from .base import Bot, GitCommands
 
 # Discord
 try:
@@ -61,7 +61,11 @@ class Discord(Bot, commands.Bot):
         self.token = token
         self.channel_id = int(channel_id)
         # Initialize the Discord bot
-        intents = discord.Intents(messages=True, guilds=True, members=True)
+        intents = discord.Intents(
+            messages=True,
+            guilds=True,
+            members=True,
+        )
         help_command = commands.DefaultHelpCommand(no_category="Commands")
         description = "Bot to manage YugiQuery data and execution."
         activity = discord.Activity(type=discord.ActivityType.watching, name="for /status")
@@ -98,6 +102,9 @@ class Discord(Bot, commands.Bot):
             print(f"{guild.name}(id: {guild.id})")
             members = "\n - ".join([member.name for member in guild.members])
             print(f"Guild Members:\n - {members}")
+
+        info = await self.application_info()
+        await info.owner.send(f"Hello {info.owner.global_name}!\n{info.name} bot is online.")
 
     async def on_message(self, message: discord.Message) -> None:
         """
@@ -144,31 +151,17 @@ class Discord(Bot, commands.Bot):
         Register command handlers for the Discord bot.
 
         Command descriptions:
-
             abort - Aborts a running YugiQuery flow by terminating the process.
-
             battle - Simulate a battle of all monster cards.
-
             benchmark - Show average time each report takes to complete.
-
             data - Send latest data files.
-
-            shutdown - Shutdown bot
-
+            git - Run a Git command.
             latest - Show latest time each report was generated.
-
             links - Show YugiQuery links.
-
             ping - Test the bot connection latency.
-
-            pull - Pull latest data files from the repository.
-
-            push - Push latest data files to the repository.
-
             run - Run full YugiQuery flow.
-
             status - Display bot status and system information.
-
+            shutdown - Shutdown bot.
         """
 
         @self.hybrid_command(
@@ -303,6 +296,18 @@ class Discord(Bot, commands.Bot):
 
                 await ctx.send(embed=embed)
 
+        @self.hybrid_command(name="git", description="Execute a Git command in the repository.", with_app_command=True)
+        @commands.is_owner()
+        async def git_cmd(ctx, command: GitCommands, passphrase: str = "") -> None:
+            """
+            Executes a Git command in the repository.
+            The passphrase is used to decrypt the Git keychain if it is encrypted.
+            """
+
+            await ctx.defer()
+            response = self.git_cmd(command=command, passphrase=passphrase)
+            await ctx.send(content=response)
+
         @self.hybrid_command(
             name="latest",
             description="Show latest time each report was generated.",
@@ -366,39 +371,10 @@ class Discord(Bot, commands.Bot):
                 delete_after=60,
             )
 
-        @self.hybrid_command(name="pull", description="Pull changes from remote.", with_app_command=True)
-        @commands.is_owner()
-        async def pull(ctx, passphrase: str = "") -> None:
-            """
-            Pulls the latest data files from the repository.
-
-            Args:
-                ctx (discord.ext.commands.Context): The context of the command.
-                passphrase (str, optional): The password to unlock git. Defaults to empty.
-            """
-
-            await ctx.defer()
-            response = self.pull(passphrase)
-            await ctx.send(content=response)
-
-        @self.hybrid_command(name="push", description="Push repository to remote.", with_app_command=True)
-        @commands.is_owner()
-        async def push(ctx, passphrase: str = "") -> None:
-            """
-            Pushes the latest data files to the repository.
-
-            Args:
-                ctx (discord.ext.commands.Context): The context of the command.
-                passphrase (str, optional): The passphrase to use for encryption. Defaults to empty.
-            """
-
-            await ctx.defer()
-            response = self.push(passphrase)
-            await ctx.send(content=response)
-
         @self.hybrid_command(name="run", description="Run full YugiQuery flow.", with_app_command=True)
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
+        # Typehinting for report needs to be this way to handle dynamic loading of reports
         async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
