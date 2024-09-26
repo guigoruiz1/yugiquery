@@ -247,7 +247,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     data[report].append({"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
     # Save new data to file
     with open(benchmark_file, "w+") as file:
-        json.dump(data, file)
+        json.dump(data, file, indent=4)
 
     result = git.commit(
         files=[benchmark_file],
@@ -360,7 +360,7 @@ def cleanup_data(dry_run=False) -> None:
             print("Benchmark:", new_benchmark)
         else:
             with open(benchmark_file, "w+") as f:
-                json.dump(new_benchmark, f)
+                json.dump(new_benchmark, f, indent=4)
 
     # Data CSV files
     file_list = list(dirs.DATA.glob("*.bz2"))
@@ -868,7 +868,7 @@ def update_rarities(save: bool = True) -> Dict[str, str]:
 
     if save:
         with open(rarities_file, "w+") as file:
-            json.dump(rarity_dict, file)
+            json.dump(rarity_dict, file, indent=4)
 
     return rarity_dict
 
@@ -894,7 +894,7 @@ def update_regions(save: bool = True) -> Dict[str, str]:
     regions_dict = regions_dict | new_regions_dict
     if save:
         with open(regions_file, "w+") as file:
-            json.dump(regions_dict, file)
+            json.dump(regions_dict, file, indent=4)
 
     return regions_dict
 
