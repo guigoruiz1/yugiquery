@@ -460,16 +460,26 @@ def cleanup_data(dry_run=False) -> None:
         print(result)
 
 
-# TODO: Rename and automate tuple cols
+# TODO: Rename
 def load_corrected_latest(
-    name_pattern: str, tuple_cols: List[str] = []
+    name_pattern: str,
+    tuple_cols: List[str] = [
+        "Secondary type",
+        "Effect type",
+        "Link Arrows",
+        "Archseries",
+        "Artwork",
+        "Errata",
+        "Rarity",
+        "Cover card",
+    ],
 ) -> Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
     Args:
         name_pattern (str): Data file name pattern to load.
-        tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval.
+        tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval. Defaults to ["Secondary type", "Effect type", "Link Arrows", "Archseries", "Artwork", "Errata", "Rarity", "Cover card"].
 
     Returns:
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
@@ -492,7 +502,7 @@ def load_corrected_latest(
                 df[col] = pd.to_datetime(df[col])
 
         ts = arrow.get(Path(files[0]).stem.split("_")[-1])
-        print(f"{name_pattern} file loaded")
+        print(f"{name_pattern.capitalize()} file loaded")
         return df, ts
     else:
         print(f"No {name_pattern} files")
