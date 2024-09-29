@@ -495,7 +495,10 @@ def load_corrected_latest(
         df = pd.read_csv(files[0], dtype=object)
         for col in tuple_cols:
             if col in df:
-                df[col] = df[col].dropna().apply(literal_eval)
+                try:
+                    df[col] = df[col].dropna().apply(literal_eval)
+                except:
+                    pass
 
         for col in ["Modification date", "Release"]:
             if col in df:
@@ -505,7 +508,7 @@ def load_corrected_latest(
         print(f"{name_pattern.capitalize()} file loaded")
         return df, ts
     else:
-        print(f"No {name_pattern} files")
+        print(f'No "{name_pattern}" files')
         return None, None
 
 
@@ -520,30 +523,32 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
 
     Returns:
         pd.DataFrame: A pandas DataFrame with set information merged into it.
-    """
-    if all([col in input_df.columns for col in ["Set", "Region"]]):
-        regions_dict = load_json(dirs.get_asset("json", "regions.json"))
-        input_df["Release"] = input_df[["Set", "Region"]].apply(
-            lambda x: (
-                input_info_df[regions_dict.get(x["Region"], x["Region"]) + " release date"][x["Set"]]
-                if x["Set"] in input_info_df.index
-                else np.nan
-            ),
-            axis=1,
-        )
-        input_df["Release"] = pd.to_datetime(input_df["Release"].astype(str), errors="coerce")  # Bug fix
-        input_df = input_df.merge(
-            input_info_df.loc[:, :"Cover card"],
-            left_on="Set",
-            right_index=True,
-            how="outer",
-            indicator=False,
-        ).reset_index(drop=True)
-        print("Set properties merged")
-    else:
-        print('Error! No "Set" and/or "Region" column(s) to join set info')
 
-    return input_df
+    Raises:
+        ValueError: If the input DataFrame does not contain the required "Set" and "Region" columns.
+    """
+    required_columns = ["Set", "Region"]
+    if not all(col in input_df.columns for col in required_columns):
+        raise ValueError('Input DataFrame must contain "Set" and "Region" columns.')
+
+    regions_dict = load_json(dirs.get_asset("json", "regions.json"))
+
+    def get_release_date(row):
+        region = regions_dict.get(row["Region"], row["Region"])
+        region_col = f"{region} release date"
+        if row["Set"] in input_info_df.index and region_col in input_info_df.columns:
+            return input_info_df.at[row["Set"], region_col]
+        return np.nan
+
+    input_df["Release"] = input_df.apply(get_release_date, axis=1)
+    input_df["Release"] = pd.to_datetime(input_df["Release"].astype(str), errors="coerce")
+
+    merged_df = input_df.merge(
+        input_info_df.loc[:, :"Cover card"], left_on="Set", right_index=True, how="outer"
+    ).reset_index(drop=True)
+
+    print("Set properties merged")
+    return merged_df
 
 
 # Formatters
@@ -897,9 +902,8 @@ def update_regions(save: bool = True) -> Dict[str, str]:
     regions_file = dirs.get_asset("json", "regions.json")
     regions_dict = load_json(regions_file)
 
-    codes = list(regions_dict.keys())
     names = list(regions_dict.values())
-    new_regions_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Terminology", namespace=0)
+    new_regions_dict = api.fetch_redirect_dict(names=names, category="Terminology", namespace=0)
 
     regions_dict = regions_dict | new_regions_dict
     if save:
@@ -1139,7 +1143,7 @@ def fetch_monster(
         attributes,
         leave=False,
         unit="attribute",
-        dynamic_ncols=True,
+        dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for att in iterator:
@@ -1421,7 +1425,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         categories,
         leave=False,
         unit="initial",
-        dynamic_ncols=True,
+        dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
@@ -1473,7 +1477,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         category,
         leave=False,
         unit="category",
-        dynamic_ncols=True,
+        dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
@@ -1484,7 +1488,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             sub_categories,
             leave=False,
             unit="subcategory",
-            dynamic_ncols=True,
+            dynamic_ncols=(not dirs.is_notebook),
             disable=("PM_IN_EXECUTION" in os.environ),
         )
         for sub_cat in sub_iterator:
@@ -1589,7 +1593,7 @@ def run_notebooks(
         iterable=reports,
         unit="report",
         unit_scale=True,
-        dynamic_ncols=True,
+        dynamic_ncols=(not dirs.is_notebook),
         delay=1,
         desc="Completion",
     )
