@@ -265,31 +265,26 @@ class Bot:
         try:
             files = pd.read_json(f"{self.URLS.api}/contents/data")
             files = files[files["name"].str.endswith(".bz2")]  # Remove .json files from lists
-            files[["Group", "Timestamp"]] = (
-                files["name"]
-                .str.extract(
-                    pat=r"(\w+_\w+)_(.*)(\d{8}T\d{4})Z.bz2",
-                    expand=True,
-                )
-                .drop(1, axis=1)
-            )
+            extracted = files["name"].str.extract(pat=r"^(.+?)_(\d{8}T\d{4}Z)?_?(\d{8}T\d{4}Z)?\.bz2$", expand=True)
+            extracted[1] = extracted[2].fillna(extracted[1])
+            files[["Group", "Timestamp"]] = extracted.iloc[:, [0, 1]]
             files["Timestamp"] = pd.to_datetime(files["Timestamp"], utc=True)
             index = files.groupby("Group")["Timestamp"].idxmax()
-            latest_files = files.loc[index, ["name", "download_url"]]
+            latest_files = files.loc[index, ["Group", "name", "download_url"]]
+            latest_files[["g1", "g2"]] = latest_files["Group"].apply(lambda x: pd.Series(x.split("_")).str.capitalize())
 
-            data_value = ""
-            changelog_value = ""
-            for _, file in latest_files.iterrows():
-                if "changelog" in file["name"]:
-                    changelog_value += f'• [{file["name"]}]({file["download_url"]})\n'
-                else:
-                    data_value += f'• [{file["name"]}]({file["download_url"]})\n'
+            fields = {}
+            for report in latest_files["g1"].unique():
+                selection = latest_files[latest_files["g1"] == report]
+                if not selection.empty:
+                    fields[report] = ""
+                    for kind in selection["g2"].unique()[::-1]:
+                        fields[report] += f"• [{kind}]({selection[selection['g2'] == kind]['download_url'].values[0]}) "
 
             response = {
                 "title": "Latest data files",
-                "description": "Direct links to download files from GitHub",
-                "data": data_value,
-                "changelog": changelog_value,
+                "description": "Direct download links from GitHub",
+                "fields": fields,
             }
             return response
         except:
@@ -314,9 +309,7 @@ class Bot:
         # Get local files timestamps
         local_value = ""
         for report in reports:
-            local_value += (
-                f'• {report.stem}: {pd.to_datetime(report.stat()._mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
-            )
+            local_value += f'• {report.stem}: {pd.to_datetime(report.stat().st_mtime,unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
         response["local"] = local_value
 

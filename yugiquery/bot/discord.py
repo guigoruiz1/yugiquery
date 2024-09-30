@@ -125,11 +125,14 @@ class Discord(Bot, commands.Bot):
             error (commands.CommandError): The error received.
         """
         print(error)
+        # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):
             await ctx.send(content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.CheckFailure):
+            await ctx.send(content=error, ephemeral=True, delete_after=60)
+        else:
             await ctx.send(content=error, ephemeral=True, delete_after=60)
 
     # ======== #
@@ -157,6 +160,10 @@ class Discord(Bot, commands.Bot):
             links - Show YugiQuery links.
 
             ping - Test the bot connection latency.
+
+            pull - Pull latest data files from the repository.
+
+            push - Push latest data files to the repository.
 
             run - Run full YugiQuery flow.
 
@@ -291,8 +298,9 @@ class Discord(Bot, commands.Bot):
                     description=response["description"],
                     color=discord.Colour.magenta(),
                 )
-                embed.add_field(name="Data", value=response["data"], inline=False)
-                embed.add_field(name="Changelog", value=response["changelog"], inline=False)
+                for field, content in response["fields"].items():
+                    embed.add_field(name=field, value=content, inline=False)
+
                 await ctx.send(embed=embed)
 
         @self.hybrid_command(

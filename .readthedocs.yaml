@@ -12,7 +12,7 @@ build:
     python: "3.11"
   jobs:
     pre_build:
-      - pip install .[docs]
+      - pip install .[docs,bot]
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:

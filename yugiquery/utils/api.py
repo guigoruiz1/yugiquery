@@ -59,7 +59,7 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
-    headers={"User-Agent": f"{__title__} V{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
+    headers={"User-Agent": f"{__title__} v{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
 """A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
 
@@ -325,7 +325,7 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
         Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
     """
     results = {}
-    iterator = tqdm(titles, dynamic_ncols=True, desc="Backlinks", leave=False)
+    iterator = tqdm(titles, dynamic_ncols=(not dirs.is_notebook), desc="Backlinks", leave=False)
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
@@ -362,7 +362,7 @@ def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: 
 
     backlinks = fetch_backlinks(names)
     redirects = fetch_redirects(codes)
-    return backlinks | redirects
+    return redirects | backlinks
 
 
 def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
@@ -676,7 +676,7 @@ async def download_images(
                     unit_divisor=1024,
                     desc=save_name,
                     leave=False,
-                    dynamic_ncols=True,
+                    dynamic_ncols=(not dirs.is_notebook),
                     disable=("PM_IN_EXECUTION" in os.environ),
                 )
                 save_file = Path(save_folder).joinpath(save_name)
@@ -702,7 +702,7 @@ async def download_images(
             total=len(urls),
             unit_scale=True,
             unit="file",
-            dynamic_ncols=True,
+            dynamic_ncols=(not dirs.is_notebook),
             disable=("PM_IN_EXECUTION" in os.environ),
         ) as pbar:
             tasks = [

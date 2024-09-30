@@ -102,6 +102,10 @@ class Dirs:
                                 if not self._PKG_ASSETS.is_dir():
                                     self._PKG_ASSETS = None
 
+        # If the package is not installed, set the package ASSETS path to None
+        if self._PKG_ASSETS == self.ASSETS.user:
+            self._PKG_ASSETS = None
+
         # Determine the Jupyter path
         self.NBCONVERT = next(Path(path) for path in jupyter_path("nbconvert", "templates") if Path(path).exists())
 
