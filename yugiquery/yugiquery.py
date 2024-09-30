@@ -251,7 +251,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
 
     result = git.commit(
         files=[benchmark_file],
-        message=f"{report} report benchmarked - {now.isoformat()}",
+        message=f"{report.capitalize()} report benchmarked - {now.isoformat()}",
     )
     print(result)
 
@@ -460,8 +460,7 @@ def cleanup_data(dry_run=False) -> None:
         print(result)
 
 
-# TODO: Rename
-def load_corrected_latest(
+def load_latest_data(
     name_pattern: str,
     tuple_cols: List[str] = [
         "Secondary type",
@@ -631,6 +630,359 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
         print('Error! No "Name" column to join errata')
 
     return input_df
+
+
+# User collection
+def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
+    """
+    Loads a user collection from a CSV or Excel file.
+
+    Args:
+        file_name (str, optional): The name of the collection file to load. Defaults to "collection".
+
+    Returns:
+        None | pd.DataFrame: The loaded collection DataFrame if the file is found, otherwise None.
+    """
+    collection_file = dirs.DATA.joinpath(file_name)
+    if collection_file.with_suffix(".xlsx").is_file():
+        collection_file = collection_file.with_suffix(".xlsx")
+        collections = pd.read_excel(collection_file, sheet_name=None)
+        collection_df = pd.concat(
+            [df.assign(Collection=key) for key, df in collections.items() if key != "Instructions"], ignore_index=True
+        )
+        if collection_df["Collection"].nunique() == 1:
+            collection_df.drop(["Collection"], axis=1)
+    elif collection_file.with_suffix(".csv").is_file():
+        collection_file = collection_file.with_suffix(".csv")
+        collection_df = pd.read_csv(collection_file)
+    else:
+        print("No {file_name} file found.")
+        return None
+
+    print(f"Loaded {collection_file.name}")
+    return collection_df
+
+
+def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False) -> pd.DataFrame:
+    """
+    Process a DataFrame with card names, numbers and/or passwords and return a DataFrame with the card names, quantities and, optionally, additional card data merged from database.
+
+    Args:
+        collections (List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, numbers and/or passwords.
+
+    Returns:
+        ((List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, quantities and, optionally, additional card data merged from database.
+    """
+    if not isinstance(collections, list):
+        collections = [collections]
+
+    card_df, _ = load_latest_data(name_pattern="cards")
+    if any(
+        [
+            "Card number" in collection_df and not collection_df[collection_df["Name"].isna()]["Card number"].empty
+            for collection_df in collections
+        ]
+    ):
+        set_lists_df, _ = load_latest_data(name_pattern="sets")
+
+    for i, collection_df in enumerate(collections):
+        collection_df = collection_df.dropna(how="all", axis=1).dropna(how="all", axis=0)
+        collection_df = collection_df.assign(match=np.nan).astype(object)
+
+        if "Card number" in collection_df and not collection_df["Card number"].dropna().empty:
+            number_keys = collection_df["Card number"].dropna().str.upper().str.strip()
+
+            list_keys = set_lists_df["Card number"].dropna().str.upper().str.strip()
+            list_values = set_lists_df.loc[list_keys.index]["Name"]
+            key_name_dict = dict(zip(list_keys, list_values))
+
+            missing = number_keys[~number_keys.isin(list_keys)]
+            if missing.count() > 0:
+                print(
+                    "\nUnable to find the following card(s) by number:\n ⏺",
+                    "\n ⏺ ".join(missing.sort_values().unique()),
+                )
+
+            matches = number_keys.map(lambda x: key_name_dict.get(x, x))
+            collection_df.loc[matches.index, "match"] = matches
+            collection_df.drop("Card number", axis=1, inplace=True)
+
+        if "Password" in collection_df and not collection_df[collection_df["match"].isna()]["Password"].empty:
+            password_keys = collection_df[collection_df["match"].isna()]["Password"].dropna().astype(int)
+            list_keys = card_df["Password"].dropna().astype(int)
+            list_values = card_df.loc[list_keys.index]["Name"]
+            key_name_dict = dict(zip(list_keys, list_values))
+
+            missing = password_keys[~password_keys.isin(list_keys)]
+            if missing.count() > 0:
+                print(
+                    "\nUnable to find the following card(s) by password:\n ⏺",
+                    "\n ⏺ ".join(missing.sort_values().unique().astype(str)),
+                )
+
+            matches = password_keys.map(lambda x: key_name_dict.get(x, x))
+            collection_df.loc[matches.index, "match"] = matches
+            collection_df.drop("Password", axis=1, inplace=True)
+
+        if "Name" in collection_df and not collection_df[collection_df["match"].isna()]["Name"].empty:
+            name_keys = collection_df["Name"].dropna().str.lower().str.strip()
+            list_keys = card_df["Name"].str.lower().str.strip()
+            key_name_dict = dict(zip(list_keys, card_df["Name"]))
+
+            missing = collection_df["Name"].dropna()[~name_keys.isin(list_keys)]
+            if missing.count() > 0:
+                print("\nUnable to find the following card(s) by name:\n ⏺", "\n ⏺ ".join(missing.sort_values().unique()))
+
+            # Map the "Name" column from list_df to collection_df based on the keys
+            matches = name_keys.map(lambda x: key_name_dict.get(x, x))
+            collection_df.loc[matches.index, "match"] = matches
+            collection_df.drop("Name", axis=1, inplace=True)
+
+        collection_df = collection_df.rename(columns={"match": "Name"})
+        columns = list(collection_df.columns.difference(["Count"]))
+        collection_df = collection_df.dropna(how="all", axis=1).dropna(how="all", axis=0)
+        collection_df = collection_df.groupby(columns, dropna=False).sum().reset_index()
+        if merge_data:
+            collection_df = collection_df.merge(card_df.drop_duplicates(subset="Name"), on="Name", how="left")
+        collections[i] = collection_df
+
+    print("\nCollection data processed.")
+    if len(collections) == 1:
+        return collections[0]
+    else:
+        return collections
+
+
+# User decks
+def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_collection: bool = False) -> pd.DataFrame:
+    """
+    Match deck cards to collection cards and return the resulting DataFrame with card counts appropriately adjusted.
+
+    Args:
+        collection_df (pd.DataFrame): DataFrame with the collection card names and quantities.
+        deck_df (pd.DataFrame): DataFrame with the deck card names and quantities.
+        return_collection (bool): If True, returns the remaining collection cards in the result DataFrame.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card names and quantities.
+    """
+    # Initialize a list to collect result rows
+    result_rows = []
+
+    # Iterate over each row in deck_df
+    for index, deck_row in deck_df.iterrows():
+        card_name = deck_row["Name"]
+        deck_count = deck_row["Count"]
+        deck_deck = deck_row["Deck"] if "Deck" in deck_row else np.nan
+
+        # Get sub DataFrame from collection_df where Name matches
+        collection_sub_df = collection_df[collection_df["Name"] == card_name].copy()
+
+        # If Deck column exists, sort so that rows with exact Deck match are first, np.nan second
+        if "Deck" in collection_sub_df.columns:
+            collection_sub_df = collection_sub_df[collection_sub_df["Deck"].isin([deck_deck, np.nan])]
+            collection_sub_df = collection_sub_df.sort_values(
+                by=["Deck"], ascending=[True]
+            )  # Sort by Deck (exact match first)
+
+        # Subtract from the first available row(s) in collection_sub_df until deck_count is depleted
+        for sub_index, collection_row in collection_sub_df.iterrows():
+            if deck_count <= 0:
+                break  # Deck count fulfilled
+
+            available_count = collection_row["Count"]
+            subtract_count = min(deck_count, available_count)
+
+            # Subtract and update deck_count
+            deck_count -= subtract_count
+            collection_sub_df.loc[collection_row.name, "Count"] -= subtract_count
+
+            # Add the collection_row to the result rows
+            result_row = {
+                "Name": card_name,
+                "Count": available_count,  # Remaining count after subtraction
+                "Deck": deck_deck,
+                "missing": np.nan,
+            }
+            for col in collection_row.index.difference(result_row.keys()):
+                result_row[col] = collection_row[col]
+
+            result_rows.append(result_row)
+
+            # If Count reaches 0, drop the row from collection_df
+            if collection_sub_df.loc[collection_row.name, "Count"] <= 0:
+                collection_sub_df.drop(collection_row.name, inplace=True)
+
+        # After processing all available cards, handle missing counts
+        if deck_count > 0:
+            result_row = {"Name": card_name, "Count": 0, "Deck": deck_deck, "missing": deck_count}
+            # Create a new row for the deck with Count set to 0 and missing indicating what's left
+            result_rows.append(result_row)
+
+    # Convert the collected result rows into a DataFrame
+    result_df = pd.DataFrame(result_rows)
+
+    # Append any remaining rows from collection_df that were not used in the deck
+    if return_collection:
+        result_df = pd.concat(
+            [result_df, collection_df[~collection_df["Name"].isin(result_df["Name"])]], ignore_index=True
+        ).sort_values(by=["Name", "Deck"])
+
+    # Replace 0 values in missing with NaN
+    result_df["missing"] = result_df["missing"].fillna(0)
+
+    return result_df
+
+
+## Decklists
+def read_decklist(file_path: Path | str) -> pd.DataFrame:
+    """
+    Read a decklist file and return a DataFrame with the card names.
+
+    Args:
+        file_path (Path, str): Path to the decklist file.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card names.
+    """
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    data = []
+    current_section = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:  # Skip empty lines
+            continue
+        if line.endswith(":"):  # Section header
+            current_section = line[:-1].capitalize()
+        elif current_section:
+            quantity, card_name = line.split("x ", 1)
+            quantity = int(quantity)
+            data.append({"Name": card_name, "Count": quantity, "Section": current_section, "Deck": file_path.stem})
+
+    df = pd.DataFrame(data)
+    return df
+
+
+def get_decklists(*files: Path | str) -> pd.DataFrame:
+    """
+    Load decklist files and return a DataFrame with the card names.
+
+    Args:
+        files (Path | str): Paths to the decklist files. If not provided, loads all decklist files in the data directory.
+
+    Returns:
+        (pd.DataFrame): DataFrame with card names.
+    """
+    decklist_df = pd.DataFrame()
+    if not files:
+        files = list(dirs.DATA.glob("*.txt"))
+
+    for file in files:
+        temp_df = read_decklist(file)
+        decklist_df = pd.concat([decklist_df, temp_df])
+        print(f"Loaded {file.name} deck")
+
+    decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
+    return decklist_df
+
+
+## YDK
+def read_ydk(file_path: Path | str) -> pd.DataFrame:
+    """
+    Read a YDK file and return a DataFrame with the card codes.
+
+    Args:
+        file_path (Path | str): Path to the YDK file.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card codes.
+
+    """
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    data = []
+    current_section = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:  # Skip empty lines
+            continue
+        if line in ["#main", "#extra", "!side"]:
+            current_section = line[1:].capitalize()
+        elif current_section:
+            data.append({"Code": line, "Section": current_section, "Deck": file_path.stem})
+
+    df = pd.DataFrame(data)
+    return df
+
+
+def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
+    """
+    Convert a DataFrame with YDK card codes to a DataFrame with card names.
+
+    Args:
+        ydk_df (pd.DataFrame): DataFrame with YDK card codes.
+
+    Returns:
+        (pd.DataFrame | None): DataFrame with card names. If unable to obtain the card data, returns None.
+    """
+    ygoprodeck_file = dirs.DATA.joinpath("ygoprodeck.json")
+    try:
+        result = api.fetch_ygoprodeck()
+        with open(ygoprodeck_file, "w") as file:
+            json.dump(result, file, indent=4)
+        ydk_data = pd.DataFrame(result).set_index("id")
+    except Exception as e:
+        print(e)
+        if ygoprodeck_file.is_file():
+            ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
+        else:
+            print("Could not fetch or read ygoprodeck data")
+            return None
+
+    ydk_df = ydk_df.copy()
+
+    def get_ydk_card(code) -> float | str:
+        code = int(code)
+        if code not in ydk_data.index:
+            return np.nan
+        return ydk_data.loc[code, "name"]
+
+    ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
+    not_found = ydk_df[ydk_df["Name"].isna()]["Code"].values
+    if len(not_found) > 0:
+        print(f"\nUnable to find {len(not_found)} cards:\n ⏺", "\n ⏺ ".join(not_found), "\n")
+    ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
+    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count")
+    ydk_df = ydk_df.drop_duplicates().reset_index(drop=True)
+    return ydk_df
+
+
+# yugiquery module
+def get_ydk(*files: Path | str) -> pd.DataFrame | None:
+    """
+    Load YDK files and return a DataFrame with the card names.
+
+    Args:
+        files (Path | str): Paths to YDK files. If not provided, loads all YDK files in the data directory.
+
+    Returns:
+        (pd.DataFrame | None): DataFrame with card names. If unable to obtain the card data, returns None.
+    """
+    ydk_df = pd.DataFrame()
+    if not files:
+        files = list(dirs.DATA.glob("*.ydk"))
+    for file in files:
+        temp_df = read_ydk(file)
+        ydk_df = pd.concat([ydk_df, temp_df])
+        print(f"Loaded {file.name} deck")
+
+    ydk_df = convert_ydk(ydk_df)
+    return ydk_df
 
 
 # =================== #
