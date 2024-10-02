@@ -889,7 +889,7 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
     return decklist_df
 
 
-## YDK
+# YDK
 def read_ydk(file_path: Path | str) -> pd.DataFrame:
     """
     Read a YDK file and return a DataFrame with the card codes.
@@ -962,7 +962,6 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
     return ydk_df
 
 
-# yugiquery module
 def get_ydk(*files: Path | str) -> pd.DataFrame | None:
     """
     Load YDK files and return a DataFrame with the card names.
