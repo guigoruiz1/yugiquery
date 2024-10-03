@@ -493,11 +493,11 @@ def fetch_set_lists(
             raw = content["revisions"][0]["*"]
             parsed = wtp.parse(raw)
             for template in parsed.templates:
-                if template.name == "Set page header":
+                if template.name.lower() == "set page header":
                     for argument in template.arguments:
                         if "set=" in argument:
                             title = argument.value
-                if template.name == "Set list":
+                if template.name.lower() == "set list":
                     set_df = pd.DataFrame(columns=set_lists_df.columns)
                     page_name = content["title"]
 

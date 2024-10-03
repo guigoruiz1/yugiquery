@@ -1817,7 +1817,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
     else:
-        category = f"{valid_cg}%20Set%20Card%20Lists"
+        category = [f"{valid_cg}%20Set%20Card%20Lists"]
 
     print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
