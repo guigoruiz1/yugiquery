@@ -656,7 +656,7 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
         collection_file = collection_file.with_suffix(".csv")
         collection_df = pd.read_csv(collection_file)
     else:
-        print("No {file_name} file found.")
+        print(f"No {file_name} file found.")
         return None
 
     print(f"Loaded {collection_file.name}")
@@ -678,10 +678,7 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
 
     card_df, _ = load_latest_data(name_pattern="cards")
     if any(
-        [
-            "Card number" in collection_df and not collection_df[collection_df["Name"].isna()]["Card number"].empty
-            for collection_df in collections
-        ]
+        ["Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections]
     ):
         set_lists_df, _ = load_latest_data(name_pattern="sets")
 
