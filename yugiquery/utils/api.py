@@ -141,7 +141,7 @@ def check_status() -> bool:
 
 def fetch_categorymembers(
     category: str,
-    namespace: int = 0,
+    namespace: int | None = None,
     step: int = 500,
     iterator: tqdm | None = None,
     debug: bool = False,
@@ -151,7 +151,7 @@ def fetch_categorymembers(
 
     Args:
         category (str): The category to retrieve members for.
-        namespace (int, optional): The namespace ID to filter the members by. Defaults to 0 (main namespace).
+        namespace (int| None, optional): The namespace ID to filter the members by. Defaults to None (no namespace).
         step (int, optional): The number of members to retrieve in each request. Defaults to 500.
         iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
         debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
@@ -373,19 +373,19 @@ def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: 
 
     """
     if category:
-        names.extend(fetch_categorymembers(category=category, **kwargs)["title"])
+        names.extend(fetch_categorymembers(category=category, namespace=0, **kwargs)["title"])
 
     backlinks = fetch_backlinks(names)
     redirects = fetch_redirects(codes)
     return redirects | backlinks
 
 
-def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
+def fetch_set_info(sets: str | List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
     Args:
-        sets (List[str]): A list of set names to fetch information for.
+        sets (str | List[str]): A set name or list of set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
         debug (bool, optional): If True, prints debug information. Defaults to False.
@@ -396,6 +396,8 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     Raises:
         Any exceptions raised by requests.get().
     """
+    if isinstance(sets, str):
+        sets = [sets]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
@@ -440,18 +442,20 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
 # TODO: Refactor
 # TODO: Translate region code?
 def fetch_set_lists(
-    titles: List[str], debug: bool = False
+    titles: str | List[str], debug: bool = False
 ) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
     Args:
-        titles (List[str]): A list of page titles from which to fetch set lists.
+        titles (str | List[str]): A page title or list of page titles from which to fetch set lists.
         debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
+    if isinstance(titles, str):
+        titles = [titles]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")

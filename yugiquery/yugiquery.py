@@ -676,7 +676,14 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
     if not isinstance(collections, list):
         collections = [collections]
 
-    card_df, _ = load_latest_data(name_pattern="cards")
+    if any(
+        [
+            col in collection_df and not collection_df[col].dropna().empty
+            for col in ["Name", "Password"]
+            for collection_df in collections
+        ]
+    ):
+        card_df, _ = load_latest_data(name_pattern="cards")
     if any(
         ["Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections]
     ):
@@ -722,11 +729,11 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
             collection_df.drop("Password", axis=1, inplace=True)
 
         if "Name" in collection_df and not collection_df[collection_df["match"].isna()]["Name"].empty:
-            name_keys = collection_df["Name"].dropna().str.lower().str.strip()
+            name_keys = collection_df[collection_df["match"].isna()]["Name"].dropna().str.lower().str.strip()
             list_keys = card_df["Name"].str.lower().str.strip()
             key_name_dict = dict(zip(list_keys, card_df["Name"]))
 
-            missing = collection_df["Name"].dropna()[~name_keys.isin(list_keys)]
+            missing = collection_df[collection_df["match"].isna()]["Name"].dropna()[~name_keys.isin(list_keys)]
             if missing.count() > 0:
                 print("\nUnable to find the following card(s) by name:\n ⏺", "\n ⏺ ".join(missing.sort_values().unique()))
 
@@ -1430,7 +1437,7 @@ def fetch_st(
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
-    concept = f"[[Concept:CG%20non-monster%20cards]]"
+    concept = f"[[Concept:CG% non-monster cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
@@ -1817,7 +1824,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
     else:
-        category = [f"{valid_cg}%20Set%20Card%20Lists"]
+        category = [f"{valid_cg} Set Card Lists"]
 
     print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
@@ -1829,6 +1836,8 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
+        if debug:
+            tqdm.write(f"- {cat}")
         iterator.set_description(cat.split("Category:")[-1])
         temp = api.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator, debug=debug)
         sub_categories = pd.DataFrame(temp)["title"]
@@ -1840,11 +1849,13 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             disable=("PM_IN_EXECUTION" in os.environ),
         )
         for sub_cat in sub_iterator:
+            if debug:
+                tqdm.write(f"\n- {sub_cat}")
             sub_iterator.set_description(sub_cat.split("Category:")[-1])
             temp = api.fetch_properties(
                 f"[[{sub_cat}]]",
                 query="|?Modification date",
-                step=limit,
+                step=step,
                 limit=limit,
                 iterator=sub_iterator,
                 **kwargs,
