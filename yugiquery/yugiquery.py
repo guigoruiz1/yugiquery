@@ -1437,7 +1437,7 @@ def fetch_st(
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
-    concept = f"[[Concept:CG% non-monster cards]]"
+    concept = f"[[Concept:CG non-monster cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
