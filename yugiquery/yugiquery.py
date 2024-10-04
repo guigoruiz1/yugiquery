@@ -740,6 +740,9 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
             # Map the "Name" column from list_df to collection_df based on the keys
             matches = name_keys.map(lambda x: key_name_dict.get(x, x))
             collection_df.loc[matches.index, "match"] = matches
+
+            # Try getting from old name in ygoprodeck?
+
             collection_df.drop("Name", axis=1, inplace=True)
 
         collection_df = collection_df.rename(columns={"match": "Name"})
@@ -957,9 +960,13 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
         return ydk_data.loc[code, "name"]
 
     ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
-    not_found = ydk_df[ydk_df["Name"].isna()]["Code"].values
+    not_found = ydk_df[ydk_df["Name"].isna()]
     if len(not_found) > 0:
-        print(f"\nUnable to find {len(not_found)} cards:\n ⏺", "\n ⏺ ".join(not_found), "\n")
+        print()  # Print a newline for better readability
+        for deck in not_found["Deck"].unique():
+            print(f"Unable to find {len(not_found[not_found['Deck'] == deck])} cards in {deck}:")
+            print(" ⏺", "\n ⏺ ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
+
     ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
     ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count")
     ydk_df = ydk_df.drop_duplicates().reset_index(drop=True)
@@ -1461,6 +1468,7 @@ def fetch_st(
     return st_df
 
 
+# TODO: move attributes to argument
 def fetch_monster(
     monster_query: str | None = None,
     cg: CG = CG.ALL,
@@ -1506,7 +1514,7 @@ def fetch_monster(
         if debug:
             tqdm.write(f"- {att}")
 
-        concept = f"[[Concept:CG%20monsters]][[Attribute::{att}]]"
+        concept = f"[[Concept:CG monsters]][[Attribute::{att}]]"
 
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"

@@ -91,14 +91,17 @@ arrows_dict: Dict[str, str] = {
 
 
 # YGOPRODECK
-def fetch_ygoprodeck() -> List[Dict[str, Any]]:
+def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
     """
     Fetch the card data from ygoprodeck.com.
 
     Returns:
         (List[Dict[str, Any]]): List of card data.
     """
-    response = requests.get(URLS.ygoprodeck)
+    ydk_url = URLS.ygoprodeck
+    if misc:
+        ydk_url += "?misc=yes"
+    response = requests.get(ydk_url)
     response.raise_for_status()
     result = response.json()
     return result["data"]
