@@ -97,6 +97,9 @@ def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
 
     Returns:
         (List[Dict[str, Any]]): List of card data.
+
+    Raises:
+        requests.exceptions.HTTPError: If an HTTP error occurs while fetching the data.
     """
     ydk_url = URLS.ygoprodeck
     if misc:

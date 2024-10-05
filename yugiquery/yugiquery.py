@@ -707,7 +707,7 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
                     "\n ⏺ ".join(missing.sort_values().unique()),
                 )
 
-            matches = number_keys.map(lambda x: key_name_dict.get(x, x))
+            matches = number_keys.map(lambda x: key_name_dict.get(x))
             collection_df.loc[matches.index, "match"] = matches
             collection_df.drop("Card number", axis=1, inplace=True)
 
@@ -724,7 +724,7 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
                     "\n ⏺ ".join(missing.sort_values().unique().astype(str)),
                 )
 
-            matches = password_keys.map(lambda x: key_name_dict.get(x, x))
+            matches = password_keys.map(lambda x: key_name_dict.get(x))
             collection_df.loc[matches.index, "match"] = matches
             collection_df.drop("Password", axis=1, inplace=True)
 
@@ -737,11 +737,34 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
             if missing.count() > 0:
                 print("\nUnable to find the following card(s) by name:\n ⏺", "\n ⏺ ".join(missing.sort_values().unique()))
 
-            # Map the "Name" column from list_df to collection_df based on the keys
-            matches = name_keys.map(lambda x: key_name_dict.get(x, x))
+            matches = name_keys.map(lambda x: key_name_dict.get(x))
             collection_df.loc[matches.index, "match"] = matches
 
-            # Try getting from old name in ygoprodeck?
+            # Try getting from old name in ygoprodeck
+            if collection_df["match"].isna().any():
+                try:
+                    ydk_data = get_ygoprodeck()
+                    ydk_data["old_name"] = ydk_data["misc_info"].apply(
+                        lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
+                    )
+                    ydk_data = ydk_data[["name", "old_name"]].explode("old_name").dropna()
+
+                    name_keys = collection_df[collection_df["match"].isna()]["Name"].dropna().str.lower().str.strip()
+                    list_keys = ydk_data["old_name"].str.lower().str.strip()
+                    key_name_dict = dict(zip(list_keys, ydk_data["name"]))
+
+                    missing = collection_df[collection_df["match"].isna()]["Name"].dropna()[~name_keys.isin(list_keys)]
+                    if missing.count() > 0:
+                        print(
+                            "\nUnable to find the following card(s) by old name:\n ⏺",
+                            "\n ⏺ ".join(missing.sort_values().unique()),
+                        )
+
+                    matches = name_keys.map(lambda x: key_name_dict.get(x))
+                    collection_df.loc[matches.index, "match"] = matches
+                except Exception as e:
+                    print("Unable to get old names from ygoprodeck:")
+                    print(e)
 
             collection_df.drop("Name", axis=1, inplace=True)
 
@@ -897,6 +920,34 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
 
 
 # YDK
+def get_ygoprodeck() -> pd.DataFrame:
+    """
+    Fetch the YGOProDeck data from the API or local file.
+
+    Returns:
+        pd.DataFrame: A DataFrame of the YGOProDeck data.
+
+    Raises:
+        Exception: Exceptions raised by api.fetch_ygoprodeck.
+    """
+    ygoprodeck_file = dirs.DATA.joinpath("ygoprodeck.json")
+    try:
+        result = api.fetch_ygoprodeck()
+        with open(ygoprodeck_file, "w+") as file:
+            json.dump(result, file, indent=4)
+        ydk_data = pd.DataFrame(result).set_index("id")
+    except Exception as e:
+        if ygoprodeck_file.is_file():
+            print("Unable to fetch ygoprodeck data. Using local file.")
+            print(e)
+            ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
+        else:
+            print("Unable to obtain ygoprodeck data")
+            raise e
+
+    return ydk_data
+
+
 def read_ydk(file_path: Path | str) -> pd.DataFrame:
     """
     Read a YDK file and return a DataFrame with the card codes.
@@ -927,7 +978,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
     return df
 
 
-def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
+def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert a DataFrame with YDK card codes to a DataFrame with card names.
 
@@ -935,21 +986,13 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
         ydk_df (pd.DataFrame): DataFrame with YDK card codes.
 
     Returns:
-        (pd.DataFrame | None): DataFrame with card names. If unable to obtain the card data, returns None.
+        (pd.DataFrame): DataFrame with card names. If unable to obtain the card data, returns input DataFrame.
     """
-    ygoprodeck_file = dirs.DATA.joinpath("ygoprodeck.json")
     try:
-        result = api.fetch_ygoprodeck()
-        with open(ygoprodeck_file, "w") as file:
-            json.dump(result, file, indent=4)
-        ydk_data = pd.DataFrame(result).set_index("id")
+        ydk_data = get_ygoprodeck()
     except Exception as e:
         print(e)
-        if ygoprodeck_file.is_file():
-            ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
-        else:
-            print("Could not fetch or read ygoprodeck data")
-            return None
+        return ydk_df
 
     ydk_df = ydk_df.copy()
 
@@ -973,7 +1016,7 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame | None:
     return ydk_df
 
 
-def get_ydk(*files: Path | str) -> pd.DataFrame | None:
+def get_ydk(*files: Path | str) -> pd.DataFrame:
     """
     Load YDK files and return a DataFrame with the card names.
 
@@ -981,7 +1024,7 @@ def get_ydk(*files: Path | str) -> pd.DataFrame | None:
         files (Path | str): Paths to YDK files. If not provided, loads all YDK files in the data directory.
 
     Returns:
-        (pd.DataFrame | None): DataFrame with card names. If unable to obtain the card data, returns None.
+        (pd.DataFrame): DataFrame with card names. If unable to obtain the card data, returns raw YDK DataFrame.
     """
     ydk_df = pd.DataFrame()
     if not files:
