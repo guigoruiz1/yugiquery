@@ -2024,12 +2024,12 @@ def run_notebooks(
         contrib_upper = contrib.upper()
         contrib_value = contribs.get(contrib)
         if contrib_upper == "DISCORD":
-            ch_key = "CHANNEL_ID"
+            ch_key = "channel_id"
         elif contrib_upper == "TELEGRAM":
-            ch_key = "CHAT_ID"
+            ch_key = "chat_id"
         if contrib_value is True:
 
-            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key}"]
+            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key.upper()}"]
             try:
                 secrets = load_secrets(
                     required_secrets,
@@ -2054,11 +2054,10 @@ def run_notebooks(
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
             else:
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
-
             return contrib_tqdm(
                 token=tkn,
-                file=open(file=os.devnull, mode="w"),
-                **{ch_key: ch},
+                file=open(os.devnull, "w"),
+                **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
         except:
@@ -2067,6 +2066,7 @@ def run_notebooks(
     # Iterate over potential contrib names
     for contrib in contribs:
         pbar = setup_contrib(contrib)
+        print(pbar)
         if pbar:
             pbars.append(pbar)
 
