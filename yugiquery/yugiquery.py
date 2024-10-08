@@ -669,6 +669,8 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
 
     Args:
         collections (List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, numbers and/or passwords.
+        merge_data (bool): If True, merges additional card data from the database. Defaults to False.
+        filter_unusable (bool): If True, filters out unusable card types. Defaults to True.
 
     Returns:
         ((List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, quantities and, optionally, additional card data merged from database.
@@ -684,6 +686,7 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
         ]
     ):
         card_df, _ = load_latest_data(name_pattern="cards")
+        card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
     if any(
         ["Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections]
     ):
@@ -773,7 +776,7 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
         collection_df = collection_df.dropna(how="all", axis=1).dropna(how="all", axis=0)
         collection_df = collection_df.groupby(columns, dropna=False).sum().reset_index()
         if merge_data:
-            collection_df = collection_df.merge(card_df.drop_duplicates(subset="Name"), on="Name", how="left")
+            collection_df = collection_df.merge(card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left")
         collections[i] = collection_df
 
     print("\nCollection data processed.")
@@ -1566,7 +1569,7 @@ def fetch_monster(
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
-        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"].reset_index(drop=True)
+        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
 
     if debug:
         print("- Total")
@@ -1767,6 +1770,9 @@ def fetch_unusable(
     debug = check_debug(kwargs.get("debug", False))
     concept = "[[Category:Unusable cards]]"
 
+    if filter:
+        concept += "[[Card type::Character Card||Non-game card||Ticket Card]]"
+
     valid_cg = cg.value
     if valid_cg == "CG":
         concept = "OR".join([concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
@@ -1780,11 +1786,6 @@ def fetch_unusable(
 
     print(f"Downloading unusable cards")
     unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
-
-    if filter and "Card type" in unusable_df:
-        unusable_df = unusable_df[
-            unusable_df["Card type"].isin(["Character Card", "Non-game card", "Ticket Card"])
-        ].reset_index(drop=True)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
 
@@ -2004,7 +2005,7 @@ def run_notebooks(
         unit="report",
         unit_scale=True,
         dynamic_ncols=(not dirs.is_notebook),
-        delay=1,
+        delay=2,
         desc="Completion",
     )
 
@@ -2060,13 +2061,13 @@ def run_notebooks(
                 **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
-        except:
-            pass
+        except Exception as e:
+            print(e)
+            cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
 
     # Iterate over potential contrib names
     for contrib in contribs:
         pbar = setup_contrib(contrib)
-        print(pbar)
         if pbar:
             pbars.append(pbar)
 

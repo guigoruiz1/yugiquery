@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import (
     AutoMinorLocator,
     FixedLocator,
+    FuncFormatter,
     MaxNLocator,
 )
 from matplotlib_venn import venn2
@@ -58,7 +59,8 @@ colors_dict = load_json(dirs.get_asset("json", "colors.json"))
 
 
 def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:
-    """Adjust the lightness of a given color by a specified amount.
+    """
+    Adjust the lightness of a given color by a specified amount.
 
     Args:
         color (str): The color to be adjusted, in string format.
@@ -172,6 +174,8 @@ def generate_rate_grid(
 
         yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
         cumsum_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 5 + 1))  # Test
+        func = lambda x, pos: "" if np.isclose(x, 0) else int(x)
+        cumsum_ax.yaxis.set_major_formatter(FuncFormatter(func))
 
     else:
         yearly_ax = ax
@@ -235,6 +239,8 @@ def generate_rate_grid(
         temp_ax.set_axisbelow(True)
         temp_ax.grid()
 
+    yearly_ax.tick_params(axis="x", rotation=45)
+
     if len(dy.columns) == 1:
         align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
         l = yearly_ax.get_ylim()
@@ -258,7 +264,7 @@ def rate_subplots(
     vlines: pd.DataFrame | None = None,
     fill: bool = False,
     limit_year: bool = False,
-) -> None:
+) -> plt.figure:
     """
     Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
 
@@ -274,7 +280,7 @@ def rate_subplots(
         limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
 
     Returns:
-        None: Displays the generated plot.
+        matplotlib.figure.Figure: The generated figure.
     """
     if figsize is None:
         figsize = (12, len(df.columns) * 2 * (1 + cumsum))
@@ -346,25 +352,13 @@ def rate_subplots(
         if 2 * c + 1 >= cmap.N:
             c = 0
 
-    warnings.filterwarnings(
-        action="ignore",
-        category=UserWarning,
-        message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
-    )
-
-    fig.tight_layout()
-    plt.show()
-
-    warnings.filterwarnings(
-        action="default",
-        category=UserWarning,
-        message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
-    )
+    fig.subplots_adjust()
+    return fig
 
 
 def rate(
     dy: pd.DataFrame,
-    figsize: Tuple[int, int] = (12, 6),
+    figsize: Tuple[int, int] = (14, 6),
     title: str | None = None,
     colors: List[str] | None = None,
     cumsum: bool = True,
@@ -372,7 +366,7 @@ def rate(
     vlines: pd.DataFrame | None = None,
     fill: bool = False,
     limit_year: bool = False,
-) -> None:
+) -> plt.figure:
     """
     Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
 
@@ -388,7 +382,7 @@ def rate(
         limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
 
     Returns:
-        None: Displays the generated plot.
+        matplotlib.figure.Figure: The generated figure.
     """
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot()
@@ -433,23 +427,10 @@ def rate(
                             transform=ax.get_xaxis_transform(),
                         )
 
-    warnings.filterwarnings(
-        action="ignore",
-        category=UserWarning,
-        message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
-    )
-
-    fig.tight_layout()
-    plt.show()
-
-    warnings.filterwarnings(
-        action="default",
-        category=UserWarning,
-        message="This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.",
-    )
+    return fig
 
 
-def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> None:
+def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> plt.figure:
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
 
@@ -459,7 +440,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> No
         **kwargs: Additional keyword arguments to be passed to the bar() method.
 
     Returns:
-        None: Displays the generated plot.
+        matplotlib.figure.Figure: The generated figure.
     """
     # Count the frequency of each arrow direction
     counts = arrows.value_counts().sort_index()
@@ -497,10 +478,10 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> No
 
     # Display the plot
     fig.tight_layout()
-    plt.show()
+    return fig
 
 
-def box(df, mean: bool = True, **kwargs) -> None:
+def box(df, mean: bool = True, **kwargs) -> plt.figure:
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
 
@@ -510,7 +491,7 @@ def box(df, mean: bool = True, **kwargs) -> None:
         **kwargs: Additional keyword arguments to pass to seaborn.boxplot().
 
     Returns:
-        None
+        matplotlib.figure.Figure: The generated figure.
 
     Raises:
         ValueError: If the DataFrame has no Release column.
@@ -535,4 +516,4 @@ def box(df, mean: bool = True, **kwargs) -> None:
     ax.set_axisbelow(True)
     plt.xticks(rotation=30)
     fig.tight_layout()
-    plt.show()
+    return fig
