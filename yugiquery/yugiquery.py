@@ -663,14 +663,16 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
     return collection_df
 
 
-def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False) -> pd.DataFrame:
+def find_cards(
+    collections: List[pd.DataFrame] | pd.DataFrame, card_data: bool = False, set_data: bool = False
+) -> pd.DataFrame:
     """
     Process a DataFrame with card names, numbers and/or passwords and return a DataFrame with the card names, quantities and, optionally, additional card data merged from database.
 
     Args:
         collections (List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, numbers and/or passwords.
-        merge_data (bool): If True, merges additional card data from the database. Defaults to False.
-        filter_unusable (bool): If True, filters out unusable card types. Defaults to True.
+        card_data (bool, optional): If True, merges additional card data from the database. Defaults to False.
+        set_data (bool, optional): If True, merges set specific card data from the database. Defaults to False.
 
     Returns:
         ((List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, quantities and, optionally, additional card data merged from database.
@@ -678,112 +680,113 @@ def find_cards(collections: List[pd.DataFrame] | pd.DataFrame, merge_data=False)
     if not isinstance(collections, list):
         collections = [collections]
 
-    if any(
-        [
-            col in collection_df and not collection_df[col].dropna().empty
-            for col in ["Name", "Password"]
-            for collection_df in collections
-        ]
+    if card_data or any(
+        col in collection_df and not collection_df[col].dropna().empty
+        for col in ["Name", "Password"]
+        for collection_df in collections
     ):
         card_df, _ = load_latest_data(name_pattern="cards")
         card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
     if any(
-        ["Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections]
+        "Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections
     ):
         set_lists_df, _ = load_latest_data(name_pattern="sets")
+        set_lists_df = (
+            set_lists_df.sort_values(by="Release")
+            .drop_duplicates(subset="Card number", keep="first")
+            .dropna(subset=["Card number"])
+        )
+
+    def merge_set_data(df):
+        extra_cols = set_lists_df.columns.difference(df.columns).join(["Card number", "Name"], how="outer")
+        merged_df = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
+        merged_df["match"] = merged_df["Name_y"] if "Name_y" in merged_df else merged_df["Name"]
+        merged_df.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
+        merged_df.drop(columns=["Name_y"], inplace=True, errors="ignore")
+        missing = (
+            merged_df["Card number"][~merged_df["Card number"].isin(set_lists_df["Card number"])]
+            .dropna()
+            .sort_values()
+            .unique()
+            .astype(str)
+        )
+        if len(missing) > 0:
+            print(
+                f'\nUnable to find the following {len(missing)} card(s) by "Card number":\n ⏺',
+                "\n ⏺ ".join(missing),
+            )
+        return merged_df
+
+    def merge_with_keys(df, key_col, ref_df, ref_key, ref_val):
+        keys = df[df["match"].isna()][key_col].dropna()
+        list_keys = ref_df[ref_key].dropna()
+        key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
+        missing = keys[~keys.isin(list_keys)].sort_values().unique().astype(str)
+        if len(missing) > 0:
+            print(
+                f'\nUnable to find the following {len(missing)} card(s) by "{ref_key}":\n ⏺',
+                "\n ⏺ ".join(missing),
+            )
+        matches = keys.map(key_name_dict.get)
+        df.loc[matches.index, "match"] = matches
+        return df
 
     for i, collection_df in enumerate(collections):
-        collection_df = collection_df.dropna(how="all", axis=1).dropna(how="all", axis=0)
-        collection_df = collection_df.assign(match=np.nan).astype(object)
-
-        if "Card number" in collection_df and not collection_df["Card number"].dropna().empty:
-            number_keys = collection_df["Card number"].dropna().str.upper().str.strip()
-
-            list_keys = set_lists_df["Card number"].dropna().str.upper().str.strip()
-            list_values = set_lists_df.loc[list_keys.index]["Name"]
-            key_name_dict = dict(zip(list_keys, list_values))
-
-            missing = number_keys[~number_keys.isin(list_keys)]
-            if missing.count() > 0:
-                print(
-                    "\nUnable to find the following card(s) by number:\n ⏺",
-                    "\n ⏺ ".join(missing.sort_values().unique()),
+        if len(collections) > 0:
+            print(f"\nProcessing collection {i+1}")
+        original_cols = collection_df.columns
+        collection_df = collection_df.dropna(how="all").assign(match=np.nan).astype(object)
+        if "Card number" in original_cols and not collection_df["Card number"].dropna().empty:
+            collection_df = (
+                merge_set_data(collection_df)
+                if set_data
+                else merge_with_keys(
+                    df=collection_df,
+                    key_col="Card number",
+                    ref_df=set_lists_df,
+                    ref_key="Card number",
+                    ref_val="Name",
                 )
+            )
 
-            matches = number_keys.map(lambda x: key_name_dict.get(x))
-            collection_df.loc[matches.index, "match"] = matches
-            collection_df.drop("Card number", axis=1, inplace=True)
+        if "Password" in original_cols and not collection_df["match"].notna().all():
+            collection_df = merge_with_keys(
+                df=collection_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name"
+            )
 
-        if "Password" in collection_df and not collection_df[collection_df["match"].isna()]["Password"].empty:
-            password_keys = collection_df[collection_df["match"].isna()]["Password"].dropna().astype(int)
-            list_keys = card_df["Password"].dropna().astype(int)
-            list_values = card_df.loc[list_keys.index]["Name"]
-            key_name_dict = dict(zip(list_keys, list_values))
-
-            missing = password_keys[~password_keys.isin(list_keys)]
-            if missing.count() > 0:
-                print(
-                    "\nUnable to find the following card(s) by password:\n ⏺",
-                    "\n ⏺ ".join(missing.sort_values().unique().astype(str)),
-                )
-
-            matches = password_keys.map(lambda x: key_name_dict.get(x))
-            collection_df.loc[matches.index, "match"] = matches
-            collection_df.drop("Password", axis=1, inplace=True)
-
-        if "Name" in collection_df and not collection_df[collection_df["match"].isna()]["Name"].empty:
-            name_keys = collection_df[collection_df["match"].isna()]["Name"].dropna().str.lower().str.strip()
-            list_keys = card_df["Name"].str.lower().str.strip()
-            key_name_dict = dict(zip(list_keys, card_df["Name"]))
-
-            missing = collection_df[collection_df["match"].isna()]["Name"].dropna()[~name_keys.isin(list_keys)]
-            if missing.count() > 0:
-                print("\nUnable to find the following card(s) by name:\n ⏺", "\n ⏺ ".join(missing.sort_values().unique()))
-
-            matches = name_keys.map(lambda x: key_name_dict.get(x))
-            collection_df.loc[matches.index, "match"] = matches
-
-            # Try getting from old name in ygoprodeck
+        if "Name" in original_cols and not collection_df["match"].notna().all():
+            collection_df = merge_with_keys(df=collection_df, key_col="Name", ref_df=card_df, ref_key="Name", ref_val="Name")
             if collection_df["match"].isna().any():
                 try:
                     ydk_data = get_ygoprodeck()
-                    ydk_data["old_name"] = ydk_data["misc_info"].apply(
+                    ydk_data["Old name"] = ydk_data["misc_info"].apply(
                         lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
                     )
-                    ydk_data = ydk_data[["name", "old_name"]].explode("old_name").dropna()
-
-                    name_keys = collection_df[collection_df["match"].isna()]["Name"].dropna().str.lower().str.strip()
-                    list_keys = ydk_data["old_name"].str.lower().str.strip()
-                    key_name_dict = dict(zip(list_keys, ydk_data["name"]))
-
-                    missing = collection_df[collection_df["match"].isna()]["Name"].dropna()[~name_keys.isin(list_keys)]
-                    if missing.count() > 0:
-                        print(
-                            "\nUnable to find the following card(s) by old name:\n ⏺",
-                            "\n ⏺ ".join(missing.sort_values().unique()),
-                        )
-
-                    matches = name_keys.map(lambda x: key_name_dict.get(x))
-                    collection_df.loc[matches.index, "match"] = matches
+                    merge_with_keys(
+                        df=collection_df,
+                        key_col="Name",
+                        ref_df=ydk_data.explode("Old name"),
+                        ref_key="Old name",
+                        ref_val="name",
+                    )
                 except Exception as e:
-                    print("Unable to get old names from ygoprodeck:")
-                    print(e)
+                    print("Unable to get old names from ygoprodeck:", e)
 
-            collection_df.drop("Name", axis=1, inplace=True)
+        collection_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
+        collection_df.rename(columns={"match": "Name"}, inplace=True)
+        collection_df = (
+            collection_df.groupby(collection_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
+        )
 
-        collection_df = collection_df.rename(columns={"match": "Name"})
-        columns = list(collection_df.columns.difference(["Count"]))
-        collection_df = collection_df.dropna(how="all", axis=1).dropna(how="all", axis=0)
-        collection_df = collection_df.groupby(columns, dropna=False).sum().reset_index()
-        if merge_data:
-            collection_df = collection_df.merge(card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left")
+        if card_data:
+            collection_df = collection_df[
+                collection_df.columns.difference(card_df.columns).join(["Name"], how="outer")
+            ].merge(card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left")
+
         collections[i] = collection_df
 
     print("\nCollection data processed.")
-    if len(collections) == 1:
-        return collections[0]
-    else:
-        return collections
+    return collections[0] if len(collections) == 1 else collections
 
 
 # User decks

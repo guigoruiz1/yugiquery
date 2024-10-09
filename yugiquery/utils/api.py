@@ -787,19 +787,25 @@ def extract_fulltext(x: List[Dict[str, Any] | str], multiple: bool = False) -> s
     Returns:
         str or Tuple[str] or np.nan: The extracted fulltext(s).
     """
+
+    def clean_text(text: str) -> str:
+        # Regex to remove any substring of the form (* Archetype/Series)
+        cleaned = re.sub(r"\(.*\s(?:Archetype|Series)\)", "", text)
+        return cleaned.strip("\u200e")
+
     if len(x) > 0:
         if isinstance(x[0], int):
             return str(x[0])
         elif "fulltext" in x[0]:
             if multiple:
-                return tuple(sorted([i["fulltext"] for i in x]))
+                return tuple(sorted([clean_text(i["fulltext"]) for i in x]))
             else:
-                return x[0]["fulltext"].strip("\u200e")
+                return clean_text(x[0]["fulltext"])
         else:
             if multiple:
-                return tuple(sorted(x))
+                return tuple(sorted([clean_text(i) for i in x]))
             else:
-                return x[0].strip("\u200e")
+                return clean_text(x[0])
     else:
         return np.nan
 
