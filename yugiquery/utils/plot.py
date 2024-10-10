@@ -21,7 +21,7 @@ from typing import (
 # Third-party imports
 import numpy as np
 import pandas as pd
-from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb
+from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb, rgb_to_hsv, hex2color
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (
@@ -30,6 +30,8 @@ from matplotlib.ticker import (
     FuncFormatter,
     MaxNLocator,
 )
+import matplotlib.patches as mpatches
+from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
@@ -174,7 +176,7 @@ def generate_rate_grid(
 
         yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
         cumsum_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 5 + 1))  # Test
-        func = lambda x, pos: "" if np.isclose(x, 0) else int(x)
+        func = lambda x, pos: "" if np.isclose(x, 0) else f"{round(x):.0f}"
         cumsum_ax.yaxis.set_major_formatter(FuncFormatter(func))
 
     else:
@@ -248,6 +250,7 @@ def generate_rate_grid(
         f = lambda x: l2[0] + (x - l[0]) / (l[1] - l[0]) * (l2[1] - l2[0])
         ticks = f(yearly_ax.get_yticks())
         monthly_ax.yaxis.set_major_locator(FixedLocator(ticks))
+        monthly_ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{round(x):.0f}"))
         monthly_ax.yaxis.set_minor_locator(AutoMinorLocator())
         axes.append(monthly_ax)
 
@@ -283,7 +286,7 @@ def rate_subplots(
         matplotlib.figure.Figure: The generated figure.
     """
     if figsize is None:
-        figsize = (12, len(df.columns) * 2 * (1 + cumsum))
+        figsize = (14, len(df.columns) * 3 * (1 + cumsum))
 
     fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
     fig.suptitle(
@@ -339,7 +342,7 @@ def rate_subplots(
                             (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
                             ax.text(
                                 (x0 + x1) / 2 + 25,
-                                (0.02 if cumsum else 0.98),
+                                (0.03 if cumsum else 0.97),
                                 idx,
                                 c="maroon",
                                 ha="left",
@@ -352,7 +355,7 @@ def rate_subplots(
         if 2 * c + 1 >= cmap.N:
             c = 0
 
-    fig.subplots_adjust()
+    fig.subplots_adjust(top=1 - 1 / fig.get_figheight())
     return fig
 
 
