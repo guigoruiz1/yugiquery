@@ -21,6 +21,7 @@ from typing import (
 # Third-party imports
 import numpy as np
 import pandas as pd
+from cycler import cycler
 from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb, rgb_to_hsv, hex2color
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -58,6 +59,25 @@ colors_dict = load_json(dirs.get_asset("json", "colors.json"))
 # ========= #
 # Functions #
 # ========= #
+
+
+def is_light_color(color, threshold=0.6):
+    # Convert color to RGB if it's in hex format
+    if isinstance(color, str):
+        color = hex2color(color)
+    # Convert RGB to HSV
+    hsv = rgb_to_hsv(color)
+    # Check the brightness (value in HSV)
+    return hsv[2] > threshold
+
+
+def make_autopct(values):
+    def my_autopct(pct):
+        total = sum(values)
+        val = int(round(pct * total / 100.0))
+        return f"{pct:.0f}%\n({val})"
+
+    return my_autopct
 
 
 def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:
@@ -125,10 +145,10 @@ def adjust_yaxis(ax: plt.Axes, ydif: float, v: float) -> None:
 
 
 def generate_rate_grid(
-    dy: pd.DataFrame,
+    df: pd.DataFrame,
     ax: plt.Axes,
     xlabel: str = "Date",
-    size: str = "150%",
+    size_pct: str | float = "150%",
     pad: int = 0,
     colors: List[str] | None = None,
     cumsum: bool = True,
@@ -139,10 +159,10 @@ def generate_rate_grid(
     Generate a grid of subplots displaying yearly and monthly rates from a Pandas DataFrame.
 
     Args:
-        dy (pd.DataFrame): A Pandas DataFrame containing the data to be plotted.
+        df (pd.DataFrame): A Pandas DataFrame containing the data to be plotted.
         ax (AxesSubplot): The subplot onto which to plot the grid.
         xlabel (str, optional): The label to be used for the x-axis. Default value is 'Date'.
-        size (str, optional): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
+        size_pct (float, optional): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
         pad (int, optional): The amount of padding between the two subplots in pixels. Default value is 0.
         colors (List[str] | None, optional): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
         cumsum (bool, optional): If True, plot the cumulative sum of the data. If False, plot only the yearly and monthly rates. Default value is True.
@@ -158,14 +178,14 @@ def generate_rate_grid(
     if cumsum:
         cumsum_ax = ax
         divider = make_axes_locatable(axes=cumsum_ax)
-        yearly_ax = divider.append_axes(position="bottom", size=size, pad=pad)
+        yearly_ax = divider.append_axes(position="bottom", size=size_pct, pad=pad)
         cumsum_ax.figure.add_axes(yearly_ax)
         cumsum_ax.set_xticklabels([])
         axes = [cumsum_ax, yearly_ax]
 
-        y = dy.fillna(0).cumsum()
+        y = df.fillna(0).cumsum()
 
-        if len(dy.columns) == 1:
+        if len(df.columns) == 1:
             cumsum_ax.plot(y, label="Cummulative", c=colors[0], antialiased=True)
             if fill:
                 cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
@@ -174,8 +194,8 @@ def generate_rate_grid(
             cumsum_ax.stackplot(y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
             cumsum_ax.set_ylabel(f"Cumulative {y.index.name.lower()}")
 
-        yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
-        cumsum_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 5 + 1))  # Test
+        yearly_ax.set_ylabel(f"Yearly {df.index.name.lower()} rate")
+        cumsum_ax.legend(loc="upper left", ncols=int(len(df.columns) / 5 + 1))  # Test
         func = lambda x, pos: "" if np.isclose(x, 0) else f"{round(x):.0f}"
         cumsum_ax.yaxis.set_major_formatter(FuncFormatter(func))
 
@@ -183,14 +203,14 @@ def generate_rate_grid(
         yearly_ax = ax
         axes = [yearly_ax]
 
-        if len(dy.columns) == 1:
-            yearly_ax.set_ylabel(f"{dy.columns[0]}\nYearly {dy.index.name.lower()} rate")
+        if len(df.columns) == 1:
+            yearly_ax.set_ylabel(f"{df.columns[0]}\nYearly {df.index.name.lower()} rate")
         else:
-            yearly_ax.set_ylabel(f"Yearly {dy.index.name.lower()} rate")
+            yearly_ax.set_ylabel(f"Yearly {df.index.name.lower()} rate")
 
-    if len(dy.columns) == 1:
+    if len(df.columns) == 1:
         monthly_ax = yearly_ax.twinx()
-        monthly_rate = dy.resample("ME").sum()
+        monthly_rate = df.resample("ME").sum()
         monthly_ax.bar(
             x=monthly_rate.index,
             height=monthly_rate.T.values[0],
@@ -199,9 +219,9 @@ def generate_rate_grid(
             color=colors[2],
             antialiased=True,
         )
-        monthly_ax.set_ylabel(f"Monthly {dy.index.name.lower()} rate")
+        monthly_ax.set_ylabel(f"Monthly {df.index.name.lower()} rate")
         monthly_ax.legend(loc="upper right")
-        yearly_rate = dy.resample("YE").sum()
+        yearly_rate = df.resample("YE").sum()
 
         # Remove the last year if it is incomplete
         if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
@@ -214,13 +234,13 @@ def generate_rate_grid(
             c=colors[1],
             antialiased=True,
         )
-        yearly_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 8 + 1))
+        yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
     else:
-        dy2 = dy.resample("YE").sum()
+        dy2 = df.resample("YE").sum()
         yearly_ax.stackplot(dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True)
         if not cumsum:
-            yearly_ax.legend(loc="upper left", ncols=int(len(dy.columns) / 8 + 1))
+            yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
     if xlabel is not None:
         yearly_ax.set_xlabel(xlabel)
@@ -230,8 +250,8 @@ def generate_rate_grid(
     for temp_ax in axes:
         temp_ax.set_xlim(
             [
-                dy.index.min() - pd.Timedelta(weeks=13),
-                dy.index.max() + pd.Timedelta(weeks=52),
+                df.index.min() - pd.Timedelta(weeks=13),
+                df.index.max() + pd.Timedelta(weeks=52),
             ]
         )
         temp_ax.xaxis.set_minor_locator(AutoMinorLocator())
@@ -243,7 +263,7 @@ def generate_rate_grid(
 
     yearly_ax.tick_params(axis="x", rotation=45)
 
-    if len(dy.columns) == 1:
+    if len(df.columns) == 1:
         align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
         l = yearly_ax.get_ylim()
         l2 = monthly_ax.get_ylim()
@@ -257,7 +277,7 @@ def generate_rate_grid(
     return axes
 
 
-def rate_subplots(
+def rate(
     df: pd.DataFrame,
     figsize: Tuple[int, int] | None = None,
     title: str = "",
@@ -267,170 +287,134 @@ def rate_subplots(
     vlines: pd.DataFrame | None = None,
     fill: bool = False,
     limit_year: bool = False,
+    subplots: bool = False,
+    hspace: float = 0.05,
 ) -> plt.figure:
     """
-    Creates a grid of subplots to visualize rates of change over time of multiple variables in a pandas DataFrame.
+    Creates a visualization of rate changes over time for multiple variables in a DataFrame.
 
     Args:
-        df (pd.DataFrame): The pandas DataFrame containing the data to plot.
-        figsize (Tuple[int, int] | None, optional): The size of the figure to create. If None, default size is (16, len(df.columns)*2*(1+cumsum)).
-        title (str, optional): The title of the figure. Default is an empty string.
-        colors (List[str] | None, optional): The list of colors to use for the lines. If None, default colors are used.
-        cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
-        bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
-        vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
-        fill (bool, optional): If True, fill the area under the cumulative sum curve. Default is False.
-        limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
+        df (pd.DataFrame): The DataFrame containing the data to plot.
+        figsize (Tuple[int, int] | None, optional): Size of the figure. Defaults to None.
+        title (str, optional): Title of the plot. Defaults to an empty string.
+        colors (List[str] | None, optional): List of colors for the plot lines. Defaults to None.
+        cumsum (bool, optional): Whether to plot cumulative sum of data. Defaults to True.
+        bg (pd.DataFrame | None, optional): Data for background shading. Defaults to None.
+        vlines (pd.DataFrame | None, optional): Data for vertical lines. Defaults to None.
+        fill (bool, optional): Whether to fill the area under the cumulative sum curve. Defaults to False.
+        limit_year (bool, optional): Whether to limit the x-axis to the next full year. Defaults to False.
+        subplots (bool, optional): Whether to create a grid of subplots for each column in the DataFrame. Defaults to False.
+        hspace (float, optional): Height space between subplots. Defaults to 0.5.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-    if figsize is None:
-        figsize = (14, len(df.columns) * 3 * (1 + cumsum))
+    num_cols = len(df.columns)
+    top_space = 0.5
 
-    fig, axes = plt.subplots(nrows=len(df.columns), ncols=1, figsize=figsize, sharex=True)
+    if figsize is None:
+        figsize = (14, num_cols * 3 * (1 + cumsum)) if subplots else (14, 6)
+
+    # Setup figure and gridspec
+    fig = plt.figure(figsize=figsize)
+    if subplots:
+        gs = GridSpec(num_cols, 1, height_ratios=[3] * num_cols, hspace=hspace)
+    else:
+        gs = GridSpec(1, 1, hspace=hspace)
+
     fig.suptitle(
-        f'{title if title is not None else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name is not None else ""}',
+        f'{title if title else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
         y=1,
     )
 
-    if colors is None:
-        cmap = plt.cm.tab20
-    else:
-        if len(colors) == len(df.columns):
-            cmap = ListedColormap([adjust_lightness(color=c, amount=i * 0.5 + 0.75) for c in colors for i in (0, 1)])
-        else:
-            cmap = ListedColormap(colors)
+    if colors is None and subplots:
+        colors = plt.cm.get_cmap("tab20").colors
 
-    if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
-        bg = bg.copy()
-        bg["end"] = bg["end"].fillna(df.index.max())
-        sec_ax = axes[0].secondary_xaxis("top")
-        sec_ax.set_xticks(bg.mean(axis=1))
-        sec_ax.set_xticklabels(bg.index)
-
-    c = 0
+    # Create subplots and apply shading, vertical lines
+    axes = []
     for i, col in enumerate(df.columns):
+        ax = fig.add_subplot(gs[i] if subplots else gs[0])
         sub_axes = generate_rate_grid(
-            dy=df[col].to_frame(),
-            ax=axes[i],
-            colors=[cmap(2 * c), cmap(2 * c), cmap(2 * c + 1)],
-            size="100%",
-            xlabel="Date" if (i + 1) == len(df.columns) else None,
+            df=df[col].to_frame() if subplots else df,
+            ax=ax,
+            colors=(
+                [colors[2 * i % len(colors)], colors[2 * i % len(colors)], colors[(2 * i + 1) % len(colors)]]
+                if subplots
+                else colors
+            ),
             cumsum=cumsum,
             fill=fill,
             limit_year=limit_year,
+            size_pct="100%" if subplots else "150%",
+            xlabel="Date" if (i + 1) == len(df.columns) else None,
         )
+        axes.extend(sub_axes[:2])
+        if not subplots:
+            break
 
-        for ix, ax in enumerate(sub_axes[:2]):
-            if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
-                for idx, row in bg.iterrows():
-                    if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                        filled_poly = ax.axvspan(
-                            row["begin"],
-                            row["end"],
-                            alpha=0.1,
-                            color=colors_dict[idx],
-                            zorder=-1,
-                        )
+    # Add background shading and vertical lines separately
+    if bg is not None and "end" in bg:
+        bg["end"] = bg["end"].fillna(df.index.max())
+    add_background_shading(axes=axes, bg=bg)
+    add_vertical_lines(axes=axes, vlines=vlines, cumsum=cumsum)
 
-            if vlines is not None:
-                for idx, row in vlines.items():
-                    if row > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                        line = ax.axvline(row, ls="-.", c="maroon", lw=1)
-                        if i == 0 and ix == 0:
-                            (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
-                            ax.text(
-                                (x0 + x1) / 2 + 25,
-                                (0.03 if cumsum else 0.97),
-                                idx,
-                                c="maroon",
-                                ha="left",
-                                va=("bottom" if cumsum else "top"),
-                                rotation=90,
-                                transform=ax.get_xaxis_transform(),
-                            )
-
-        c += 1
-        if 2 * c + 1 >= cmap.N:
-            c = 0
-
-    fig.subplots_adjust(top=1 - 1 / fig.get_figheight())
+    fig.subplots_adjust(top=1 - top_space / fig.get_figheight())
     return fig
 
 
-def rate(
-    dy: pd.DataFrame,
-    figsize: Tuple[int, int] = (14, 6),
-    title: str | None = None,
-    colors: List[str] | None = None,
-    cumsum: bool = True,
-    bg: pd.DataFrame | None = None,
-    vlines: pd.DataFrame | None = None,
-    fill: bool = False,
-    limit_year: bool = False,
-) -> plt.figure:
+def add_background_shading(axes: List[plt.Axes], bg: pd.DataFrame, colors: List | None = None) -> None:
     """
-    Creates a single plot to visualize the rate of change over time of a single variable in a pandas DataFrame.
+    Add background shading to the subplots.
 
     Args:
-        dy (pd.DataFrame): The pandas DataFrame containing the data to plot.
-        figsize (Tuple[int, int], optional): The size of the figure to create. Default is (16, 6).
-        title (str | None, optional): The title of the figure. Default is None.
-        colors (List[str] | None, optional): The list of colors to use for the lines. If None, default colors are used.
-        cumsum (bool, optional): Whether to plot the cumulative sum of the data. Default is True.
-        bg (pd.DataFrame | None, optional): A DataFrame containing the background shading data. Default is None.
-        vlines (pd.DataFrame | None, optional): A DataFrame containing the vertical line data. Default is None.
-        fill (bool, optional): If True, fill the area under the cumulative sum curve. Default is False.
-        limit_year (bool, optional): If True, limit the x-axis to the next full year. Default is False.
-
-    Returns:
-        matplotlib.figure.Figure: The generated figure.
+        axes (List[plt.Axes]): List of axes to apply background shading.
+        bg (pd.DataFrame): DataFrame for background shading. Must contain 'begin' and 'end' columns.
+        colors (list | None, optional): Colormap for the shading. If None, colors_dict is used. Defaults to None.
     """
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot()
-    fig.suptitle(
-        f'{title if title is not None else dy.index.name.capitalize()}{f" by {dy.columns.name.lower()}" if dy.columns.name is not None else ""}'
-    )
-
-    axes = generate_rate_grid(dy=dy, ax=ax, size="100%", colors=colors, cumsum=cumsum, fill=fill, limit_year=limit_year)
-    if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
-        bg = bg.copy()
-        bg["end"] = bg["end"].fillna(dy.index.max())
+    if all(col in bg.columns for col in ["begin", "end"]):
         sec_ax = axes[0].secondary_xaxis("top")
         sec_ax.set_xticks(bg.mean(axis=1))
         sec_ax.set_xticklabels(bg.index)
-
-    for i, ax in enumerate(axes[:2]):
-        if bg is not None and all(col in bg.columns for col in ["begin", "end"]):
+        for ix, ax in enumerate(axes):
+            c = 0
             for idx, row in bg.iterrows():
                 if row["end"] > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                    filled_poly = ax.axvspan(
+                    ax.axvspan(
                         row["begin"],
                         row["end"],
                         alpha=0.1,
-                        color=colors_dict[idx],
+                        color=(colors[c] if colors is not None else colors_dict.get(idx, f"C{c}")),
                         zorder=-1,
                     )
+                    c += 1
 
-        if vlines is not None:
-            for idx, row in vlines.items():
-                if row > pd.to_datetime(ax.get_xlim()[0], unit="d"):
-                    line = ax.axvline(row, ls="-.", c="maroon", lw=1)
-                    if i == 0:
-                        (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
-                        ax.text(
-                            (x0 + x1) / 2 + 25,
-                            (0.02 if cumsum or len(dy.columns) > 1 else 0.98),
-                            idx,
-                            c="maroon",
-                            ha="left",
-                            va=("bottom" if cumsum or len(dy.columns) > 1 else "top"),
-                            rotation=90,
-                            transform=ax.get_xaxis_transform(),
-                        )
 
-    return fig
+def add_vertical_lines(axes: List[plt.Axes], vlines: pd.DataFrame, color="maroon", cumsum: bool = False) -> None:
+    """
+    Add vertical lines to the subplots.
+
+    Args:
+        axes (List[plt.Axes]): List of axes to apply vertical lines.
+        vlines (pd.DataFrame): DataFrame for vertical lines.
+        color (str): Color for the vertical lines.
+        cumsum (bool, optional): Whether cumulative sum is being plotted. Defaults to False.
+    """
+    for ix, ax in enumerate(axes):
+        for idx, row in vlines.items():
+            if row > pd.to_datetime(ax.get_xlim()[0], unit="d"):
+                line = ax.axvline(row, ls="-.", c=color, lw=1)
+                if ix == 0:
+                    (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
+                    ax.text(
+                        (x0 + x1) / 2 + 25,
+                        (0.05 if cumsum else 0.95),
+                        idx,
+                        c=color,
+                        ha="left",
+                        va=("bottom" if cumsum else "top"),
+                        rotation=90,
+                        transform=ax.get_xaxis_transform(),
+                    )
 
 
 def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> plt.figure:
@@ -519,4 +503,309 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     ax.set_axisbelow(True)
     plt.xticks(rotation=30)
     fig.tight_layout()
+    return fig
+
+
+# Deck
+def deck_distribution(deck_df, column, spacing=(3, 1), size=None, colors=None, **kwargs):
+    decks = deck_df[deck_df[column].notna()]["Deck"].unique()
+    max_label_len = max([len(x) for x in deck_df[column].dropna().unique()])
+    mean_labels = deck_df.groupby("Deck")[column].nunique()
+    mean_labels = mean_labels[mean_labels > 0].mean()
+    max_labels = deck_df.groupby("Deck")[column].nunique().max()
+    sorted_sections = deck_df["Section"].value_counts().index.tolist()
+
+    # Font sizes
+    label_font_size = kwargs.get("label_font_size", 14)
+    title_font_size = kwargs.get("title_font_size", 20)
+    legend_font_size = kwargs.get("legend_font_size", 12)
+
+    # Set constants for plot sizes and spacing
+    plot_width = 6 if size is None else size[0]  # Width of each plot
+    plot_height = max(mean_labels / 2, 0.5) if size is None else size[1]  # Fixed height for each plot
+    horizontal_space = spacing[0] + max(2 * int(max_label_len / 10) - 3, 0)  # Fixed horizontal space between plots
+    vertical_space = spacing[1]  # Fixed vertical space between plots
+    header_space = kwargs.get("header_space", 1)  # Fixed space between figure top and subplots
+
+    # Calculate number of columns and rows
+    cols = min(kwargs.get("max_cols", 2), len(decks))
+    rows = int(np.ceil(len(decks) / cols))
+
+    # Dynamically calculate the figure size based on the number of rows and columns
+    fig_width = plot_width * cols + (cols - 1) * horizontal_space
+    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
+
+    fig = plt.figure(figsize=(fig_width, fig_height))
+    gs = GridSpec(
+        nrows=rows,
+        ncols=cols,
+        wspace=horizontal_space / plot_width,  # Adjusted for figure width
+        hspace=vertical_space / plot_height,  # Adjusted for plot height
+    )
+
+    if colors is None:
+        plot_colors = {
+            section: colors_dict[c]
+            for section, c in zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Counter"])
+        }
+    else:
+        section_colors = {
+            section: (
+                pd.Series(
+                    colors[section],
+                    index=sorted(deck_df[column].dropna().unique()) if isinstance(colors[section], list) else [0],
+                )
+            )
+            for section in sorted_sections
+        }
+
+    hatches = kwargs.get("hatch", [""] * len(sorted_sections))
+    hatches = pd.Series(hatches, index=sorted_sections)
+
+    # Plotting each deck's data
+    temp = deck_df.copy()
+    for i, deck in enumerate(decks):
+        temp_df = temp[temp["Deck"] == deck].groupby(["Section", column])["Count"].sum().unstack(0)
+        temp_df = temp_df[temp_df.sum().sort_values(ascending=False).index]
+
+        if not temp_df.empty:
+            ax = fig.add_subplot(gs[i // cols, i % cols])
+            num_bars = len(temp_df)
+            # Scale factor to adjust bar height based on the maximum number of bars
+            bar_height_scale = (num_bars) / (2 * max_labels)
+            if colors is not None:
+                plot_colors = {
+                    section: (
+                        section_colors[section].loc[temp_df[section].index]
+                        if len(section_colors[section]) > 1
+                        else section_colors[section]
+                    )
+                    for section in temp_df.columns
+                }
+
+            bar_ax = temp_df.plot.barh(
+                ax=ax,
+                stacked=True,
+                legend=False,
+                fontsize=label_font_size,
+                color=plot_colors,
+                width=bar_height_scale,
+                edgecolor=kwargs.get("edgecolor", "w"),
+            )
+            for j, bar in enumerate(bar_ax.patches):
+                hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
+                bar.set_hatch(hatches.iloc[hatch_index])
+
+            ax.set_ylabel("")
+            ax.set_xlabel("Count", fontsize=label_font_size)
+            ax.set_title(deck, fontsize=label_font_size)
+            ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
+            num_bars = len(temp_df)
+            ax.set_ylim(-0.5, num_bars - 0.5)
+
+    # Adjust margins and add suptitle
+    top = 1 - header_space / fig_height
+    legend_y = top + (1 - top) / 2
+
+    fig.subplots_adjust(
+        top=top,
+        bottom=0,
+    )
+
+    if colors is None:
+        handles = [
+            mpatches.Patch(facecolor=plot_colors[section], edgecolor="w", hatch=hatches[section], label=section)
+            for section in sorted_sections
+        ]
+    else:
+        handles = [
+            mpatches.Patch(facecolor=section_colors[section].iloc[0], edgecolor="w", hatch=hatches[section], label=section)
+            for section in sorted_sections
+        ]
+
+    # Add legend with a fixed position
+    fig.legend(
+        handles=handles,
+        loc="center",
+        fontsize=legend_font_size,
+        ncol=3,
+        bbox_to_anchor=(
+            0.5,
+            legend_y,
+        ),
+        borderaxespad=0.5,
+        frameon=False,
+    )
+    fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1)
+
+    return fig
+
+
+def deck_composition(deck_df, spacing=(2, 1), size=(5, 5), ring=0.3, **kwargs):
+    temp = deck_df.copy()
+    temp["Primary type"] = deck_df["Primary type"].fillna(deck_df["Card type"])
+    main_df = temp[temp["Section"] == "Main"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
+    extra_df = temp[temp["Section"] == "Extra"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
+    side_df = temp[temp["Section"] == "Side"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
+
+    # Font sizes
+    label_font_size = kwargs.get("label_font_size", 14)
+    title_font_size = kwargs.get("title_font_size", 16)
+    suptitle_font_size = kwargs.get("suptitle_font_size", 20)
+    legend_font_size = kwargs.get("legend_font_size", 12)
+
+    plot_width = size[0]  # Width of each plot
+    plot_height = size[1]  # Fixed height for each plot
+    horizontal_space = spacing[0]  # Fixed horizontal space between plots
+    vertical_space = spacing[1]  # Fixed vertical space between plots
+    header_space = kwargs.get("header_space", 2.5)  # Fixed space between top and first row of plots
+
+    decks = deck_df["Deck"].unique()
+    cols = min(kwargs.get("min_cols", 3), len(decks))
+    rows = int(np.ceil(len(decks) / cols))
+
+    colors_main = [colors_dict[type] for type in main_df.index]
+    colors_extra = [colors_dict[type] for type in extra_df.index]
+    colors_remaining = side_df.index.difference(main_df.index.union(extra_df.index))
+
+    # Dynamically calculate the figure size based on the number of rows and columns
+    fig_width = plot_width * cols + (cols - 1) * horizontal_space
+    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
+
+    fig = plt.figure(figsize=(fig_width, fig_height))
+    gs = GridSpec(
+        nrows=rows,
+        ncols=cols,
+        wspace=horizontal_space / plot_width,  # Adjusted for figure width
+        hspace=vertical_space / plot_height,  # Adjusted for plot height
+    )
+
+    for i, deck in enumerate(decks):
+        # Create sub-grid for pie and bar plots
+        sub_gs = gs[(i // cols), i % cols].subgridspec(2, 1, height_ratios=[9, 1], hspace=0.2)
+
+        # Main plot in the upper sub-grid
+        ax_pie = fig.add_subplot(sub_gs[0, 0])
+        wedges1, texts1, autotexts1 = ax_pie.pie(
+            main_df[deck].dropna(),
+            autopct=make_autopct(main_df[deck].dropna()),
+            startangle=90,
+            radius=1,
+            wedgeprops=dict(width=ring, edgecolor="w"),
+            pctdistance=0.85,
+            colors=np.array(colors_main)[main_df[deck].notna()],
+            counterclock=False,
+        )
+
+        if deck in extra_df.columns:
+            wedges2, texts2, autotexts2 = ax_pie.pie(
+                extra_df[deck].dropna(),
+                autopct=make_autopct(extra_df[deck].dropna()),
+                startangle=90,
+                radius=1 - ring,
+                wedgeprops=dict(width=ring, edgecolor="w"),
+                pctdistance=0.75,
+                colors=np.array(colors_extra)[extra_df[deck].notna()],
+                counterclock=False,
+            )
+
+        for wedge, text in zip(wedges1, autotexts1):
+            color = wedge.get_facecolor()[:3]
+            text.set_color("black" if is_light_color(color) else "white")
+        for wedge, text in zip(wedges2, autotexts2):
+            color = wedge.get_facecolor()[:3]
+            text.set_color("black" if is_light_color(color) else "white")
+
+        ax_pie.text(
+            0,
+            0,
+            f"Main: {main_df[deck].sum()}\nExtra: {extra_df[deck].sum()}",
+            ha="center",
+            va="center",
+            fontsize=label_font_size,
+        )
+        ax_pie.set_title(deck, fontsize=title_font_size)
+        ax_pie.set_xlim(-1, 1)
+        ax_pie.set_ylim(-1, 1)
+        ax_pie.set_aspect("equal", adjustable="box")
+
+        ax_bar = fig.add_subplot(sub_gs[1, 0])  # Bar plot in the odd row
+        ax_bar.axis("off")
+        # Create bar plot in the lower sub-grid
+        if deck in side_df and side_df[deck] is not None:
+            sorted_side = side_df[deck].sort_values(ascending=True).dropna()
+            side_total = sorted_side.sum()
+            left = 0
+            height = 0.1
+            for j, (name, count) in enumerate(sorted_side.items()):
+                left -= count
+                color = colors_dict[name]
+                bc = ax_bar.barh(
+                    0,
+                    width=count,
+                    height=height,
+                    left=left,
+                    color=color,
+                    edgecolor="white",
+                )
+                ax_bar.bar_label(
+                    bc,
+                    labels=[f"{count/side_total*100:.0f}%\n({count})"],
+                    label_type="center",
+                    color="black" if is_light_color(color) else "white",
+                )
+            ax_bar.set_title(f"Side: {side_total}", fontsize=label_font_size)
+            ax_bar.set_xlim(-side_total, 0)
+            ax_bar.set_ylim(-0.05, 0.05)
+            ax_bar.set_aspect(side_total, adjustable="box")
+
+        else:
+            ax_bar.set_title(f"Side: 0", fontsize=label_font_size)
+
+    # Create custom legend handles for main_df and extra_df
+    colors_main += [
+        colors_dict[type]
+        for type in colors_remaining
+        if type not in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
+    ]
+    colors_main += [
+        colors_dict[type]
+        for type in colors_remaining
+        if type in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
+    ]
+    handles1 = [mpatches.Patch(color=colors_dict[type], label=type) for type in main_df.index]
+    handles2 = [mpatches.Patch(color=colors_dict[type], label=type) for type in extra_df.index]
+
+    # Adjust the legend position
+    top = 1 - header_space / fig_height
+    legend_y = top + 3 * (1 - top) / 5
+
+    fig.subplots_adjust(top=top, bottom=0)
+
+    fig.legend(
+        handles=handles1,
+        title="Main deck",
+        loc="lower center",
+        fontsize=legend_font_size,
+        ncol=len(handles1),
+        bbox_to_anchor=(0.5, legend_y),
+        frameon=False,
+        borderaxespad=0,
+        title_fontsize=legend_font_size + 2,
+    )
+    fig.legend(
+        handles=handles2,
+        title="Extra deck",
+        loc="upper center",
+        fontsize=legend_font_size,
+        ncol=len(handles2),
+        bbox_to_anchor=(0.5, legend_y),
+        frameon=False,
+        borderaxespad=0,
+        title_fontsize=legend_font_size + 2,
+    )
+
+    fig.suptitle("Deck composition", fontsize=suptitle_font_size, y=1)
+
     return fig
