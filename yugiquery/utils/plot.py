@@ -516,8 +516,19 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     return fig
 
 
-# Deck
-def deck_composition(deck_df, grid_spacing=(2, 1), grid_cols=3, plot_size=(5, 5), ring_radius=0.3, **kwargs) -> plt.Figure:
+# =================== #
+# Deck specific plots #
+# =================== #
+
+
+def deck_composition(
+    deck_df: pd.DataFrame,
+    grid_spacing: Tuple[int, int] = (2, 1),
+    grid_cols: int = 3,
+    plot_size: Tuple[int, int] = (5, 5),
+    ring_radius: float = 0.3,
+    **kwargs,
+) -> plt.Figure:
     """
     Create a grid of pie charts displaying the composition of each deck in a DataFrame.
 
@@ -550,6 +561,7 @@ def deck_composition(deck_df, grid_spacing=(2, 1), grid_cols=3, plot_size=(5, 5)
     horizontal_space = grid_spacing[0]  # Fixed horizontal space between plots
     vertical_space = grid_spacing[1]  # Fixed vertical space between plots
     header_space = (2 * legend_font_size + 2) / 10  # Fixed space between top and first row of plots
+    pctdistances = kwargs.get("pctdistances", [0.85, 0.75])
 
     decks = deck_df["Deck"].unique()
     cols = min(grid_cols, len(decks))
@@ -591,7 +603,7 @@ def deck_composition(deck_df, grid_spacing=(2, 1), grid_cols=3, plot_size=(5, 5)
             startangle=90,
             radius=1,
             wedgeprops=dict(width=ring_radius, edgecolor="w"),
-            pctdistance=0.85,
+            pctdistance=pctdistances[0],
             colors=np.array(colors_main)[main_df[deck].notna()],
             counterclock=False,
         )
@@ -603,7 +615,7 @@ def deck_composition(deck_df, grid_spacing=(2, 1), grid_cols=3, plot_size=(5, 5)
                 startangle=90,
                 radius=1 - ring_radius,
                 wedgeprops=dict(width=ring_radius, edgecolor="w"),
-                pctdistance=0.75,
+                pctdistance=pctdistances[1],
                 colors=np.array(colors_extra)[extra_df[deck].notna()],
                 counterclock=False,
             )
@@ -710,7 +722,13 @@ def deck_composition(deck_df, grid_spacing=(2, 1), grid_cols=3, plot_size=(5, 5)
 
 
 def deck_distribution(
-    deck_df, column, grid_spacing=(3, 1), grid_cols=2, plot_size=None, colors=None, **kwargs
+    deck_df: pd.DataFrame,
+    column: str,
+    grid_spacing: Tuple[int, int] = (3, 1),
+    grid_cols: int = 2,
+    plot_size: Tuple[int, int] | None = None,
+    colors: Dict[str, str] | List[str] | None = None,
+    **kwargs,
 ) -> plt.Figure:
     """
     Create a grid of horizontal bar charts displaying the distribution of a specified column in each deck.
@@ -720,8 +738,8 @@ def deck_distribution(
         column (str): The column to be plotted.
         grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (3, 1).
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
-        plot_size (Tuple[int, int], optional): The width and height of each plot. Defaults to None.
-        colors (List[str] | None, optional): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Defaults to None.
+        plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
+        colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         **kwargs: Additional keyword arguments to be passed to the function.
 
     Returns:
@@ -767,14 +785,14 @@ def deck_distribution(
 
     if colors is None:
         section_colors = {
-            section: colors_dict[c]
-            for section, c in zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Counter"])
+            section: colors_dict.get(c, f"C{i}")
+            for i, (section, c) in enumerate(zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Counter"]))
         }
     else:
         section_colors = {
             section: (
                 pd.Series(
-                    colors[section] if isinstance(colors, dict) else colors,
+                    colors.get(section, f"C{i}") if isinstance(colors, dict) else colors,
                     index=(
                         sorted(deck_df[column].dropna().unique())
                         if ((isinstance(colors, dict) and isinstance(colors[section], list)) or isinstance(colors, list))
@@ -782,7 +800,7 @@ def deck_distribution(
                     ),
                 )
             )
-            for section in sorted_sections
+            for i, section in enumerate(sorted_sections)
         }
 
     hatches = kwargs.get("hatch", [""] * len(sorted_sections))
@@ -867,7 +885,16 @@ def deck_distribution(
     return fig
 
 
-def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_cols=2, **kwargs) -> plt.Figure:
+def deck_stem(
+    deck_df: pd.DataFrame,
+    y1: str,
+    y2: str | None = None,
+    plot_size: Tuple[int, int] | None = None,
+    grid_spacing: Tuple[int, int] = (2, 1),
+    grid_cols: int = 2,
+    colors: Dict[str, str] | List[str] | None = None,
+    **kwargs,
+) -> plt.Figure:
     """
     Create a grid of stem plots displaying the distribution of a specified column in each deck.
 
@@ -875,9 +902,10 @@ def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_co
         deck_df (pd.DataFrame): The DataFrame containing the deck data.
         y1 (str): The first column to be plotted.
         y2 (str, optional): The second column to be plotted. Defaults to None.
-        plot_size (Tuple[int, int], optional): The width and height of each plot. Defaults to None.
+        plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
         grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (2, 1).
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
+        colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         **kwargs: Additional keyword arguments to be passed to the function.
 
     Returns:
@@ -915,6 +943,17 @@ def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_co
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
+    if colors is None:
+        c = {
+            section: colors_dict.get(c, f"C{i}")
+            for i, (section, c) in enumerate(zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Counter"]))
+        }
+    else:
+        c = {
+            section: (colors.get(section, f"C{i}") if isinstance(colors, dict) else colors[i])
+            for i, section in enumerate(sorted_sections)
+        }
+
     fig = plt.figure(figsize=(fig_width, fig_height))
     gs = GridSpec(
         nrows=rows,
@@ -922,8 +961,7 @@ def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_co
         wspace=horizontal_space / plot_width,  # Adjusted for figure width
         hspace=vertical_space / plot_height,  # Adjusted for plot height
     )
-    m = kwargs.get("markers", ["s", "o", "^"])
-    c = kwargs.get("colors", ["C0", "C1", "C2"])
+    m = kwargs.get("markers", ["s", "o", "+"])
     for i, deck in enumerate(decks):
         ax = fig.add_subplot(gs[i // cols, i % cols])
         max_idx = 0
@@ -949,7 +987,20 @@ def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_co
                 if index.isna().any():
                     hasna = True
                 series.index = index.fillna(max_idx + steps[1])
-                stem = ax.stem(series.index, series, linefmt=f"{c[j]}:", markerfmt=f"{c[j]}{m[(j)]}", basefmt=f"{c[j]}:")
+                stem = ax.stem(
+                    series.index,
+                    series,
+                    linefmt=":",
+                    markerfmt=m[(j)],
+                    basefmt=":",
+                )
+                if kwargs.get("hollow", False):
+                    stem.markerline.set_markeredgecolor(c.get(s, f"C{j}"))  # Marker edge color
+                    stem.markerline.set_markerfacecolor("none")  # Hollow marker (no fill)
+                else:
+                    stem.markerline.set_color(c.get(s, f"C{j}"))
+                stem.stemlines.set_color(c.get(s, f"C{j}"))  # Stem line color
+                stem.baseline.set_color(c.get(s, f"C{j}"))  # Baseline color
                 stem.markerline.set_markersize(marker_size)
                 marker_size = max(marker_size - 2, 2)
 
@@ -994,6 +1045,6 @@ def deck_stem(deck_df, y1, y2=None, plot_size=None, grid_spacing=(2, 1), grid_co
         fontsize=legend_font_size,
         frameon=False,
     )
-    fig.suptitle(f"{"/".join(columns)} Distribution", y=1, fontsize=title_font_size)
+    fig.suptitle("/".join(columns) + " Distribution", y=1, fontsize=title_font_size)
 
     return fig
