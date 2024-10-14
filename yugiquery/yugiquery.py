@@ -783,7 +783,7 @@ def find_cards(
                 collection_df.columns.difference(card_df.columns).join(["Name"], how="outer")
             ].merge(card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left")
 
-        collections[i] = collection_df
+        collections[i] = collection_df.convert_dtypes()
 
     print("\nCollection data processed.")
     return collections[0] if len(collections) == 1 else collections
@@ -898,7 +898,7 @@ def read_decklist(file_path: Path | str) -> pd.DataFrame:
             quantity = int(quantity)
             data.append({"Name": card_name, "Count": quantity, "Section": current_section, "Deck": file_path.stem})
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data).convert_dtypes()
     return df
 
 
@@ -980,7 +980,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
         elif current_section:
             data.append({"Code": line, "Section": current_section, "Deck": file_path.stem})
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data).convert_dtypes()
     return df
 
 
@@ -1017,7 +1017,7 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
             print(" ⏺", "\n ⏺ ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
 
     ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
-    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count")
+    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count").astype(int)
     ydk_df = ydk_df.drop_duplicates().reset_index(drop=True)
     return ydk_df
 

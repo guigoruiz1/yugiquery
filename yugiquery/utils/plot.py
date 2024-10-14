@@ -994,7 +994,9 @@ def deck_stem(
     if colors is None:
         c = {
             section: colors_dict.get(c, f"C{i}")
-            for i, (section, c) in enumerate(zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Counter"]))
+            for i, (section, c) in enumerate(
+                zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Xyz Monster"])
+            )
         }
     else:
         c = {
