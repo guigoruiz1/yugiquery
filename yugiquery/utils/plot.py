@@ -21,6 +21,7 @@ import pandas as pd
 from cycler import cycler
 from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb, rgb_to_hsv, hex2color
 import matplotlib.dates as mdates
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (
     AutoMinorLocator,
@@ -28,7 +29,6 @@ from matplotlib.ticker import (
     FuncFormatter,
     MaxNLocator,
 )
-from matplotlib.patches import Patch
 from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -57,6 +57,52 @@ colors_dict = load_json(dirs.get_asset("json", "colors.json"))
 # ======= #
 # Classes #
 # ======= #
+
+
+class MulticolorPatchHandler:
+    """
+    Custom legend handler to display a multicolored rectangle with a single uniform hatch across the entire box.
+    """
+
+    def __init__(self, colors, hatch=None, edgecolor="black", **kwargs):
+        self.colors = colors  # List of colors for different segments
+        self.hatch = hatch  # Single hatch applied across the entire box
+        self.edgecolor = edgecolor  # Single edge color for the whole box
+        self.kwargs = kwargs
+
+    def legend_artist(self, legend, orig_handle, fontsize, handlebox):
+        width = handlebox.width
+        height = handlebox.height
+
+        # Define the width for each color segment
+        color_width = width / len(self.colors)
+
+        # Create multicolored patches
+        for i, color in enumerate(self.colors):
+            patch = mpatches.Rectangle(
+                [handlebox.xdescent + i * color_width, -handlebox.ydescent],
+                color_width,
+                height,
+                facecolor=color,
+                transform=handlebox.get_transform(),
+                **self.kwargs,
+            )
+            handlebox.add_artist(patch)
+
+        # Apply a transparent hatch over the entire box
+        hatch_patch = mpatches.Rectangle(
+            [handlebox.xdescent, -handlebox.ydescent],
+            width,
+            height,
+            facecolor="none",  # No facecolor to avoid covering the colors underneath
+            hatch=self.hatch,  # Apply the uniform hatch across the full box
+            edgecolor=self.edgecolor,  # No edge color for the hatch
+            transform=handlebox.get_transform(),
+            **self.kwargs,
+        )
+        handlebox.add_artist(hatch_patch)
+
+        return hatch_patch
 
 
 # ========= #
@@ -684,8 +730,8 @@ def deck_composition(
         for type in colors_remaining
         if type in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
     ]
-    handles1 = [Patch(color=colors_dict[type], label=type) for type in main_df.index]
-    handles2 = [Patch(color=colors_dict[type], label=type) for type in extra_df.index]
+    handles1 = [mpatches.Patch(color=colors_dict[type], label=type) for type in main_df.index]
+    handles2 = [mpatches.Patch(color=colors_dict[type], label=type) for type in extra_df.index]
 
     # Adjust the legend position
     top = 1 - header_space / fig_height
@@ -859,17 +905,17 @@ def deck_distribution(
         bottom=0,
     )
 
-    handles = []
+    handler = {}
     for section in sorted_sections:
-        if isinstance(section_colors[section], pd.Series):
-            color = section_colors[section].iloc[0]
-        else:
-            color = section_colors[section]
-        handles.append(Patch(label=section, edgecolor="w", facecolor=color, hatch=hatches[section]))
+        color = section_colors[section]
+        if isinstance(color, str):
+            color = [color]
+        handler[mpatches.Patch(label=section)] = MulticolorPatchHandler(color, hatches[section], edgecolor="w")
 
     # Add legend with a fixed position
-    fig.legend(
-        handles=handles,
+    leg = fig.legend(
+        handles=list(handler.keys()),
+        handler_map=handler,
         loc="center",
         fontsize=legend_font_size,
         ncol=3,
@@ -879,6 +925,8 @@ def deck_distribution(
         ),
         borderaxespad=0.5,
         frameon=False,
+        handlelength=3,
+        handleheight=1.2,
     )
     fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1)
 
