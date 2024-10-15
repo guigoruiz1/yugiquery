@@ -573,6 +573,8 @@ def deck_composition(
     grid_cols: int = 3,
     plot_size: Tuple[int, int] = (5, 5),
     ring_radius: float = 0.3,
+    pctdistances: List[float] = [0.85, 0.75],
+    font_size: Dict[str, int] = {"label": 14, "title": 16, "suptitle": 20, "legend": 12},
     **kwargs,
 ) -> plt.Figure:
     """
@@ -584,12 +586,14 @@ def deck_composition(
         grid_cols (int, optional): The number of columns in the grid. Defaults to 3.
         plot_size (Tuple[int, int], optional): The width and height of each plot. Defaults to (5, 5).
         ring_radius (float, optional): The radius of the ring in the pie chart. Defaults to 0.3.
-        **kwargs: Additional keyword arguments to be passed to the function.
+        pctdistances (List[float], optional): The distances of the percentage labels from the center of the chart rings. Defaults to [0.85, 0.75].
+        font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
+        **kwargs: Not implemented.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-
+    decks = deck_df["Deck"].unique()
     temp = deck_df.copy()
     temp["Primary type"] = deck_df["Primary type"].fillna(deck_df["Card type"])
     main_df = temp[temp["Section"] == "Main"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
@@ -597,19 +601,16 @@ def deck_composition(
     side_df = temp[temp["Section"] == "Side"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
 
     # Font sizes
-    label_font_size = kwargs.get("label_font_size", 14)
-    title_font_size = kwargs.get("title_font_size", 16)
-    suptitle_font_size = kwargs.get("suptitle_font_size", 20)
-    legend_font_size = kwargs.get("legend_font_size", 12)
+    label_font_size = font_size.get("label", 14)
+    title_font_size = font_size.get("title", 16)
+    suptitle_font_size = font_size.get("suptitle", 20)
+    legend_font_size = font_size.get("legend", 12)
 
     plot_width = plot_size[0]  # Width of each plot
     plot_height = plot_size[1]  # Fixed height for each plot
     horizontal_space = grid_spacing[0]  # Fixed horizontal space between plots
     vertical_space = grid_spacing[1]  # Fixed vertical space between plots
     header_space = (2 * legend_font_size + 2) / 10  # Fixed space between top and first row of plots
-    pctdistances = kwargs.get("pctdistances", [0.85, 0.75])
-
-    decks = deck_df["Deck"].unique()
     cols = min(grid_cols, len(decks))
     rows = int(np.ceil(len(decks) / cols))
 
@@ -774,6 +775,9 @@ def deck_distribution(
     grid_cols: int = 2,
     plot_size: Tuple[int, int] | None = None,
     colors: Dict[str, str] | List[str] | None = None,
+    hatches: List[str] | str = "",
+    edgecolors: List[str] | str = "white",
+    font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
     **kwargs,
 ) -> plt.Figure:
     """
@@ -786,7 +790,10 @@ def deck_distribution(
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
-        **kwargs: Additional keyword arguments to be passed to the function.
+        hatches (List[str] | str, optional): A list of hatches to be used in the plot. If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "".
+        edgecolors (List[str] | str, optional): The colors of the edges of the bars and hatches.  If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "white".
+        font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
+        **kwargs: Not implemented.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
@@ -801,10 +808,10 @@ def deck_distribution(
     )
 
     # Font sizes
-    label_font_size = kwargs.get("label_font_size", 14)
-    title_font_size = kwargs.get("title_font_size", 20)
-    legend_font_size = kwargs.get("legend_font_size", 12)
-    tick_font_size = kwargs.get("tick_font_size", 12)
+    label_font_size = font_size.get("label", 14)
+    title_font_size = font_size.get("title", 20)
+    legend_font_size = font_size.get("legend", 12)
+    tick_font_size = font_size.get("tick", 12)
 
     # Set constants for plot sizes and spacing
     plot_width = 6 if plot_size is None else plot_size[0]  # Width of each plot
@@ -849,8 +856,8 @@ def deck_distribution(
             for i, section in enumerate(sorted_sections)
         }
 
-    hatches = kwargs.get("hatch", [""] * len(sorted_sections))
     hatches = pd.Series(hatches, index=sorted_sections)
+    edgecolors = pd.Series(edgecolors, index=sorted_sections)
 
     # Plotting each deck's data
     for i, deck in enumerate(decks):
@@ -883,11 +890,11 @@ def deck_distribution(
                 fontsize=label_font_size,
                 color=plot_colors,
                 width=bar_height_scale,
-                edgecolor=kwargs.get("edgecolor", "w"),
             )
             for j, bar in enumerate(bar_ax.patches):
                 hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
                 bar.set_hatch(hatches.iloc[hatch_index])
+                bar.set_edgecolor(edgecolors.iloc[hatch_index])
 
             ax.set_ylabel("")
             ax.set_xlabel("Count", fontsize=label_font_size)
@@ -910,7 +917,9 @@ def deck_distribution(
         color = section_colors[section]
         if isinstance(color, str):
             color = [color]
-        handler[mpatches.Patch(label=section)] = MulticolorPatchHandler(color, hatches[section], edgecolor="w")
+        handler[mpatches.Patch(label=section)] = MulticolorPatchHandler(
+            color, hatches[section], edgecolor=edgecolors[section]
+        )
 
     # Add legend with a fixed position
     leg = fig.legend(
@@ -941,6 +950,9 @@ def deck_stem(
     grid_spacing: Tuple[int, int] = (2, 1),
     grid_cols: int = 2,
     colors: Dict[str, str] | List[str] | None = None,
+    font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
+    markers: List[str] = ["s", "o", "+"],
+    hollow: bool = False,
     **kwargs,
 ) -> plt.Figure:
     """
@@ -954,7 +966,10 @@ def deck_stem(
         grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (2, 1).
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
-        **kwargs: Additional keyword arguments to be passed to the function.
+        font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
+        markers (List[str], optional): The list of markers to be used in the plot for each deck section. Defaults to ["s", "o", "+"].
+        hollow (bool, optional): Whether to make the markers hollow. Defaults to False.
+        **kwargs: Not implemented.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
@@ -971,10 +986,10 @@ def deck_stem(
     steps = (100, 500) if deck_df[columns].map(pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
 
     # Font sizes
-    label_font_size = kwargs.get("label_font_size", 14)
-    tick_font_size = kwargs.get("tick_font_size", 12)
-    title_font_size = kwargs.get("title_font_size", 20)
-    legend_font_size = kwargs.get("legend_font_size", 12)
+    label_font_size = font_size.get("label_font_size", 14)
+    tick_font_size = font_size.get("tick_font_size", 12)
+    title_font_size = font_size.get("title_font_size", 20)
+    legend_font_size = font_size.get("legend_font_size", 12)
 
     # Set constants for plot sizes and spacing
     plot_width = 9 if plot_size is None else plot_size[0]  # Width of each plot
@@ -992,14 +1007,14 @@ def deck_stem(
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
     if colors is None:
-        c = {
+        colors = {
             section: colors_dict.get(c, f"C{i}")
             for i, (section, c) in enumerate(
                 zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Xyz Monster"])
             )
         }
     else:
-        c = {
+        colors = {
             section: (colors.get(section, f"C{i}") if isinstance(colors, dict) else colors[i])
             for i, section in enumerate(sorted_sections)
         }
@@ -1011,7 +1026,6 @@ def deck_stem(
         wspace=horizontal_space / plot_width,  # Adjusted for figure width
         hspace=vertical_space / plot_height,  # Adjusted for plot height
     )
-    m = kwargs.get("markers", ["s", "o", "+"])
     for i, deck in enumerate(decks):
         ax = fig.add_subplot(gs[i // cols, i % cols])
         max_idx = 0
@@ -1041,16 +1055,16 @@ def deck_stem(
                     series.index,
                     series,
                     linefmt=":",
-                    markerfmt=m[(j)],
+                    markerfmt=markers[(j)],
                     basefmt=":",
                 )
-                if kwargs.get("hollow", False):
-                    stem.markerline.set_markeredgecolor(c.get(s, f"C{j}"))  # Marker edge color
+                if hollow:
+                    stem.markerline.set_markeredgecolor(colors.get(s, f"C{j}"))  # Marker edge color
                     stem.markerline.set_markerfacecolor("none")  # Hollow marker (no fill)
                 else:
-                    stem.markerline.set_color(c.get(s, f"C{j}"))
-                stem.stemlines.set_color(c.get(s, f"C{j}"))  # Stem line color
-                stem.baseline.set_color(c.get(s, f"C{j}"))  # Baseline color
+                    stem.markerline.set_color(colors.get(s, f"C{j}"))
+                stem.stemlines.set_color(colors.get(s, f"C{j}"))  # Stem line color
+                stem.baseline.set_color(colors.get(s, f"C{j}"))  # Baseline color
                 stem.markerline.set_markersize(marker_size)
                 marker_size = max(marker_size - 2, 2)
 
