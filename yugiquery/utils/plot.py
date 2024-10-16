@@ -23,12 +23,7 @@ from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-from matplotlib.ticker import (
-    AutoMinorLocator,
-    FixedLocator,
-    FuncFormatter,
-    MaxNLocator,
-)
+from matplotlib.ticker import AutoMinorLocator, FixedLocator, FuncFormatter, MaxNLocator, MultipleLocator
 from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -110,6 +105,7 @@ class MulticolorPatchHandler:
 # ========= #
 
 
+# Helpers
 def is_light_color(color, threshold=0.6) -> bool:
     """
     Check if a given color is light or dark based on a specified threshold.
@@ -169,6 +165,7 @@ def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float) -> None:
     adjust_yaxis(ax=ax1, ydif=(y2 - y1) / 2, v=v1)
 
 
+# Rates
 def adjust_yaxis(ax: plt.Axes, ydif: float, v: float) -> None:
     """
     Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
@@ -473,6 +470,7 @@ def add_vertical_lines(axes: List[plt.Axes], vlines: pd.DataFrame, color="maroon
                     )
 
 
+# Dedicated plots
 def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> plt.figure:
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
@@ -900,8 +898,12 @@ def deck_distribution(
             ax.set_xlabel("Count", fontsize=label_font_size)
             ax.set_title(deck, fontsize=label_font_size)
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+            ax.grid(axis="x", which="major", linestyle=":")
             ax.set_ylim(-0.5, num_bars - 0.5)
             ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
+            ax.set_axisbelow(True)
+
+            ax.xaxis.set_minor_locator(MultipleLocator(1))
 
     # Adjust margins and add suptitle
     top = 1 - header_space / fig_height
@@ -953,6 +955,7 @@ def deck_stem(
     font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
     markers: List[str] = ["s", "o", "+"],
     hollow: bool = False,
+    marker_size: int = 10,
     **kwargs,
 ) -> plt.Figure:
     """
@@ -969,6 +972,7 @@ def deck_stem(
         font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
         markers (List[str], optional): The list of markers to be used in the plot for each deck section. Defaults to ["s", "o", "+"].
         hollow (bool, optional): Whether to make the markers hollow. Defaults to False.
+        marker_size (int, optional): The initial size of the markers. Defaults to 10.
         **kwargs: Not implemented.
 
     Returns:
@@ -1036,7 +1040,7 @@ def deck_stem(
             continue
         it_columns = sub_df[columns].dropna(axis=1, how="all").columns
         for k, col in enumerate(it_columns):
-            marker_size = 10
+            msize = marker_size
             for j, s in enumerate(sorted_sections):
                 sub_sub_df = sub_df[sub_df["Section"] == s]
                 if sub_sub_df.empty:
@@ -1065,8 +1069,8 @@ def deck_stem(
                     stem.markerline.set_color(colors.get(s, f"C{j}"))
                 stem.stemlines.set_color(colors.get(s, f"C{j}"))  # Stem line color
                 stem.baseline.set_color(colors.get(s, f"C{j}"))  # Baseline color
-                stem.markerline.set_markersize(marker_size)
-                marker_size = max(marker_size - 2, 2)
+                stem.markerline.set_markersize(msize)
+                msize = max(msize - 2, 2)
 
         if steps[1] < 10:
             xticks = np.arange(0, 14, 1)
@@ -1091,8 +1095,11 @@ def deck_stem(
             ax.set_ylabel(it_columns[0], fontsize=label_font_size)
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
         ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: int(abs(x))))
+        ax.xaxis.set_minor_locator(MultipleLocator(steps[0]))
+        ax.yaxis.set_minor_locator(MultipleLocator(1))
         ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
         ax.grid(ls=":", axis="y")
+        ax.set_axisbelow(True)
 
     top = 1 - header_space / fig_height
     legend_y = top + (1 - top) / 2
