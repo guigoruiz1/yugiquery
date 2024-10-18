@@ -329,9 +329,11 @@ class Dirs:
         if notebooks == "all":
             # Get all reports
             notebooks_dict = {}
-            notebooks = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
-                self.NOTEBOOKS.user.glob("*.ipynb")
-            )  # First user, then package
+            notebooks = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
+
+            if self.NOTEBOOKS.pkg:
+                notebooks = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + notebooks
+
             for notebook in notebooks:
                 notebooks_dict[notebook.stem.capitalize()] = notebook  # Will replace package by user if same name
 

@@ -35,4 +35,4 @@ try:
     __all__.append("__version_tuple__")
 except ImportError:
     # Fallback values if _version.py is not present
-    __version__ = "2.0.2"
+    __version__ = "2.0.3"

@@ -31,15 +31,15 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](reports/Bandai.html) | 22/09/2024 19:33 UTC |
-| [Cards](reports/Cards.html) | 13/09/2024 22:54 UTC |
-| [Rush](reports/Rush.html) | 13/09/2024 22:54 UTC |
-| [Sets](reports/Sets.html) | 13/09/2024 22:54 UTC |
-| [Speed](reports/Speed.html) | 19/09/2024 21:46 UTC |
-| [Timeline](reports/Timeline.html) | 19/09/2024 21:46 UTC |
+| [Bandai](reports/Bandai.html) | 06/10/2024 23:05 UTC |
+| [Cards](reports/Cards.html) | 06/10/2024 23:07 UTC |
+| [Rush](reports/Rush.html) | 06/10/2024 23:07 UTC |
+| [Sets](reports/Sets.html) | 06/10/2024 23:11 UTC |
+| [Speed](reports/Speed.html) | 06/10/2024 23:12 UTC |
+| [Timeline](reports/Timeline.html) | 04/10/2024 19:26 UTC |
 
 
-The full YugiQuery flow was last executed at `22/09/2024 23:03 UTC`
+The full YugiQuery flow was last executed at `06/10/2024 23:50 UTC`
 
 # Usage
 
@@ -89,7 +89,7 @@ Further details can be found the [documentation](#documentation).
 
 ## Repository hierarchy
 
-The repository is structured such that its root contains the web page source files, while the actual executable files are kept in the ***source*** directory. Any template files (markdown, nbconvert, notebook, etc) and files used for reference such as dictionaries are kept in the ***assets*** directory. The raw data used by the reports is saved in the ***data*** directory. The *Read The Docs* source files are kept in the ***docs*** directory. Below is an skeleton of the directory structure.
+The repository is structured such that its root contains the web page index files, while the package files are kept in the ***yugiquery*** directory. Any template files (markdown, nbconvert, notebook, etc) and files used for reference such as dictionaries are kept in the ***assets*** directory. The raw data used by the reports is saved in the ***data*** directory. The *Read The Docs* source files are kept in the ***docs*** directory. The HTML reports are generated from the notebooks in the **notebooks** directory and saved in the **reports** directory. Below is an skeleton of the directory structure.
 
 ```
 yugiquery/
@@ -114,6 +114,9 @@ yugiquery/
 |  │      ├─ conf.json
 |  │      ├─ dynamic.css
 |  │      └─ index.html.j2
+│  ├─ templates/
+│  │  ├─ Collection.ipynb
+│  │  └─ Template.ipynb
 │  ├─ Gateway.html
 │  └─ secrets.env
 ├─ data/
@@ -128,6 +131,15 @@ yugiquery/
 │  ├─ index.rst
 │  ├─ bot.rst
 │  └─ yugiquery.rst
+├─ notebooks/
+│  ├─ Bandai.ipynb
+│  ├─ Cards.ipynb
+│  ├─ Rush.ipynb
+│  ├─ Sets.ipynb
+│  ├─ Speed.ipynb
+│  └─ Timeline.ipynb
+├─ reports/
+│  └─ report.html
 ├─ yugiquery/
 │  ├─ utils
 │  |  ├─ __init__.py
@@ -135,10 +147,16 @@ yugiquery/
 │  |  ├─ dirs.py
 │  |  ├─ git.py
 │  |  ├─ helpers.py
-│  |  └─ plot.py
+│  |  ├─ plot.py
+│  |  └─ progress_handler.py
+│  ├─ bot
+│  |  ├─ __init__.py
+│  |  ├─ __main__.py
+│  |  ├─ base.py
+│  |  ├─ discord.py
+│  |  └─ telegram.py
 │  ├─ __init__.py
 │  ├─ __main__.py
-│  ├─ bot.py
 │  ├─ metadata.py
 │  └─ yugiquery.py
 ├─ _config.yml
@@ -151,7 +169,7 @@ yugiquery/
 └─ requirements.txt
 ```
 
-Ideally, files in the ***assets*** directory should not be edited unless you know what you are doing. Files in the ***data*** directory are read and write files for the generation of the reports. HTML reports are saved in the ***reports*** folder. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
+Ideally, files in the ***assets*** directory should not be edited unless you know what you are doing. Files in the ***data*** directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 

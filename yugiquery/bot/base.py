@@ -33,6 +33,23 @@ from ..yugiquery import run
 # Set multiprocessing start method
 mp.set_start_method("spawn")
 
+
+# ============ #
+# Enum Classes #
+# ============ #
+
+
+class GitCommands(StrEnum):
+    """
+    Enum class to represent the available git commands.
+    """
+
+    status = "status"
+    log = "log"
+    pull = "pull"
+    push = "push"
+
+
 # ============== #
 # Bot Superclass #
 # ============== #
@@ -71,9 +88,10 @@ class Bot:
     # ======================== #
     # Bot Superclass Variables #
     # ======================== #
-    process = None
-    Reports = Enum("Reports", {"All": "all"})
-    cooldown_limit = 12 * 3600  # 12 hours
+    process: mp.Process = None
+    cooldown_limit: int = 12 * 3600  # 12 hours
+    # Placeholder for the Enum object
+    Reports: Enum = Enum("Reports", {"All": "all", "User": "user"})
 
     @property
     def URLS(self) -> StrEnum:
@@ -140,11 +158,17 @@ class Bot:
         """
         try:
             self.process.terminate()
+            result = "Aborted."
             if self.repo is not None:
-                git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
-            return "Aborted"
-        except:
-            return "Abort failed"
+                try:
+                    git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
+                except Exception as e:
+                    print(e)
+                    result += "\nRestoring files failed."
+        except Exception as e:
+            print(f"Abort failed:\n{e}")
+            result = "Abort failed."
+        return result
 
     async def battle(self, callback: Callable[[str], None], atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
@@ -290,6 +314,38 @@ class Bot:
         except:
             return {"error": "Unable to obtain the latest files at this time. Try again later."}
 
+    def git_cmd(self, command: GitCommands, passphrase: str = "") -> str:
+        """
+        Executes a git command on the repository.
+
+        Args:
+            command (Git_command): The git command to execute.
+            passphrase (str, optional): The passphrase to use for encryption/decryption. Defaults to empty.
+
+        Returns:
+            str: The result message of the command.
+        """
+
+        def github_cmd(cmd) -> str:
+            if not self.URLS.repo:
+                return "No github repository."
+            try:
+                return cmd(passphrase=passphrase, repo=self.repo)
+            except Exception as e:
+                return str(e)
+
+        match command:
+            case GitCommands.status:
+                return self.repo.git.status()
+            case GitCommands.log:
+                return self.repo.git.log()
+            case GitCommands.pull:
+                return github_cmd(cmd=git.pull)
+            case GitCommands.push:
+                return github_cmd(cmd=git.push)
+            case _:
+                return "Invalid command."
+
     def latest(self) -> Dict[str, str]:
         """
         Displays the timestamp of the latest local and live reports generated.
@@ -351,7 +407,7 @@ class Bot:
     async def run_query(
         self,
         callback: Callable[[str], None],
-        report: Reports = Reports.All,
+        report: Enum = Reports.All,
         progress_bar: tqdm = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
@@ -413,44 +469,6 @@ class Bot:
         granularity = get_granularity(time_difference)
         humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
-
-    def push(self, passphrase: str = "") -> str:
-        """
-        Pushes the latest data files to the repository.
-
-        Args:
-            passphrase (str, optional): The passphrase to use for encryption. Defaults to empty.
-
-        Returns:
-            str: The result message indicating whether the push was successful
-        """
-        if not self.URLS.repo:
-            return "No github repository."
-        try:
-            # Attempt to call git.push and return its result if successful
-            return git.push(passphrase=passphrase, repo=self.repo)
-        except Exception as e:
-            # If an exception occurs, return the exception message instead
-            return str(e)
-
-    def pull(self, passphrase: str = "") -> str:
-        """
-        Pulls the latest data files from the repository.
-
-        Args:
-            passphrase (str, optional): The passphrase to use for decryption. Defaults to empty.
-
-        Returns:
-            str: The result message indicating whether the pull was successful
-        """
-        if not self.URLS.repo:
-            return "No github repository."
-        try:
-            # Attempt to call git.pull and return its result if successful
-            return git.pull(passphrase=passphrase, repo=self.repo)
-        except Exception as e:
-            # If an exception occurs, return the exception message instead
-            return str(e)
 
 
 # ========= #

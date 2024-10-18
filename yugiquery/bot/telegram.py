@@ -11,6 +11,8 @@
 # Standard library packages
 import platform
 
+import telegram.ext
+
 # Third-party imports
 import arrow
 from termcolor import cprint
@@ -18,13 +20,14 @@ from termcolor import cprint
 # Local application imports
 from ..metadata import __version__
 from ..utils import get_granularity, escape_chars
-from .base import Bot
+from .base import Bot, GitCommands
 
 # Telegram
 try:
     import telegram
     from telegram import Update
     from telegram.ext import (
+        Application,
         ApplicationBuilder,
         CommandHandler,
         filters,
@@ -69,9 +72,22 @@ class Telegram(Bot):
         self.token = token
         self.chat_id = int(chat_id)
         # Initialize the Telegram bot
-        self.application = ApplicationBuilder().token(token).build()
+        self.application = ApplicationBuilder().token(token).post_init(post_init=self.post_init_handler).build()
         self.register_commands()
         self.register_events()
+
+    async def post_init_handler(self, application: Application) -> None:
+        """
+        Post-initialization handler for the Telegram bot.
+
+        Args:
+            application (telegram.ext.Application): The Telegram Application bot instance.
+        """
+        me = await application.bot.get_me()
+        chat = await application.bot.get_chat(self.chat_id)
+        username = f"{chat.first_name} {chat.last_name}" if chat.first_name and chat.last_name else chat.username
+        await application.bot.send_message(chat_id=self.chat_id, text=f"Hello {username}!\n{me.first_name} bot is online.")
+        cprint(text="Telegram bot initialized successfully.", color="green")
 
     def run(self) -> None:
         """
@@ -79,6 +95,25 @@ class Telegram(Bot):
         """
         cprint(text="Running Telegram bot...", color="green")
         self.application.run_polling(stop_signals=None)
+
+    def command_handler(self, command, **kwargs):
+        """
+        Decorator to register a command handler for the Telegram bot.
+
+        Args:
+            command (str): The command to register.
+            **kwargs: Additional keyword arguments to pass to the CommandHandler.
+
+        Returns:
+            function: The decorated function.
+        """
+
+        def decorator(func):
+            handler = CommandHandler(command=command, callback=func, **kwargs)
+            self.application.add_handler(handler)
+            return func
+
+        return decorator
 
     # ======== #
     # Commands #
@@ -89,33 +124,21 @@ class Telegram(Bot):
         Register command handlers for the Telegram bot.
 
         Command descriptions to pass to BotFather:
-
             abort - Aborts a running YugiQuery flow by terminating the process.
-
             battle - Simulate a battle of all monster cards.
-
             benchmark - Show average time each report takes to complete.
-
             data - Send latest data files.
-
-            shutdown - Shutdown bot.
-
+            git - Run a Git command.
             latest - Show latest time each report was generated.
-
             links - Show YugiQuery links.
-
             ping - Test the bot connection latency.
-
-            pull - Pull latest data files from the repository.
-
-            push - Push latest data files to the repository.
-
             run - Run full YugiQuery flow.
-
             status - Display bot status and system information.
+            shutdown - Shutdown bot.
 
         """
 
+        @self.command_handler("abort", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
         async def abort(update: Update, context: CallbackContext) -> None:
             """
             Aborts a running YugiQuery flow by terminating the thread.
@@ -128,6 +151,7 @@ class Telegram(Bot):
             response = self.abort()
             await original_response.edit_text(response)
 
+        @self.command_handler("battle")
         async def battle(
             update: Update,
             context: CallbackContext,
@@ -181,6 +205,7 @@ class Telegram(Bot):
 
             await original_message.edit_text(message, parse_mode="MarkdownV2")
 
+        @self.command_handler("benchmark")
         async def benchmark(update: Update, context: CallbackContext) -> None:
             """
             Returns the average time each report takes to complete and the latest time for each report.
@@ -201,6 +226,7 @@ class Telegram(Bot):
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
+        @self.command_handler("data")
         async def data(update: Update, context: CallbackContext) -> None:
             """
             Sends the latest data files available in the repository as direct download links.
@@ -221,6 +247,18 @@ class Telegram(Bot):
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
+        @self.command_handler("git", has_args=True, filters=filters.Chat(chat_id=int(self.chat_id)))
+        async def git_cmd(update: Update, context: CallbackContext) -> None:
+            if not context.args or context.args[0] not in GitCommands.__members__:
+                await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid command")
+                return
+
+            command = context.args[0]
+            passphrase = context.args[1] if len(context.args) > 1 else ""
+            response = self.git_cmd(command=command, passphrase=passphrase)
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+
+        @self.command_handler("latest")
         async def latest(update: Update, context: CallbackContext) -> None:
             """
             Displays the timestamp of the latest local and live reports generated.
@@ -237,6 +275,7 @@ class Telegram(Bot):
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
+        @self.command_handler("links")
         async def links(update: Update, context: CallbackContext) -> None:
             """
             Displays the links to the YugiQuery webpage, repository, and data.
@@ -250,6 +289,7 @@ class Telegram(Bot):
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
+        @self.command_handler("ping")
         async def ping(update: Update, context: CallbackContext) -> None:
             """
             Tests the bot's connection latency and sends the result back to the user.
@@ -267,30 +307,7 @@ class Telegram(Bot):
             response = f"🏓 Pong! {round(latency_ms,1)}ms"
             await original_message.edit_text(response)
 
-        async def pull(update: Update, context: CallbackContext) -> None:
-            """
-            Pulls the latest data files from the repository.
-
-            Args:
-                update (telegram.Update): The update object.
-                context (telegram.ext.CallbackContext): The callback context.
-            """
-            passphrase = context.args[0] if context.args else ""
-            response = self.pull(passphrase)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-
-        async def push(update: Update, context: CallbackContext) -> None:
-            """
-            Pushes the latest data files to the repository.
-
-            Args:
-                update (telegram.Update): The update object.
-                context (telegram.ext.CallbackContext): The callback context.
-            """
-            passphrase = context.args[0] if context.args else ""
-            response = self.push(passphrase)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
-
+        @self.command_handler("run", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
         async def run_query(
             update: Update,
             context: CallbackContext,
@@ -336,6 +353,7 @@ class Telegram(Bot):
                 context.user_data["last_run"] = arrow.utcnow()
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
 
+        @self.command_handler("status")
         async def status(update: Update, context: CallbackContext) -> None:
             """
             Displays information about the bot, including uptime, versions, and system details.
@@ -364,6 +382,7 @@ class Telegram(Bot):
 
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
+        @self.command_handler("shutdown", filters=filters.Chat(chat_id=int(self.chat_id)))
         async def shutdown(update: Update, context: CallbackContext) -> None:
             """
             Shuts down the bot gracefully by sending a message and stopping the polling.
@@ -375,26 +394,6 @@ class Telegram(Bot):
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
 
-        # Register the command handlers
-        self.application.add_handler(CommandHandler(command="abort", callback=abort, block=False))
-        self.application.add_handler(CommandHandler(command="battle", callback=battle))
-        self.application.add_handler(CommandHandler(command="benchmark", callback=benchmark))
-        self.application.add_handler(CommandHandler(command="data", callback=data))
-        self.application.add_handler(CommandHandler(command="latest", callback=latest))
-        self.application.add_handler(CommandHandler(command="links", callback=links))
-        self.application.add_handler(CommandHandler(command="ping", callback=ping))
-        self.application.add_handler(CommandHandler(command="pull", callback=pull))
-        self.application.add_handler(CommandHandler(command="push", callback=push))
-        self.application.add_handler(CommandHandler(command="run", callback=run_query, block=False))
-        self.application.add_handler(CommandHandler(command="status", callback=status))
-        self.application.add_handler(
-            CommandHandler(
-                command="shutdown",
-                callback=shutdown,
-                filters=filters.Chat(chat_id=int(self.chat_id)),
-            )
-        )
-
     # ====== #
     # Events #
     # ====== #
@@ -403,19 +402,6 @@ class Telegram(Bot):
         """
         Register event handlers for the Telegram bot.
         """
-
-        async def start(update: Update, context: CallbackContext) -> None:
-            """
-            Send a message when the command /start is issued.
-
-            Args:
-                update (telegram.Update): The update object.
-                context (telegram.ext.CallbackContext): The callback context.
-            """
-            user = update.effective_user
-            await update.message.reply_html(
-                rf"Hi {user.mention_html()}!",
-            )
 
         async def on_command_error(update: Update, context: CallbackContext) -> None:
             """
@@ -433,5 +419,4 @@ class Telegram(Bot):
             else:
                 await context.bot.send_message(chat_id=self.chat_id, text=error)
 
-        self.application.add_handler(CommandHandler(command="start", callback=start))
         self.application.add_error_handler(callback=on_command_error)
