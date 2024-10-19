@@ -659,6 +659,8 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
         print(f"No {file_name} file found.")
         return None
 
+    collection_df = collection_df.convert_dtypes(convert_string=False)
+
     print(f"Loaded {collection_file.name}.")
     return collection_df
 
@@ -731,6 +733,9 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         if key_col != "Password":
             keys = keys.str.lower().str.strip()
             list_keys = list_keys.str.lower().str.strip()
+        else:
+            keys = keys.astype(int)
+            list_keys = list_keys.astype(int)
         key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
         missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
         if len(missing) > 0:
@@ -792,7 +797,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
             card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left"
         )
 
-    list_df = list_df.convert_dtypes().sort_values(by=["Name", "Count"], ignore_index=True)
+    list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=["Name", "Count"], ignore_index=True)
     list_df["Count"] = list_df["Count"].astype(int)
     print(f"\n{list_df[list_df["Name"].notna()]["Count"].sum()} out of {list_df["Count"].sum()} cards found.")
 
@@ -954,7 +959,7 @@ def read_decklist(file_path: Path | str) -> pd.DataFrame:
                 }
             )
 
-    df = pd.DataFrame(data).convert_dtypes()
+    df = pd.DataFrame(data).convert_dtypes(convert_string=False)
     return df
 
 
@@ -1036,7 +1041,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
         elif current_section:
             data.append({"Code": line, "Section": current_section, "Deck": file_path.stem.replace("_", " ").capitalize()})
 
-    df = pd.DataFrame(data).convert_dtypes()
+    df = pd.DataFrame(data).convert_dtypes(convert_string=False)
     return df
 
 
