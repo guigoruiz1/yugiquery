@@ -504,7 +504,7 @@ def load_latest_data(
                 df[col] = pd.to_datetime(df[col])
 
         ts = arrow.get(Path(files[0]).stem.split("_")[-1])
-        print(f"{name_pattern.capitalize()} file loaded")
+        print(f"{name_pattern.capitalize()} file loaded.")
         return df, ts
     else:
         print(f'No "{name_pattern}" files')
@@ -659,18 +659,16 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
         print(f"No {file_name} file found.")
         return None
 
-    print(f"Loaded {collection_file.name}")
+    print(f"Loaded {collection_file.name}.")
     return collection_df
 
 
-def find_cards(
-    collections: List[pd.DataFrame] | pd.DataFrame, card_data: bool = False, set_data: bool = False
-) -> pd.DataFrame:
+def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
     """
     Process a DataFrame with card names, numbers and/or passwords and return a DataFrame with the card names, quantities and, optionally, additional card data merged from database.
 
     Args:
-        collections (List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, numbers and/or passwords.
+        list_df (pd.DataFrame): DataFrame with card names, numbers and/or passwords.
         card_data (bool, optional): If True, merges additional card data from the database. Defaults to False.
         set_data (bool, optional): If True, merges set specific card data from the database. Defaults to False.
 
@@ -680,20 +678,15 @@ def find_cards(
     Raises:
         FileNotFoundError: If no card or set lists data files are found to match the input collection data against.
     """
-    if not isinstance(collections, list):
-        collections = [collections]
+    if list_df.empty:
+        print("List empty. Ignoring.")
+        return list_df
 
-    if card_data or any(
-        col in collection_df and not collection_df[col].dropna().empty
-        for col in ["Name", "Password"]
-        for collection_df in collections
-    ):
+    if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
         card_df, _ = load_latest_data(name_pattern="cards")
         if card_df is not None:
             card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
-    if any(
-        "Card number" in collection_df and not collection_df["Card number"].dropna().empty for collection_df in collections
-    ):
+    if "Card number" in list_df and not list_df["Card number"].dropna().empty:
         set_lists_df, _ = load_latest_data(name_pattern="sets")
         if set_lists_df is not None:
             set_lists_df = (
@@ -704,6 +697,8 @@ def find_cards(
 
     if card_df is None and set_lists_df is None:
         raise FileNotFoundError("No card or set lists data files found.")
+    else:
+        print("\nFinding cards in database...")
 
     def merge_set_data(df: pd.DataFrame) -> pd.DataFrame:
         if set_lists_df is None:
@@ -747,71 +742,60 @@ def find_cards(
         df.loc[matches.index, "match"] = matches
         return df
 
-    for i, collection_df in enumerate(collections):
-        if len(collections) > 0:
-            print(f"\nProcessing collection {i+1}")
-        original_cols = collection_df.columns
-        collection_df = collection_df.dropna(how="all").assign(match=np.nan).astype(object)
-        if "Card number" in original_cols and not collection_df["Card number"].dropna().empty and set_lists_df is not None:
-            collection_df = (
-                merge_set_data(collection_df)
-                if set_data
-                else merge_with_keys(
-                    df=collection_df,
-                    key_col="Card number",
-                    ref_df=set_lists_df,
-                    ref_key="Card number",
-                    ref_val="Name",
-                )
+    original_cols = list_df.columns
+    list_df = list_df.dropna(how="all").assign(match=np.nan).astype(object)
+    if "Card number" in original_cols and not list_df["Card number"].dropna().empty and set_lists_df is not None:
+        list_df = (
+            merge_set_data(list_df)
+            if set_data
+            else merge_with_keys(
+                df=list_df,
+                key_col="Card number",
+                ref_df=set_lists_df,
+                ref_key="Card number",
+                ref_val="Name",
             )
-
-        if "Password" in original_cols and not collection_df["match"].notna().all() and card_df is not None:
-            collection_df = merge_with_keys(
-                df=collection_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name"
-            )
-
-        if (
-            "Name" in original_cols
-            and not collection_df["match"].notna().all()
-            and (card_df is not None or set_lists_df is not None)
-        ):
-            if card_df is None:
-                ref_df = set_lists_df
-            else:
-                ref_df = card_df
-
-            collection_df = merge_with_keys(df=collection_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
-            if collection_df["match"].isna().any():
-                try:
-                    ydk_data = get_ygoprodeck()
-                    ydk_data["Old name"] = ydk_data["misc_info"].apply(
-                        lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
-                    )
-                    merge_with_keys(
-                        df=collection_df,
-                        key_col="Name",
-                        ref_df=ydk_data.explode("Old name"),
-                        ref_key="Old name",
-                        ref_val="name",
-                    )
-                except Exception as e:
-                    print("\nUnable to get old names from ygoprodeck:", e)
-
-        collection_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
-        collection_df.rename(columns={"match": "Name"}, inplace=True)
-        collection_df = (
-            collection_df.groupby(collection_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
         )
 
-        if card_data and card_df is not None:
-            collection_df = collection_df[
-                collection_df.columns.difference(card_df.columns).join(["Name"], how="outer")
-            ].merge(card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left")
+    if "Password" in original_cols and not list_df["match"].notna().all() and card_df is not None:
+        list_df = merge_with_keys(df=list_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name")
 
-        collections[i] = collection_df.convert_dtypes()
+    if "Name" in original_cols and not list_df["match"].notna().all() and (card_df is not None or set_lists_df is not None):
+        if card_df is None:
+            ref_df = set_lists_df
+        else:
+            ref_df = card_df
 
-    print("\nCollection data processed.")
-    return collections[0] if len(collections) == 1 else collections
+        list_df = merge_with_keys(df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
+        if list_df["match"].isna().any():
+            try:
+                ydk_data = get_ygoprodeck()
+                ydk_data["Old name"] = ydk_data["misc_info"].apply(
+                    lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
+                )
+                merge_with_keys(
+                    df=list_df,
+                    key_col="Name",
+                    ref_df=ydk_data.explode("Old name"),
+                    ref_key="Old name",
+                    ref_val="name",
+                )
+            except Exception as e:
+                print("\nUnable to get old names from ygoprodeck:", e)
+
+    list_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
+    list_df.rename(columns={"match": "Name"}, inplace=True)
+    list_df = list_df.groupby(list_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
+
+    if card_data and card_df is not None:
+        list_df = list_df[list_df.columns.difference(card_df.columns).join(["Name"], how="outer")].merge(
+            card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left"
+        )
+
+    list_df = list_df.convert_dtypes().sort_values(by=["Name", "Count"], ignore_index=True)
+    print(f"\n{list_df[list_df["Name"].notna()]["Count"].sum()} out of {list_df["Count"].sum()} cards found.")
+
+    return list_df[0] if len(list_df) == 1 else list_df
 
 
 # User decks
@@ -960,7 +944,14 @@ def read_decklist(file_path: Path | str) -> pd.DataFrame:
         elif current_section:
             quantity, card_name = line.split("x ", 1)
             quantity = int(quantity)
-            data.append({"Name": card_name, "Count": quantity, "Section": current_section, "Deck": file_path.stem})
+            data.append(
+                {
+                    "Name": card_name,
+                    "Count": quantity,
+                    "Section": current_section,
+                    "Deck": file_path.stem.replace("_", " ").capitalize(),
+                }
+            )
 
     df = pd.DataFrame(data).convert_dtypes()
     return df
@@ -983,7 +974,7 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
     for file in files:
         temp_df = read_decklist(file)
         decklist_df = pd.concat([decklist_df, temp_df])
-        print(f"Loaded {file.stem} deck")
+        print(f"Loaded {file.stem} deck.")
 
     decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
     return decklist_df
@@ -1042,7 +1033,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
         if line in ["#main", "#extra", "!side"]:
             current_section = line[1:].capitalize()
         elif current_section:
-            data.append({"Code": line, "Section": current_section, "Deck": file_path.stem})
+            data.append({"Code": line, "Section": current_section, "Deck": file_path.stem.replace("_", " ").capitalize()})
 
     df = pd.DataFrame(data).convert_dtypes()
     return df
@@ -1102,9 +1093,10 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
     for file in files:
         temp_df = read_ydk(file)
         ydk_df = pd.concat([ydk_df, temp_df])
-        print(f"Loaded {file.stem} deck")
+        print(f"Loaded {file.stem} deck.")
 
-    ydk_df = convert_ydk(ydk_df)
+    if not ydk_df.empty:
+        ydk_df = convert_ydk(ydk_df)
     return ydk_df
 
 

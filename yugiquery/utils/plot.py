@@ -802,7 +802,7 @@ def deck_distribution(
     mean_labels = mean_labels[mean_labels > 0].mean()
     max_labels = deck_df.groupby("Deck")[column].nunique().max()
     sorted_sections = (
-        deck_df[deck_df["ATK"].notna()].groupby("Section")["Count"].sum().sort_values(ascending=False).index.tolist()
+        deck_df[deck_df[column].notna()].groupby("Section")["Count"].sum().sort_values(ascending=False).index.tolist()
     )
 
     # Font sizes
@@ -854,8 +854,22 @@ def deck_distribution(
             for i, section in enumerate(sorted_sections)
         }
 
-    hatches = pd.Series(hatches, index=sorted_sections)
-    edgecolors = pd.Series(edgecolors, index=sorted_sections)
+    hatches = pd.Series(
+        (
+            [hatches.get(section, "") for section in sorted_sections]
+            if isinstance(hatches, dict)
+            else hatches[: len(sorted_sections)] if isinstance(hatches, list) else hatches
+        ),
+        index=sorted_sections,
+    )
+    edgecolors = pd.Series(
+        (
+            [edgecolors.get(section, "white") for section in sorted_sections]
+            if isinstance(edgecolors, dict)
+            else edgecolors[: len(sorted_sections)] if isinstance(edgecolors, list) else edgecolors
+        ),
+        index=sorted_sections,
+    )
 
     # Plotting each deck's data
     for i, deck in enumerate(decks):
