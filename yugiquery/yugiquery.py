@@ -799,7 +799,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
 
     list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=["Name", "Count"], ignore_index=True)
     list_df["Count"] = list_df["Count"].astype(int)
-    print(f"\n{list_df[list_df["Name"].notna()]["Count"].sum()} out of {list_df["Count"].sum()} cards found.")
+    print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
     return list_df[0] if len(list_df) == 1 else list_df
 
