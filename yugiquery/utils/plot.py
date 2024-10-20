@@ -516,6 +516,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
 
     # Set the title of the plot
     ax.set_title("Link Arrows")
+    ax.set_axisbelow(True)
 
     # Display the plot
     fig.tight_layout()

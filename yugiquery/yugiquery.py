@@ -507,7 +507,7 @@ def load_latest_data(
         print(f"{name_pattern.capitalize()} file loaded.")
         return df, ts
     else:
-        print(f'No "{name_pattern}" files')
+        print(f'No file matching pattern "{name_pattern}" found.')
         return None, None
 
 
