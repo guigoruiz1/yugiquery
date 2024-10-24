@@ -20,14 +20,14 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](reports/Bandai.html) | 06/10/2024 23:05 UTC |
-| [Cards](reports/Cards.html) | 06/10/2024 23:07 UTC |
-| [Rush](reports/Rush.html) | 06/10/2024 23:07 UTC |
+| [Bandai](reports/Bandai.html) | 24/10/2024 01:04 UTC |
+| [Cards](reports/Cards.html) | 24/10/2024 01:06 UTC |
+| [Rush](reports/Rush.html) | 24/10/2024 01:07 UTC |
 | [Sets](reports/Sets.html) | 06/10/2024 23:11 UTC |
-| [Speed](reports/Speed.html) | 06/10/2024 23:12 UTC |
-| [Timeline](reports/Timeline.html) | 04/10/2024 19:26 UTC |
+| [Speed](reports/Speed.html) | 24/10/2024 01:10 UTC |
+| [Timeline](reports/Timeline.html) | 24/10/2024 01:11 UTC |
 
 
-The full YugiQuery flow was last executed at `06/10/2024 23:50 UTC`
+The full YugiQuery flow was last executed at `24/10/2024 01:11 UTC`
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`
