@@ -306,7 +306,7 @@ def generate_rate_grid(
         temp_ax.xaxis.set_major_locator(mdates.YearLocator())
         temp_ax.yaxis.set_major_locator(MaxNLocator(5, integer=True))
         temp_ax.set_axisbelow(True)
-        temp_ax.grid()
+        temp_ax.grid(ls=":")
 
     yearly_ax.tick_params(axis="x", rotation=45)
 
