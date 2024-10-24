@@ -2289,6 +2289,7 @@ def run(
     except Exception as e:
         if progress_handler:
             progress_handler.send(error=str(e))
+        # TODO: Print message informing that the subsequent steps will be skipped
         raise e
     finally:
         # Update page index to reflect last execution timestamp
@@ -2308,7 +2309,7 @@ def run(
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
         cleanup = data_files_count / max(reports_count, 1) > 10
-    if cleanup:
+    elif cleanup:
         cleanup_data(dry_run=dry_run)
 
     # Squash commits if any
