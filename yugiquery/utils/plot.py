@@ -402,8 +402,9 @@ def rate(
     # Add background shading and vertical lines separately
     if bg is not None and "end" in bg:
         bg["end"] = bg["end"].fillna(df.index.max())
-    add_background_shading(axes=axes, bg=bg)
-    add_vertical_lines(axes=axes, vlines=vlines, cumsum=cumsum)
+        add_background_shading(axes=axes, bg=bg)
+    if vlines is not None:
+        add_vertical_lines(axes=axes, vlines=vlines, cumsum=cumsum)
 
     fig.subplots_adjust(top=1 - top_space / fig.get_figheight())
     return fig
