@@ -130,7 +130,6 @@ def install_kernel(venv: bool = False) -> None:
         # Step 4: Write the configuration manually
         with open(config_file, "w") as f:
             f.write("c = get_config()\n")
-            f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
             f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
     except:
         cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")
