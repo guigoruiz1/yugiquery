@@ -30,9 +30,6 @@ from tqdm.auto import tqdm
 from ..utils import *
 from ..yugiquery import run
 
-# Set multiprocessing start method
-mp.set_start_method("spawn")
-
 
 # ============ #
 # Enum Classes #
@@ -542,6 +539,9 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 
 
 def main(args) -> None:
+    # Set multiprocessing start method
+    mp.set_start_method("spawn")
+    
     # Make sure the data and reports directories exist
     dirs.make()
 
