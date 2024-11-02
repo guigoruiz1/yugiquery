@@ -59,6 +59,7 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
+    ygoprodeck="https://db.ygoprodeck.com/api/v7/cardinfo.php",
     headers={"User-Agent": f"{__title__} v{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
 """A mapping of yugipedia API URLs with HTTP headers dinamically loaded from the headers.json file in the assets directory.
@@ -87,6 +88,26 @@ arrows_dict: Dict[str, str] = {
 # ========= #
 # Functions #
 # ========= #
+
+
+# YGOPRODECK
+def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
+    """
+    Fetch the card data from ygoprodeck.com.
+
+    Returns:
+        (List[Dict[str, Any]]): List of card data.
+
+    Raises:
+        requests.exceptions.HTTPError: If an HTTP error occurs while fetching the data.
+    """
+    ydk_url = URLS.ygoprodeck
+    if misc:
+        ydk_url += "?misc=yes"
+    response = requests.get(ydk_url)
+    response.raise_for_status()
+    result = response.json()
+    return result["data"]
 
 
 def check_status() -> bool:
@@ -126,7 +147,7 @@ def check_status() -> bool:
 
 def fetch_categorymembers(
     category: str,
-    namespace: int = 0,
+    namespace: int | None = None,
     step: int = 500,
     iterator: tqdm | None = None,
     debug: bool = False,
@@ -136,7 +157,7 @@ def fetch_categorymembers(
 
     Args:
         category (str): The category to retrieve members for.
-        namespace (int, optional): The namespace ID to filter the members by. Defaults to 0 (main namespace).
+        namespace (int| None, optional): The namespace ID to filter the members by. Defaults to None (no namespace).
         step (int, optional): The number of members to retrieve in each request. Defaults to 500.
         iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
         debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
@@ -325,7 +346,7 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
         Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
     """
     results = {}
-    iterator = tqdm(titles, dynamic_ncols=True, desc="Backlinks", leave=False)
+    iterator = tqdm(titles, dynamic_ncols=(not dirs.is_notebook), desc="Backlinks", leave=False)
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
         response = requests.get(
@@ -358,19 +379,19 @@ def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: 
 
     """
     if category:
-        names.extend(fetch_categorymembers(category=category, **kwargs)["title"])
+        names.extend(fetch_categorymembers(category=category, namespace=0, **kwargs)["title"])
 
     backlinks = fetch_backlinks(names)
     redirects = fetch_redirects(codes)
-    return backlinks | redirects
+    return redirects | backlinks
 
 
-def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
+def fetch_set_info(sets: str | List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
     Args:
-        sets (List[str]): A list of set names to fetch information for.
+        sets (str | List[str]): A set name or list of set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
         debug (bool, optional): If True, prints debug information. Defaults to False.
@@ -381,6 +402,8 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
     Raises:
         Any exceptions raised by requests.get().
     """
+    if isinstance(sets, str):
+        sets = [sets]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
@@ -425,18 +448,20 @@ def fetch_set_info(sets: List[str], extra_info: List[str] = [], step: int = 15, 
 # TODO: Refactor
 # TODO: Translate region code?
 def fetch_set_lists(
-    titles: List[str], debug: bool = False
+    titles: str | List[str], debug: bool = False
 ) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
     Args:
-        titles (List[str]): A list of page titles from which to fetch set lists.
+        titles (str | List[str]): A page title or list of page titles from which to fetch set lists.
         debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
+    if isinstance(titles, str):
+        titles = [titles]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
@@ -478,11 +503,11 @@ def fetch_set_lists(
             raw = content["revisions"][0]["*"]
             parsed = wtp.parse(raw)
             for template in parsed.templates:
-                if template.name == "Set page header":
+                if template.name.lower() == "set page header":
                     for argument in template.arguments:
                         if "set=" in argument:
                             title = argument.value
-                if template.name == "Set list":
+                if template.name.lower() == "set list":
                     set_df = pd.DataFrame(columns=set_lists_df.columns)
                     page_name = content["title"]
 
@@ -676,7 +701,7 @@ async def download_images(
                     unit_divisor=1024,
                     desc=save_name,
                     leave=False,
-                    dynamic_ncols=True,
+                    dynamic_ncols=(not dirs.is_notebook),
                     disable=("PM_IN_EXECUTION" in os.environ),
                 )
                 save_file = Path(save_folder).joinpath(save_name)
@@ -702,7 +727,7 @@ async def download_images(
             total=len(urls),
             unit_scale=True,
             unit="file",
-            dynamic_ncols=True,
+            dynamic_ncols=(not dirs.is_notebook),
             disable=("PM_IN_EXECUTION" in os.environ),
         ) as pbar:
             tasks = [
@@ -762,19 +787,25 @@ def extract_fulltext(x: List[Dict[str, Any] | str], multiple: bool = False) -> s
     Returns:
         str or Tuple[str] or np.nan: The extracted fulltext(s).
     """
+
+    def clean_text(text: str) -> str:
+        # Regex to remove any substring of the form (* Archetype/Series)
+        cleaned = re.sub(r"\(.*\s(?:Archetype|Series)\)", "", text)
+        return cleaned.strip("\u200e")
+
     if len(x) > 0:
         if isinstance(x[0], int):
             return str(x[0])
         elif "fulltext" in x[0]:
             if multiple:
-                return tuple(sorted([i["fulltext"] for i in x]))
+                return tuple(sorted([clean_text(i["fulltext"]) for i in x]))
             else:
-                return x[0]["fulltext"].strip("\u200e")
+                return clean_text(x[0]["fulltext"])
         else:
             if multiple:
-                return tuple(sorted(x))
+                return tuple(sorted([clean_text(i) for i in x]))
             else:
-                return x[0].strip("\u200e")
+                return clean_text(x[0])
     else:
         return np.nan
 

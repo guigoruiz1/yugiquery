@@ -12,15 +12,26 @@ from termcolor import cprint
 
 def install_templates() -> None:
     """
-    Copy the notebook templates from the package's `ASSETS` directory to the user's `NOTEBOOKS` directory.
+    Copy the notebook templates from the package's `ASSETS` directory to the user's `NOTEBOOKS` directory
+    and .xlsx files to the `DATA` directory.
     """
     from yugiquery.utils.dirs import dirs
 
     src_dir = dirs.ASSETS.pkg / "templates"
-    dst_dir = dirs.NOTEBOOKS.user
+    notebooks_dst_dir = dirs.NOTEBOOKS.user
+    data_dst_dir = dirs.DATA
+    dirs.make()
+
     try:
-        shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
-        cprint(text=f"\nTemplates copied to {dst_dir}.", color="green")
+        # Copy .ipynb files to dirs.NOTEBOOKS.user
+        for ipynb_file in src_dir.glob("*.ipynb"):
+            shutil.copy(ipynb_file, notebooks_dst_dir)
+
+        # Copy .xlsx files to dirs.DATA
+        for xlsx_file in src_dir.glob("*.xlsx"):
+            shutil.copy(xlsx_file, data_dst_dir)
+
+        cprint(text=f"\nTemplates copied to {notebooks_dst_dir} and {data_dst_dir}.", color="green")
     except Exception as e:
         cprint(text=f"\nFailed to copy templates.", color="red")
         print(e)
@@ -119,7 +130,6 @@ def install_kernel(venv: bool = False) -> None:
         # Step 4: Write the configuration manually
         with open(config_file, "w") as f:
             f.write("c = get_config()\n")
-            f.write("c.InteractiveShellApp.matplotlib = 'svg'\n")
             f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
     except:
         cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")

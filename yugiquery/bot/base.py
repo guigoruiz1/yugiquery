@@ -155,11 +155,17 @@ class Bot:
         """
         try:
             self.process.terminate()
+            result = "Aborted."
             if self.repo is not None:
-                git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
-            return "Aborted"
-        except:
-            return "Abort failed"
+                try:
+                    git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
+                except Exception as e:
+                    print(e)
+                    result += "\nRestoring files failed."
+        except Exception as e:
+            print(f"Abort failed:\n{e}")
+            result = "Abort failed."
+        return result
 
     async def battle(self, callback: Callable[[str], None], atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
