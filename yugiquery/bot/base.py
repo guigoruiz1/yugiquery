@@ -335,7 +335,7 @@ class Bot:
             case GitCommands.status:
                 return self.repo.git.status()
             case GitCommands.log:
-                return self.repo.git.log()
+                return self.repo.git.log("-n", 5)
             case GitCommands.pull:
                 return github_cmd(cmd=git.pull)
             case GitCommands.push:

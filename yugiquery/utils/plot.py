@@ -562,6 +562,102 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     return fig
 
 
+def pyramid(
+    series: pd.Series,
+    use_area: bool = False,
+    size: Tuple[int, int] = (8, 8),
+    grid: bool = False,
+    colors: List[str] | None = None,
+    alpha: int = 1,
+    **kwargs,
+) -> plt.Figure:
+    """
+    Creates a pyramid plot from a pandas Series.
+
+    Args:
+        series (pd.Series): The data to plot.
+        use_area (bool, optional): Whether to use area to represent the values. Defaults to False.
+        size (Tuple[int, int], optional): The size of the plot. Defaults to (8, 8).
+        grid (bool, optional): Whether to show a grid. Defaults to False.
+        colors (List[str], optional): The colors of the bars. If None, use default color cycler. Defaults to None.
+        alpha (int, optional): The transparency of the bars. Defaults to 1.
+        kwargs: Additional keyword arguments to pass to the plot. Not implemented.
+
+    Returns:
+        plt.Figure: The plot.
+    """
+    series = series.sort_values(ascending=False)
+    n = len(series)
+    yticks = []
+
+    if colors is None:
+        colors = [f"C{i}" for i in range(n)]
+
+    fig = plt.figure(figsize=size)
+    ax = fig.add_subplot()
+
+    if use_area:
+        total_area = series.sum()
+        bottom = 2 * np.sqrt(total_area / np.sqrt(3))
+        xlim = bottom / 2
+        heights = []
+        total_height = 0
+        for i, (j, area) in enumerate(series.items()):
+            height = (bottom - np.sqrt(bottom**2 - 4 * area / np.sqrt(3))) / (2 / np.sqrt(3))
+            top = bottom - 2 * height / np.sqrt(3)
+            y = [total_height, total_height + height]
+            x1 = [-bottom / 2, -top / 2]
+            x2 = [bottom / 2, top / 2]
+            ax.fill_betweenx(y, x1, x2, alpha=alpha, color=colors[i])
+            yticks.append(total_height + height / 2)
+            bottom = top
+            total_height += height
+            heights.append(total_height)
+        ax.set_yticks(heights[:-1], minor=True)
+
+    else:
+        total_height = n
+        xlim = series.max() / 2
+        for i, (j, k) in enumerate(series.items()):
+            y = [i, i + 1]
+            x1 = [-k / 2, -series.iloc[i + 1] / 2 if (i + 1) < n else 0]
+            x2 = [k / 2, series.iloc[i + 1] / 2 if (i + 1) < n else 0]
+            ax.fill_betweenx(y, x1, x2, alpha=alpha, color=colors[i])
+            yticks.append(i + 0.5)
+        yticks = np.array(yticks)
+        ax.set_yticks(yticks[1:] - 0.5, minor=True)
+
+    ax.xaxis.set_major_locator(MaxNLocator())
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.set_xlim(-xlim, xlim)
+
+    ax.set_yticks(yticks)
+    ax.set_ylim(0, total_height)
+    ax.tick_params(axis="both", which="major", direction="inout", length=10)
+    ax.tick_params(axis="both", which="minor", direction="inout", length=5)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_position("center")
+    ax.set_yticklabels(series.index)
+
+    ax2 = ax.twinx()
+    ax2.set_yticks(yticks)
+    ax2.set_ylim(ax.get_ylim())
+    ax2.tick_params(axis="y", which="major", length=10, direction="inout")
+    ax2.spines["top"].set_visible(False)
+    ax2.spines["left"].set_visible(False)
+    ax2.spines["right"].set_position("center")
+    ax2.set_yticklabels(series)
+
+    if grid:
+        ax.grid(axis="x", ls=":")
+
+    fig.suptitle(series.name)
+    fig.tight_layout()
+
+    return fig
+
+
 # =================== #
 # Deck specific plots #
 # =================== #

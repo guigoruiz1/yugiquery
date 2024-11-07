@@ -1581,7 +1581,7 @@ def fetch_st(
 
 # TODO: move attributes to argument
 def fetch_monster(
-    monster_query: str | None = None,
+    *query: str,
     cg: CG = CG.ALL,
     step: int = 500,
     limit: int = 5000,
@@ -1592,7 +1592,7 @@ def fetch_monster(
     Fetch monster cards based on query and properties of the cards.
 
     Args:
-        monster_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        monster_query (str, optional):  Multiple strings representing SMW queries to search for.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
@@ -1608,8 +1608,10 @@ def fetch_monster(
     debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
-    if monster_query is None:
-        monster_query = card_query(*card_properties["monster"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["monster"])
 
     print("Downloading monsters")
     monster_df = pd.DataFrame()
@@ -1617,6 +1619,7 @@ def fetch_monster(
         attributes,
         leave=False,
         unit="attribute",
+        position=1,
         dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
     )
@@ -1630,7 +1633,7 @@ def fetch_monster(
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
 
-        temp_df = api.fetch_properties(concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs)
+        temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
@@ -1645,12 +1648,12 @@ def fetch_monster(
 
 
 # Non deck cards
-def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
     Args:
-        token_query (str | None, optional): A string representing a SWM query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1670,23 +1673,25 @@ def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limi
     else:
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
 
-    if token_query is None:
-        token_query = card_query(*card_properties["monster"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["monster"])
 
     print("Downloading tokens")
-    token_df = api.fetch_properties(concept, token_query, step=step, limit=limit, **kwargs)
+    token_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
 
     return token_df
 
 
-def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
     Args:
-        counter_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1703,11 +1708,13 @@ def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, 
     if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
 
-    if counter_query is None:
-        counter_query = card_query(*card_properties["counter"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["counter"])
 
     print("Downloading counters")
-    counter_df = api.fetch_properties(concept, counter_query, step=step, limit=limit, **kwargs)
+    counter_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
 
@@ -1715,12 +1722,12 @@ def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, 
 
 
 # Alternative formats
-def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
     Args:
-        speed_query (str | None, optional):  A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1731,13 +1738,15 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Category:TCG Speed Duel cards]]"
-    if speed_query is None:
-        speed_query = card_query(*card_properties["speed"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["speed"])
 
     print(f"Downloading Speed duel cards")
     speed_df = api.fetch_properties(
         concept,
-        speed_query,
+        query,
         step=step,
         limit=limit,
         **kwargs,
@@ -1751,12 +1760,12 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     return speed_df
 
 
-def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
     Args:
-        skill_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1766,23 +1775,25 @@ def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 50
     """
 
     concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
-    if skill_query is None:
-        skill_query = card_query(*card_properties["skill"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["skill"])
 
     print("Downloading skill cards")
-    skill_df = api.fetch_properties(concept, skill_query, step=step, limit=limit, **kwargs)
+    skill_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
 
     return skill_df
 
 
-def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
     Args:
-        rush_query (str | None, optional): A search query to filter the results. If not provided, it defaults to "rush".
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1791,11 +1802,13 @@ def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000
         A pandas DataFrame containing the fetched Rush Duel cards.
     """
     concept = f"[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]"
-    if rush_query is None:
-        rush_query = card_query(*card_properties["rush"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["rush"])
 
     print("Downloading Rush Duel cards")
-    rush_df = api.fetch_properties(concept, rush_query, step=step, limit=limit, **kwargs)
+    rush_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
 
@@ -1804,7 +1817,7 @@ def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000
 
 # Unusable cards
 def fetch_unusable(
-    query: str | None = None,
+    *query: str,
     cg: CG = CG.ALL,
     filter=True,
     step: int = 500,
@@ -1818,7 +1831,7 @@ def fetch_unusable(
     of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
 
     Args:
-        query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         filter (bool, optional): Keep only "Character Cards", "Non-game cards" and "Ticket Cards".
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1846,7 +1859,9 @@ def fetch_unusable(
 
     concept = up.quote(concept)
 
-    if query is None:
+    if query:
+        query = "|?".join(query)
+    else:
         query = card_query(default=True)
 
     print(f"Downloading unusable cards")
@@ -2014,7 +2029,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
         first = i * step
         last = (i + 1) * step
 
-        set_lists_df, success, error = api.fetch_set_lists(keys[first:last], **kwargs)
+        set_lists_df, success, error = api.fetch_set_lists(*keys[first:last], **kwargs)
         set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop("Page name", axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success += success
