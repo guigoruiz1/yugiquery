@@ -59,6 +59,7 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
+    images_action="?action=query&prop=images&format=json&titles=",
     ygoprodeck="https://db.ygoprodeck.com/api/v7/cardinfo.php",
     headers={"User-Agent": f"{__title__} v{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
@@ -308,12 +309,12 @@ def fetch_properties(
     return df
 
 
-def fetch_redirects(titles: List[str]) -> Dict[str, str]:
+def fetch_redirects(*titles: str) -> Dict[str, str]:
     """
     Fetches redirects for a list of page titles.
 
     Args:
-        titles (List[str]): A list of titles.
+        titles (str): Multiple title strings.
 
     Returns:
         Dict[str, str]: A dictionary mapping source titles to their corresponding redirect targets.
@@ -335,12 +336,12 @@ def fetch_redirects(titles: List[str]) -> Dict[str, str]:
     return results
 
 
-def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
+def fetch_backlinks(*titles: str) -> Dict[str, str]:
     """
     Fetches backlinks for a list of page titles.
 
     Args:
-        titles (List[str]): A list of titles.
+        titles (str): Multiple title strings.
 
     Returns:
         Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
@@ -364,13 +365,15 @@ def fetch_backlinks(titles: List[str]) -> Dict[str, str]:
 
 
 # Wrapper for dictionaries
-def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: str = "", **kwargs) -> Dict[str, str]:
+def fetch_redirect_dict(
+    codes: str | List[str] = [], names: str | List[str] = [], category: str = "", **kwargs
+) -> Dict[str, str]:
     """
     Fetches a dictionary mapping rarity codes to their corresponding names by searching for backlinks and redirects.
 
     Args:
-        names (List[str], optional): A list of names, i.e. "Super Rare" to search for a backling.
-        codes (List[str], optional): A list of codes, i.e. "SR" to search for a redirect.
+        names (str | List[str], optional): A list of names, i.e. "Super Rare" to search for a backling.
+        codes (str | List[str], optional): A list of codes, i.e. "SR" to search for a redirect.
         category (str, optional): A category to search for backlinks. Defaults to empty.
         **kwargs: Additional keyword arguments to pass to the fetch_categorymembers
 
@@ -378,20 +381,24 @@ def fetch_redirect_dict(codes: List[str] = [], names: List[str] = [], category: 
         Dict[str, str]: A dictionary mapping codes to their corresponding names.
 
     """
+    if isinstance(codes, str):
+        codes = [codes]
+    if isinstance(names, str):
+        names = [names]
     if category:
         names.extend(fetch_categorymembers(category=category, namespace=0, **kwargs)["title"])
 
-    backlinks = fetch_backlinks(names)
-    redirects = fetch_redirects(codes)
+    backlinks = fetch_backlinks(*names)
+    redirects = fetch_redirects(*codes)
     return redirects | backlinks
 
 
-def fetch_set_info(sets: str | List[str], extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
+def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
     Args:
-        sets (str | List[str]): A set name or list of set names to fetch information for.
+        sets (str | List[str]): Multiple set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
         debug (bool, optional): If True, prints debug information. Defaults to False.
@@ -402,8 +409,6 @@ def fetch_set_info(sets: str | List[str], extra_info: List[str] = [], step: int 
     Raises:
         Any exceptions raised by requests.get().
     """
-    if isinstance(sets, str):
-        sets = [sets]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
@@ -448,20 +453,18 @@ def fetch_set_info(sets: str | List[str], extra_info: List[str] = [], step: int 
 # TODO: Refactor
 # TODO: Translate region code?
 def fetch_set_lists(
-    titles: str | List[str], debug: bool = False
+    *titles: str, debug: bool = False
 ) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
     """
     Fetches card set lists from a list of page titles.
 
     Args:
-        titles (str | List[str]): A page title or list of page titles from which to fetch set lists.
+        titles (str): Multiple page titles from which to fetch set lists.
         debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
-    if isinstance(titles, str):
-        titles = [titles]
     debug = check_debug(debug)
     if debug:
         print(f"{len(titles)} sets requested")
@@ -665,149 +668,37 @@ def fetch_set_lists(
 
 
 # Images
-# TODO: check save_folder
-async def download_images(
-    file_names: pd.DataFrame,
-    save_folder: str = "images",
-    max_tasks: int = 10,
-) -> None:
+def fetch_page_images(*titles: str, imlimit: int = 500) -> List[str]:
     """
-    Downloads a set of images given their names and saves them to a specified folder.
+    Fetches images from the MediaWiki API.
 
     Args:
-        file_names (pandas.DataFrame): A DataFrame containing the names of the image files to be downloaded.
-        save_folder (str, optional): The path to the folder where the downloaded images will be saved. Defaults to "images".
-        max_tasks (int, optional): The maximum number of images to download at once. Defaults to 10.
+        titles (str): Multiple page titles for which to fetch image file names.
+        imlimit (int, optional): The maximum number of images to fetch. Defaults to 500.
 
     Returns:
-        None
+        pd.Series: A Series containing the image file names.
     """
-    # Prepare URL from file names
-    file_names_md5 = file_names.apply(md5)
-    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names
+    titles = up.quote("|".join(titles))
+    response = requests.get(
+        url=URLS.base + URLS.images_action + titles + f"&imlimit={imlimit}",
+        headers=URLS.headers,
+    ).json()
 
-    # Download image from URL
-    async def download_image(session, url, save_folder, semaphore, pbar):
-        async with semaphore:
-            async with session.get(url) as response:
-                save_name = url.split("/")[-1]
-                if response.status != 200:
-                    raise ValueError(f"URL {url} returned status code {response.status}")
-                total_size = int(response.headers.get("Content-Length", 0))
-                progress = tqdm(
-                    unit="B",
-                    total=total_size,
-                    unit_scale=True,
-                    unit_divisor=1024,
-                    desc=save_name,
-                    leave=False,
-                    dynamic_ncols=(not dirs.is_notebook),
-                    disable=("PM_IN_EXECUTION" in os.environ),
-                )
-                save_file = Path(save_folder).joinpath(save_name)
-                if save_file.is_file():
-                    os.remove(save_file)
-                while True:
-                    chunk = await response.content.read(1024)
-                    if not chunk:
-                        break
-                    progress.update(len(chunk))
-                    with open(save_file, "ab") as f:
-                        f.write(chunk)
-                progress.close()
-                return save_name
+    # Extract the pages data from the response
+    pages = response["query"]["pages"]
 
-    # Parallelize image downloads
-    semaphore = asyncio.Semaphore(max_tasks)
-    async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
-        save_folder = Path(save_folder)
-        if not save_folder.exists():
-            save_folder.mkdir(parents=True)
-        with tqdm(
-            total=len(urls),
-            unit_scale=True,
-            unit="file",
-            dynamic_ncols=(not dirs.is_notebook),
-            disable=("PM_IN_EXECUTION" in os.environ),
-        ) as pbar:
-            tasks = [
-                download_image(
-                    session=session,
-                    url=url,
-                    save_folder=save_folder,
-                    semaphore=semaphore,
-                    pbar=pbar,
-                )
-                for url in urls
-            ]
-            for task in asyncio.as_completed(tasks):
-                pbar.update()
-                await task
+    # Transform the data to remove "File:" prefix and filter out SVG files
+    images_list = [
+        y["title"].lstrip("File:") for page in pages.values() for y in page.get("images", []) if "svg" not in y["title"]
+    ]
+
+    return pd.Series(images_list).drop_duplicates()
 
 
 # ========== #
 # Formatting #
 # ========== #
-
-
-def extract_results(response: requests.Response) -> pd.DataFrame:
-    """
-    Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
-
-    Args:
-        response (requests.Response): The response object obtained from making a GET request to the Yu-Gi-Oh! Wiki API.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the relevant data extracted from the response object.
-    """
-    json = response.json()
-    df = pd.DataFrame(json["query"]["results"]).transpose()
-    if "printouts" in df:
-        df = pd.DataFrame(df["printouts"].values.tolist(), index=df["printouts"].keys())
-        page_url = pd.DataFrame(json["query"]["results"]).transpose()["fullurl"].rename("Page URL")
-        page_name = (
-            pd.DataFrame(json["query"]["results"]).transpose()["fulltext"].rename("Page name")
-        )  # Not necessarily same as card name (Used to merge errata)
-        df = pd.concat([df, page_name, page_url], axis=1)
-
-    return df
-
-
-def extract_fulltext(x: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str] | float:
-    """
-    Extracts fulltext from a list of dictionaries or strings.
-    If multiple is True, returns a sorted tuple of all fulltexts.
-    Otherwise, returns the first fulltext found, with leading/trailing whitespaces removed.
-    If the input list is empty, returns np.nan.
-
-    Args:
-        x (List[Dict[str, Any] | str]): A list of dictionaries or strings to extract fulltext from.
-        multiple (bool, optional): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
-
-    Returns:
-        str or Tuple[str] or np.nan: The extracted fulltext(s).
-    """
-
-    def clean_text(text: str) -> str:
-        # Regex to remove any substring of the form (* Archetype/Series)
-        cleaned = re.sub(r"\(.*\s(?:Archetype|Series)\)", "", text)
-        return cleaned.strip("\u200e")
-
-    if len(x) > 0:
-        if isinstance(x[0], int):
-            return str(x[0])
-        elif "fulltext" in x[0]:
-            if multiple:
-                return tuple(sorted([clean_text(i["fulltext"]) for i in x]))
-            else:
-                return clean_text(x[0]["fulltext"])
-        else:
-            if multiple:
-                return tuple(sorted([clean_text(i) for i in x]))
-            else:
-                return clean_text(x[0])
-    else:
-        return np.nan
 
 
 def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
@@ -923,16 +814,152 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     return df
 
 
-# Cards
-def extract_artwork(row: pd.Series) -> float | Tuple[str]:
+def extract_results(response: requests.Response) -> pd.DataFrame:
     """
-    Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
-    If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
-    If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
-    Returns the result tuple.
+    Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
 
     Args:
-        row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
+        response (requests.Response): The response object obtained from making a GET request to the Yu-Gi-Oh! Wiki API.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the relevant data extracted from the response object.
+    """
+    json = response.json()
+    df = pd.DataFrame(json["query"]["results"]).transpose()
+    if "printouts" in df:
+        df = pd.DataFrame(df["printouts"].values.tolist(), index=df["printouts"].keys())
+        page_url = pd.DataFrame(json["query"]["results"]).transpose()["fullurl"].rename("Page URL")
+        page_name = (
+            pd.DataFrame(json["query"]["results"]).transpose()["fulltext"].rename("Page name")
+        )  # Not necessarily same as card name (Used to merge errata)
+        df = pd.concat([df, page_name, page_url], axis=1)
+
+    return df
+
+
+# Receives a list of dictionaries or strings from an element of a series or detaframe
+def extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str] | float:
+    """
+    Extracts fulltext from a list of dictionaries or strings.
+    If multiple is True, returns a sorted tuple of all fulltexts.
+    Otherwise, returns the first fulltext found, with leading/trailing whitespaces removed.
+    If the input list is empty, returns np.nan.
+
+    Args:
+        element (List[Dict[str, Any] | str]): A list of dictionaries or strings to extract fulltext from.
+        multiple (bool, optional): If True, return a tuple of all fulltexts. Otherwise, return the first fulltext. Default is False.
+
+    Returns:
+        str or Tuple[str] or np.nan: The extracted fulltext(s).
+    """
+
+    def clean_text(text: str) -> str:
+        # Regex to remove any substring of the form (* Archetype/Series)
+        cleaned = re.sub(r"\(.*\s(?:Archetype|Series)\)", "", text)
+        return cleaned.strip("\u200e")
+
+    if len(element) > 0:
+        if isinstance(element[0], int):
+            return str(element[0])
+        elif "fulltext" in element[0]:
+            if multiple:
+                return tuple(sorted([clean_text(i["fulltext"]) for i in element]))
+            else:
+                return clean_text(element[0]["fulltext"])
+        else:
+            if multiple:
+                return tuple(sorted([clean_text(i) for i in element]))
+            else:
+                return clean_text(element[0])
+    else:
+        return np.nan
+
+
+# Cards
+# Receives a list of strings from an element of a series
+def extract_category_bool(element: List[str]) -> float | bool:
+    """
+    Extracts a boolean value from a list of strings that represent a boolean value.
+    If the first string in the list is "t", returns True.
+    If the first string in the list is "f", returns False.
+    Otherwise, returns np.nan.
+
+    Args:
+        element (List[str]): The list of strings to extract a boolean value from.
+
+    Returns:
+        bool | np.nan: The extracted boolean value.
+    """
+    if len(element) > 0:
+        if element[0] == "f":
+            return False
+        elif element[0] == "t":
+            return True
+
+    return np.nan
+
+
+# Receives a list/tuple of strings or string from an element of a series
+def extract_primary_type(element: str | List[str] | Tuple[str]) -> str | List[str]:
+    """
+    Extracts the primary type of a card.
+    If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
+    If the input is a list or tuple with only one element, returns that element.
+    If the input is a list or tuple with multiple elements, returns the first element that is not "Effect Monster".
+    Otherwise, returns the input.
+
+    Args:
+        element (str | List[str] | Tuple[str]): The type(s) to extract the primary type from.
+
+    Returns:
+        str | List[str]: The extracted primary type(s).
+    """
+    if isinstance(element, list) or isinstance(element, tuple):
+        if "Monster Token" in element:
+            return "Monster Token"
+        else:
+            element = [z for z in element if (z != "Pendulum Monster") and (z != "Maximum Monster")]
+            if len(element) == 1 and "Effect Monster" in element:
+                return "Effect Monster"
+            elif len(element) > 0:
+                return [z for z in element if z != "Effect Monster"][0]
+            else:
+                return "???"
+
+    return element
+
+
+# Receives a list/tuple of strings or string from an element of a series
+def extract_misc(element: str | List[str] | Tuple[str]) -> pd.Series:
+    """
+    Extracts the misc properties of a card.
+    Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
+
+    Args:
+        element (str | List[str] | Tuple[str]): The Misc values to generate the boolean table from.
+
+    Returns:
+        pd.Series: A pandas Series of boolean values indicating whether "Legend Card" and "Requires Maximum Mode" are present in the input.
+    """
+    if isinstance(element, list) or isinstance(element, tuple):
+        return pd.Series(
+            [val in element for val in ["Legend Card", "Requires Maximum Mode"]],
+            index=["Legend", "Maximum mode"],
+        )
+    else:
+        return pd.Series([False, False], index=["Legend", "Maximum mode"])
+
+
+# Receives a series representing a row in a dataframe
+def extract_artwork(row: pd.Series) -> float | Tuple[str]:
+    """
+    Formats a row in a dataframe that contains "alternate artworks" and "edited artworks" columns.
+    If the "alternate artworks" column in a row contain at least one "True" value, adds "Alternate" to the result tuple.
+    If the "edited artworks" column in a row contain at least one "True" value, adds "Edited" to the result tuple.
+    Returns the resulting tuples.
+
+    Args:
+        row (pd.Series): Row in a dataframe that may contain "alternate artworks" and/or "edited artworks" columns.
 
     Returns:
         Tuple[str]: The formatted row as a tuple.
@@ -953,72 +980,103 @@ def extract_artwork(row: pd.Series) -> float | Tuple[str]:
         return result
 
 
-def extract_primary_type(row: str | List[str] | Tuple[str]) -> str | List[str]:
+# =========== #
+# Downloading #
+# =========== #
+
+
+# TODO: Refactor, move somewhere else
+async def download_media(
+    *file_names: str,
+    output_path: str = "media",
+    max_tasks: int = 10,
+) -> pd.DataFrame:
     """
-    Extracts the primary type of a card.
-    If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
-    If the input is a list or tuple with only one element, returns that element.
-    If the input is a list or tuple with multiple elements, returns the first element that is not "Effect Monster".
-    Otherwise, returns the input.
+    Downloads a set of files given their names and saves them to a specified folder.
+    Returns a DataFrame listing file names and URLs that failed to download.
 
     Args:
-        row (str | List[str] | Tuple[str]): The input type(s) to extract the primary type from.
+        file_names (str): Multiple names of the media files to be downloaded.
+        output_path (str, optional): The path to the folder where the downloaded files will be saved. Defaults to "media".
+        max_tasks (int, optional): The maximum number of files to download at once. Defaults to 10.
 
     Returns:
-        str | List[str]: The extracted primary type(s).
+        pandas.DataFrame: A DataFrame with columns "file_name", "url" and "success" for each download.
     """
-    if isinstance(row, list) or isinstance(row, tuple):
-        if "Monster Token" in row:
-            return "Monster Token"
-        else:
-            row = [z for z in row if (z != "Pendulum Monster") and (z != "Maximum Monster")]
-            if len(row) == 1 and "Effect Monster" in row:
-                return "Effect Monster"
-            elif len(row) > 0:
-                return [z for z in row if z != "Effect Monster"][0]
-            else:
-                return "???"
+    # Prepare URLs from file names
+    file_names = pd.Series(file_names)
+    file_names_md5 = file_names.apply(md5)
+    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names
+    download_results = []
 
-    return row
+    # Download media from URL
+    async def download_file(session, url, save_folder, semaphore, pbar):
+        async with semaphore:
+            save_name = url.split("/")[-1]
+            save_file = Path(save_folder).joinpath(save_name)
+            try:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        raise ValueError(f"URL {url} returned status code {response.status}")
+                    total_size = int(response.headers.get("Content-Length", 0))
+                    progress = tqdm(
+                        unit="B",
+                        total=total_size,
+                        unit_scale=True,
+                        unit_divisor=1024,
+                        desc=save_name,
+                        leave=False,
+                        dynamic_ncols=(not dirs.is_notebook),
+                        disable=("PM_IN_EXECUTION" in os.environ),
+                    )
 
+                    # Remove existing file if already exists to ensure a fresh download
+                    if save_file.is_file():
+                        save_file.unlink()
 
-def extract_misc(x: str | List[str] | Tuple[str]) -> pd.Series:
-    """
-    Extracts the misc properties of a card.
-    Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
+                    # Write downloaded content in chunks
+                    with open(save_file, "wb") as f:
+                        while True:
+                            chunk = await response.content.read(1024)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            progress.update(len(chunk))
+                    progress.close()
+                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": True})
+            except Exception as e:
+                # Cleanup if any error occurs and log the failure
+                if save_file.is_file():
+                    save_file.unlink()
+                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": False})
+                tqdm.write(f"Failed to download {save_name}: {e}")
+            finally:
+                pbar.update()
 
-    Args:
-        x (str | List[str] | Tuple[str]): The Misc values to generate the boolean table from.
+    # Parallelize file downloads
+    semaphore = asyncio.Semaphore(max_tasks)
+    async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
+        output_path = Path(output_path)
+        output_path.mkdir(parents=True, exist_ok=True)
 
-    Returns:
-        pd.Series: A pandas Series of boolean values indicating whether "Legend Card" and "Requires Maximum Mode" are present in the input.
-    """
-    if isinstance(x, list) or isinstance(x, tuple):
-        return pd.Series(
-            [val in x for val in ["Legend Card", "Requires Maximum Mode"]],
-            index=["Legend", "Maximum mode"],
-        )
-    else:
-        return pd.Series([False, False], index=["Legend", "Maximum mode"])
+        with tqdm(
+            total=len(urls),
+            unit="file",
+            dynamic_ncols=(not dirs.is_notebook),
+            disable=("PM_IN_EXECUTION" in os.environ),
+        ) as pbar:
+            tasks = [
+                download_file(
+                    session=session,
+                    url=url,
+                    save_folder=output_path,
+                    semaphore=semaphore,
+                    pbar=pbar,
+                )
+                for url in urls
+            ]
+            # Run tasks as they complete to handle failures gracefully
+            await asyncio.gather(*tasks, return_exceptions=True)
 
-
-def extract_category_bool(x: List[str]) -> float | bool:
-    """
-    Extracts a boolean value from a list of strings that represent a boolean value.
-    If the first string in the list is "t", returns True.
-    If the first string in the list is "f", returns False.
-    Otherwise, returns np.nan.
-
-    Args:
-        x (List[str]): The input list of strings to extract a boolean value from.
-
-    Returns:
-        bool | np.nan: The extracted boolean value.
-    """
-    if len(x) > 0:
-        if x[0] == "f":
-            return False
-        elif x[0] == "t":
-            return True
-
-    return np.nan
+    # Return failed downloads as a DataFrame
+    return pd.DataFrame(download_results)

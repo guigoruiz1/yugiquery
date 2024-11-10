@@ -30,9 +30,6 @@ from tqdm.auto import tqdm
 from ..utils import *
 from ..yugiquery import run
 
-# Set multiprocessing start method
-mp.set_start_method("spawn")
-
 
 # ============ #
 # Enum Classes #
@@ -338,7 +335,7 @@ class Bot:
             case GitCommands.status:
                 return self.repo.git.status()
             case GitCommands.log:
-                return self.repo.git.log()
+                return self.repo.git.log("-n", 5)
             case GitCommands.pull:
                 return github_cmd(cmd=git.pull)
             case GitCommands.push:
@@ -548,6 +545,9 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 
 
 def main(args) -> None:
+    # Set multiprocessing start method
+    mp.set_start_method("spawn")
+    
     # Make sure the data and reports directories exist
     dirs.make()
 
