@@ -251,7 +251,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
 
     result = git.commit(
         files=[benchmark_file],
-        message=f"{report} report benchmarked - {now.isoformat()}",
+        message=f"{report.capitalize()} report benchmarked - {now.isoformat()}",
     )
     print(result)
 
@@ -460,8 +460,7 @@ def cleanup_data(dry_run=False) -> None:
         print(result)
 
 
-# TODO: Rename
-def load_corrected_latest(
+def load_latest_data(
     name_pattern: str,
     tuple_cols: List[str] = [
         "Secondary type",
@@ -505,10 +504,10 @@ def load_corrected_latest(
                 df[col] = pd.to_datetime(df[col])
 
         ts = arrow.get(Path(files[0]).stem.split("_")[-1])
-        print(f"{name_pattern.capitalize()} file loaded")
+        print(f"{name_pattern.capitalize()} file loaded.")
         return df, ts
     else:
-        print(f'No "{name_pattern}" files')
+        print(f'No file matching pattern "{name_pattern}" found.')
         return None, None
 
 
@@ -631,6 +630,480 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
         print('Error! No "Name" column to join errata')
 
     return input_df
+
+
+# User collection
+def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
+    """
+    Loads a user collection from a CSV or Excel file.
+
+    Args:
+        file_name (str, optional): The name of the collection file to load. Defaults to "collection".
+
+    Returns:
+        None | pd.DataFrame: The loaded collection DataFrame if the file is found, otherwise None.
+    """
+    collection_file = dirs.DATA.joinpath(file_name)
+    if collection_file.with_suffix(".xlsx").is_file():
+        collection_file = collection_file.with_suffix(".xlsx")
+        collections = pd.read_excel(collection_file, sheet_name=None)
+        collection_df = pd.concat(
+            [df.assign(Collection=key) for key, df in collections.items() if key != "Instructions"], ignore_index=True
+        )
+        if collection_df["Collection"].nunique() == 1:
+            collection_df.drop(["Collection"], axis=1)
+    elif collection_file.with_suffix(".csv").is_file():
+        collection_file = collection_file.with_suffix(".csv")
+        collection_df = pd.read_csv(collection_file)
+    else:
+        print(f"No {file_name} file found.")
+        return None
+
+    collection_df = collection_df.convert_dtypes(convert_string=False)
+
+    print(f"Loaded {collection_file.name}.")
+    return collection_df
+
+
+def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
+    """
+    Process a DataFrame with card names, numbers and/or passwords and return a DataFrame with the card names, quantities and, optionally, additional card data merged from database.
+
+    Args:
+        list_df (pd.DataFrame): DataFrame with card names, numbers and/or passwords.
+        card_data (bool, optional): If True, merges additional card data from the database. Defaults to False.
+        set_data (bool, optional): If True, merges set specific card data from the database. Defaults to False.
+
+    Returns:
+        ((List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, quantities and, optionally, additional card data merged from database.
+
+    Raises:
+        FileNotFoundError: If no card or set lists data files are found to match the input collection data against.
+    """
+    if list_df.empty:
+        print("List empty. Ignoring.")
+        return list_df
+
+    if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
+        card_df, _ = load_latest_data(name_pattern="cards")
+        if card_df is not None:
+            card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
+    if "Card number" in list_df and not list_df["Card number"].dropna().empty:
+        set_lists_df, _ = load_latest_data(name_pattern="sets")
+        if set_lists_df is not None:
+            set_lists_df = (
+                set_lists_df.sort_values(by="Release")
+                .drop_duplicates(subset="Card number", keep="first")
+                .dropna(subset=["Card number"])
+            )
+
+    if card_df is None and set_lists_df is None:
+        raise FileNotFoundError("No card or set lists data files found.")
+    else:
+        print("\nFinding cards in database...")
+
+    def merge_set_data(df: pd.DataFrame) -> pd.DataFrame:
+        if set_lists_df is None:
+            return df
+        df["Card number"] = df["Card number"].str.upper()
+        extra_cols = set_lists_df.columns.difference(df.columns).join(["Card number", "Name"], how="outer")
+        merged_df = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
+        merged_df["match"] = merged_df["Name_y"] if "Name_y" in merged_df else merged_df["Name"]
+        merged_df.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
+        merged_df.drop(columns=["Name_y"], inplace=True, errors="ignore")
+        missing = (
+            merged_df["Card number"][~merged_df["Card number"].isin(set_lists_df["Card number"])]
+            .dropna()
+            .sort_values()
+            .unique()
+            .astype(str)
+        )
+        if len(missing) > 0:
+            print(
+                f'\nUnable to find the following {len(missing)} card(s) by "Card number":\n ⏺',
+                "\n ⏺ ".join(missing),
+            )
+        return merged_df
+
+    def merge_with_keys(df: pd.DataFrame, key_col: str, ref_df: pd.DataFrame, ref_key: str, ref_val: str) -> pd.DataFrame:
+        if ref_df is None:
+            return df
+        keys = df[df["match"].isna()][key_col].dropna()
+        list_keys = ref_df[ref_key].dropna()
+        if key_col != "Password":
+            keys = keys.str.lower().str.strip()
+            list_keys = list_keys.str.lower().str.strip()
+        else:
+            keys = keys.astype(int)
+            list_keys = list_keys.astype(int)
+        key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
+        missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
+        if len(missing) > 0:
+            print(
+                f'\nUnable to find the following {len(missing)} card(s) by "{ref_key}":\n ⏺',
+                "\n ⏺ ".join(missing),
+            )
+        matches = keys.map(key_name_dict.get)
+        df.loc[matches.index, "match"] = matches
+        return df
+
+    original_cols = list_df.columns
+    list_df = list_df.dropna(how="all").assign(match=np.nan).astype(object)
+    if "Card number" in original_cols and not list_df["Card number"].dropna().empty and set_lists_df is not None:
+        list_df = (
+            merge_set_data(list_df)
+            if set_data
+            else merge_with_keys(
+                df=list_df,
+                key_col="Card number",
+                ref_df=set_lists_df,
+                ref_key="Card number",
+                ref_val="Name",
+            )
+        )
+
+    if "Password" in original_cols and not list_df["match"].notna().all() and card_df is not None:
+        list_df = merge_with_keys(df=list_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name")
+
+    if "Name" in original_cols and not list_df["match"].notna().all() and (card_df is not None or set_lists_df is not None):
+        if card_df is None:
+            ref_df = set_lists_df
+        else:
+            ref_df = card_df
+
+        list_df = merge_with_keys(df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
+        if list_df["match"].isna().any():
+            try:
+                ydk_data = get_ygoprodeck()
+                ydk_data["Old name"] = ydk_data["misc_info"].apply(
+                    lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
+                )
+                merge_with_keys(
+                    df=list_df,
+                    key_col="Name",
+                    ref_df=ydk_data.explode("Old name"),
+                    ref_key="Old name",
+                    ref_val="name",
+                )
+            except Exception as e:
+                print("\nUnable to get old names from ygoprodeck:", e)
+
+    list_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
+    list_df.rename(columns={"match": "Name"}, inplace=True)
+    list_df = list_df.groupby(list_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
+
+    if card_data and card_df is not None:
+        list_df = list_df[list_df.columns.difference(card_df.columns).join(["Name"], how="outer")].merge(
+            card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left"
+        )
+
+    list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=["Name", "Count"], ignore_index=True)
+    list_df["Count"] = list_df["Count"].astype(int)
+    print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
+
+    return list_df[0] if len(list_df) == 1 else list_df
+
+
+# User decks
+def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_collection: bool = False) -> pd.DataFrame:
+    """
+    Match deck cards to collection cards and return the resulting DataFrame with card counts appropriately adjusted.
+
+    Args:
+        collection_df (pd.DataFrame): DataFrame with the collection card names and quantities.
+        deck_df (pd.DataFrame): DataFrame with the deck card names and quantities.
+        return_collection (bool): If True, returns the remaining collection cards in the result DataFrame.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card names and quantities.
+    """
+    # Initialize a list to collect result rows
+    result_rows = []
+
+    # Iterate over each row in deck_df
+    for index, deck_row in deck_df.iterrows():
+        card_name = deck_row["Name"]
+        deck_count = deck_row["Count"]
+        deck_deck = deck_row["Deck"] if "Deck" in deck_row else np.nan
+
+        # Get sub DataFrame from collection_df where Name matches
+        collection_sub_df = collection_df[collection_df["Name"] == card_name].copy()
+
+        # If Deck column exists, sort so that rows with exact Deck match are first, np.nan second
+        if "Deck" in collection_sub_df.columns:
+            collection_sub_df = collection_sub_df[collection_sub_df["Deck"].isin([deck_deck, np.nan])]
+            collection_sub_df = collection_sub_df.sort_values(
+                by=["Deck"], ascending=[True]
+            )  # Sort by Deck (exact match first)
+
+        # Subtract from the first available row(s) in collection_sub_df until deck_count is depleted
+        for sub_index, collection_row in collection_sub_df.iterrows():
+            if deck_count <= 0:
+                break  # Deck count fulfilled
+
+            available_count = collection_row["Count"]
+            subtract_count = min(deck_count, available_count)
+
+            # Subtract and update deck_count
+            deck_count -= subtract_count
+            collection_sub_df.loc[collection_row.name, "Count"] -= subtract_count
+
+            # Add the collection_row to the result rows
+            result_row = {
+                "Name": card_name,
+                "Count": available_count,  # Remaining count after subtraction
+                "Deck": deck_deck,
+                "missing": np.nan,
+            }
+            for col in collection_row.index.difference(result_row.keys()):
+                result_row[col] = collection_row[col]
+
+            result_rows.append(result_row)
+
+            # If Count reaches 0, drop the row from collection_df
+            if collection_sub_df.loc[collection_row.name, "Count"] <= 0:
+                collection_sub_df.drop(collection_row.name, inplace=True)
+
+        # After processing all available cards, handle missing counts
+        if deck_count > 0:
+            result_row = {"Name": card_name, "Count": 0, "Deck": deck_deck, "missing": deck_count}
+            # Create a new row for the deck with Count set to 0 and missing indicating what's left
+            result_rows.append(result_row)
+
+    # Convert the collected result rows into a DataFrame
+    result_df = pd.DataFrame(result_rows)
+
+    # Append any remaining rows from collection_df that were not used in the deck
+    if return_collection:
+        result_df = pd.concat(
+            [result_df, collection_df[~collection_df["Name"].isin(result_df["Name"])]], ignore_index=True
+        ).sort_values(by=["Name", "Deck"])
+
+    # Replace 0 values in missing with NaN
+    result_df["missing"] = result_df["missing"].fillna(0)
+
+    return result_df
+
+
+def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Check the limits of cards in a decklist DataFrame for each format, i.e. TCG and OCG.
+
+    Args:
+        deck_df (pd.DataFrame): DataFrame with the deck card names and quantities.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card names, quantities, and limitations per format.
+    """
+    formats = deck_df.filter(like="status").columns
+    # Turn into function
+    forbidden = (deck_df[formats] == "Forbidden").any(axis=1)
+    limited = (deck_df[formats] == "Forbidden").any(axis=1) & (deck_df["Count"] > 1)
+    semi_limited = (deck_df[formats] == "Forbidden").any(axis=1) & (deck_df["Count"] > 2)
+
+    # Apply the function to categorize the status
+    melted_df = deck_df[forbidden | limited | semi_limited].melt(
+        id_vars=["Name", "Deck", "Section", "Count"],
+        value_vars=formats,
+        var_name="Format",
+        value_name="Status",
+    )
+
+    # Apply the function to categorize the status
+    melted_df["Status"] = melted_df["Status"].apply(lambda x: np.nan if x == "Unlimited" else x)
+    melted_df = melted_df.dropna(subset=["Status"])
+    melted_df = melted_df.assign(Value=melted_df["Format"].str.replace(" status", ""))
+
+    # Pivot to get the desired column format
+    result = melted_df.pivot_table(
+        index=["Name", "Deck", "Section", "Count"],
+        columns="Status",
+        values="Value",
+        aggfunc=lambda x: "/".join(sorted(set(x))),
+    )
+    return result
+
+
+## Decklists
+def read_decklist(file_path: Path | str) -> pd.DataFrame:
+    """
+    Read a decklist file and return a DataFrame with the card names.
+
+    Args:
+        file_path (Path, str): Path to the decklist file.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card names.
+    """
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    data = []
+    current_section = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:  # Skip empty lines
+            continue
+        if line.endswith(":"):  # Section header
+            current_section = line[:-1].capitalize()
+        elif current_section:
+            quantity, card_name = line.split("x ", 1)
+            quantity = int(quantity)
+            data.append(
+                {
+                    "Name": card_name,
+                    "Count": quantity,
+                    "Section": current_section,
+                    "Deck": file_path.stem.replace("_", " ").capitalize(),
+                }
+            )
+
+    df = pd.DataFrame(data).convert_dtypes(convert_string=False)
+    return df
+
+
+def get_decklists(*files: Path | str) -> pd.DataFrame:
+    """
+    Load decklist files and return a DataFrame with the card names.
+
+    Args:
+        files (Path | str): Paths to the decklist files. If not provided, loads all decklist files in the data directory.
+
+    Returns:
+        (pd.DataFrame): DataFrame with card names.
+    """
+    decklist_df = pd.DataFrame()
+    if not files:
+        files = list(dirs.DATA.glob("*.txt"))
+
+    for file in files:
+        temp_df = read_decklist(file)
+        decklist_df = pd.concat([decklist_df, temp_df])
+        print(f"Loaded {file.stem} deck.")
+
+    decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
+    return decklist_df
+
+
+# YDK
+def get_ygoprodeck() -> pd.DataFrame:
+    """
+    Fetch the YGOProDeck data from the API or local file.
+
+    Returns:
+        pd.DataFrame: A DataFrame of the YGOProDeck data.
+
+    Raises:
+        Exception: Exceptions raised by api.fetch_ygoprodeck.
+    """
+    ygoprodeck_file = dirs.DATA.joinpath("ygoprodeck.json")
+    try:
+        result = api.fetch_ygoprodeck()
+        with open(ygoprodeck_file, "w+") as file:
+            json.dump(result, file, indent=4)
+        ydk_data = pd.DataFrame(result).set_index("id")
+    except Exception as e:
+        if ygoprodeck_file.is_file():
+            print("Unable to fetch ygoprodeck data. Using local file.")
+            print(e)
+            ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
+        else:
+            print("Unable to obtain ygoprodeck data")
+            raise e
+
+    return ydk_data
+
+
+def read_ydk(file_path: Path | str) -> pd.DataFrame:
+    """
+    Read a YDK file and return a DataFrame with the card codes.
+
+    Args:
+        file_path (Path | str): Path to the YDK file.
+
+    Returns:
+        (pd.DataFrame): DataFrame with the card codes.
+
+    """
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    data = []
+    current_section = None
+
+    for line in lines:
+        line = line.strip()
+        if not line:  # Skip empty lines
+            continue
+        if line in ["#main", "#extra", "!side"]:
+            current_section = line[1:].capitalize()
+        elif current_section:
+            data.append({"Code": line, "Section": current_section, "Deck": file_path.stem.replace("_", " ").capitalize()})
+
+    df = pd.DataFrame(data).convert_dtypes(convert_string=False)
+    return df
+
+
+def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert a DataFrame with YDK card codes to a DataFrame with card names.
+
+    Args:
+        ydk_df (pd.DataFrame): DataFrame with YDK card codes.
+
+    Returns:
+        (pd.DataFrame): DataFrame with card names. If unable to obtain the card data, returns input DataFrame.
+    """
+    try:
+        ydk_data = get_ygoprodeck()
+    except Exception as e:
+        print(e)
+        return ydk_df
+
+    ydk_df = ydk_df.copy()
+
+    def get_ydk_card(code) -> float | str:
+        code = int(code)
+        if code not in ydk_data.index:
+            return np.nan
+        return ydk_data.loc[code, "name"]
+
+    ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
+    not_found = ydk_df[ydk_df["Name"].isna()]
+    if len(not_found) > 0:
+        print()  # Print a newline for better readability
+        for deck in not_found["Deck"].unique():
+            print(f"Unable to find {len(not_found[not_found['Deck'] == deck])} cards in {deck}:")
+            print(" ⏺", "\n ⏺ ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
+
+    ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
+    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count").astype(int)
+    ydk_df = ydk_df.drop_duplicates().reset_index(drop=True)
+    return ydk_df
+
+
+def get_ydk(*files: Path | str) -> pd.DataFrame:
+    """
+    Load YDK files and return a DataFrame with the card names.
+
+    Args:
+        files (Path | str): Paths to YDK files. If not provided, loads all YDK files in the data directory.
+
+    Returns:
+        (pd.DataFrame): DataFrame with card names. If unable to obtain the card data, returns raw YDK DataFrame.
+    """
+    ydk_df = pd.DataFrame()
+    if not files:
+        files = list(dirs.DATA.glob("*.ydk"))
+    for file in files:
+        temp_df = read_ydk(file)
+        ydk_df = pd.concat([ydk_df, temp_df])
+        print(f"Loaded {file.stem} deck.")
+
+    if not ydk_df.empty:
+        ydk_df = convert_ydk(ydk_df)
+    return ydk_df
 
 
 # =================== #
@@ -1082,7 +1555,7 @@ def fetch_st(
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
-    concept = f"[[Concept:CG%20non-monster%20cards]]"
+    concept = f"[[Concept:CG non-monster cards]]"
     if st not in valid_st:
         raise ValueError("results: st must be one of %r." % valid_st)
     elif st == "Both" or st == "All":
@@ -1106,8 +1579,9 @@ def fetch_st(
     return st_df
 
 
+# TODO: move attributes to argument
 def fetch_monster(
-    monster_query: str | None = None,
+    *query: str,
     cg: CG = CG.ALL,
     step: int = 500,
     limit: int = 5000,
@@ -1118,7 +1592,7 @@ def fetch_monster(
     Fetch monster cards based on query and properties of the cards.
 
     Args:
-        monster_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        monster_query (str, optional):  Multiple strings representing SMW queries to search for.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
@@ -1134,8 +1608,10 @@ def fetch_monster(
     debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
-    if monster_query is None:
-        monster_query = card_query(*card_properties["monster"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["monster"])
 
     print("Downloading monsters")
     monster_df = pd.DataFrame()
@@ -1143,6 +1619,7 @@ def fetch_monster(
         attributes,
         leave=False,
         unit="attribute",
+        position=1,
         dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
     )
@@ -1151,16 +1628,16 @@ def fetch_monster(
         if debug:
             tqdm.write(f"- {att}")
 
-        concept = f"[[Concept:CG%20monsters]][[Attribute::{att}]]"
+        concept = f"[[Concept:CG monsters]][[Attribute::{att}]]"
 
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
 
-        temp_df = api.fetch_properties(concept, monster_query, step=step, limit=limit, iterator=iterator, **kwargs)
+        temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
-        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"].reset_index(drop=True)
+        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
 
     if debug:
         print("- Total")
@@ -1171,12 +1648,12 @@ def fetch_monster(
 
 
 # Non deck cards
-def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch token cards based on query and properties of the cards.
 
     Args:
-        token_query (str | None, optional): A string representing a SWM query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1196,23 +1673,25 @@ def fetch_token(token_query: str | None = None, cg=CG.ALL, step: int = 500, limi
     else:
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
 
-    if token_query is None:
-        token_query = card_query(*card_properties["monster"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["monster"])
 
     print("Downloading tokens")
-    token_df = api.fetch_properties(concept, token_query, step=step, limit=limit, **kwargs)
+    token_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
 
     return token_df
 
 
-def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetch counter cards based on query and properties of the cards.
 
     Args:
-        counter_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
         limit (int, optional): An integer that represents the maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1229,11 +1708,13 @@ def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, 
     if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
 
-    if counter_query is None:
-        counter_query = card_query(*card_properties["counter"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["counter"])
 
     print("Downloading counters")
-    counter_df = api.fetch_properties(concept, counter_query, step=step, limit=limit, **kwargs)
+    counter_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
 
@@ -1241,12 +1722,12 @@ def fetch_counter(counter_query: str | None = None, cg=CG.ALL, step: int = 500, 
 
 
 # Alternative formats
-def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches TCG Speed Duel cards from the yugipedia Wiki API.
 
     Args:
-        speed_query (str | None, optional):  A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1257,13 +1738,15 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     debug = check_debug(kwargs.get("debug", False))
 
     concept = "[[Category:TCG Speed Duel cards]]"
-    if speed_query is None:
-        speed_query = card_query(*card_properties["speed"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["speed"])
 
     print(f"Downloading Speed duel cards")
     speed_df = api.fetch_properties(
         concept,
-        speed_query,
+        query,
         step=step,
         limit=limit,
         **kwargs,
@@ -1277,12 +1760,12 @@ def fetch_speed(speed_query: str | None = None, step: int = 500, limit: int = 50
     return speed_df
 
 
-def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches skill cards from the yugipedia Wiki API.
 
     Args:
-        skill_query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1292,23 +1775,25 @@ def fetch_skill(skill_query: str | None = None, step: int = 500, limit: int = 50
     """
 
     concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
-    if skill_query is None:
-        skill_query = card_query(*card_properties["skill"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["skill"])
 
     print("Downloading skill cards")
-    skill_df = api.fetch_properties(concept, skill_query, step=step, limit=limit, **kwargs)
+    skill_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
 
     return skill_df
 
 
-def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
     Fetches Rush Duel cards from the Yu-Gi-Oh! Wikia API.
 
     Args:
-        rush_query (str | None, optional): A search query to filter the results. If not provided, it defaults to "rush".
+        query (str, optional): Multiple strings representing SMW queries to search for.
         step (int, optional): The number of results to fetch in each API call. Defaults to 500.
         limit (int, optional): The maximum number of results to fetch. Defaults to 5000.
         **kwargs: Additional keyword arguments to pass to fetch_properties.
@@ -1317,11 +1802,13 @@ def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000
         A pandas DataFrame containing the fetched Rush Duel cards.
     """
     concept = f"[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]"
-    if rush_query is None:
-        rush_query = card_query(*card_properties["rush"])
+    if query:
+        query = "|?".join(query)
+    else:
+        query = card_query(*card_properties["rush"])
 
     print("Downloading Rush Duel cards")
-    rush_df = api.fetch_properties(concept, rush_query, step=step, limit=limit, **kwargs)
+    rush_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
 
@@ -1330,7 +1817,7 @@ def fetch_rush(rush_query: str | None = None, step: int = 500, limit: int = 5000
 
 # Unusable cards
 def fetch_unusable(
-    query: str | None = None,
+    *query: str,
     cg: CG = CG.ALL,
     filter=True,
     step: int = 500,
@@ -1344,7 +1831,7 @@ def fetch_unusable(
     of a real card, such as "Everyone's King". This criteria is not free of ambiguity.
 
     Args:
-        query (str | None, optional): A string representing a SMW query to search for. Defaults to None.
+        query (str, optional): Multiple strings representing SMW queries to search for.
         cg (CG, optional): An Enum that represents the card game to fetch cards from. Defaults to CG.ALL.
         filter (bool, optional): Keep only "Character Cards", "Non-game cards" and "Ticket Cards".
         step (int, optional): An integer that represents the number of results to fetch at a time. Defaults to 500.
@@ -1361,6 +1848,9 @@ def fetch_unusable(
     debug = check_debug(kwargs.get("debug", False))
     concept = "[[Category:Unusable cards]]"
 
+    if filter:
+        concept += "[[Card type::Character Card||Non-game card||Ticket Card]]"
+
     valid_cg = cg.value
     if valid_cg == "CG":
         concept = "OR".join([concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
@@ -1369,16 +1859,13 @@ def fetch_unusable(
 
     concept = up.quote(concept)
 
-    if query is None:
+    if query:
+        query = "|?".join(query)
+    else:
         query = card_query(default=True)
 
     print(f"Downloading unusable cards")
     unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
-
-    if filter and "Card type" in unusable_df:
-        unusable_df = unusable_df[
-            unusable_df["Card type"].isin(["Character Card", "Non-game card", "Ticket Card"])
-        ].reset_index(drop=True)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
 
@@ -1469,7 +1956,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
     else:
-        category = f"{valid_cg}%20Set%20Card%20Lists"
+        category = [f"{valid_cg} Set Card Lists"]
 
     print("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
@@ -1481,6 +1968,8 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
+        if debug:
+            tqdm.write(f"- {cat}")
         iterator.set_description(cat.split("Category:")[-1])
         temp = api.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator, debug=debug)
         sub_categories = pd.DataFrame(temp)["title"]
@@ -1492,11 +1981,13 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             disable=("PM_IN_EXECUTION" in os.environ),
         )
         for sub_cat in sub_iterator:
+            if debug:
+                tqdm.write(f"\n- {sub_cat}")
             sub_iterator.set_description(sub_cat.split("Category:")[-1])
             temp = api.fetch_properties(
                 f"[[{sub_cat}]]",
                 query="|?Modification date",
-                step=limit,
+                step=step,
                 limit=limit,
                 iterator=sub_iterator,
                 **kwargs,
@@ -1538,7 +2029,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
         first = i * step
         last = (i + 1) * step
 
-        set_lists_df, success, error = api.fetch_set_lists(keys[first:last], **kwargs)
+        set_lists_df, success, error = api.fetch_set_lists(*keys[first:last], **kwargs)
         set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop("Page name", axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success += success
@@ -1594,7 +2085,7 @@ def run_notebooks(
         unit="report",
         unit_scale=True,
         dynamic_ncols=(not dirs.is_notebook),
-        delay=1,
+        delay=2,
         desc="Completion",
     )
 
@@ -1614,12 +2105,12 @@ def run_notebooks(
         contrib_upper = contrib.upper()
         contrib_value = contribs.get(contrib)
         if contrib_upper == "DISCORD":
-            ch_key = "CHANNEL_ID"
+            ch_key = "channel_id"
         elif contrib_upper == "TELEGRAM":
-            ch_key = "CHAT_ID"
+            ch_key = "chat_id"
         if contrib_value is True:
 
-            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key}"]
+            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key.upper()}"]
             try:
                 secrets = load_secrets(
                     required_secrets,
@@ -1644,15 +2135,15 @@ def run_notebooks(
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
             else:
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
-
             return contrib_tqdm(
                 token=tkn,
-                file=open(file=os.devnull, mode="w"),
-                **{ch_key: ch},
+                file=open(os.devnull, "w"),
+                **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
-        except:
-            pass
+        except Exception as e:
+            print(e)
+            cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
 
     # Iterate over potential contrib names
     for contrib in contribs:
@@ -1813,6 +2304,7 @@ def run(
     except Exception as e:
         if progress_handler:
             progress_handler.send(error=str(e))
+        # TODO: Print message informing that the subsequent steps will be skipped
         raise e
     finally:
         # Update page index to reflect last execution timestamp
@@ -1832,7 +2324,7 @@ def run(
         data_files_count = len(list(dirs.DATA.glob("*.bz2")))
         reports_count = len(list(dirs.REPORTS.glob("*.html")))
         cleanup = data_files_count / max(reports_count, 1) > 10
-    if cleanup:
+    elif cleanup:
         cleanup_data(dry_run=dry_run)
 
     # Squash commits if any

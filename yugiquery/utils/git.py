@@ -50,7 +50,12 @@ def ensure_repo() -> git.Repo:
 
     except git.InvalidGitRepositoryError:
         # Handle the case when the path is not a valid Git repository
-        repo = git.Repo.init(dirs.WORK)
+        # Check if the work directory is a child of the root repository.
+        if dirs.DATA.parent == dirs.WORK.parent:
+            repo_root = dirs.WORK.parent
+        else:
+            repo_root = dirs.WORK
+        repo = git.Repo.init(repo_root)
         cprint(text=f"\nGit repository initialized in {dirs.WORK}\n", color="yellow")
 
     except Exception as e:
