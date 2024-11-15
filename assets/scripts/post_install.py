@@ -164,21 +164,6 @@ def install_kernel(venv: bool = False) -> None:
         cprint(text=f"\nJupyter kernel '{__title__.lower()}' installed.", color="green")
 
 
-def install_tqdm() -> None:
-    """
-    Install a fork of TQDM that works with the Discord REST API without requiring deprecated `disco-py` package.
-    """
-    result = subprocess.run(
-        ["pip", "install", "--no-deps", "tqdm[notebook] @ git+https://github.com/guigoruiz1/tqdm.git"],
-        text=True,
-    )
-
-    if result.returncode == 0:
-        cprint(text="\nTQDM fork for Discord bot installed.", color="green")
-    else:
-        cprint(text=f"\nFailed to install TQDM fork for Discord bot!", color="red")
-
-
 def install_nbconvert() -> None:
     """
     Copy the nbconvert templates from YugiQuery to the appropriate Jupyter NbConvert directory.
@@ -228,7 +213,6 @@ def install_filters() -> None:
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--templates", action="store_true", help="install template notebooks")
     parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates")
-    parser.add_argument("--tqdm", action="store_true", help="install TQDM fork for Discord bot")
     parser.add_argument("--filters", action="store_true", help="install git filters")
     parser.add_argument("--kernel", action="store_true", help="install Jupyter kernel")
     parser.add_argument(
@@ -248,8 +232,6 @@ def main(args):
 
     if args.templates:
         install_templates()
-    if args.tqdm:
-        install_tqdm()
     if args.kernel:
         install_kernel(venv=args.venv)
     if args.nbconvert:

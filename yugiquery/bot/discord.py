@@ -13,7 +13,6 @@ import platform
 
 # Local application imports
 from ..metadata import __version__
-from ..utils import ensure_tqdm
 from .base import Bot, GitCommands
 
 # Discord
@@ -55,8 +54,9 @@ class Discord(Bot, commands.Bot):
             token (str): The token for the Discord bot.
             channel_id (str | int): The channel ID for the Discord bot.
         """
+        from tqdm.contrib.discord import tqdm as discord_tqdm
 
-        self.discord_pbar = ensure_tqdm()
+        self.discord_pbar = discord_tqdm
         Bot.__init__(self)
         self.token = token
         self.channel_id = int(channel_id)
