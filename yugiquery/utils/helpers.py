@@ -51,41 +51,6 @@ def check_debug(local_debug: bool = False) -> bool:
     return literal_eval(os.environ.get("YQ_DEBUG", "False")) or local_debug
 
 
-# ================== #
-# TQDM temporary fix #
-# ================== #
-
-
-def ensure_tqdm():
-    """
-    Ensure the required tqdm fork for the Discord API is installed. Exits the program if the installation fails.
-    """
-    loop = 0
-    while True:
-        try:
-            from tqdm.contrib.discord import tqdm as discord_tqdm
-
-            return discord_tqdm
-        except ImportError:
-            if loop == 0:
-                cprint(
-                    text="\nMissing required tqdm fork for Discord progress bar. Trying to install now...", color="yellow"
-                )
-            elif loop > 1:
-                cprint(text="\nFailed to import TQDM fork twice. Aborting...", color="red")
-                raise
-
-            spec = importlib.util.spec_from_file_location(
-                name="post_install",
-                location=dirs.get_asset("scripts", "post_install.py"),
-            )
-            post_install = importlib.util.module_from_spec(spec=spec)
-            spec.loader.exec_module(post_install)
-            post_install.install_tqdm()
-
-            loop += 1
-
-
 # ============ #
 # Data loaders #
 # ============ #
