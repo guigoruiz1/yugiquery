@@ -180,7 +180,7 @@ card_properties = {
         "primary",
         "attribute",
         "monster_type",
-        "level_rank_link",
+        "level",
         "atk",
         "def",
         "effect_type",
