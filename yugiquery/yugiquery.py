@@ -143,7 +143,16 @@ card_properties = {
         "ocg_debut",
         "modified_date",
     ],
-    "skill": ["card_type", "property", "archseries", "tcg", "date", "speed", "character"],
+    "skill": [
+        "card_type",
+        "property",
+        "archseries",
+        "tcg_status",
+        "speed_status",
+        "character",
+        "speed_debut",
+        "modified_date",
+    ],
     "speed": [
         "password",
         "card_type",
