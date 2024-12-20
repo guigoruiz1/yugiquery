@@ -370,7 +370,7 @@ def rate(
         gs = GridSpec(1, 1, hspace=hspace)
 
     fig.suptitle(
-        f'{title if title else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
+        f'{title if title else df.index.name}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
         y=1,
     )
 

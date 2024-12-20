@@ -104,7 +104,6 @@ card_properties = {
         "atk",
         "def",
         "scale",
-        "link",
         "arrows",
         "effect_type",
         "archseries",
@@ -529,9 +528,8 @@ def load_latest_data(
                 except:
                     pass
 
-        for col in ["Modification date", "Release"]:
-            if col in df:
-                df[col] = pd.to_datetime(df[col])
+        for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
+            df[col] = pd.to_datetime(df[col])
 
         ts = arrow.get(Path(files[0]).stem.split("_")[-1])
         print(f"{name_pattern.capitalize()} file loaded.")
@@ -1444,7 +1442,6 @@ def card_query(*args, **kwargs) -> str:
         "atk",
         "def",
         "scale",
-        "link",
         "arrows",
         "effect_type",
         "archseries",
