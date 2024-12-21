@@ -222,6 +222,7 @@ def generate_rate_grid(
     if colors is None:
         colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 
+    index_name = f" {df.index.name.lower()}" if df.index.name else ""
     if cumsum:
         cumsum_ax = ax
         divider = make_axes_locatable(axes=cumsum_ax)
@@ -236,12 +237,12 @@ def generate_rate_grid(
             cumsum_ax.plot(y, label="Cummulative", c=colors[0], antialiased=True)
             if fill:
                 cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
-            cumsum_ax.set_ylabel(f"{y.columns[0]}")  # Wrap text
+            cumsum_ax.set_ylabel(f"Cummulative {y.columns[0]}")  # Wrap text
         else:
             cumsum_ax.stackplot(y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
-            cumsum_ax.set_ylabel(f"Cumulative {y.index.name.lower()}")
+            cumsum_ax.set_ylabel(f"Cumulative{index_name}")
 
-        yearly_ax.set_ylabel(f"Yearly {df.index.name.lower()} rate")
+        yearly_ax.set_ylabel(f"Yearly{index_name} rate")
         cumsum_ax.legend(loc="upper left", ncols=int(len(df.columns) / 5 + 1))  # Test
         func = lambda x, pos: "" if np.isclose(x, 0) else f"{round(x):.0f}"
         cumsum_ax.yaxis.set_major_formatter(FuncFormatter(func))
@@ -251,9 +252,14 @@ def generate_rate_grid(
         axes = [yearly_ax]
 
         if len(df.columns) == 1:
-            yearly_ax.set_ylabel(f"{df.columns[0]}\nYearly {df.index.name.lower()} rate")
+            yearly_ax.set_ylabel(f"{df.columns[0]}\nYearly{index_name} rate")
         else:
-            yearly_ax.set_ylabel(f"Yearly {df.index.name.lower()} rate")
+            yearly_ax.set_ylabel(f"Yearly{index_name} rate")
+
+    # Remove the last year if it is incomplete
+    yearly_rate = df.resample("YE").sum()
+    if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
+        yearly_rate = yearly_rate[:-1]
 
     if len(df.columns) == 1:
         monthly_ax = yearly_ax.twinx()
@@ -266,13 +272,8 @@ def generate_rate_grid(
             color=colors[2],
             antialiased=True,
         )
-        monthly_ax.set_ylabel(f"Monthly {df.index.name.lower()} rate")
+        monthly_ax.set_ylabel(f"Monthly{index_name} rate")
         monthly_ax.legend(loc="upper right")
-        yearly_rate = df.resample("YE").sum()
-
-        # Remove the last year if it is incomplete
-        if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
-            yearly_rate = yearly_rate[:-1]
 
         yearly_ax.plot(
             yearly_rate,
@@ -284,8 +285,9 @@ def generate_rate_grid(
         yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
     else:
-        dy2 = df.resample("YE").sum()
-        yearly_ax.stackplot(dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True)
+        yearly_ax.stackplot(
+            yearly_rate.index, yearly_rate.values.T, labels=yearly_rate.columns, colors=colors, antialiased=True
+        )
         if not cumsum:
             yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
@@ -370,7 +372,7 @@ def rate(
         gs = GridSpec(1, 1, hspace=hspace)
 
     fig.suptitle(
-        f'{title if title else df.index.name.capitalize()}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
+        f'{title if title else df.index.name}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
         y=1,
     )
 
@@ -393,7 +395,7 @@ def rate(
             fill=fill,
             limit_year=limit_year,
             size_pct="100%" if subplots else "150%",
-            xlabel="Date" if (i + 1) == len(df.columns) else None,
+            xlabel="Date" if (i + 1) == len(df.columns) or not subplots else None,
         )
         axes.extend(sub_axes[:2])
         if not subplots:
@@ -542,8 +544,13 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     df = df.dropna().copy()
     fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot()
-    col = df.columns.difference(["Release"])[0]
-    df["year"] = df["Release"].dt.strftime("%Y")
+    time_col = df.columns[df.columns.str.contains("Release|Debut", case=False)].to_list()
+    if time_col:
+        time_col = time_col[0]
+    else:
+        raise ValueError("DataFrame must have a 'Release' or 'Debut' column.")
+    col = df.columns.difference([time_col])[0]
+    df["year"] = df[time_col].dt.strftime("%Y")
     df[col] = df[col].apply(pd.to_numeric, errors="coerce")
 
     sns.boxplot(ax=ax, data=df, y=col, x="year", width=0.5, **kwargs)

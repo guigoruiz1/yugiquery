@@ -100,19 +100,20 @@ card_properties = {
         "secondary",
         "attribute",
         "monster_type",
-        "stars",
+        "level_rank_link",
         "atk",
         "def",
         "scale",
-        "link",
         "arrows",
         "effect_type",
         "archseries",
         "alternate_artwork",
         "edited_artwork",
-        "tcg",
-        "ocg",
-        "date",
+        "tcg_status",
+        "ocg_status",
+        "tcg_debut",
+        "ocg_debut",
+        "modified_date",
     ],
     "st": [
         "password",
@@ -122,9 +123,11 @@ card_properties = {
         "archseries",
         "alternate_artwork",
         "edited_artwork",
-        "tcg",
-        "ocg",
-        "date",
+        "tcg_status",
+        "ocg_status",
+        "tcg_debut",
+        "ocg_debut",
+        "modified_date",
     ],
     "counter": [
         "password",
@@ -133,11 +136,22 @@ card_properties = {
         "archseries",
         "alternate_artwork",
         "edited_artwork",
-        "tcg",
-        "ocg",
-        "date",
+        "tcg_status",
+        "ocg_status",
+        "tcg_debut",
+        "ocg_debut",
+        "modified_date",
     ],
-    "skill": ["card_type", "property", "archseries", "tcg", "date", "speed", "character"],
+    "skill": [
+        "card_type",
+        "property",
+        "archseries",
+        "tcg_status",
+        "speed_status",
+        "character",
+        "speed_debut",
+        "modified_date",
+    ],
     "speed": [
         "password",
         "card_type",
@@ -146,17 +160,18 @@ card_properties = {
         "secondary",
         "attribute",
         "monster_type",
-        "stars",
+        "level_rank_link",
         "atk",
         "def",
         "effect_type",
         "archseries",
         "alternate_artwork",
         "edited_artwork",
-        "tcg",
-        "ocg",
-        "date",
-        "speed",
+        "tcg_status",
+        "ocg_status",
+        "speed_status",
+        "speed_debut",
+        "modified_date",
     ],
     "rush": [
         "card_type",
@@ -164,18 +179,32 @@ card_properties = {
         "primary",
         "attribute",
         "monster_type",
-        "stars",
+        "level",
         "atk",
         "def",
         "effect_type",
         "archseries",
-        "date",
+        "modified_date",
         "rush_alt_artwork",
         "rush_edited_artwork",
         "maximum_atk",
         "misc",
+        "debut",
     ],
-    "bandai": ["card_type", "level", "atk", "def", "number", "monster_type", "rule", "sets", "rarity", "ability", "date"],
+    "bandai": [
+        "card_type",
+        "level",
+        "atk",
+        "def",
+        "number",
+        "monster_type",
+        "rule",
+        "sets",
+        "rarity",
+        "ability",
+        "modified_date",
+        "debut",
+    ],
 }
 
 # =============== #
@@ -491,7 +520,7 @@ def load_latest_data(
     )
 
     if files:
-        df = pd.read_csv(files[0], dtype=object)
+        df = pd.read_csv(files[0], dtype=object, keep_default_na=False, na_values="")
         for col in tuple_cols:
             if col in df:
                 try:
@@ -499,9 +528,8 @@ def load_latest_data(
                 except:
                     pass
 
-        for col in ["Modification date", "Release"]:
-            if col in df:
-                df[col] = pd.to_datetime(df[col])
+        for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
+            df[col] = pd.to_datetime(df[col])
 
         ts = arrow.get(Path(files[0]).stem.split("_")[-1])
         print(f"{name_pattern.capitalize()} file loaded.")
@@ -1410,19 +1438,20 @@ def card_query(*args, **kwargs) -> str:
         "secondary",
         "attribute",
         "monster_type",
-        "stars",
+        "level_rank_link",
         "atk",
         "def",
         "scale",
-        "link",
         "arrows",
         "effect_type",
         "archseries",
         "alternate_artwork",
         "edited_artwork",
-        "tcg",
-        "ocg",
-        "date",
+        "tcg_status",
+        "ocg_status",
+        "tcg_debut",
+        "ocg_debut",
+        "modified_date",
     ]
 
     # Card properties dictionary
@@ -1434,25 +1463,32 @@ def card_query(*args, **kwargs) -> str:
         "secondary": "Secondary type",
         "attribute": "Attribute",
         "monster_type": "Type=Monster type",
-        "stars": "Stars string=Level/Rank",
+        "level_rank_link": "Level/Rank/Link string=Level/Rank/Link",
+        "level_rank": "Level/Rank string=Level/Rank",
+        "level": "Level string=Level",
+        "rank": "Rank string=Level",
+        "link": "Link Rating string=Link",
         "atk": "ATK string=ATK",
         "def": "DEF string=DEF",
         "scale": "Pendulum Scale",
-        "link": "Link Rating=Link",
         "arrows": "Link Arrows",
         "effect_type": "Effect type",
         "archseries": "Archseries",
         "alternate_artwork": "Category:OCG/TCG cards with alternate artworks",
         "edited_artwork": "Category:OCG/TCG cards with edited artworks",
-        "tcg": "TCG status",
-        "ocg": "OCG status",
-        "date": "Modification date",
+        "tcg_status": "TCG status",
+        "ocg_status": "OCG status",
+        "modified_date": "Modification date",
         "image_URL": "Card image",
         "misc": "Misc",
         "summoning": "Summoning",
+        "debut": "Debut date=Debut",
+        "tcg_debut": "TCG debut date=TCG debut",
+        "ocg_debut": "OCG debut date=OCG debut",
         # Speed duel specific
-        "speed": "TCG Speed Duel status",
+        "speed_status": "TCG Speed Duel status",
         "character": "Character",
+        "speed_debut": "TCG Speed Duel debut date=Speed debut",
         # Rush duel specific
         "rush_alt_artwork": "Category:Rush Duel cards with alternate artworks",
         "rush_edited_artwork": "Category:Rush Duel cards with edited artworks",
@@ -1579,7 +1615,7 @@ def fetch_st(
     return st_df
 
 
-# TODO: move attributes to argument
+# TODO: move attributes to argument?
 def fetch_monster(
     *query: str,
     cg: CG = CG.ALL,
