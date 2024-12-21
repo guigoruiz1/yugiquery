@@ -411,7 +411,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
     """
     debug = check_debug(debug)
     if debug:
-        print(f"{len(titles)} sets requested")
+        print(f"{len(sets)} sets requested")
 
     regions_dict = load_json(dirs.get_asset("json", "regions.json"))
     # Info to ask

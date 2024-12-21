@@ -520,7 +520,7 @@ def load_latest_data(
     )
 
     if files:
-        df = pd.read_csv(files[0], dtype=object)
+        df = pd.read_csv(files[0], dtype=object, keep_default_na=False, na_values="")
         for col in tuple_cols:
             if col in df:
                 try:

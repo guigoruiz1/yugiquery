@@ -256,6 +256,11 @@ def generate_rate_grid(
         else:
             yearly_ax.set_ylabel(f"Yearly{index_name} rate")
 
+    # Remove the last year if it is incomplete
+    yearly_rate = df.resample("YE").sum()
+    if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
+        yearly_rate = yearly_rate[:-1]
+
     if len(df.columns) == 1:
         monthly_ax = yearly_ax.twinx()
         monthly_rate = df.resample("ME").sum()
@@ -269,11 +274,6 @@ def generate_rate_grid(
         )
         monthly_ax.set_ylabel(f"Monthly{index_name} rate")
         monthly_ax.legend(loc="upper right")
-        yearly_rate = df.resample("YE").sum()
-
-        # Remove the last year if it is incomplete
-        if limit_year and yearly_rate.index[-1].timestamp() > arrow.utcnow().shift(years=1).timestamp():
-            yearly_rate = yearly_rate[:-1]
 
         yearly_ax.plot(
             yearly_rate,
@@ -285,8 +285,9 @@ def generate_rate_grid(
         yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
     else:
-        dy2 = df.resample("YE").sum()
-        yearly_ax.stackplot(dy2.index, dy2.values.T, labels=dy2.columns, colors=colors, antialiased=True)
+        yearly_ax.stackplot(
+            yearly_rate.index, yearly_rate.values.T, labels=yearly_rate.columns, colors=colors, antialiased=True
+        )
         if not cumsum:
             yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
@@ -394,7 +395,7 @@ def rate(
             fill=fill,
             limit_year=limit_year,
             size_pct="100%" if subplots else "150%",
-            xlabel="Date" if (i + 1) == len(df.columns) else None,
+            xlabel="Date" if (i + 1) == len(df.columns) or not subplots else None,
         )
         axes.extend(sub_axes[:2])
         if not subplots:
@@ -543,10 +544,9 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     df = df.dropna().copy()
     fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot()
-    if "Release" in df.columns:
-        time_col = "Release"
-    elif "Debut" in df.columns:
-        time_col = "Debut"
+    time_col = df.columns[df.columns.str.contains("Release|Debut", case=False)].to_list()
+    if time_col:
+        time_col = time_col[0]
     else:
         raise ValueError("DataFrame must have a 'Release' or 'Debut' column.")
     col = df.columns.difference([time_col])[0]
