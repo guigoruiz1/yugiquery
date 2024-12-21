@@ -19,7 +19,7 @@ from termcolor import cprint
 
 # Local application imports
 from ..metadata import __version__
-from ..utils import get_granularity, escape_chars
+from ..utils import get_ts_granularity, escape_chars
 from .base import Bot, GitCommands
 
 # Telegram
@@ -322,7 +322,9 @@ class Telegram(Bot):
             """
             last_run = context.user_data.get("last_run", arrow.get(0.0))
             if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
-                granularity = get_granularity((last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds())
+                granularity = get_ts_granularity(
+                    (last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds()
+                )
                 next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
                     arrow.utcnow(), granularity=granularity
                 )

@@ -358,6 +358,8 @@ def rate(
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
     num_cols = len(df.columns)
     top_space = 0.5
 

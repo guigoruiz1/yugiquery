@@ -327,7 +327,7 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
 # ====================== #
 
 
-def get_granularity(seconds: int) -> list[str]:
+def get_ts_granularity(seconds: int) -> list[str]:
     """
     Humanizes a time interval given in seconds.
 

@@ -258,13 +258,13 @@ class Bot:
             latest_time = entry["average"]
 
             avg_time_str = (
-                arrow.now().shift(seconds=avg_time).humanize(granularity=get_granularity(avg_time), only_distance=True)
+                arrow.now().shift(seconds=avg_time).humanize(granularity=get_ts_granularity(avg_time), only_distance=True)
             )
             latest_time_str = (
                 arrow.now()
                 .shift(seconds=latest_time)
                 .humanize(
-                    granularity=get_granularity(latest_time),
+                    granularity=get_ts_granularity(latest_time),
                     only_distance=True,
                 )
             )
@@ -463,7 +463,7 @@ class Bot:
         Returns humanized bot uptime.
         """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
-        granularity = get_granularity(time_difference)
+        granularity = get_ts_granularity(time_difference)
         humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
 
@@ -547,7 +547,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 def main(args) -> None:
     # Set multiprocessing start method
     mp.set_start_method("spawn")
-    
+
     # Make sure the data and reports directories exist
     dirs.make()
 
