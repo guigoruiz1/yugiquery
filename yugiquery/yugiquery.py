@@ -578,6 +578,46 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
     return merged_df
 
 
+# Merge card and set data
+def merge_set_to_cards(*card_df, set_df) -> pd.DataFrame:
+    """
+    Merge set lists to card information dataframes.
+
+    Args:
+        card_df: Multiple card dataframes to merge.
+        set_df: Set lists dataframe to merge.
+
+    Returns:
+        Merged dataframe.
+
+    """
+
+    full_df = pd.concat(card_df).drop_duplicates(ignore_index=True)
+    full_df["index"] = full_df["Name"].str.lower().str.replace("#", "")
+    set_df = set_df.copy()
+    set_df["index"] = set_df["Name"].str.lower().str.replace("#", "")
+
+    full_df = full_df.merge(set_df, how="inner", on="index")
+    full_df = full_df.convert_dtypes()
+    full_df["Name"] = full_df["Name_x"].fillna(full_df["Name_y"])
+    full_df.drop(
+        ["index", "Name_x", "Name_y"],
+        axis=1,
+        inplace=True,
+    )
+    full_df.rename(
+        columns={
+            "Page URL_x": "Card page URL",
+            "Page URL_y": "Set page URL",
+            "Modification date_x": "Card modification date",
+            "Modification date_y": "Set modification date",
+        },
+        inplace=True,
+    )
+    full_df = full_df[np.append(full_df.columns[-1:], full_df.columns[:-1])]
+    return full_df
+
+
 # Formatters
 def format_artwork(row: pd.Series) -> Tuple[str]:
     """
@@ -830,6 +870,69 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
     print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
     return list_df[0] if len(list_df) == 1 else list_df
+
+
+# Timeline
+def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=False) -> pd.DataFrame:
+    """
+    Get chosen release dates of cards grouped by a column.
+    The operation can be
+        - "debut", corresponding to a card's debut date.
+        - "first", corresponding to the first time a card was released in a set.
+        - "last", corresponding to the last time a card was released in a set.
+        - "all", corresponding to all release dates of a card.
+    If numeric is True, the column will be converted to numeric.
+    If crosstab is True, the result will be a crosstab of the column and the release dates.
+
+    Args:
+        df: The DataFrame to extract release dates from.
+        column: A column to group release dates by.
+        operation: The operation to perform. Choose from "debut", "last", "first" or "all".
+        numeric: Whether to convert the column to numeric.
+        crosstab: Whether to return a crosstab.
+
+    Returns:
+        A DataFrame with the release dates of cards, optionaly grouped by a column.
+    """
+
+    if column is None:
+        group_cols = ["Name"]
+    else:
+        group_cols = [column, "Name"]
+
+    if operation == "all":
+        df = df[df["Release"].notna()]
+        df = df.explode(column) if column else df
+        result = df.groupby(group_cols)["Release"].unique().explode()
+    elif operation == "debut":
+        df = df.explode(column) if column else df
+        result = df.groupby(group_cols)[df.filter(regex="(?i)(debut)").columns].min().min(axis=1)
+    elif operation in ["last", "first"]:
+        df = df[df["Release"].notna()]
+        df = df.explode(column) if column else df
+        agg_func = "max" if operation == "last" else "min"
+        result = df.groupby(group_cols)["Release"].agg(agg_func)
+    else:
+        raise ValueError("Invalid operation. Choose from 'debut', 'last', or 'first'.")
+
+    operation = operation.capitalize()
+    if operation != "Debut":
+        operation = f"{operation} release"
+        if operation.startswith("All"):
+            operation += "s"
+
+    result = result.rename(operation).reset_index().drop("Name", axis=1).sort_values(by=operation)
+    if column is None:
+        result = result[operation]
+    else:
+        numeric = pd.to_numeric(result[column], errors="coerce")
+        if len(numeric.dropna()) > 0:
+            result[column] = numeric
+
+        if crosstab:
+            result = pd.crosstab(result[operation], result[column])
+
+    return result
 
 
 # User decks

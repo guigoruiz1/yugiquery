@@ -530,10 +530,10 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
 
 def box(df, mean: bool = True, **kwargs) -> plt.figure:
     """
-    Plots a box plot of a given DataFrame using seaborn, with the year of the Release column on the x-axis and the remaining column on the y-axis.
+    Plots a box plot of a given DataFrame using seaborn, with the year of the timestamp column on the x-axis and the remaining column on the y-axis.
 
     Args:
-        df (pandas.DataFrame): The input DataFrame containing the Release dates and another numeric column.
+        df (pandas.DataFrame): The input DataFrame containing the timestamps and another numeric column.
         mean (bool, optional): If True, plots a line representing the mean of each box. Defaults to True.
         **kwargs: Additional keyword arguments to pass to seaborn.boxplot().
 
@@ -546,7 +546,7 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     df = df.dropna().copy()
     fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot()
-    time_col = df.columns[df.columns.str.contains("Release|Debut", case=False)].to_list()
+    time_col = df.columns[df.columns.str.contains("release|debut|time|date", case=False)].to_list()
     if time_col:
         time_col = time_col[0]
     else:
