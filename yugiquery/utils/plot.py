@@ -528,12 +528,13 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
     return fig
 
 
-def box(df, mean: bool = True, **kwargs) -> plt.figure:
+def box(df, mean: bool = True, group_string: str = "%Y", **kwargs) -> plt.figure:
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the timestamp column on the x-axis and the remaining column on the y-axis.
 
     Args:
         df (pandas.DataFrame): The input DataFrame containing the timestamps and another numeric column.
+        group_string (str, optional): The string format to group the timestamps by. Defaults to "%Y", representing year.
         mean (bool, optional): If True, plots a line representing the mean of each box. Defaults to True.
         **kwargs: Additional keyword arguments to pass to seaborn.boxplot().
 
@@ -546,22 +547,27 @@ def box(df, mean: bool = True, **kwargs) -> plt.figure:
     df = df.dropna().copy()
     fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot()
-    time_col = df.columns[df.columns.str.contains("release|debut|time|date", case=False)].to_list()
-    if time_col:
-        time_col = time_col[0]
-    else:
-        raise ValueError("DataFrame must have a 'Release' or 'Debut' column.")
-    col = df.columns.difference([time_col])[0]
-    df["year"] = df[time_col].dt.strftime("%Y")
-    df[col] = df[col].apply(pd.to_numeric, errors="coerce")
+    x = kwargs.pop("x", None)
+    if x is None:
+        x = df.columns[df.columns.str.contains("release|debut|time|date", case=False)].to_list()
+        if x:
+            x = x[0]
+        else:
+            raise ValueError("'Release' or 'Debut' column not found in df. Pass the column name as x.")
+    y = kwargs.pop("y", None)
+    if y is None:
+        y = df.columns.difference([x])[0]
+        df[y] = df[y].apply(pd.to_numeric, errors="coerce")
 
-    sns.boxplot(ax=ax, data=df, y=col, x="year", width=0.5, **kwargs)
+    df[x] = df[x].dt.strftime(group_string)
+
+    sns.boxplot(ax=ax, data=df, y=y, x=x, width=0.5, **kwargs)
     if mean:
-        df.groupby("year").mean(numeric_only=True).plot(ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False)
+        df.groupby(x).mean(numeric_only=True).plot(ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False)
 
-    if df[col].max() < 5000:
-        ax.set_yticks(np.arange(0, df[col].max() + 1, 1))
-    elif df[col].max() == 5000:
+    if df[y].max() < 5000:
+        ax.set_yticks(np.arange(0, df[y].max() + 1, 1))
+    elif df[y].max() == 5000:
         ax.set_yticks(np.arange(start=0, stop=5500, step=500))
         ax.yaxis.set_minor_locator(AutoMinorLocator())
 
