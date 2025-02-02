@@ -327,7 +327,11 @@ class Bot:
             if not self.URLS.repo:
                 return "No github repository."
             try:
-                return cmd(passphrase=passphrase, repo=self.repo)
+                result = cmd(passphrase=passphrase, repo=self.repo)
+                if result:
+                    return result
+                else:
+                    return "Success"
             except Exception as e:
                 return str(e)
 
