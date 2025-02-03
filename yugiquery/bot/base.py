@@ -331,7 +331,7 @@ class Bot:
                 if result:
                     return result
                 else:
-                    return "Success"
+                    return "Command successfully executed."
             except Exception as e:
                 return str(e)
 
