@@ -411,7 +411,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
     """
     debug = check_debug(debug)
     if debug:
-        print(f"{len(titles)} sets requested")
+        print(f"{len(sets)} sets requested")
 
     regions_dict = load_json(dirs.get_asset("json", "regions.json"))
     # Info to ask
@@ -735,6 +735,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
         "DEF": False,
         "Pendulum Scale": False,
         "Link": False,
+        "Rank": False,
         # Skill card specific columns
         "Character": False,
         # Rush duel specific columns
@@ -798,9 +799,9 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
                 df[col] = cat_bool
 
     # Date columns concatenation
-    if len(input_df.filter(like=" date").columns) > 0:
+    if len(input_df.filter(regex="(?i)(date|time|release|debut)").columns) > 0:
         df = df.join(
-            input_df.filter(like=" date").map(
+            input_df.filter(regex="(?i)(date|time|release|debut)").map(
                 lambda x: (
                     pd.to_datetime(pd.to_numeric(x[0]["timestamp"]), unit="s", errors="coerce") if len(x) > 0 else np.nan
                 )
