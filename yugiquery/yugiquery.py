@@ -501,6 +501,7 @@ def load_latest_data(
         "Rarity",
         "Cover card",
     ],
+    return_ts: bool = False,
 ) -> Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
@@ -508,7 +509,7 @@ def load_latest_data(
     Args:
         name_pattern (str): Data file name pattern to load.
         tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval. Defaults to ["Secondary type", "Effect type", "Link Arrows", "Archseries", "Artwork", "Errata", "Rarity", "Cover card"].
-
+        return_ts (bool): If True, returns the timestamp of the file. Defaults to False.
     Returns:
         Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
     """
@@ -531,12 +532,16 @@ def load_latest_data(
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
             df[col] = pd.to_datetime(df[col])
 
-        ts = arrow.get(Path(files[0]).stem.split("_")[-1])
         print(f"{name_pattern.capitalize()} file loaded.")
-        return df, ts
+        if return_ts:
+            ts = arrow.get(Path(files[0]).stem.split("_")[-1])
+            return df, ts
+        return df
     else:
         print(f'No file matching pattern "{name_pattern}" found.')
-        return None, None
+        if return_ts:
+            return None, None
+        return None
 
 
 # Sets
@@ -753,11 +758,11 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         return list_df
 
     if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
-        card_df, _ = load_latest_data(name_pattern="cards")
+        card_df = load_latest_data(name_pattern="cards")
         if card_df is not None:
             card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
     if "Card number" in list_df and not list_df["Card number"].dropna().empty:
-        set_lists_df, _ = load_latest_data(name_pattern="sets")
+        set_lists_df = load_latest_data(name_pattern="sets")
         if set_lists_df is not None:
             set_lists_df = (
                 set_lists_df.sort_values(by="Release")
