@@ -10,6 +10,7 @@
 
 # Standard library packages
 import platform
+import io
 
 # Local application imports
 from ..metadata import __version__
@@ -45,6 +46,8 @@ class Discord(Bot, commands.Bot):
         discord.ext.commands.Bot attributes
         Bot attributes
     """
+
+    DISCORD_MESSAGE_LIMIT = 2000  # Discord's character limit for messages
 
     def __init__(self, token: str, channel_id: str | int):
         """
@@ -84,6 +87,23 @@ class Discord(Bot, commands.Bot):
         Starts running the discord Bot.
         """
         commands.Bot.run(self, token=self.token)
+
+    async def send_long_message(self, ctx, content: str, filename: str = "message.txt", **kwargs):
+        """
+        Sends a message, ensuring it does not exceed Discord's message limit.
+        If the message is too long, sends it as a text file attachment.
+
+        Args:
+            ctx (commands.Context): The context of the message.
+            content (str): The message content.
+            filename (str): The name of the file if the message is sent as an attachment.
+            **kwargs: Additional keyword arguments to pass to the send method.
+        """
+        if len(content) <= self.DISCORD_MESSAGE_LIMIT:
+            await ctx.send(content=content, **kwargs)
+        else:
+            file = discord.File(io.StringIO(content), filename=filename)
+            await ctx.send(content="Response too long, sending as an attachment:", file=file, **kwargs)
 
     # ====== #
     # Events #
@@ -134,13 +154,13 @@ class Discord(Bot, commands.Bot):
         print(error)
         # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(content=error, ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):
-            await ctx.send(content=error, ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=error, ephemeral=True, delete_after=60)
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send(content=error, ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=error, ephemeral=True, delete_after=60)
         else:
-            await ctx.send(content=error, ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=error, ephemeral=True, delete_after=60)
 
     # ======== #
     # Commands #
@@ -306,7 +326,7 @@ class Discord(Bot, commands.Bot):
 
             await ctx.defer()
             response = self.git_cmd(command=command, passphrase=passphrase)
-            await ctx.send(content=response)
+            await self.send_message(ctx, content=response)
 
         @self.hybrid_command(
             name="latest",
@@ -401,11 +421,11 @@ class Discord(Bot, commands.Bot):
                 token=self.token,
             )
             if "error" in response.keys():
-                await ctx.channel.send(content=response["error"])
+                await self.send_message(ctx.channel, content=response["error"])
                 # Reset cooldown in case query did not complete
                 ctx.command.reset_cooldown(ctx)
             else:
-                await ctx.channel.send(content=response["content"])
+                await self.send_message(ctx.channel, content=response["content"])
 
         @self.hybrid_command(
             name="status",
