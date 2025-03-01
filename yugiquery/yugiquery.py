@@ -502,7 +502,7 @@ def load_latest_data(
         "Cover card",
     ],
     return_ts: bool = False,
-) -> Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
+) -> pd.DataFrame | None | Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -511,7 +511,7 @@ def load_latest_data(
         tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval. Defaults to ["Secondary type", "Effect type", "Link Arrows", "Archseries", "Artwork", "Errata", "Rarity", "Cover card"].
         return_ts (bool): If True, returns the timestamp of the file. Defaults to False.
     Returns:
-        Tuple[pd.DataFrame, arrow.Arrow]: A tuple containing the loaded dataframe and the timestamp of the file.
+        pd.DataFrame | Tuple[pd.DataFrame, arrow.Arrow]: A pandas DataFrame containing the loaded data if found, otherwise None. If return_ts is True, returns a tuple containing the DataFrame and the timestamp of the file.
     """
     name_pattern = name_pattern.lower()
     files = sorted(
