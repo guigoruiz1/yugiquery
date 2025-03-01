@@ -227,8 +227,8 @@ def main(args):
         cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
 
     # If no flags are passed, install everything.
-    if not (args.templates or args.tqdm or args.kernel or args.nbconvert or args.filters):
-        args.templates = args.tqdm = args.kernel = args.nbconvert = args.filters = True
+    if not (args.templates or args.kernel or args.nbconvert or args.filters):
+        args.templates = args.kernel = args.nbconvert = args.filters = True
 
     if args.templates:
         install_templates()

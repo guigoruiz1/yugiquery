@@ -580,10 +580,10 @@ def box(df, mean: bool = True, group_string: str = "%Y", **kwargs) -> plt.figure
 def pyramid(
     series: pd.Series,
     use_area: bool = False,
-    size: Tuple[int, int] = (8, 8),
+    figsize: Tuple[int, int] = (8, 8),
     grid: bool = False,
     colors: List[str] | None = None,
-    alpha: int = 1,
+    alpha: float = 1,
     **kwargs,
 ) -> plt.Figure:
     """
@@ -592,10 +592,10 @@ def pyramid(
     Args:
         series (pd.Series): The data to plot.
         use_area (bool, optional): Whether to use area to represent the values. Defaults to False.
-        size (Tuple[int, int], optional): The size of the plot. Defaults to (8, 8).
+        figsize (Tuple[int, int], optional): The size of the plot. Defaults to (8, 8).
         grid (bool, optional): Whether to show a grid. Defaults to False.
         colors (List[str], optional): The colors of the bars. If None, use default color cycler. Defaults to None.
-        alpha (int, optional): The transparency of the bars. Defaults to 1.
+        alpha (float, optional): The transparency of the bars. Defaults to 1.
         kwargs: Additional keyword arguments to pass to the plot. Not implemented.
 
     Returns:
@@ -608,7 +608,7 @@ def pyramid(
     if colors is None:
         colors = [f"C{i}" for i in range(n)]
 
-    fig = plt.figure(figsize=size)
+    fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot()
 
     if use_area:
