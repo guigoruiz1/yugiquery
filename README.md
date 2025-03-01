@@ -111,8 +111,8 @@ yugiquery/
 │  │  └─ unlock_git.sh
 │  ├─ nbconvert/
 |  |  └─ labdynamic/
+|  │      ├─ static/dynamic.css
 |  │      ├─ conf.json
-|  │      ├─ dynamic.css
 |  │      └─ index.html.j2
 │  ├─ templates/
 │  │  ├─ Collection.ipynb
