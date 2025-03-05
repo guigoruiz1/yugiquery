@@ -212,7 +212,7 @@ def install_filters() -> None:
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--templates", action="store_true", help="install template notebooks")
-    parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates")
+    parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates patch")
     parser.add_argument("--filters", action="store_true", help="install git filters")
     parser.add_argument("--kernel", action="store_true", help="install Jupyter kernel")
     parser.add_argument(

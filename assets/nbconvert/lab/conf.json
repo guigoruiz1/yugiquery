@@ -1,0 +1,19 @@
+{
+  "base_template": "base",
+  "mimetypes": {
+    "text/html": true
+  },
+  "preprocessors": {
+    "100-TagRemovePreprocessor": {
+      "type": "nbconvert.preprocessors.TagRemovePreprocessor",
+      "enabled": true,
+      "remove_cell_tags": [
+        "exclude"
+      ]
+    },
+    "100-pygments": {
+      "type": "nbconvert.preprocessors.CSSHTMLHeaderPreprocessor",
+      "enabled": true
+    }
+  }
+}
