@@ -1285,7 +1285,11 @@ def save_notebook() -> None:
 
 
 def export_notebook(
-    input_path: str | None = None, output_path: str | None = None, template: str = "lab", theme: str | None = None, no_input: bool = True
+    input_path: str | None = None,
+    output_path: str | None = None,
+    template: str = "lab",
+    theme: str | None = None,
+    no_input: bool = True,
 ) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
@@ -1312,7 +1316,7 @@ def export_notebook(
         output_path = str(dirs.REPORTS / Path(input_path).stem)
 
     if template == "lab":
-        if theme == None and any([x.joinpath("lab/static/theme-auto.css").is_file() for x in [dirs.NBCONVERT, dirs.get_asset("nbconvert")]]):
+        if theme == None and dirs.NBCONVERT.joinpath("lab/static/theme-auto.css").is_file():
             theme = "auto"
 
     # Configure the HTMLExporter
