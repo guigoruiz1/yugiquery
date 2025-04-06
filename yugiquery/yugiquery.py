@@ -1759,7 +1759,7 @@ def fetch_monster(
     """
     debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
-    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
+    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
     if query:
         query = "|?".join(query)
     else:
@@ -1786,7 +1786,7 @@ def fetch_monster(
             concept += f"[[Medium::{valid_cg}]]"
 
         temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
-        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
+        monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
