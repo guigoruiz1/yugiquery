@@ -35,11 +35,11 @@ Below are listed all the available reports and their execution timestamps.
 | [Cards](reports/Cards.html) | 07/06/2025 06:43 UTC |
 | [Rush](reports/Rush.html) | 07/06/2025 06:53 UTC |
 | [Sets](reports/Sets.html) | 07/06/2025 07:22 UTC |
-| [Speed](reports/Speed.html) | 31/05/2025 06:32 UTC |
+| [Speed](reports/Speed.html) | 07/06/2025 21:16 UTC |
 | [Timeline](reports/Timeline.html) | 31/05/2025 06:54 UTC |
 
 
-The full YugiQuery flow was last executed at `07/06/2025 07:28 UTC`
+The full YugiQuery flow was last executed at `07/06/2025 21:16 UTC`
 
 # Usage
 
