@@ -166,14 +166,20 @@ def install_kernel(venv: bool = False) -> None:
 
 def install_nbconvert() -> None:
     """
-    Copy the nbconvert templates from YugiQuery to the appropriate Jupyter NbConvert directory.
+    Patch the nbconvert "Lab" template to include a dynamic light and dark theme, and preprocessor to remove cells tagged with "exclude".
     """
+    import importlib
     from yugiquery.utils.dirs import dirs
 
-    src_dir = dirs.ASSETS.pkg / "nbconvert"
-    dst_dir = dirs.NBCONVERT
     try:
-        shutil.copytree(src=src_dir, dst=dst_dir, dirs_exist_ok=True)
+        spec = importlib.util.spec_from_file_location(
+            name="generate_auto_theme",
+            location=dirs.get_asset("scripts", "generate_auto_theme.py"),
+        )
+        auto_theme_generator = importlib.util.module_from_spec(spec=spec)
+        spec.loader.exec_module(auto_theme_generator)
+        auto_theme_generator.main()
+
         cprint(text="\nnbconvert templates installed.", color="green")
     except Exception as e:
         cprint(text=f"\nFailed to install nbconvert templates", color="red")
@@ -212,7 +218,7 @@ def install_filters() -> None:
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--templates", action="store_true", help="install template notebooks")
-    parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates")
+    parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates patch")
     parser.add_argument("--filters", action="store_true", help="install git filters")
     parser.add_argument("--kernel", action="store_true", help="install Jupyter kernel")
     parser.add_argument(

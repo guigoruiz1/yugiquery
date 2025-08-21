@@ -1285,7 +1285,11 @@ def save_notebook() -> None:
 
 
 def export_notebook(
-    input_path: str | None = None, output_path: str | None = None, template: str = "auto", no_input: bool = True
+    input_path: str | None = None,
+    output_path: str | None = None,
+    template: str = "lab",
+    theme: str | None = None,
+    no_input: bool = True,
 ) -> None:
     """
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
@@ -1293,7 +1297,8 @@ def export_notebook(
     Args:
         input_path (str | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
         output_path (str | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
-        template (str, optional): The name of the nbconvert template to use. If "auto", uses "labdynamic" if available, otherwise uses "lab". Defaults to "auto".
+        template (str, optional): The name of the nbconvert template to use. Defaults to "lab".
+        theme (str | None, optional): The name of the nbconvert theme to use. Defaults to None. If template is "lab" and "auto" theme is installed, defaults to the "auto" theme.
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
 
     Raises:
@@ -1310,13 +1315,16 @@ def export_notebook(
     if output_path is None:
         output_path = str(dirs.REPORTS / Path(input_path).stem)
 
-    if template == "auto":
-        template = "labdynamic"
+    if template == "lab":
+        if theme == None and dirs.NBCONVERT.joinpath("lab/static/theme-auto.css").is_file():
+            theme = "auto"
 
     # Configure the HTMLExporter
     c = Config()
     c.HTMLExporter.extra_template_basedirs = [str(dirs.get_asset("nbconvert")), str(dirs.NBCONVERT)]
     c.HTMLExporter.template_name = template
+    if theme:
+        c.HTMLExporter.theme = theme
     if no_input:
         c.TemplateExporter.exclude_output_prompt = True
         c.TemplateExporter.exclude_input = True
@@ -1751,7 +1759,7 @@ def fetch_monster(
     """
     debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
-    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?"]
+    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
     if query:
         query = "|?".join(query)
     else:
@@ -1778,7 +1786,7 @@ def fetch_monster(
             concept += f"[[Medium::{valid_cg}]]"
 
         temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
-        monster_df = pd.concat([monster_df, temp_df], ignore_index=True, axis=0)
+        monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
