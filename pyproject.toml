@@ -64,7 +64,7 @@ yugiquery = "yugiquery.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
-fallback-version = '2.0.5'
+fallback-version = '2.0.6'
 
 [tool.hatch.build.hooks.vcs]
 version-file = "yugiquery/_version.py"
