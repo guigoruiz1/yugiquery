@@ -375,7 +375,7 @@ class Bot:
             try:
                 live_value = ""
                 for report in reports:
-                    result = pd.read_json(f"{self.URLS.api}/commits?path={report.name}")
+                    result = pd.read_json(f"{self.URLS.api}/commits?path=reports/{report.name}")
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
                     live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
