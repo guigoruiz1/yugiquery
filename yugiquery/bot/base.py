@@ -85,13 +85,13 @@ class Bot:
     # ======================== #
     # Bot Superclass Variables #
     # ======================== #
-    process: mp.Process = None
+    process: mp.Process | None = None
     cooldown_limit: int = 12 * 3600  # 12 hours
     # Placeholder for the Enum object
-    Reports: Enum = Enum("Reports", {"All": "all", "User": "user"})
+    Reports: type[Enum] = Enum("Reports", {"All": "all", "User": "user"})
 
     @property
-    def URLS(self) -> StrEnum:
+    def URLS(self) -> type[StrEnum]:
         """
         Property to get the URLs of the remote repository and webpage.
         """

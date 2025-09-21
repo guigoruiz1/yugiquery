@@ -154,13 +154,17 @@ class Discord(Bot, commands.Bot):
         print(error)
         # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
-            await self.send_long_message(ctx, content=str(error), ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=str(error), filename="cooldown.txt", ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):
-            await self.send_long_message(ctx, content=str(error), ephemeral=True, delete_after=60)
+            await self.send_long_message(ctx, content=str(error), filename="not_owner.txt", ephemeral=True, delete_after=60)
         elif isinstance(error, commands.CheckFailure):
-            await self.send_long_message(ctx, content=str(error), ephemeral=True, delete_after=60)
+            await self.send_long_message(
+                ctx, content=str(error), filename="check_failure.txt", ephemeral=True, delete_after=60
+            )
         else:
-            await self.send_long_message(ctx, content=str(error), ephemeral=True, delete_after=60)
+            await self.send_long_message(
+                ctx, content=str(error), filename="unknown_error.txt", ephemeral=True, delete_after=60
+            )
 
     # ======== #
     # Commands #
@@ -326,7 +330,7 @@ class Discord(Bot, commands.Bot):
 
             await ctx.defer()
             response = self.git_cmd(command=command, passphrase=passphrase)
-            await self.send_long_message(ctx, content=response)
+            await self.send_long_message(ctx, filename=f"git_{command}.txt", content=response)
 
         @self.hybrid_command(
             name="latest",
@@ -421,11 +425,11 @@ class Discord(Bot, commands.Bot):
                 token=self.token,
             )
             if "error" in response.keys():
-                await self.send_long_message(ctx.channel, content=response["error"])
+                await self.send_long_message(ctx.channel, filename="query_error.txt", content=response["error"])
                 # Reset cooldown in case query did not complete
                 ctx.command.reset_cooldown(ctx)
             else:
-                await self.send_long_message(ctx.channel, content=response["content"])
+                await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
 
         @self.hybrid_command(
             name="status",
