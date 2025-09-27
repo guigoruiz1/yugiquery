@@ -1321,7 +1321,6 @@ def export_notebook(
 
     # Configure the HTMLExporter
     c = Config()
-    c.HTMLExporter.extra_template_basedirs = [str(dirs.get_asset("nbconvert")), str(dirs.NBCONVERT)]
     c.HTMLExporter.template_name = template
     if theme:
         c.HTMLExporter.theme = theme
