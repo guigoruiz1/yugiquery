@@ -35,7 +35,7 @@ jobs:
           pylint $(git ls-files '*.py') --output=lint-${{ matrix.os }}-${{ matrix.python-version }}.txt || true
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
           name: lint-${{ matrix.os }}-${{ matrix.python-version }}
           path: lint-${{ matrix.os }}-${{ matrix.python-version }}.txt
