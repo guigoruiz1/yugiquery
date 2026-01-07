@@ -70,17 +70,26 @@ Both the `yugiquery.py` and `bot.py` modules within the `yugiquery` package acce
 
 YugiQuery is meant to be user friendly to users without much coding experience. It can be used "as is" from the repository, or installed via pip.
 
-The `post_install.py` script in the assets directory has options to install: 
-1 - A nbconvert template which adds dynamic light and dark modes to the exported html report. This is the default template used by YugiQuery.
-2 - The TQDM fork needed to run the discord bot subclass.
-3 - A jupyter kernel for the current envyronment.
+An auxiliary installer script is included at `assets/scripts/post_install.py` to add optional components:
+
+- `--templates`: copy notebook (`.ipynb`) and `.xlsx` templates into your user notebooks and data directories.
+- `--kernel`: create an IPython profile named `yugiquery` and register a Jupyter kernel for YugiQuery.
+- `--nbconvert`: install a custom nbconvert template used for the dynamic light/dark theme and preprocessors.
+- `--filters`: install Git repository filters to help clean notebooks and redact secrets.
+- `--venv`: when used with `--kernel`, create a `venv`, install YugiQuery into it, and register the kernel using the venv's Python.
 
 It can be run from the main yugiquery CLI with the command
 ```
 >> yugiquery install
 ```
 
-Further details can be found the [documentation](#documentation).
+Or run it directly (pass flags as needed; no flags installs everything):
+
+```
+>> python assets/scripts/post_install.py --templates --kernel --nbconvert --filters --venv
+```
+
+Further details can be found in the [documentation](#documentation).
 
 ## Repository hierarchy
 
@@ -171,8 +180,6 @@ Ideally, files in the ***assets*** directory should not be edited unless you kno
 The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
 
 ## Known limitations
-
-At present, `TQDM` relies on the deprecated `disco-py` package which won't build. To circunvent this problem until the official`TQDM` release drops the `disco-py` dependency, we install `TQDM` from [this fork](https://github.com/guigoruiz1/tqdm), which uses pure REST API and/or `discord.py`.
 
 Recent updates to `IPython` broke `HALO` in Jupyter notebooks. Until `HALO` conforms to the new IPython API, we install it from [this fork](https://github.com/guigoruiz1/halo).
 
