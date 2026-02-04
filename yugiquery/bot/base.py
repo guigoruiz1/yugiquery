@@ -284,7 +284,10 @@ class Bot:
         if self.URLS.api is None:
             return {"error": "No github repository."}
         try:
-            files = pd.read_json(f"{self.URLS.api}/contents/data")
+            query = f"{self.URLS.api}/contents/data"
+            if self.repo is not None:
+                query += f"?ref={self.repo.active_branch.name}"
+            files = pd.read_json(query)
             files = files[files["name"].str.endswith(".bz2")]  # Remove .json files from lists
             extracted = files["name"].str.extract(pat=r"^(.+?)_(\d{8}T\d{4}Z)?_?(\d{8}T\d{4}Z)?\.bz2$", expand=True)
             extracted[1] = extracted[2].fillna(extracted[1])
@@ -375,7 +378,10 @@ class Bot:
             try:
                 live_value = ""
                 for report in reports:
-                    result = pd.read_json(f"{self.URLS.api}/commits?path=reports/{report.name}")
+                    query = f"{self.URLS.api}/commits?path=reports/{report.name}"
+                    if self.repo is not None:
+                        query += f"&sha={self.repo.active_branch.name}"
+                    result = pd.read_json(query)
                     timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
                     live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
@@ -393,9 +399,8 @@ class Bot:
             dict: A dictionary containing links to YugiQuery resources.
         """
         if self.URLS.webpage is not None and self.URLS.repo is not None:
-            description = (
-                f"[Webpage]({self.URLS.webpage}) • [Repository]({self.URLS.repo}) • [Data]({self.URLS.repo}/tree/main/data)"
-            )
+            branch = self.repo.active_branch.name if self.repo is not None else "main"
+            description = f"[Webpage]({self.URLS.webpage}) • [Repository]({self.URLS.repo}) • [Data]({self.URLS.repo}/tree/{branch}/data)"
         else:
             description = "No github repository."
         response = {
