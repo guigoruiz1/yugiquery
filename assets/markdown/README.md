@@ -23,7 +23,7 @@
 
 # What is it?
 
-YugiQuery is a Python package to query and display Yu-Gi-Oh! data extracted from the [yugipedia](http://yugipedia.com) database. It is entirely built on Jupyter notebooks and Git. The notebooks are rendered as HTML reports and can be displayed as an "always up to date" static web page by laveraging on GitHub pages. The raw data is kept as CSV files with timestamps and changelogs for a thorough record of the game's history. Every operation is recorded on git with a descriptive commit message. 
+YugiQuery is a Python package to query and display Yu-Gi-Oh! data extracted from the [yugipedia](http://yugipedia.com) database. It is entirely built on Jupyter notebooks and Git. The notebooks are rendered as HTML reports and can be displayed as an "always up to date" static web page by leveraging on GitHub pages. The raw data is kept as CSV files with timestamps and changelogs for a thorough record of the game's history. Every operation is recorded on git with a descriptive commit message. 
 
 # Reports
 
@@ -40,56 +40,79 @@ The full YugiQuery flow was last executed at `@TIMESTAMP@`
 
 The full YugiQuery workflow can be run directly with 
 
-```
->> yugiquery
+```bash
+yugiquery
 ```
 
 All commands and options can be displayed with the command
-```
->> yugiquery -h
+
+```bash
+yugiquery -h
 ```
 
-Any Jupyter notebook in the ***notebooks*** directory will be assumed to be a report and will be executed and saved as HTML in the ***reports*** directory. The index.md and README.md files will be updated, using their respective template files in the ***assets*** directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be commited to Git.
+Any Jupyter notebook in the ***notebooks*** directory will be assumed to be a report and will be executed and saved as HTML in the ***reports*** directory. The index.md and README.md files will be updated, using their respective template files in the ***assets*** directory, to include a table with all the reports available and their timestamps. The source notebooks will then be cleared of their outputs and all changes will be committed to Git.
 
-Template notebooks are included in the `notebooks/templates` folder.
+Template notebooks are included in the `assets/templates` folder.
 
 Further user input can be made through the command
-```
->> yugiquery run
+
+```bash
+yugiquery run
 ```
 
 To use the optional Discord bot, run
-```
->> yugiquery bot SUBCLASS
+
+```bash
+yugiquery bot SUBCLASS
 ```
 Where `SUBCLASS` can be either `telegram` or `discord`.
 
 Both the `yugiquery.py` and `bot.py` modules within the `yugiquery` package accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage.
 
+
 ## Installation
 
 YugiQuery is meant to be user friendly to users without much coding experience. It can be used "as is" from the repository, or installed via pip.
 
-An auxiliary installer script is included at `assets/scripts/post_install.py` to add optional components:
+### Requirements
 
-- `--templates`: copy notebook (`.ipynb`) and `.xlsx` templates into your user notebooks and data directories.
-- `--kernel`: create an IPython profile named `yugiquery` and register a Jupyter kernel for YugiQuery.
-- `--nbconvert`: install a custom nbconvert template used for the dynamic light/dark theme and preprocessors.
-- `--filters`: install Git repository filters to help clean notebooks and redact secrets.
-- `--venv`: when used with `--kernel`, create a `venv`, install YugiQuery into it, and register the kernel using the venv's Python.
+- Python >= 3.11.
+- Full dependency list: [pyproject.toml](pyproject.toml) / [requirements.txt](requirements.txt).
 
-It can be run from the main yugiquery CLI with the command
-```
->> yugiquery install
+### Install
+
+Install from source:
+
+```bash
+pip install -e .
+# optional: pip install -r requirements.txt
 ```
 
-Or run it directly (pass flags as needed; no flags installs everything):
+### Quickstart
 
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+yugiquery run
 ```
->> python assets/scripts/post_install.py --templates --kernel --nbconvert --filters --venv
-```
+
+Reports are written to `reports/`.
+
+### Optional installer
+
+`yugiquery install` (or `python assets/scripts/post_install.py`) supports: `--templates`, `--kernel`, `--nbconvert`, `--filters`, `--venv`.
+
+- `--templates`: copy notebook/spreadsheet templates from `assets/templates`.
+- `--kernel`: create/register a `yugiquery` IPython kernel.
+- `--nbconvert`: install the custom nbconvert template.
+- `--filters`: install Git filters to help clean notebooks (updates repo git config).
+- `--venv`: create a venv and register its Python as the `yugiquery` kernel.
+
+Most actions need write access to the repo or Jupyter config; `sudo` is usually not required.
 
 Further details can be found in the [documentation](#documentation).
+
 
 ## Repository hierarchy
 
@@ -108,7 +131,7 @@ yugiquery/
 │  │  ├─ footer.md
 │  │  ├─ header.md
 │  │  ├─ index.md
-│  │  └─ REAMDME.md
+│  │  └─ README.md
 │  ├─ scripts/
 │  │  ├─ git_filters.sh
 │  │  ├─ post_install.py
@@ -121,7 +144,7 @@ yugiquery/
 │  ├─ templates/
 │  │  ├─ Collection.ipynb
 │  │  └─ Template.ipynb
-│  ├─ Gateway.html
+│  ├─ gateway.html
 │  └─ secrets.env
 ├─ data/
 │  ├─ benchmark.json
