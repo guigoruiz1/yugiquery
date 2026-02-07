@@ -235,12 +235,12 @@ def generate_rate_grid(
         y = df.fillna(0).cumsum()
 
         if len(df.columns) == 1:
-            cumsum_ax.plot(y, label="Cummulative",
+            cumsum_ax.plot(y, label="Cumulative",
                            c=colors[0], antialiased=True)
             if fill:
                 cumsum_ax.fill_between(
                     x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
-            cumsum_ax.set_ylabel(f"Cummulative {y.columns[0]}")  # Wrap text
+            cumsum_ax.set_ylabel(f"Cumulative {y.columns[0]}")  # Wrap text
         else:
             cumsum_ax.stackplot(
                 y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)

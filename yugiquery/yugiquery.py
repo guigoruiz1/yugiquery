@@ -1074,10 +1074,8 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     formats = deck_df.filter(like="status").columns
     # Turn into function
     forbidden = (deck_df[formats] == "Forbidden").any(axis=1)
-    limited = (deck_df[formats] == "Forbidden").any(
-        axis=1) & (deck_df["Count"] > 1)
-    semi_limited = (deck_df[formats] == "Forbidden").any(
-        axis=1) & (deck_df["Count"] > 2)
+    limited = (deck_df[formats] == "Limited").any(axis=1) & (deck_df["Count"] > 1)
+    semi_limited = (deck_df[formats] == "Semi-Limited").any(axis=1) & (deck_df["Count"] > 2)
 
     # Apply the function to categorize the status
     melted_df = deck_df[forbidden | limited | semi_limited].melt(

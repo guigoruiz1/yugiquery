@@ -445,7 +445,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(
-            input_df=formatted_response, include_all=(True if extra_info else True))
+            input_df=formatted_response, include_all=(True if extra_info else False))
         if debug:
             tqdm.write(
                 f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors")
@@ -814,7 +814,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
                 extract_fulltext if extract else lambda x: x)
             if col == " Material":
                 df["Materials"] = extracted_cols.apply(
-                    lambda x: tuple(elem for tup in col for elem in tup), axis=1)
+                    lambda x: tuple(elem for tup in x for elem in tup), axis=1)
             else:
                 df = df.join(extracted_cols)
 
