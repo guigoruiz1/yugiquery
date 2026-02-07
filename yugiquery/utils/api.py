@@ -814,7 +814,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
                 extract_fulltext if extract else lambda x: x)
             if col == " Material":
                 df["Materials"] = extracted_cols.apply(
-                    lambda x: tuple(elem for tup in col for elem in tup), axis=1)
+                    lambda x: tuple(elem for tup in x for elem in tup), axis=1)
             else:
                 df = df.join(extracted_cols)
 
