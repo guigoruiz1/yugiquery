@@ -445,7 +445,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(
-            input_df=formatted_response, include_all=(True if extra_info else True))
+            input_df=formatted_response, include_all=(True if extra_info else False))
         if debug:
             tqdm.write(
                 f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors")
