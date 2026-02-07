@@ -231,18 +231,23 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
         .loc[lambda x: x["_merge"] != "both"]
         .sort_values(col, ignore_index=True)
     )
-    changelog["_merge"] = changelog["_merge"].cat.rename_categories({"left_only": "Old", "right_only": "New"})
+    changelog["_merge"] = changelog["_merge"].cat.rename_categories(
+        {"left_only": "Old", "right_only": "New"})
     changelog.rename(columns={"_merge": "Version"}, inplace=True)
     nunique = changelog.groupby(col).nunique(dropna=False)
-    cols_to_drop = nunique[nunique < 2].dropna(axis=1).columns.difference(["Modification date", "Version"])
+    cols_to_drop = nunique[nunique < 2].dropna(
+        axis=1).columns.difference(["Modification date", "Version"])
     changelog.drop(cols_to_drop, axis=1, inplace=True)
     changelog = changelog.set_index(col)
 
     if all(col in changelog.columns for col in ["Modification date", "Version"]):
-        true_changes = changelog.drop(["Modification date", "Version"], axis=1)[nunique > 1].dropna(axis=0, how="all").index
-        new_entries = nunique[nunique["Version"] == 1].dropna(axis=0, how="all").index
+        true_changes = changelog.drop(["Modification date", "Version"], axis=1)[
+            nunique > 1].dropna(axis=0, how="all").index
+        new_entries = nunique[nunique["Version"]
+                              == 1].dropna(axis=0, how="all").index
         rows_to_keep = true_changes.union(new_entries).unique()
-        changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
+        changelog = changelog.loc[rows_to_keep].sort_values(
+            by=[*col, "Version"])
 
     if changelog.empty:
         print("No changes")
@@ -273,7 +278,8 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     # Add the new data to the existing data
     if report not in data:
         data[report] = []
-    data[report].append({"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
+    data[report].append(
+        {"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
     # Save new data to file
     with open(benchmark_file, "w+") as file:
         json.dump(data, file, indent=4)
@@ -316,7 +322,8 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
             last_date = to_date
         df = pd.read_csv(file, dtype=object)
         df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
-        new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
+        new_changelog = pd.concat(
+            [new_changelog, df], axis=0, ignore_index=True)
 
     new_changelog.sort_values(
         by=[new_changelog.columns[0], "Version"],
@@ -324,8 +331,10 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
         axis=0,
         inplace=True,
     )
-    new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
-    index = new_changelog.drop(["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
+    new_changelog = new_changelog.drop_duplicates(
+        keep="last").dropna(how="all", axis=0)
+    index = new_changelog.drop(
+        ["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
     new_filename = Path(file).parent.joinpath(
         make_filename(
             report=changelog_name,
@@ -403,7 +412,8 @@ def cleanup_data(dry_run=False) -> None:
     df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
 
     # Create a new column 'Group' based on the first two elements after splitting the filename
-    df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
+    df["Group"] = df["Name"].apply(
+        lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
 
     # Group the DataFrame by 'Group' and 'Date' (year and month)
     grouped = df.groupby(["Group", pd.Grouper(key="Date", freq="MS")])
@@ -415,7 +425,8 @@ def cleanup_data(dry_run=False) -> None:
     }
 
     # Get a list of all the files created in the last month and split them into weeks
-    last_month_files = df[df["Date"] >= df["Date"].max() - pd.Timedelta("1MS")].resample("W", on="Date").first()
+    last_month_files = df[df["Date"] >= df["Date"].max(
+    ) - pd.Timedelta("1MS")].resample("W", on="Date").first()
 
     # Separate the last_month_files by whether they contain "changelog"
     last_month_files = {
@@ -427,7 +438,8 @@ def cleanup_data(dry_run=False) -> None:
     same_month_files["changelog"] = [
         files for files in same_month_files["changelog"] if files not in last_month_files["changelog"]
     ]
-    same_month_files["data"] = [files for files in same_month_files["data"] if files not in last_month_files["data"]]
+    same_month_files["data"] = [
+        files for files in same_month_files["data"] if files not in last_month_files["data"]]
 
     print("\n- same month (with changelog)")
     for files in same_month_files["changelog"]:
@@ -521,7 +533,8 @@ def load_latest_data(
     )
 
     if files:
-        df = pd.read_csv(files[0], dtype=object, keep_default_na=False, na_values="")
+        df = pd.read_csv(files[0], dtype=object,
+                         keep_default_na=False, na_values="")
         for col in tuple_cols:
             if col in df:
                 try:
@@ -561,7 +574,8 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
     """
     required_columns = ["Set", "Region"]
     if not all(col in input_df.columns for col in required_columns):
-        raise ValueError('Input DataFrame must contain "Set" and "Region" columns.')
+        raise ValueError(
+            'Input DataFrame must contain "Set" and "Region" columns.')
 
     regions_dict = load_json(dirs.get_asset("json", "regions.json"))
 
@@ -573,7 +587,8 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         return np.nan
 
     input_df["Release"] = input_df.apply(get_release_date, axis=1)
-    input_df["Release"] = pd.to_datetime(input_df["Release"].astype(str), errors="coerce")
+    input_df["Release"] = pd.to_datetime(
+        input_df["Release"].astype(str), errors="coerce")
 
     merged_df = input_df.merge(
         input_info_df.loc[:, :"Cover card"], left_on="Set", right_index=True, how="outer"
@@ -691,7 +706,8 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
         pd.DataFrame: A pandas DataFrame with errata information merged into it.
     """
     if "Name" in input_df.columns:
-        errata_series = input_errata_df.apply(format_errata, axis=1).rename("Errata")
+        errata_series = input_errata_df.apply(
+            format_errata, axis=1).rename("Errata")
         input_df = input_df.merge(
             errata_series,
             left_on="Name",
@@ -760,7 +776,8 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
     if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
         card_df = load_latest_data(name_pattern="cards")
         if card_df is not None:
-            card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
+            card_df.sort_values(
+                by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
     if "Card number" in list_df and not list_df["Card number"].dropna().empty:
         set_lists_df = load_latest_data(name_pattern="sets")
         if set_lists_df is not None:
@@ -779,13 +796,17 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         if set_lists_df is None:
             return df
         df["Card number"] = df["Card number"].str.upper()
-        extra_cols = set_lists_df.columns.difference(df.columns).join(["Card number", "Name"], how="outer")
-        merged_df = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
+        extra_cols = set_lists_df.columns.difference(
+            df.columns).join(["Card number", "Name"], how="outer")
+        merged_df = df.merge(
+            set_lists_df[extra_cols], on="Card number", how="left")
         merged_df["match"] = merged_df["Name_y"] if "Name_y" in merged_df else merged_df["Name"]
-        merged_df.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
+        merged_df.rename({"Name_x": "Name"}, axis=1,
+                         inplace=True, errors="ignore")
         merged_df.drop(columns=["Name_y"], inplace=True, errors="ignore")
         missing = (
-            merged_df["Card number"][~merged_df["Card number"].isin(set_lists_df["Card number"])]
+            merged_df["Card number"][~merged_df["Card number"].isin(
+                set_lists_df["Card number"])]
             .dropna()
             .sort_values()
             .unique()
@@ -802,15 +823,19 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         if ref_df is None:
             return df
         keys = df[df["match"].isna()][key_col].dropna()
-        list_keys = ref_df[ref_key].dropna()
+        ref_df = ref_df.dropna(subset=ref_key)
+        list_keys = ref_df[ref_key]
         if key_col != "Password":
             keys = keys.str.lower().str.strip()
             list_keys = list_keys.str.lower().str.strip()
         else:
             keys = keys.astype(int)
             list_keys = list_keys.astype(int)
-        key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
-        missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
+
+        key_name_dict = dict(
+            zip(list_keys, ref_df[ref_val]))
+        missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values(
+        ).unique().astype(str)
         if len(missing) > 0:
             print(
                 f'\nUnable to find the following {len(missing)} card(s) by "{ref_key}":\n ⏺',
@@ -836,7 +861,8 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         )
 
     if "Password" in original_cols and not list_df["match"].notna().all() and card_df is not None:
-        list_df = merge_with_keys(df=list_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name")
+        list_df = merge_with_keys(
+            df=list_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name")
 
     if "Name" in original_cols and not list_df["match"].notna().all() and (card_df is not None or set_lists_df is not None):
         if card_df is None:
@@ -844,12 +870,14 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         else:
             ref_df = card_df
 
-        list_df = merge_with_keys(df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
+        list_df = merge_with_keys(
+            df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
         if list_df["match"].isna().any():
             try:
                 ydk_data = get_ygoprodeck()
                 ydk_data["Old name"] = ydk_data["misc_info"].apply(
-                    lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
+                    lambda x: tuple(y["beta_name"]
+                                    for y in x if "beta_name" in y)
                 )
                 merge_with_keys(
                     df=list_df,
@@ -861,18 +889,22 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
             except Exception as e:
                 print("\nUnable to get old names from ygoprodeck:", e)
 
-    list_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
+    list_df.drop(columns=["Card number", "Password",
+                 "Name"], inplace=True, errors="ignore")
     list_df.rename(columns={"match": "Name"}, inplace=True)
-    list_df = list_df.groupby(list_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
+    list_df = list_df.groupby(list_df.columns.difference(
+        ["Count"]).tolist(), dropna=False).sum().reset_index()
 
     if card_data and card_df is not None:
         list_df = list_df[list_df.columns.difference(card_df.columns).join(["Name"], how="outer")].merge(
             card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left"
         )
 
-    list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=["Name", "Count"], ignore_index=True)
+    list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=[
+        "Name", "Count"], ignore_index=True)
     list_df["Count"] = list_df["Count"].astype(int)
-    print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
+    print(
+        f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
     return list_df[0] if len(list_df) == 1 else list_df
 
@@ -911,14 +943,16 @@ def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=
         result = df.groupby(group_cols)["Release"].unique().explode()
     elif operation == "debut":
         df = df.explode(column) if column else df
-        result = df.groupby(group_cols)[df.filter(regex="(?i)(debut)").columns].min().min(axis=1)
+        result = df.groupby(group_cols)[df.filter(
+            regex="(?i)(debut)").columns].min().min(axis=1)
     elif operation in ["last", "first"]:
         df = df[df["Release"].notna()]
         df = df.explode(column) if column else df
         agg_func = "max" if operation == "last" else "min"
         result = df.groupby(group_cols)["Release"].agg(agg_func)
     else:
-        raise ValueError("Invalid operation. Choose from 'debut', 'last', or 'first'.")
+        raise ValueError(
+            "Invalid operation. Choose from 'debut', 'last', or 'first'.")
 
     operation = operation.capitalize()
     if operation != "Debut":
@@ -926,7 +960,8 @@ def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=
         if operation.startswith("All"):
             operation += "s"
 
-    result = result.rename(operation).reset_index().drop("Name", axis=1).sort_values(by=operation)
+    result = result.rename(operation).reset_index().drop(
+        "Name", axis=1).sort_values(by=operation)
     if column is None:
         result = result[operation]
     else:
@@ -963,11 +998,13 @@ def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_colle
         deck_deck = deck_row["Deck"] if "Deck" in deck_row else np.nan
 
         # Get sub DataFrame from collection_df where Name matches
-        collection_sub_df = collection_df[collection_df["Name"] == card_name].copy()
+        collection_sub_df = collection_df[collection_df["Name"] == card_name].copy(
+        )
 
         # If Deck column exists, sort so that rows with exact Deck match are first, np.nan second
         if "Deck" in collection_sub_df.columns:
-            collection_sub_df = collection_sub_df[collection_sub_df["Deck"].isin([deck_deck, np.nan])]
+            collection_sub_df = collection_sub_df[collection_sub_df["Deck"].isin([
+                                                                                 deck_deck, np.nan])]
             collection_sub_df = collection_sub_df.sort_values(
                 by=["Deck"], ascending=[True]
             )  # Sort by Deck (exact match first)
@@ -982,7 +1019,8 @@ def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_colle
 
             # Subtract and update deck_count
             deck_count -= subtract_count
-            collection_sub_df.loc[collection_row.name, "Count"] -= subtract_count
+            collection_sub_df.loc[collection_row.name,
+                                  "Count"] -= subtract_count
 
             # Add the collection_row to the result rows
             result_row = {
@@ -1002,7 +1040,8 @@ def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_colle
 
         # After processing all available cards, handle missing counts
         if deck_count > 0:
-            result_row = {"Name": card_name, "Count": 0, "Deck": deck_deck, "missing": deck_count}
+            result_row = {"Name": card_name, "Count": 0,
+                          "Deck": deck_deck, "missing": deck_count}
             # Create a new row for the deck with Count set to 0 and missing indicating what's left
             result_rows.append(result_row)
 
@@ -1012,7 +1051,8 @@ def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_colle
     # Append any remaining rows from collection_df that were not used in the deck
     if return_collection:
         result_df = pd.concat(
-            [result_df, collection_df[~collection_df["Name"].isin(result_df["Name"])]], ignore_index=True
+            [result_df, collection_df[~collection_df["Name"].isin(
+                result_df["Name"])]], ignore_index=True
         ).sort_values(by=["Name", "Deck"])
 
     # Replace 0 values in missing with NaN
@@ -1034,8 +1074,8 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     formats = deck_df.filter(like="status").columns
     # Turn into function
     forbidden = (deck_df[formats] == "Forbidden").any(axis=1)
-    limited = (deck_df[formats] == "Forbidden").any(axis=1) & (deck_df["Count"] > 1)
-    semi_limited = (deck_df[formats] == "Forbidden").any(axis=1) & (deck_df["Count"] > 2)
+    limited = (deck_df[formats] == "Limited").any(axis=1) & (deck_df["Count"] > 1)
+    semi_limited = (deck_df[formats] == "Semi-Limited").any(axis=1) & (deck_df["Count"] > 2)
 
     # Apply the function to categorize the status
     melted_df = deck_df[forbidden | limited | semi_limited].melt(
@@ -1046,9 +1086,11 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # Apply the function to categorize the status
-    melted_df["Status"] = melted_df["Status"].apply(lambda x: np.nan if x == "Unlimited" else x)
+    melted_df["Status"] = melted_df["Status"].apply(
+        lambda x: np.nan if x == "Unlimited" else x)
     melted_df = melted_df.dropna(subset=["Status"])
-    melted_df = melted_df.assign(Value=melted_df["Format"].str.replace(" status", ""))
+    melted_df = melted_df.assign(
+        Value=melted_df["Format"].str.replace(" status", ""))
 
     # Pivot to get the desired column format
     result = melted_df.pivot_table(
@@ -1060,7 +1102,7 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-## Decklists
+# Decklists
 def read_decklist(file_path: Path | str) -> pd.DataFrame:
     """
     Read a decklist file and return a DataFrame with the card names.
@@ -1118,7 +1160,8 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
         decklist_df = pd.concat([decklist_df, temp_df])
         print(f"Loaded {file.stem} deck.")
 
-    decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
+    decklist_df.replace(
+        {"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
     return decklist_df
 
 
@@ -1175,7 +1218,8 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
         if line in ["#main", "#extra", "!side"]:
             current_section = line[1:].capitalize()
         elif current_section:
-            data.append({"Code": line, "Section": current_section, "Deck": file_path.stem.replace("_", " ").capitalize()})
+            data.append({"Code": line, "Section": current_section,
+                        "Deck": file_path.stem.replace("_", " ").capitalize()})
 
     df = pd.DataFrame(data).convert_dtypes(convert_string=False)
     return df
@@ -1210,11 +1254,15 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
     if len(not_found) > 0:
         print()  # Print a newline for better readability
         for deck in not_found["Deck"].unique():
-            print(f"Unable to find {len(not_found[not_found['Deck'] == deck])} cards in {deck}:")
-            print(" ⏺", "\n ⏺ ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
+            print(
+                f"Unable to find {len(not_found[not_found['Deck'] == deck])} cards in {deck}:")
+            print(" ⏺", "\n ⏺ ".join(
+                not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
 
-    ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
-    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count").astype(int)
+    ydk_df = ydk_df.drop("Code", axis=1).dropna(
+        subset=["Name"]).reset_index(drop=True)
+    ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])[
+        "Name"].transform("count").astype(int)
     ydk_df = ydk_df.drop_duplicates().reset_index(drop=True)
     return ydk_df
 
@@ -1391,15 +1439,17 @@ def update_index(dry_run: bool = False) -> str:
     rows = []
     for report in reports:
         rows.append(
-            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime,unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
+            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime, unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
         )
     table = " |\n| ".join(rows)
 
     index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
-    index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+    index = index.replace(
+        f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
     readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
-    readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+    readme = readme.replace(
+        f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
 
     if dry_run:
         return "Dry run - README and index updated"
@@ -1493,7 +1543,8 @@ def update_rarities(save: bool = True) -> Dict[str, str]:
 
     codes = list(rarity_dict.keys())
     names = list(rarity_dict.values())
-    new_rarity_dict = api.fetch_redirect_dict(codes=codes, names=names, category="Rarities", namespace=0)
+    new_rarity_dict = api.fetch_redirect_dict(
+        codes=codes, names=names, category="Rarities", namespace=0)
 
     rarity_dict = rarity_dict | new_rarity_dict
 
@@ -1519,7 +1570,8 @@ def update_regions(save: bool = True) -> Dict[str, str]:
     regions_dict = load_json(regions_file)
 
     names = list(regions_dict.values())
-    new_regions_dict = api.fetch_redirect_dict(names=names, category="Terminology", namespace=0)
+    new_regions_dict = api.fetch_redirect_dict(
+        names=names, category="Terminology", namespace=0)
 
     regions_dict = regions_dict | new_regions_dict
     if save:
@@ -1662,9 +1714,11 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
         bandai_query = card_query(*card_properties["bandai"])
 
     print(f"Downloading bandai cards")
-    bandai_df = api.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
+    bandai_df = api.fetch_properties(
+        concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
-        bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])  # Temporary
+        bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(
+            lambda x: x.split("(")[0])  # Temporary
     if debug:
         print("- Total")
 
@@ -1720,7 +1774,8 @@ def fetch_st(
         st_query = card_query(*card_properties["st"])
 
     print(f"Downloading {st}s")
-    st_df = api.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
+    st_df = api.fetch_properties(
+        concept, st_query, step=step, limit=limit, **kwargs)
 
     if debug:
         print("- Total")
@@ -1758,7 +1813,8 @@ def fetch_monster(
     """
     debug = check_debug(kwargs.get("debug", False))
     valid_cg = cg.value
-    attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
+    attributes = ["DIVINE", "LIGHT", "DARK",
+                  "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
     if query:
         query = "|?".join(query)
     else:
@@ -1784,8 +1840,10 @@ def fetch_monster(
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
 
-        temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
-        monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
+        temp_df = api.fetch_properties(
+            concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
+        monster_df = pd.concat([monster_df, temp_df.dropna(
+            how="all", axis=1)], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
@@ -1830,7 +1888,8 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
         query = card_query(*card_properties["monster"])
 
     print("Downloading tokens")
-    token_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    token_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
 
@@ -1865,7 +1924,8 @@ def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **
         query = card_query(*card_properties["counter"])
 
     print("Downloading counters")
-    counter_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    counter_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
 
@@ -1932,7 +1992,8 @@ def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
         query = card_query(*card_properties["skill"])
 
     print("Downloading skill cards")
-    skill_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    skill_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
 
@@ -1959,7 +2020,8 @@ def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.
         query = card_query(*card_properties["rush"])
 
     print("Downloading Rush Duel cards")
-    rush_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    rush_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
 
@@ -2004,7 +2066,8 @@ def fetch_unusable(
 
     valid_cg = cg.value
     if valid_cg == "CG":
-        concept = "OR".join([concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
+        concept = "OR".join(
+            [concept + f"[[{s} status::+]]" for s in ["TCG", "OCG"]])
     else:
         concept += f"[[{valid_cg} status::+]]"
 
@@ -2016,7 +2079,8 @@ def fetch_unusable(
         query = card_query(default=True)
 
     print(f"Downloading unusable cards")
-    unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    unusable_df = api.fetch_properties(
+        concept, query, step=step, limit=limit, **kwargs)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
 
@@ -2072,10 +2136,13 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         if debug:
             tqdm.write(f"- {cat}")
 
-        temp = api.fetch_categorymembers(cat, namespace=3010, step=step, iterator=iterator, debug=debug)
-        errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
+        temp = api.fetch_categorymembers(
+            cat, namespace=3010, step=step, iterator=iterator, debug=debug)
+        errata_data = temp["title"].apply(
+            lambda x: x.split("Card Errata:")[-1])
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
-        errata_df = pd.concat([errata_df, errata_series], axis=1).astype("boolean").fillna(False).sort_index()
+        errata_df = pd.concat([errata_df, errata_series], axis=1).astype(
+            "boolean").fillna(False).sort_index()
 
     if debug:
         print("- Total")
@@ -2122,7 +2189,8 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         if debug:
             tqdm.write(f"- {cat}")
         iterator.set_description(cat.split("Category:")[-1])
-        temp = api.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator, debug=debug)
+        temp = api.fetch_categorymembers(
+            cat, namespace=None, step=step, iterator=iterator, debug=debug)
         sub_categories = pd.DataFrame(temp)["title"]
         sub_iterator = tqdm(
             sub_categories,
@@ -2167,7 +2235,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     sets = fetch_set_list_pages(cg, **kwargs)  # Get list of sets
     keys = sets["Page name"]
 
-    all_set_lists_df = pd.DataFrame(columns=["Set", "Card number", "Name", "Rarity", "Print", "Quantity", "Region"])
+    all_set_lists_df = pd.DataFrame(
+        columns=["Set", "Card number", "Name", "Rarity", "Print", "Quantity", "Region"])
     total_success = 0
     total_error = 0
 
@@ -2180,14 +2249,18 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
         first = i * step
         last = (i + 1) * step
 
-        set_lists_df, success, error = api.fetch_set_lists(*keys[first:last], **kwargs)
-        set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop("Page name", axis=1)
-        all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
+        set_lists_df, success, error = api.fetch_set_lists(
+            *keys[first:last], **kwargs)
+        set_lists_df = set_lists_df.merge(
+            sets, on="Page name", how="left").drop("Page name", axis=1)
+        all_set_lists_df = pd.concat(
+            [all_set_lists_df, set_lists_df], ignore_index=True)
         total_success += success
         total_error += error
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
-    all_set_lists_df.sort_values(by=["Set", "Region", "Card number"]).reset_index(inplace=True)
+    all_set_lists_df.sort_values(
+        by=["Set", "Region", "Card number"]).reset_index(inplace=True)
     print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing')
 
     return all_set_lists_df
@@ -2261,7 +2334,8 @@ def run_notebooks(
             ch_key = "chat_id"
         if contrib_value is True:
 
-            required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key.upper()}"]
+            required_secrets = [f"{contrib_upper}_TOKEN",
+                                f"{contrib_upper}_{ch_key.upper()}"]
             try:
                 secrets = load_secrets(
                     required_secrets,
@@ -2271,7 +2345,8 @@ def run_notebooks(
                 tkn = secrets.get(required_secrets[0])
                 ch = secrets.get(required_secrets[1])
             except:
-                cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
+                cprint(
+                    text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
                 return
         elif isinstance(contrib_value, argparse.Namespace):
             tkn = contrib_value.tkn
@@ -2285,7 +2360,8 @@ def run_notebooks(
             elif contrib_upper == "TELEGRAM":
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
             else:
-                cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+                cprint(
+                    text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
             return contrib_tqdm(
                 token=tkn,
                 file=open(os.devnull, "w"),
@@ -2294,7 +2370,8 @@ def run_notebooks(
             )
         except Exception as e:
             print(e)
-            cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
+            cprint(
+                text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
 
     # Iterate over potential contrib names
     for contrib in contribs:
@@ -2309,7 +2386,8 @@ def run_notebooks(
     # Create a StreamHandler and attach it to the logger
     stream_handler = logging.StreamHandler(io.StringIO())
     stream_handler.setFormatter(logging.Formatter("%(message)s"))
-    stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
+    stream_handler.addFilter(
+        lambda record: record.getMessage().startswith("Ending Cell"))
     logger.addHandler(stream_handler)
 
     exceptions = []
@@ -2371,7 +2449,8 @@ def run_notebooks(
 
             unlock(report_name)
 
-    tqdm.write("\nExecution completed")  # Empty character for better readability
+    # Empty character for better readability
+    tqdm.write("\nExecution completed")
     os.environ.pop("YQ_DEBUG", default=None)
 
     # Close the iterator
@@ -2489,7 +2568,8 @@ def run(
                 squash_results = git.squash_commits(start_commit)
                 print(squash_results)
             except Exception as e:
-                cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
+                cprint(text=f"Error squashing commits. Ignoring... \n",
+                       color="yellow")
                 print(e)
 
     # TODO: Error handling
@@ -2569,7 +2649,8 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         required=False,
         help="run in debug mode",
     )
-    debug_group.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")
+    debug_group.add_argument(
+        "-p", "--paths", action="store_true", help="print YugiQuery paths and exit")
 
 
 if __name__ == "__main__":
