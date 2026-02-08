@@ -382,6 +382,9 @@ def rate(
                 mapping = dict(zip(list(first_dates.index), seq))
                 colors = [mapping[col] for col in new_order]
         except Exception:
+            # If `colors` cannot be treated as a sequence of the correct length,
+            # fall back to using the original `colors` value or default colormap.
+            # This failure is non-critical, so we intentionally ignore the error.
             pass
     df = df[new_order]
 
