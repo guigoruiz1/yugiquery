@@ -24,7 +24,7 @@ def main():
 
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow", formatter_class=CustomHelpFormatter)
-    yq.set_parser(yugiquery_parser)  # TODO: Make --reports positional
+    yq.set_parser(yugiquery_parser)
     # Subparser for the bot mode
     bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
     bot.set_parser(bot_parser)
