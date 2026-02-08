@@ -969,10 +969,12 @@ def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_colle
 
         # If Deck column exists, sort so that rows with exact Deck match are first, np.nan second
         if "Deck" in collection_sub_df.columns:
-            collection_sub_df = collection_sub_df[collection_sub_df["Deck"].isin([deck_deck, np.nan])]
+            deck_mask = collection_sub_df["Deck"].eq(deck_deck) | collection_sub_df["Deck"].isna()
+            collection_sub_df = collection_sub_df[deck_mask]
             collection_sub_df = collection_sub_df.sort_values(
-                by=["Deck"], ascending=[True]
-            )  # Sort by Deck (exact match first)
+                by=["Deck"],
+                key=lambda s: s.isna(),
+            )  # Sort by Deck (exact match first, then NaN)
 
         # Subtract from the first available row(s) in collection_sub_df until deck_count is depleted
         for sub_index, collection_row in collection_sub_df.iterrows():
