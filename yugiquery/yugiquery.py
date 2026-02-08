@@ -415,7 +415,7 @@ def cleanup_data(dry_run=False) -> None:
     }
 
     # Get a list of all the files created in the last month and split them into weeks
-    last_month_files = df[df["Date"] >= df["Date"].max() - pd.Timedelta("1MS")].resample("W", on="Date").first()
+    last_month_files = df[df["Date"] >= df["Date"].max() - pd.DateOffset(months=1)].resample("W", on="Date").first()
 
     # Separate the last_month_files by whether they contain "changelog"
     last_month_files = {
