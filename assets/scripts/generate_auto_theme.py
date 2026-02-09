@@ -25,24 +25,20 @@ def classify_variables(light, dark):
 def find_theme_directory():
     """Finds the directory containing theme files."""
     for path in jupyter_path("nbconvert", "templates", "lab"):
-        if all(
-            os.path.exists(os.path.join(path, "static", f"theme-{t}.css"))
-            for t in ["light", "dark"]
-        ):
+        if all(os.path.exists(os.path.join(path, "static", f"theme-{t}.css")) for t in ["light", "dark"]):
             return path
     raise FileNotFoundError("Could not find theme-light.css and theme-dark.css.")
 
 
 def generate_theme_css(template_dir):
     """Generates theme-auto.css using theme-light.css and theme-dark.css."""
-    light, dark = [
-        extract_variables(
-            open(
-                os.path.join(template_dir, "static", f"theme-{t}.css"), encoding="utf-8"
-            ).read()
-        )
-        for t in ["light", "dark"]
-    ]
+    theme_vars = {}
+    for theme in ["light", "dark"]:
+        theme_path = os.path.join(template_dir, "static", f"theme-{theme}.css")
+        with open(theme_path, encoding="utf-8") as f:
+            theme_vars[theme] = extract_variables(f.read())
+
+    light, dark = theme_vars["light"], theme_vars["dark"]
     common, light_only, dark_only = classify_variables(light, dark)
 
     css = [
@@ -89,9 +85,7 @@ def update_index_html(template_dir):
                     {% endif %}"""
 
     # Replace the existing if-else block in the notebook css block
-    updated_content = re.sub(
-        r"{% if resources.theme.*?{% endif %}", new_block, content, flags=re.DOTALL
-    )
+    updated_content = re.sub(r"{% if resources.theme.*?{% endif %}", new_block, content, flags=re.DOTALL)
 
     with open(index_file, "w", encoding="utf-8") as f:
         f.write(updated_content)
