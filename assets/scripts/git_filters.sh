@@ -12,4 +12,4 @@ fi
 # Install nbstripout with the specified attributes file in the notebooks directory
 pip install nbstripout
 nbstripout --install --attributes "notebooks/.gitattributes"
-git config filter.nbstripout.extrakeys 'metadata.papermill cell.papermill metadata.celltoolbar metadata.kernelspec metadata.language_info.codemirror_mode.version metadata.language_info.pygments_lexer metadata.language_info.version metadata.toc metadata.notify_time metadata.varInspector cell.metadata.heading_collapsed cell.metadata.hidden cell.metadata.code_folding cell.metadata.tags cell.metadata.init_cell'
+git config filter.nbstripout.extrakeys 'metadata.papermill cell.metadata.papermill metadata.celltoolbar metadata.kernelspec metadata.language_info.codemirror_mode.version metadata.language_info.pygments_lexer metadata.language_info.version metadata.toc metadata.notify_time metadata.varInspector cell.metadata.heading_collapsed cell.metadata.hidden cell.metadata.code_folding cell.metadata.init_cell'
