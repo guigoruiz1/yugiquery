@@ -226,8 +226,7 @@ def generate_rate_grid(
     if cumsum:
         cumsum_ax = ax
         divider = make_axes_locatable(axes=cumsum_ax)
-        yearly_ax = divider.append_axes(
-            position="bottom", size=size_pct, pad=pad)
+        yearly_ax = divider.append_axes(position="bottom", size=size_pct, pad=pad)
         cumsum_ax.figure.add_axes(yearly_ax)
         cumsum_ax.set_xticklabels([])
         axes = [cumsum_ax, yearly_ax]
@@ -235,22 +234,23 @@ def generate_rate_grid(
         y = df.fillna(0).cumsum()
 
         if len(df.columns) == 1:
-            cumsum_ax.plot(y, label="Cumulative",
-                           c=colors[0], antialiased=True)
+            cumsum_ax.plot(y, label="Cumulative", c=colors[0], antialiased=True)
             if fill:
-                cumsum_ax.fill_between(
-                    x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
+                cumsum_ax.fill_between(x=y.index, y1=y.values.T[0], color=colors[0], alpha=0.1, hatch="x")
             cumsum_ax.set_ylabel(f"Cumulative {y.columns[0]}")  # Wrap text
+            cumsum_ax.legend(loc="upper left", ncols=int(len(df.columns) / 5 + 1))  # Test
         else:
-            cumsum_ax.stackplot(
-                y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
+            cumsum_ax.stackplot(y.index, y.values.T, labels=y.columns, colors=colors, antialiased=True)
             cumsum_ax.set_ylabel(f"Cumulative{index_name}")
+            cumsum_ax.figure.legend(
+                loc="upper center", bbox_to_anchor=(0.5, 0), ncols=len(df.columns), frameon=False
+            )  # Test
 
         yearly_ax.set_ylabel(f"Yearly{index_name} rate")
-        cumsum_ax.legend(loc="upper left", ncols=int(
-            len(df.columns) / 5 + 1))  # Test
 
-        def func(x, pos): return "" if np.isclose(x, 0) else f"{round(x):.0f}"
+        def func(x, pos):
+            return "" if np.isclose(x, 0) else f"{round(x):.0f}"
+
         cumsum_ax.yaxis.set_major_formatter(FuncFormatter(func))
 
     else:
@@ -295,8 +295,7 @@ def generate_rate_grid(
             yearly_rate.index, yearly_rate.values.T, labels=yearly_rate.columns, colors=colors, antialiased=True
         )
         if not cumsum:
-            yearly_ax.legend(loc="upper left", ncols=int(
-                len(df.columns) / 8 + 1))
+            yearly_ax.legend(loc="upper left", ncols=int(len(df.columns) / 8 + 1))
 
     if xlabel is not None:
         yearly_ax.set_xlabel(xlabel)
@@ -323,11 +322,13 @@ def generate_rate_grid(
         align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
         l = yearly_ax.get_ylim()
         l2 = monthly_ax.get_ylim()
-        def f(x): return l2[0] + (x - l[0]) / (l[1] - l[0]) * (l2[1] - l2[0])
+
+        def f(x):
+            return l2[0] + (x - l[0]) / (l[1] - l[0]) * (l2[1] - l2[0])
+
         ticks = f(yearly_ax.get_yticks())
         monthly_ax.yaxis.set_major_locator(FixedLocator(ticks))
-        monthly_ax.yaxis.set_major_formatter(
-            FuncFormatter(lambda x, _: f"{round(x):.0f}"))
+        monthly_ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{round(x):.0f}"))
         monthly_ax.yaxis.set_minor_locator(AutoMinorLocator())
         axes.append(monthly_ax)
 
@@ -368,6 +369,25 @@ def rate(
     """
     if isinstance(df, pd.Series):
         df = df.to_frame()
+    # Order columns by the first date where they have a value > 0 (ascending).
+    # Columns with no entries > 0 are placed last.
+    mask = df.gt(0)
+    first_dates = mask.idxmax().where(mask.any(), pd.Timestamp.max)
+    new_order = first_dates.sort_values().index
+    # Reorder any user-provided `colors` (expected as a list/sequence) to match columns.
+    if colors is not None:
+        try:
+            seq = list(colors)
+            if len(seq) == len(first_dates.index):
+                mapping = dict(zip(list(first_dates.index), seq))
+                colors = [mapping[col] for col in new_order]
+        except Exception:
+            # If `colors` cannot be treated as a sequence of the correct length,
+            # fall back to using the original `colors` value or default colormap.
+            # This failure is non-critical, so we intentionally ignore the error.
+            pass
+    df = df[new_order]
+
     num_cols = len(df.columns)
     top_space = 0.5
 
@@ -397,8 +417,7 @@ def rate(
             df=df[col].to_frame() if subplots else df,
             ax=ax,
             colors=(
-                [colors[2 * i % len(colors)], colors[2 * i %
-                                                     len(colors)], colors[(2 * i + 1) % len(colors)]]
+                [colors[2 * i % len(colors)], colors[2 * i % len(colors)], colors[(2 * i + 1) % len(colors)]]
                 if subplots
                 else colors
             ),
@@ -406,8 +425,7 @@ def rate(
             fill=fill,
             limit_year=limit_year,
             size_pct="100%" if subplots else "150%",
-            xlabel="Date" if (
-                i + 1) == len(df.columns) or not subplots else None,
+            xlabel="Date" if (i + 1) == len(df.columns) or not subplots else None,
         )
         axes.extend(sub_axes[:2])
         if not subplots:
@@ -415,6 +433,7 @@ def rate(
 
     # Add background shading and vertical lines separately
     if bg is not None and "end" in bg:
+        bg = bg.copy()
         bg["end"] = bg["end"].fillna(df.index.max())
         add_background_shading(axes=axes, bg=bg)
     if vlines is not None:
@@ -448,8 +467,7 @@ def add_background_shading(axes: List[plt.Axes], bg: pd.DataFrame, colors: List 
                         row["begin"],
                         row["end"],
                         alpha=0.1,
-                        color=(colors[c] if colors is not None else colors_dict.get(
-                            idx, f"C{c}")),
+                        color=(colors[c] if colors is not None else colors_dict.get(idx, f"C{c}")),
                         zorder=-1,
                     )
                     c += 1
@@ -518,8 +536,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
     # Create a polar plot
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(polar=True)
-    ax.bar(x=angles, height=counts, width=0.5,
-           color=colors_dict["Link Monster"], **kwargs)
+    ax.bar(x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
 
     # Set the label for each arrow
     ax.set_xticks(list(angle_map.values()))
@@ -562,13 +579,11 @@ def box(df, mean: bool = True, group_string: str = "%Y", x=None, y=None, **kwarg
     fig = plt.figure(figsize=(10, 5))
     ax = fig.add_subplot()
     if x is None:
-        x = df.columns[df.columns.str.contains(
-            "release|debut|time|date", case=False)].to_list()
+        x = df.columns[df.columns.str.contains("release|debut|time|date", case=False)].to_list()
         if x:
             x = x[0]
         else:
-            raise ValueError(
-                "'Release' or 'Debut' column not found in df. Pass the column name as x.")
+            raise ValueError("'Release' or 'Debut' column not found in df. Pass the column name as x.")
     if y is None:
         y = df.columns.difference([x])[0]
         df[y] = df[y].apply(pd.to_numeric, errors="coerce")
@@ -577,8 +592,7 @@ def box(df, mean: bool = True, group_string: str = "%Y", x=None, y=None, **kwarg
 
     sns.boxplot(ax=ax, data=df, y=y, x=x, width=0.5, **kwargs)
     if mean:
-        df.groupby(x).mean(numeric_only=True).plot(
-            ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False)
+        df.groupby(x).mean(numeric_only=True).plot(ax=ax, c="r", ls="--", alpha=0.75, grid=True, legend=False)
 
     if df[y].max() < 15:  # Level/Rank/Link/Pendulum
         ax.set_yticks(np.arange(0, df[y].max() + 1, 1))
@@ -633,8 +647,7 @@ def pyramid(
         heights = []
         total_height = 0
         for i, (j, area) in enumerate(series.items()):
-            height = (bottom - np.sqrt(bottom**2 - 4 *
-                      area / np.sqrt(3))) / (2 / np.sqrt(3))
+            height = (bottom - np.sqrt(bottom**2 - 4 * area / np.sqrt(3))) / (2 / np.sqrt(3))
             top = bottom - 2 * height / np.sqrt(3)
             y = [total_height, total_height + height]
             x1 = [-bottom / 2, -top / 2]
@@ -701,8 +714,7 @@ def deck_composition(
     plot_size: Tuple[int, int] = (5, 5),
     ring_radius: float = 0.3,
     pctdistances: List[float] = [0.85, 0.75],
-    font_size: Dict[str, int] = {"label": 14,
-                                 "title": 16, "suptitle": 20, "legend": 12},
+    font_size: Dict[str, int] = {"label": 14, "title": 16, "suptitle": 20, "legend": 12},
     **kwargs,
 ) -> plt.Figure:
     """
@@ -724,12 +736,9 @@ def deck_composition(
     decks = deck_df["Deck"].unique()
     temp = deck_df.copy()
     temp["Primary type"] = deck_df["Primary type"].fillna(deck_df["Card type"])
-    main_df = temp[temp["Section"] == "Main"].groupby(["Deck", "Primary type"])[
-        "Count"].sum().unstack(0)
-    extra_df = temp[temp["Section"] == "Extra"].groupby(["Deck", "Primary type"])[
-        "Count"].sum().unstack(0)
-    side_df = temp[temp["Section"] == "Side"].groupby(["Deck", "Primary type"])[
-        "Count"].sum().unstack(0)
+    main_df = temp[temp["Section"] == "Main"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
+    extra_df = temp[temp["Section"] == "Extra"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
+    side_df = temp[temp["Section"] == "Side"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
 
     # Font sizes
     label_font_size = font_size.get("label", 14)
@@ -748,13 +757,11 @@ def deck_composition(
 
     colors_main = [colors_dict[type] for type in main_df.index]
     colors_extra = [colors_dict[type] for type in extra_df.index]
-    colors_remaining = side_df.index.difference(
-        main_df.index.union(extra_df.index))
+    colors_remaining = side_df.index.difference(main_df.index.union(extra_df.index))
 
     # Dynamically calculate the figure size based on the number of rows and columns
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
-    fig_height = plot_height * rows + \
-        (rows - 1) * vertical_space + header_space
+    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
     fig = plt.figure(figsize=(fig_width, fig_height))
     gs = GridSpec(
@@ -774,8 +781,7 @@ def deck_composition(
 
     for i, deck in enumerate(decks):
         # Create sub-grid for pie and bar plots
-        sub_gs = gs[(i // cols), i % cols].subgridspec(2,
-                                                       1, height_ratios=[9, 1], hspace=0.2)
+        sub_gs = gs[(i // cols), i % cols].subgridspec(2, 1, height_ratios=[9, 1], hspace=0.2)
 
         # Main plot in the upper sub-grid
         ax_pie = fig.add_subplot(sub_gs[0, 0])
@@ -866,10 +872,8 @@ def deck_composition(
         for type in colors_remaining
         if type in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
     ]
-    handles1 = [mpatches.Patch(color=colors_dict[type], label=type)
-                for type in main_df.index]
-    handles2 = [mpatches.Patch(color=colors_dict[type], label=type)
-                for type in extra_df.index]
+    handles1 = [mpatches.Patch(color=colors_dict[type], label=type) for type in main_df.index]
+    handles2 = [mpatches.Patch(color=colors_dict[type], label=type) for type in extra_df.index]
 
     # Adjust the legend position
     top = 1 - header_space / fig_height
@@ -914,8 +918,7 @@ def deck_distribution(
     colors: Dict[str, str] | List[str] | None = None,
     hatches: List[str] | str = "",
     edgecolors: List[str] | str = "white",
-    font_size: Dict[str, int] = {"label": 14,
-                                 "title": 20, "tick": 12, "legend": 12},
+    font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
     **kwargs,
 ) -> plt.Figure:
     """
@@ -942,8 +945,7 @@ def deck_distribution(
     mean_labels = mean_labels[mean_labels > 0].mean()
     max_labels = deck_df.groupby("Deck")[column].nunique().max()
     sorted_sections = (
-        deck_df[deck_df[column].notna()].groupby(
-            "Section")["Count"].sum().sort_values(ascending=False).index.tolist()
+        deck_df[deck_df[column].notna()].groupby("Section")["Count"].sum().sort_values(ascending=False).index.tolist()
     )
 
     # Font sizes
@@ -955,11 +957,9 @@ def deck_distribution(
     # Set constants for plot sizes and spacing
     plot_width = 6 if plot_size is None else plot_size[0]  # Width of each plot
     # Fixed height for each plot
-    plot_height = max(
-        mean_labels / 2, 0.5) if plot_size is None else plot_size[1]
+    plot_height = max(mean_labels / 2, 0.5) if plot_size is None else plot_size[1]
     # Fixed horizontal space between plots
-    horizontal_space = grid_spacing[0] + \
-        max(2 * int(max_label_len / 10) - 3, 0)
+    horizontal_space = grid_spacing[0] + max(2 * int(max_label_len / 10) - 3, 0)
     vertical_space = grid_spacing[1]  # Fixed vertical space between plots
     # Fixed space between figure top and subplots
     header_space = legend_font_size / 10
@@ -970,8 +970,7 @@ def deck_distribution(
 
     # Dynamically calculate the figure size based on the number of rows and columns
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
-    fig_height = plot_height * rows + \
-        (rows - 1) * vertical_space + header_space
+    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
     fig = plt.figure(figsize=(fig_width, fig_height))
     gs = GridSpec(
@@ -990,8 +989,7 @@ def deck_distribution(
         section_colors = {
             section: (
                 pd.Series(
-                    colors.get(section, f"C{i}") if isinstance(
-                        colors, dict) else colors,
+                    colors.get(section, f"C{i}") if isinstance(colors, dict) else colors,
                     index=(
                         sorted(deck_df[column].dropna().unique())
                         if ((isinstance(colors, dict) and isinstance(colors[section], list)) or isinstance(colors, list))
@@ -1021,8 +1019,7 @@ def deck_distribution(
 
     # Plotting each deck's data
     for i, deck in enumerate(decks):
-        temp_df = deck_df[deck_df["Deck"] == deck].groupby(
-            ["Section", column])["Count"].sum().unstack(0)
+        temp_df = deck_df[deck_df["Deck"] == deck].groupby(["Section", column])["Count"].sum().unstack(0)
         temp_df = temp_df[temp_df.sum().sort_values(ascending=False).index]
 
         if not temp_df.empty:
@@ -1053,8 +1050,7 @@ def deck_distribution(
                 width=bar_height_scale,
             )
             for j, bar in enumerate(bar_ax.patches):
-                hatch_index = j // (len(bar_ax.patches) //
-                                    len(temp_df.columns))
+                hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
                 bar.set_hatch(hatches.iloc[hatch_index])
                 bar.set_edgecolor(edgecolors.iloc[hatch_index])
 
@@ -1064,8 +1060,7 @@ def deck_distribution(
             ax.xaxis.set_major_locator(MaxNLocator(integer=True))
             ax.grid(axis="x", which="major", linestyle=":")
             ax.set_ylim(-0.5, num_bars - 0.5)
-            ax.tick_params(axis="both", which="major",
-                           labelsize=tick_font_size)
+            ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
             ax.set_axisbelow(True)
 
             ax.xaxis.set_minor_locator(MultipleLocator(1))
@@ -1117,8 +1112,7 @@ def deck_stem(
     grid_spacing: Tuple[int, int] = (2, 1),
     grid_cols: int = 2,
     colors: Dict[str, str] | List[str] | None = None,
-    font_size: Dict[str, int] = {"label": 14,
-                                 "title": 20, "tick": 12, "legend": 12},
+    font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
     markers: List[str] = ["s", "o", "+"],
     hollow: bool = False,
     marker_size: int = 10,
@@ -1153,8 +1147,7 @@ def deck_stem(
         .sort_values(ascending=False)
         .index.tolist()
     )
-    steps = (100, 500) if deck_df[columns].map(
-        pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
+    steps = (100, 500) if deck_df[columns].map(pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
 
     # Font sizes
     label_font_size = font_size.get("label_font_size", 14)
@@ -1177,21 +1170,18 @@ def deck_stem(
 
     # Dynamically calculate the figure size based on the number of rows and columns
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
-    fig_height = plot_height * rows + \
-        (rows - 1) * vertical_space + header_space
+    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
     if colors is None:
         colors = {
             section: colors_dict.get(c, f"C{i}")
             for i, (section, c) in enumerate(
-                zip(["Main", "Extra", "Side"], [
-                    "Effect Monster", "Fusion Monster", "Xyz Monster"])
+                zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Xyz Monster"])
             )
         }
     else:
         colors = {
-            section: (colors.get(section, f"C{i}") if isinstance(
-                colors, dict) else colors[i])
+            section: (colors.get(section, f"C{i}") if isinstance(colors, dict) else colors[i])
             for i, section in enumerate(sorted_sections)
         }
 
@@ -1217,8 +1207,7 @@ def deck_stem(
                 sub_sub_df = sub_df[sub_df["Section"] == s]
                 if sub_sub_df.empty:
                     continue
-                series = sub_sub_df.groupby(
-                    col)["Count"].sum().mul(np.power(-1, k))
+                series = sub_sub_df.groupby(col)["Count"].sum().mul(np.power(-1, k))
                 if series.empty:
                     continue
                 index = pd.to_numeric(series.index, errors="coerce")
@@ -1236,24 +1225,19 @@ def deck_stem(
                     basefmt=":",
                 )
                 if hollow:
-                    stem.markerline.set_markeredgecolor(
-                        colors.get(s, f"C{j}"))  # Marker edge color
-                    stem.markerline.set_markerfacecolor(
-                        "none")  # Hollow marker (no fill)
+                    stem.markerline.set_markeredgecolor(colors.get(s, f"C{j}"))  # Marker edge color
+                    stem.markerline.set_markerfacecolor("none")  # Hollow marker (no fill)
                 else:
                     stem.markerline.set_color(colors.get(s, f"C{j}"))
-                stem.stemlines.set_color(
-                    colors.get(s, f"C{j}"))  # Stem line color
-                stem.baseline.set_color(
-                    colors.get(s, f"C{j}"))  # Baseline color
+                stem.stemlines.set_color(colors.get(s, f"C{j}"))  # Stem line color
+                stem.baseline.set_color(colors.get(s, f"C{j}"))  # Baseline color
                 stem.markerline.set_markersize(msize)
                 msize = max(msize - 2, 2)
 
         if steps[1] < 10:
             xticks = np.arange(0, 14, 1)
         else:
-            xticks = np.arange(
-                int(min_idx / steps[1]) * steps[1], max_idx + steps[1], steps[1])
+            xticks = np.arange(int(min_idx / steps[1]) * steps[1], max_idx + steps[1], steps[1])
         minor_xticks = np.arange(0, (len(xticks) - 1) * steps[1], steps[0])
         if hasna:
             xticks = list(xticks) + [max_idx + steps[1]]
@@ -1263,19 +1247,16 @@ def deck_stem(
         ax.set_xticks(minor_xticks, minor=True)
 
         ax.set_title(deck)
-        ax.set_xlim(-min(steps[0], steps[1] / 2) + min(xticks),
-                    max(xticks) + min(steps[0], steps[1] / 2))
+        ax.set_xlim(-min(steps[0], steps[1] / 2) + min(xticks), max(xticks) + min(steps[0], steps[1] / 2))
         plim = int(ax.get_ylim()[1] + 1)
         nlim = int(ax.get_ylim()[0] - 1) if ax.get_ylim()[0] < -1 else 0
         ax.set_ylim(nlim, plim)
         if nlim < 0:
-            ax.set_ylabel("← " + " | ".join(reversed(it_columns)
-                                            ) + " →", fontsize=label_font_size)
+            ax.set_ylabel("← " + " | ".join(reversed(it_columns)) + " →", fontsize=label_font_size)
         else:
             ax.set_ylabel(it_columns[0], fontsize=label_font_size)
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.yaxis.set_major_formatter(
-            plt.FuncFormatter(lambda x, _: int(abs(x))))
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: int(abs(x))))
         ax.xaxis.set_minor_locator(MultipleLocator(steps[0]))
         ax.yaxis.set_minor_locator(MultipleLocator(1))
         ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
@@ -1297,7 +1278,6 @@ def deck_stem(
         fontsize=legend_font_size,
         frameon=False,
     )
-    fig.suptitle("/".join(columns) + " Distribution",
-                 y=1, fontsize=title_font_size)
+    fig.suptitle("/".join(columns) + " Distribution", y=1, fontsize=title_font_size)
 
     return fig
