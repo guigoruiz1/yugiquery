@@ -31,7 +31,6 @@ exclude:
   - assets
   - notebooks
   - yugiquery
-  - data
   - docs
   - README.md
   - pyproject.toml

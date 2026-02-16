@@ -1288,6 +1288,7 @@ def save_notebook() -> None:
     print("Notebook saved to disk")
 
 
+# TODO: change print statement to show relative path. Maybe as link.
 def export_notebook(
     input_path: str | None = None,
     output_path: str | None = None,
@@ -1344,7 +1345,7 @@ def export_notebook(
     logger = logging.getLogger("IPKernelApp")
     logger.setLevel(logging.ERROR)
 
-    (body, resources) = html_exporter.from_notebook_node(notebook_content)
+    body, resources = html_exporter.from_notebook_node(notebook_content)
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)

@@ -15,7 +15,6 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-
 # Third-party imports
 import git
 from termcolor import cprint

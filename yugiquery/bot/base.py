@@ -30,7 +30,6 @@ from tqdm.auto import tqdm
 from ..utils import *
 from ..yugiquery import run
 
-
 # ============ #
 # Enum Classes #
 # ============ #
@@ -109,7 +108,7 @@ class Bot:
             remote_url_parts = remote_url[:-4].split("/")
 
             # Repository
-            (author, repo) = remote_url_parts[-2:]
+            author, repo = remote_url_parts[-2:]
             # URLs
             repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
             repository_url = remote_url.split(".git")[0]
