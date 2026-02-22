@@ -102,7 +102,7 @@ class Discord(Bot, commands.Bot):
         if len(content) <= self.DISCORD_MESSAGE_LIMIT:
             await ctx.send(content=content, **kwargs)
         else:
-            file = discord.File(io.StringIO(content), filename=filename)
+            file = discord.File(io.BytesIO(content.encode("utf-8")), filename=filename)
             await ctx.send(content="Response too long, sending as an attachment:", file=file, **kwargs)
 
     # ====== #
@@ -227,9 +227,9 @@ class Discord(Bot, commands.Bot):
                 color=discord.Colour.purple(),
             )
 
-            original_response = None
+            original_response: discord.Message | None = None
 
-            async def callback(first) -> None:
+            async def callback(first: str) -> None:
                 embed.add_field(name="First contestant", value=first, inline=False)
                 embed.set_footer(text="Still battling... ⏳")
                 nonlocal original_response
@@ -264,7 +264,10 @@ class Discord(Bot, commands.Bot):
                 inline=True,
             )
             embed.remove_footer()
-            await original_response.edit(embed=embed)
+            if original_response is not None:
+                await original_response.edit(embed=embed)
+            else:
+                await ctx.send(embed=embed)
 
         @self.hybrid_command(
             name="benchmark",
@@ -315,8 +318,9 @@ class Discord(Bot, commands.Bot):
                     description=response["description"],
                     color=discord.Colour.magenta(),
                 )
-                for field, content in response["fields"].items():
-                    embed.add_field(name=field, value=content, inline=False)
+                if isinstance(response["fields"], dict):
+                    for field, content in response["fields"].items():
+                        embed.add_field(name=field, value=content, inline=False)
 
                 await ctx.send(embed=embed)
 
@@ -399,7 +403,7 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
+        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:  # type: ignore
             """
             Runs a YugiQuery flow by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.

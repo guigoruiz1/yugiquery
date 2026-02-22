@@ -14,11 +14,15 @@ import multiprocessing as mp
 import os
 import random
 from enum import Enum, StrEnum
+from functools import cached_property
+from types import SimpleNamespace
 from typing import (
     Any,
+    Awaitable,
     Callable,
     Dict,
     Tuple,
+    Type,
 )
 
 # Third-party imports
@@ -91,38 +95,44 @@ class Bot:
     Reports: type[Enum] = Enum("Reports", {"All": "all", "User": "user"})
 
     @property
-    def URLS(self) -> type[StrEnum]:
+    def URLS(self) -> SimpleNamespace:
         """
         Property to get the URLs of the remote repository and webpage.
+        Cached after first access.
+
+        Returns:
+            SimpleNamespace: Object with api, repo, and webpage attributes (empty strings if no repo).
         """
         repository_api_url = ""
         repository_url = ""
         webpage_url = ""
-        try:
-            # Get the remote repository
-            remote = self.repo.remote()
-            remote_url = remote.url
 
-            # Extract the GitHub page URL from the remote URL
-            # by removing the ".git" suffix and splitting the URL
-            # by the "/" character
-            remote_url_parts = remote_url[:-4].split("/")
+        if self.repo is not None:
+            try:
+                remote = self.repo.remote()
+                remote_url = remote.url
 
-            # Repository
-            (author, repo) = remote_url_parts[-2:]
-            # URLs
-            repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
-            repository_url = remote_url.split(".git")[0]
-            webpage_url = f"https://{author}.github.io/{repo}"
-        finally:
-            return StrEnum(
-                "URLS",
-                {
-                    "api": repository_api_url,
-                    "repo": repository_url,
-                    "webpage": webpage_url,
-                },
-            )
+                # Extract the GitHub page URL from the remote URL
+                # by removing the ".git" suffix and splitting the URL
+                # by the "/" character
+                remote_url_parts = remote_url.rstrip(".git").split("/")
+
+                # Repository
+                author, repo = remote_url_parts[-2:]
+
+                # URLs
+                repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
+                repository_url = remote_url.split(".git")[0]
+                webpage_url = f"https://{author}.github.io/{repo}"
+            except (AttributeError, ValueError, IndexError) as e:
+                # Silently handle repo access errors
+                pass
+
+        return SimpleNamespace(
+            api=repository_api_url or None,
+            repo=repository_url or None,
+            webpage=webpage_url or None,
+        )
 
     # ====================== #
     # Bot Superclass Methods #
@@ -153,26 +163,38 @@ class Bot:
         Returns:
             str: The result message indicating whether the abortion was successful.
         """
+        if self.process is None:
+            return "No query is currently running."
+
+        result_messages = []
+
+        # Terminate the process
         try:
             self.process.terminate()
-            result = "Aborted."
-            if self.repo is not None:
-                try:
-                    git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
-                except Exception as e:
-                    print(e)
-                    result += "\nRestoring files failed."
+            result_messages.append("Query aborted.")
         except Exception as e:
-            print(f"Abort failed:\n{e}")
-            result = "Abort failed."
-        return result
+            print(f"Failed to terminate process: {e}")
+            return f"Abort failed: {e}"
 
-    async def battle(self, callback: Callable[[str], None], atk_weight: int = 4, def_weight: int = 1) -> dict:
+        # Restore modified notebook files
+        if self.repo is not None:
+            try:
+                notebook_files = list(dirs.NOTEBOOKS.user.glob("*.ipynb"))
+                if notebook_files:
+                    git.restore(files=notebook_files, repo=self.repo)
+                    result_messages.append("Files restored.")
+            except Exception as e:
+                print(f"Failed to restore files: {e}")
+                result_messages.append("Warning: File restoration failed.")
+
+        return " ".join(result_messages)
+
+    async def battle(self, callback: Callable[[str], Awaitable[None]], atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
         Args:
-            callback (Callable[[str], None]): A callback function which receives a string argument.
+            callback (Callable[[str], Awaitable[None]]): A callback function which receives a string argument.
             atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
             def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
 
@@ -258,13 +280,15 @@ class Bot:
             latest_time = entry["average"]
 
             avg_time_str = (
-                arrow.now().shift(seconds=avg_time).humanize(granularity=get_ts_granularity(avg_time), only_distance=True)
+                arrow.now()
+                .shift(seconds=avg_time)
+                .humanize(granularity=get_ts_granularity(int(avg_time)), only_distance=True)
             )
             latest_time_str = (
                 arrow.now()
                 .shift(seconds=latest_time)
                 .humanize(
-                    granularity=get_ts_granularity(latest_time),
+                    granularity=get_ts_granularity(int(latest_time)),
                     only_distance=True,
                 )
             )
@@ -338,6 +362,9 @@ class Bot:
             except Exception as e:
                 return str(e)
 
+        if self.repo is None:
+            return "No repository."
+
         match command:
             case GitCommands.status:
                 return self.repo.git.status()
@@ -382,7 +409,7 @@ class Bot:
                     if self.repo is not None:
                         query += f"&sha={self.repo.active_branch.name}"
                     result = pd.read_json(query)
-                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
+                    timestamp = result.iloc[0]["commit"]["author"]["date"]
                     live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
@@ -412,9 +439,9 @@ class Bot:
 
     async def run_query(
         self,
-        callback: Callable[[str], None],
+        callback: Callable[[str], Awaitable[None]],
         report: Enum = Reports.All,
-        progress_bar: tqdm = None,
+        progress_bar: Type[tqdm] | None = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
         """
@@ -445,7 +472,8 @@ class Bot:
             await callback("Running...")
         except Exception as e:
             print(e)
-            await callback(f"Initialization failed!\n{e}")
+            # await callback(f"Initialization failed!\n{e}")
+            return {"error": f"Initialization failed!\n{e}"}
 
         # Wait for the process to finish and get the result
         API_status, errors = await progress_handler.await_result(self.process)
@@ -472,7 +500,7 @@ class Bot:
         Returns humanized bot uptime.
         """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
-        granularity = get_ts_granularity(time_difference)
+        granularity = get_ts_granularity(int(time_difference))
         humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
 

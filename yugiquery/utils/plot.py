@@ -23,6 +23,8 @@ from matplotlib.colors import LogNorm, Normalize, ListedColormap, cnames, to_rgb
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator, FixedLocator, FuncFormatter, MaxNLocator, MultipleLocator
 from matplotlib.gridspec import GridSpec
 from matplotlib_venn import venn2
@@ -75,7 +77,7 @@ class MulticolorPatchHandler:
         # Create multicolored patches
         for i, color in enumerate(self.colors):
             patch = mpatches.Rectangle(
-                [handlebox.xdescent + i * color_width, -handlebox.ydescent],
+                (handlebox.xdescent + i * color_width, -handlebox.ydescent),
                 color_width,
                 height,
                 facecolor=color,
@@ -86,7 +88,7 @@ class MulticolorPatchHandler:
 
         # Apply a transparent hatch over the entire box
         hatch_patch = mpatches.Rectangle(
-            [handlebox.xdescent, -handlebox.ydescent],
+            (handlebox.xdescent, -handlebox.ydescent),
             width,
             height,
             facecolor="none",  # No facecolor to avoid covering the colors underneath
@@ -146,7 +148,7 @@ def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, flo
     return colorsys.hls_to_rgb(h=c[0], l=max(0, min(1, amount * c[1])), s=c[2])
 
 
-def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float) -> None:
+def align_yaxis(ax1: Axes, v1: float, ax2: Axes, v2: float) -> None:
     """
     Adjust the y-axis of two subplots so that the specified values in each subplot are aligned.
 
@@ -166,7 +168,7 @@ def align_yaxis(ax1: plt.Axes, v1: float, ax2: plt.Axes, v2: float) -> None:
 
 
 # Rates
-def adjust_yaxis(ax: plt.Axes, ydif: float, v: float) -> None:
+def adjust_yaxis(ax: Axes, ydif: float, v: float) -> None:
     """
     Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
 
@@ -193,22 +195,22 @@ def adjust_yaxis(ax: plt.Axes, ydif: float, v: float) -> None:
 
 def generate_rate_grid(
     df: pd.DataFrame,
-    ax: plt.Axes,
-    xlabel: str = "Date",
+    ax: Axes,
+    xlabel: str | None = "Date",
     size_pct: str | float = "150%",
     pad: int = 0,
     colors: List[str] | None = None,
     cumsum: bool = True,
     fill: bool = False,
     limit_year: bool = False,
-) -> plt.axes:
+) -> list[Axes]:
     """
     Generate a grid of subplots displaying yearly and monthly rates from a Pandas DataFrame.
 
     Args:
         df (pd.DataFrame): A Pandas DataFrame containing the data to be plotted.
         ax (AxesSubplot): The subplot onto which to plot the grid.
-        xlabel (str, optional): The label to be used for the x-axis. Default value is 'Date'.
+        xlabel (str | None, optional): The label to be used for the x-axis. Default value is 'Date'.
         size_pct (float, optional): The size of the bottom subplot as a percentage of the top subplot. Default value is '150%'.
         pad (int, optional): The amount of padding between the two subplots in pixels. Default value is 0.
         colors (List[str] | None, optional): A list of colors to be used in the plot. If not provided, the default Matplotlib color cycle is used. Default value is None.
@@ -220,9 +222,9 @@ def generate_rate_grid(
         matplotlib.axes.Axes: The generated subplot axes.
     """
     if colors is None:
-        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+        colors = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
-    index_name = f" {df.index.name.lower()}" if df.index.name else ""
+    index_name = f" {str(df.index.name).lower()}" if df.index.name else ""
     if cumsum:
         cumsum_ax = ax
         divider = make_axes_locatable(axes=cumsum_ax)
@@ -273,7 +275,7 @@ def generate_rate_grid(
         monthly_ax.bar(
             x=monthly_rate.index,
             height=monthly_rate.T.values[0],
-            width=monthly_rate.index.diff(),
+            width=monthly_rate.index.to_series().diff(),
             label="Monthly rate",
             color=colors[2],
             antialiased=True,
@@ -304,10 +306,10 @@ def generate_rate_grid(
 
     for temp_ax in axes:
         temp_ax.set_xlim(
-            [
+            (
                 df.index.min() - pd.Timedelta(weeks=13),
                 df.index.max() + pd.Timedelta(weeks=52),
-            ]
+            )
         )
         temp_ax.xaxis.set_minor_locator(AutoMinorLocator())
         temp_ax.yaxis.set_minor_locator(AutoMinorLocator())
@@ -327,7 +329,7 @@ def generate_rate_grid(
             return l2[0] + (x - l[0]) / (l[1] - l[0]) * (l2[1] - l2[0])
 
         ticks = f(yearly_ax.get_yticks())
-        monthly_ax.yaxis.set_major_locator(FixedLocator(ticks))
+        monthly_ax.yaxis.set_major_locator(FixedLocator(ticks.tolist()))
         monthly_ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{round(x):.0f}"))
         monthly_ax.yaxis.set_minor_locator(AutoMinorLocator())
         axes.append(monthly_ax)
@@ -347,7 +349,7 @@ def rate(
     limit_year: bool = False,
     subplots: bool = False,
     hspace: float = 0.05,
-) -> plt.figure:
+) -> Figure:
     """
     Creates a visualization of rate changes over time for multiple variables in a DataFrame.
 
@@ -362,19 +364,22 @@ def rate(
         fill (bool, optional): Whether to fill the area under the cumulative sum curve. Defaults to False.
         limit_year (bool, optional): Whether to limit the x-axis to the next full year. Defaults to False.
         subplots (bool, optional): Whether to create a grid of subplots for each column in the DataFrame. Defaults to False.
-        hspace (float, optional): Height space between subplots. Defaults to 0.5.
+        hspace (float, optional): Height space between subplots. Defaults to 0.05.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
     if isinstance(df, pd.Series):
         df = df.to_frame()
+
     # Order columns by the first date where they have a value > 0 (ascending).
     # Columns with no entries > 0 are placed last.
     mask = df.gt(0)
     first_dates = mask.idxmax().where(mask.any(), pd.Timestamp.max)
     new_order = first_dates.sort_values().index
-    # Reorder any user-provided `colors` (expected as a list/sequence) to match columns.
+    df = df[new_order]
+
+    # Reorder any user-provided colors to match column order
     if colors is not None:
         try:
             seq = list(colors)
@@ -382,45 +387,48 @@ def rate(
                 mapping = dict(zip(list(first_dates.index), seq))
                 colors = [mapping[col] for col in new_order]
         except Exception:
-            # If `colors` cannot be treated as a sequence of the correct length,
-            # fall back to using the original `colors` value or default colormap.
-            # This failure is non-critical, so we intentionally ignore the error.
-            pass
-    df = df[new_order]
+            pass  # Fall back to original colors if reordering fails
 
     num_cols = len(df.columns)
     top_space = 0.5
 
-    if figsize is None:
-        figsize = (14, num_cols * 3 * (1 + cumsum)) if subplots else (14, 6)
-
     # Setup figure and gridspec
+    figsize = figsize or ((14, num_cols * 3 * (1 + cumsum)) if subplots else (14, 6))
     fig = plt.figure(figsize=figsize)
-    if subplots:
-        gs = GridSpec(num_cols, 1, height_ratios=[3] * num_cols, hspace=hspace)
-    else:
-        gs = GridSpec(1, 1, hspace=hspace)
+    gs = GridSpec(num_cols, 1, height_ratios=[3] * num_cols, hspace=hspace) if subplots else GridSpec(1, 1, hspace=hspace)
 
     fig.suptitle(
-        f'{title if title else df.index.name}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
+        f'{title or df.index.name}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
         y=1,
     )
 
-    if colors is None and subplots:
-        colors = plt.cm.get_cmap("tab20").colors
+    # Initialize colors if not provided
+    if colors is None:
+        colors = (
+            list(plt.cm.get_cmap("tab20").colors)  # pyright: ignore[reportAttributeAccessIssue]
+            if subplots
+            else list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
+        )
 
     # Create subplots and apply shading, vertical lines
     axes = []
     for i, col in enumerate(df.columns):
         ax = fig.add_subplot(gs[i] if subplots else gs[0])
+
+        # Select colors for this subplot
+        if subplots:
+            subplot_colors = [
+                colors[2 * i % len(colors)],
+                colors[2 * i % len(colors)],
+                colors[(2 * i + 1) % len(colors)],
+            ]
+        else:
+            subplot_colors = colors
+
         sub_axes = generate_rate_grid(
             df=df[col].to_frame() if subplots else df,
             ax=ax,
-            colors=(
-                [colors[2 * i % len(colors)], colors[2 * i % len(colors)], colors[(2 * i + 1) % len(colors)]]
-                if subplots
-                else colors
-            ),
+            colors=subplot_colors,
             cumsum=cumsum,
             fill=fill,
             limit_year=limit_year,
@@ -431,7 +439,7 @@ def rate(
         if not subplots:
             break
 
-    # Add background shading and vertical lines separately
+    # Add background shading and vertical lines
     if bg is not None and "end" in bg:
         bg = bg.copy()
         bg["end"] = bg["end"].fillna(df.index.max())
@@ -443,7 +451,7 @@ def rate(
     return fig
 
 
-def add_background_shading(axes: List[plt.Axes], bg: pd.DataFrame, colors: List | None = None) -> None:
+def add_background_shading(axes: List[Axes], bg: pd.DataFrame, colors: List | None = None) -> None:
     """
     Add background shading to the subplots.
 
@@ -473,7 +481,7 @@ def add_background_shading(axes: List[plt.Axes], bg: pd.DataFrame, colors: List 
                     c += 1
 
 
-def add_vertical_lines(axes: List[plt.Axes], vlines: pd.DataFrame, color="maroon", cumsum: bool = False) -> None:
+def add_vertical_lines(axes: List[Axes], vlines: pd.DataFrame, color="maroon", cumsum: bool = False) -> None:
     """
     Add vertical lines to the subplots.
 

@@ -38,7 +38,7 @@ class ProgressHandler:
     def __init__(
         self,
         queue: Optional[mp.Queue] | None = None,
-        progress_bar: tqdm | None = None,
+        progress_bar: type[tqdm] | None = None,
         pbar_kwargs: Dict[str, Any] = {},
     ):
         """
@@ -46,7 +46,7 @@ class ProgressHandler:
 
         Args:
             queue (multiprocessing.Queue | None, optional): The multiprocessing queue to communicate progress status. If None, a new queue is created. Defaults to None.
-            progress_bar (tqdm | None, optional): The tqdm progress bar implementation. Defaults to None.
+            progress_bar (type[tqdm] | None, optional): The tqdm progress bar class. Defaults to None.
             pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
         """
         self.queue = queue if queue is not None else mp.Queue()
@@ -81,7 +81,7 @@ class ProgressHandler:
         """
         self.queue.put(kwargs)
 
-    async def await_result(self, process) -> tuple[int, bool, list]:
+    async def await_result(self, process) -> tuple[int | None, list]:
         while process.is_alive():
             await asyncio.sleep(1)
 

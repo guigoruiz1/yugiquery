@@ -57,8 +57,8 @@ def check_debug(local_debug: bool = False) -> bool:
 
 
 def load_secrets(
-    requested_secrets: List[str] = [], secrets_file: str | None = None, required: bool = False
-) -> Dict[str, str]:
+    requested_secrets: List[str] = [], secrets_file: str | Path | None = None, required: bool = False
+) -> Dict[str, str | None]:
     """
     Load secrets from environment variables and/or a .env file.
 
@@ -70,11 +70,11 @@ def load_secrets(
 
     Args:
         requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
-        secrets_file (str | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        secrets_file (str | Path | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
         required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
-        Dict[str, str]: A dictionary containing the requested secrets as key-value pairs.
+        Dict[str, str | None]: A dictionary containing the requested secrets as key-value pairs.
 
     Raises:
         KeyError: If a required secret is not found in the environment variables or .env file.
@@ -101,12 +101,12 @@ def load_secrets(
     return secrets
 
 
-def load_json(json_file: str) -> dict:
+def load_json(json_file: str | Path) -> dict:
     """
     Load data from a JSON file.
 
     Args:
-        json_file (str): The file path to the JSON file.
+        json_file (str | Path): The file path to the JSON file.
 
     Returns:
         dict: A dictionary containing the data from the JSON file. If the file does not exist, an empty dictionary is returned.
@@ -327,7 +327,7 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
 # ====================== #
 
 
-def get_ts_granularity(seconds: int) -> list[str]:
+def get_ts_granularity(seconds: int) -> List[arrow.arrow._GRANULARITY]:
     """
     Humanizes a time interval given in seconds.
 
@@ -335,7 +335,7 @@ def get_ts_granularity(seconds: int) -> list[str]:
         seconds (int): The time interval in seconds.
 
     Returns:
-        list: A list of human-readable granularities for the time interval.
+        List[arrow.arrow._GRANULARITY]: A list of human-readable granularities for the time interval.
     """
     granularities = [
         ("year", 31536000),  # seconds in a year

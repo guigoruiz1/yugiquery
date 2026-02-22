@@ -147,6 +147,8 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Aborting...")
             response = self.abort()
             await original_response.edit_text(response)
@@ -416,7 +418,7 @@ class Telegram(Bot):
             """
             error = str(context.error)
             print(error)
-            if update is not None:
+            if update is not None and update.message is not None:
                 await update.message.reply_text(error)
             else:
                 await context.bot.send_message(chat_id=self.chat_id, text=error)
