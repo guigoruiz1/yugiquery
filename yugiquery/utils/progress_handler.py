@@ -14,7 +14,7 @@
 # from __future__ import annotations
 import asyncio
 import multiprocessing as mp
-from typing import Any, Dict, Callable, Optional
+from typing import Any, Dict, Iterable, Optional
 
 # Third-party imports
 from tqdm.auto import tqdm
@@ -39,35 +39,36 @@ class ProgressHandler:
         self,
         queue: Optional[mp.Queue] | None = None,
         progress_bar: type[tqdm] | None = None,
-        pbar_kwargs: Dict[str, Any] = {},
+        pbar_kwargs: Dict[str, Any] | None = {},
     ):
         """
         Initializes the ProgressHandler class.
 
         Args:
             queue (multiprocessing.Queue | None, optional): The multiprocessing queue to communicate progress status. If None, a new queue is created. Defaults to None.
-            progress_bar (type[tqdm] | None, optional): The tqdm progress bar class. Defaults to None.
+            progress_bar (Type[tqdm] | None, optional): The tqdm progress bar class. Defaults to None.
             pbar_kwargs (Dict[str, Any], optional): Keyword arguments to customize the progress bar. Defaults to None.
         """
         self.queue = queue if queue is not None else mp.Queue()
         self.progress_bar = progress_bar
-        self.pbar_kwargs = pbar_kwargs
+        self.pbar_kwargs = pbar_kwargs or {}
 
-    def pbar(self, iterable, **kwargs) -> None | tqdm:
+    def pbar(self, iterable: Iterable, **kwargs) -> tqdm | None:
         """
-        Initializes and returns a progress bar instance if progress_bar is not None.
+        Creates and returns a progress bar instance with merged kwargs.
 
         Args:
-            iterable (iterable): The iterable to track progress.
-            **kwargs: Additional keyword arguments for the progress bar.
+            iterable: The iterable to track progress.
+            **kwargs: Additional keyword arguments for the progress bar (merged with stored pbar_kwargs).
 
         Returns:
-            Progress bar instance or None: The initialized progress bar instance or None if progress_bar is None.
+            tqdm | None: The initialized progress bar instance or None if progress_bar is None.
         """
         if self.progress_bar is None:
             return None
-        else:
-            return self.progress_bar(iterable, **self.pbar_kwargs, **kwargs)
+        # Merge stored pbar_kwargs with runtime kwargs (runtime takes precedence)
+        merged_kwargs = {**self.pbar_kwargs, **kwargs}
+        return self.progress_bar(iterable, **merged_kwargs)
 
     def send(self, **kwargs) -> None:
         """
@@ -81,7 +82,7 @@ class ProgressHandler:
         """
         self.queue.put(kwargs)
 
-    async def await_result(self, process) -> tuple[int | None, list]:
+    async def await_result(self, process: mp.Process) -> tuple[int | None, list]:
         while process.is_alive():
             await asyncio.sleep(1)
 

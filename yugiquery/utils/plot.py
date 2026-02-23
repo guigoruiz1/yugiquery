@@ -344,7 +344,7 @@ def rate(
     colors: List[str] | None = None,
     cumsum: bool = True,
     bg: pd.DataFrame | None = None,
-    vlines: pd.DataFrame | None = None,
+    vlines: pd.Series | None = None,
     fill: bool = False,
     limit_year: bool = False,
     subplots: bool = False,
@@ -360,7 +360,7 @@ def rate(
         colors (List[str] | None, optional): List of colors for the plot lines. Defaults to None.
         cumsum (bool, optional): Whether to plot cumulative sum of data. Defaults to True.
         bg (pd.DataFrame | None, optional): Data for background shading. Defaults to None.
-        vlines (pd.DataFrame | None, optional): Data for vertical lines. Defaults to None.
+        vlines (pd.Series | None, optional): Series for vertical lines. Defaults to None.
         fill (bool, optional): Whether to fill the area under the cumulative sum curve. Defaults to False.
         limit_year (bool, optional): Whether to limit the x-axis to the next full year. Defaults to False.
         subplots (bool, optional): Whether to create a grid of subplots for each column in the DataFrame. Defaults to False.
@@ -398,13 +398,13 @@ def rate(
     gs = GridSpec(num_cols, 1, height_ratios=[3] * num_cols, hspace=hspace) if subplots else GridSpec(1, 1, hspace=hspace)
 
     fig.suptitle(
-        f'{title or df.index.name}{f" by {df.columns.name.lower()}" if df.columns.name else ""}',
+        f'{title or df.index.name}{f" by {str(df.columns.name).lower()}" if df.columns.name else ""}',
         y=1,
     )
 
     # Initialize colors if not provided
     if colors is None:
-        colors = (
+        colors = (  # Pylance complains but the cmap has the .colors attribute, which is a list of RGBA tuples
             list(plt.cm.get_cmap("tab20").colors)  # pyright: ignore[reportAttributeAccessIssue]
             if subplots
             else list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
@@ -481,13 +481,13 @@ def add_background_shading(axes: List[Axes], bg: pd.DataFrame, colors: List | No
                     c += 1
 
 
-def add_vertical_lines(axes: List[Axes], vlines: pd.DataFrame, color="maroon", cumsum: bool = False) -> None:
+def add_vertical_lines(axes: List[Axes], vlines: pd.Series, color="maroon", cumsum: bool = False) -> None:
     """
     Add vertical lines to the subplots.
 
     Args:
         axes (List[plt.Axes]): List of axes to apply vertical lines.
-        vlines (pd.DataFrame): DataFrame for vertical lines.
+        vlines (pd.Series): Series for vertical lines.
         color (str): Color for the vertical lines.
         cumsum (bool, optional): Whether cumulative sum is being plotted. Defaults to False.
 
@@ -495,15 +495,16 @@ def add_vertical_lines(axes: List[Axes], vlines: pd.DataFrame, color="maroon", c
         None
     """
     for ix, ax in enumerate(axes):
+        xlim = pd.to_datetime(ax.get_xlim()[0], unit="D")
         for idx, row in vlines.items():
-            if row > pd.to_datetime(ax.get_xlim()[0], unit="D"):
+            if row > xlim:
                 line = ax.axvline(row, ls="-.", c=color, lw=1)
                 if ix == 0:
                     (x0, y0), (x1, y1) = line.get_path().get_extents().get_points()
                     ax.text(
                         (x0 + x1) / 2 + 25,
                         (0.05 if cumsum else 0.95),
-                        idx,
+                        str(idx),
                         c=color,
                         ha="left",
                         va=("bottom" if cumsum else "top"),
@@ -513,7 +514,7 @@ def add_vertical_lines(axes: List[Axes], vlines: pd.DataFrame, color="maroon", c
 
 
 # Dedicated plots
-def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> plt.figure:
+def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> Figure:
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
 
@@ -553,8 +554,9 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
     # Set radius grid location
     ax.yaxis.set_major_locator(MaxNLocator(5))
     ticks = ax.get_yticks()
-    ax.yaxis.set_major_locator(FixedLocator(ticks[1:]))
-    ax.set_rorigin(-5)
+    ax.yaxis.set_major_locator(FixedLocator(list(ticks[1:])))
+    # Pylance complains but set_rorigin is a valid method of PolarAxes
+    ax.set_rorigin(-5)  # pyright: ignore[reportAttributeAccessIssue]
 
     # Set the title of the plot
     ax.set_title("Link Arrows")
@@ -565,7 +567,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> pl
     return fig
 
 
-def box(df, mean: bool = True, group_string: str = "%Y", x=None, y=None, **kwargs) -> plt.figure:
+def box(df, mean: bool = True, group_string: str = "%Y", x=None, y=None, **kwargs) -> Figure:
     """
     Plots a box plot of a given DataFrame using seaborn, with the year of the timestamp column on the x-axis and the remaining column on the y-axis.
 
@@ -605,7 +607,7 @@ def box(df, mean: bool = True, group_string: str = "%Y", x=None, y=None, **kwarg
     if df[y].max() < 15:  # Level/Rank/Link/Pendulum
         ax.set_yticks(np.arange(0, df[y].max() + 1, 1))
     else:  # ATK/DEF
-        ax.set_yticks(np.arange(start=0, stop=5500, step=500))
+        ax.set_yticks(np.arange(0, 5500, 500))
         ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     ax.set_axisbelow(True)
@@ -622,7 +624,7 @@ def pyramid(
     colors: List[str] | None = None,
     alpha: float = 1,
     **kwargs,
-) -> plt.Figure:
+) -> Figure:
     """
     Creates a pyramid plot from a pandas Series.
 
@@ -704,7 +706,7 @@ def pyramid(
     if grid:
         ax.grid(axis="x", ls=":")
 
-    fig.suptitle(series.name)
+    fig.suptitle(str(series.name) if series.name is not None else "")
     fig.tight_layout()
 
     return fig
@@ -724,7 +726,7 @@ def deck_composition(
     pctdistances: List[float] = [0.85, 0.75],
     font_size: Dict[str, int] = {"label": 14, "title": 16, "suptitle": 20, "legend": 12},
     **kwargs,
-) -> plt.Figure:
+) -> Figure:
     """
     Create a grid of pie charts displaying the composition of each deck in a DataFrame.
 
@@ -793,26 +795,26 @@ def deck_composition(
 
         # Main plot in the upper sub-grid
         ax_pie = fig.add_subplot(sub_gs[0, 0])
-        wedges1, texts1, autotexts1 = ax_pie.pie(
+        wedges1, texts1, autotexts1 = ax_pie.pie(  # type: ignore[misc]
             main_df[deck].dropna(),
             autopct=make_autopct(main_df[deck].dropna()),
             startangle=90,
             radius=1,
             wedgeprops=dict(width=ring_radius, edgecolor="w"),
             pctdistance=pctdistances[0],
-            colors=np.array(colors_main)[main_df[deck].notna()],
+            colors=np.array(colors_main)[main_df[deck].notna()].tolist(),
             counterclock=False,
         )
 
         if deck in extra_df.columns:
-            wedges2, texts2, autotexts2 = ax_pie.pie(
+            wedges2, texts2, autotexts2 = ax_pie.pie(  # type: ignore[misc]
                 extra_df[deck].dropna(),
                 autopct=make_autopct(extra_df[deck].dropna()),
                 startangle=90,
                 radius=1 - ring_radius,
                 wedgeprops=dict(width=ring_radius, edgecolor="w"),
                 pctdistance=pctdistances[1],
-                colors=np.array(colors_extra)[extra_df[deck].notna()],
+                colors=np.array(colors_extra)[extra_df[deck].notna()].tolist(),
                 counterclock=False,
             )
 
@@ -928,7 +930,7 @@ def deck_distribution(
     edgecolors: List[str] | str = "white",
     font_size: Dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12},
     **kwargs,
-) -> plt.Figure:
+) -> Figure:
     """
     Create a grid of horizontal bar charts displaying the distribution of a specified column in each deck.
 
@@ -1008,7 +1010,7 @@ def deck_distribution(
             for i, section in enumerate(sorted_sections)
         }
 
-    hatches = pd.Series(
+    hatches_series = pd.Series(
         (
             [hatches.get(section, "") for section in sorted_sections]
             if isinstance(hatches, dict)
@@ -1016,7 +1018,7 @@ def deck_distribution(
         ),
         index=sorted_sections,
     )
-    edgecolors = pd.Series(
+    edgecolors_series = pd.Series(
         (
             [edgecolors.get(section, "white") for section in sorted_sections]
             if isinstance(edgecolors, dict)
@@ -1059,8 +1061,8 @@ def deck_distribution(
             )
             for j, bar in enumerate(bar_ax.patches):
                 hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
-                bar.set_hatch(hatches.iloc[hatch_index])
-                bar.set_edgecolor(edgecolors.iloc[hatch_index])
+                bar.set_hatch(hatches_series.iloc[hatch_index])
+                bar.set_edgecolor(edgecolors_series.iloc[hatch_index])
 
             ax.set_ylabel("")
             ax.set_xlabel("Count", fontsize=label_font_size)
@@ -1088,7 +1090,7 @@ def deck_distribution(
         if isinstance(color, str):
             color = [color]
         handler[mpatches.Patch(label=section)] = MulticolorPatchHandler(
-            color, hatches[section], edgecolor=edgecolors[section]
+            color, hatches_series[section], edgecolor=edgecolors_series[section]
         )
 
     # Add legend with a fixed position
@@ -1125,7 +1127,7 @@ def deck_stem(
     hollow: bool = False,
     marker_size: int = 10,
     **kwargs,
-) -> plt.Figure:
+) -> Figure:
     """
     Create a grid of stem plots displaying the distribution of a specified column in each deck.
 
@@ -1246,12 +1248,16 @@ def deck_stem(
             xticks = np.arange(0, 14, 1)
         else:
             xticks = np.arange(int(min_idx / steps[1]) * steps[1], max_idx + steps[1], steps[1])
-        minor_xticks = np.arange(0, (len(xticks) - 1) * steps[1], steps[0])
-        if hasna:
-            xticks = list(xticks) + [max_idx + steps[1]]
 
-        xticks_labels = xticks[:-1] + ["?"] if hasna else xticks
-        ax.set_xticks(xticks, xticks_labels, rotation=45 * (xticks[-1] > 100))
+        xticks = xticks.tolist()
+        minor_xticks = np.arange(0, (len(xticks) - 1) * steps[1], steps[0]).tolist()
+
+        if hasna:
+            xticks = xticks + [max_idx + steps[1]]
+
+        xticks_labels = str(xticks[:-1] + ["?"] if hasna else xticks)
+
+        ax.set_xticks(ticks=xticks, labels=xticks_labels, rotation=45 * (xticks[-1] > 100))
         ax.set_xticks(minor_xticks, minor=True)
 
         ax.set_title(deck)
@@ -1264,7 +1270,7 @@ def deck_stem(
         else:
             ax.set_ylabel(it_columns[0], fontsize=label_font_size)
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: int(abs(x))))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: str(int(abs(x)))))
         ax.xaxis.set_minor_locator(MultipleLocator(steps[0]))
         ax.yaxis.set_minor_locator(MultipleLocator(1))
         ax.tick_params(axis="both", which="major", labelsize=tick_font_size)

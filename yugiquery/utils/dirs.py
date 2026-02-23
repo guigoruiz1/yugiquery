@@ -18,7 +18,7 @@ from types import SimpleNamespace
 from typing import List
 
 # Third-party imports
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
 from termcolor import cprint
@@ -39,7 +39,6 @@ class Dirs:
     :ivar DATA: The path to the data directory.
     :ivar NOTEBOOKS: The path to the notebooks directory.
     :ivar REPORTS: The path to the reports directory.
-    :ivar SHARE: The path to the share directory.
     :ivar UTILS: The path to the utils subpackage directory.
     :ivar WORK: The path to the working directory.
 
@@ -48,20 +47,18 @@ class Dirs:
     :vartype DATA: Path
     :vartype NOTEBOOKS: Path
     :vartype REPORTS: Path
-    :vartype SHARE: Path
     :vartype UTILS: Path:
     :vartype WORK: Path
     """
 
     _instance = None
-    APP: Path = None
-    ASSETS: Path = None
-    DATA: Path = None
-    NOTEBOOKS: Path = None
-    REPORTS: Path = None
-    SHARE: Path = None
-    UTILS: Path = None
-    WORK: Path = None
+    APP: Path
+    UTILS: Path
+    WORK: Path
+    temp: Path
+    NBCONVERT: Path
+    _PKG_ASSETS: Path | None = None
+    _PKG_NOTEBOOKS: Path | None = None
 
     def __new__(cls, *args, **kwargs):
         """
@@ -197,29 +194,26 @@ class Dirs:
         return get_ipython() is not None
 
     @property
-    def secrets_file(self) -> Path:
+    def secrets_file(self) -> Path | None:
         """
         Return the path to the secrets file following the hierarchy: first ASSETS, then WORK. Returns none if the file is not found.
 
         Returns:
-            Path: The path to the secrets file.
+            Path | None: The path to the secrets file, or None if not found.
 
         """
         try:
-            secrets_file = self.get_asset("secrets.env")
+            return self.get_asset("secrets.env")
         except FileNotFoundError:
             secrets_file = self.WORK / "secrets.env"
-            if not secrets_file.is_file():
-                secrets_file = None
-
-        return secrets_file
+            return secrets_file if secrets_file.is_file() else None
 
     def print(self) -> None:
         """
         Prints the directory paths managed by this class.
         """
 
-        def exists(path: Path) -> str:
+        def exists(path: Path) -> None:
             if path.exists():
                 cprint("exists", color="green")
             else:
@@ -319,47 +313,44 @@ class Dirs:
 
         raise FileNotFoundError(f"Notebook not found!")
 
-    def find_notebooks(self, notebooks: str | List[str] = "all") -> List[Path]:
+    def find_notebooks(self, notebooks: str | List[str] | List[Path] = "all") -> List[Path]:
         """
         Finds the paths of the specified notebooks.
 
         Args:
-            notebooks (str | List[str], optional): A list of notebook names or paths. If "all", finds all notebooks in the `NOTEBOOKS` directory. If "user", finds all notebooks in the user directory. Defaults to "all".
+            notebooks (str | List[str] | List[Path], optional): A list of notebook names or paths. If "all", finds all notebooks in the `NOTEBOOKS` directory. If "user", finds all notebooks in the user directory. Defaults to "all".
         """
         if notebooks == "all":
             # Get all reports
             notebooks_dict = {}
-            notebooks = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
+            notebooks_list = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
 
             if self.NOTEBOOKS.pkg:
-                notebooks = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + notebooks
+                notebooks_list = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + notebooks_list
 
-            for notebook in notebooks:
-                notebooks_dict[notebook.stem.capitalize()] = notebook  # Will replace package by user if same name
+            for notebook in notebooks_list:
+                notebooks_dict[Path(notebook).stem.capitalize()] = notebook  # Will replace package by user if same name
 
-            notebooks = list(notebooks_dict.values())
+            return list(notebooks_dict.values())
         elif notebooks == "user":
             # Get user reports
-            notebooks = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
+            return sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
         else:
             if not isinstance(notebooks, list):
                 notebooks = [notebooks]
 
-            for i, notebook in enumerate(notebooks):
+            results: List[Path] = []
+            for notebook in notebooks:
                 notebook_path = Path(notebook)
                 if notebook_path.is_file():
-                    notebooks[i] = notebook_path
+                    results.append(notebook_path)
                 else:
                     notebook_name = notebook_path.name
                     try:
-                        notebooks[i] = self.get_notebook(notebook_name)
+                        results.append(self.get_notebook(notebook_name))
                     except FileNotFoundError:
                         cprint(f"Notebook {notebook_name} not found.", "yellow")
-                        notebooks[i] = None
-
-        # Remove None values from the list
-        notebooks = [notebook for notebook in notebooks if notebook is not None]
-        return notebooks
+            return results
 
 
 # Global instance of Dirs

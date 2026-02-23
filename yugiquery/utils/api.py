@@ -223,9 +223,6 @@ def fetch_categorymembers(
                 time.sleep(0.5)
             raise
 
-        if dirs.is_notebook:
-            spinner.output.close()  # type: ignore
-
     results_df = pd.DataFrame(all_results)
     return results_df
 
@@ -302,9 +299,6 @@ def fetch_properties(
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
-
-        if dirs.is_notebook:
-            spinner.output.close()  # type: ignore
 
     return df
 
@@ -469,7 +463,7 @@ def fetch_set_lists(
     if debug:
         print(f"{len(titles)} sets requested")
 
-    titles = up.quote(string="|".join(titles))  # type: ignore
+    titles_str = up.quote(string="|".join(titles))
     rarity_dict = load_json(dirs.get_asset("json", "rarities.json"))
     set_lists_df = pd.DataFrame(
         columns=[
@@ -487,7 +481,7 @@ def fetch_set_lists(
     error = 0
 
     response = requests.get(
-        url=URLS.base + URLS.revisions_action + titles,
+        url=URLS.base + URLS.revisions_action + titles_str,
         headers=URLS.headers,
     )
     if debug:
@@ -700,9 +694,9 @@ def fetch_page_images(*titles: str, imlimit: int = 500) -> List[str]:
     Returns:
         pd.Series: A Series containing the image file names.
     """
-    titles = up.quote("|".join(titles))  # type: ignore
+    titles_str = up.quote("|".join(titles))
     response = requests.get(
-        url=URLS.base + URLS.images_action + titles + f"&imlimit={imlimit}",
+        url=URLS.base + URLS.images_action + titles_str + f"&imlimit={imlimit}",
         headers=URLS.headers,
     ).json()
 
@@ -735,10 +729,10 @@ def fetch_featured_images(*titles: str, batch_size: int = 50) -> List[str]:
 
     for i in range(0, len(titles), batch_size):
         batch = titles[i : i + batch_size]
-        titles = up.quote("|".join(batch))  # type: ignore
+        titles_str = up.quote("|".join(batch))
 
         response = requests.get(
-            url=URLS.base + "?action=query&format=json&prop=pageimages&piprop=original&titles=" + titles,
+            url=URLS.base + "?action=query&format=json&prop=pageimages&piprop=original&titles=" + titles_str,
             headers=URLS.headers,
         ).json()
 
@@ -920,16 +914,18 @@ def extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False
     if len(element) > 0:
         if isinstance(element[0], int):
             return str(element[0])
-        elif isinstance(element[0], dict) and "fulltext" in element[0]:
+        elif (
+            isinstance(element[0], dict) and "fulltext" in element[0]
+        ):  # If one is, all are expected to be dicts with "fulltext" key
             if multiple:
-                return tuple(sorted([clean_text(i["fulltext"]) for i in element]))
+                return tuple(sorted([clean_text(str(i["fulltext"])) for i in element]))  # type: ignore
             else:
                 return clean_text(element[0]["fulltext"])
         else:
             if multiple:
-                return tuple(sorted([clean_text(i) for i in element]))
+                return tuple(sorted([clean_text(str(i)) for i in element]))
             else:
-                return clean_text(element[0])
+                return clean_text(str(element[0]))
     else:
         return np.nan
 
@@ -1047,7 +1043,7 @@ def extract_artwork(row: pd.Series) -> float | Tuple[str, ...]:
 # TODO: Refactor, move somewhere else
 async def download_media(
     *file_names: str,
-    output_path: str = "media",
+    output_path: str | Path = "media",
     max_tasks: int = 10,
 ) -> pd.DataFrame:
     """
@@ -1056,16 +1052,16 @@ async def download_media(
 
     Args:
         file_names (str): Multiple names of the media files to be downloaded.
-        output_path (str, optional): The path to the folder where the downloaded files will be saved. Defaults to "media".
+        output_path (str | Path, optional): The path to the folder where the downloaded files will be saved. Defaults to "media".
         max_tasks (int, optional): The maximum number of files to download at once. Defaults to 10.
 
     Returns:
         pandas.DataFrame: A DataFrame with columns "file_name", "url" and "success" for each download.
     """
     # Prepare URLs from file names
-    file_names = pd.Series(file_names)  # type: ignore
-    file_names_md5 = file_names.apply(md5)  # type: ignore
-    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names
+    file_names_series = pd.Series(file_names)
+    file_names_md5 = file_names_series.apply(md5)
+    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names_series
     download_results = []
 
     # Download media from URL
@@ -1115,8 +1111,8 @@ async def download_media(
     # Parallelize file downloads
     semaphore = asyncio.Semaphore(max_tasks)
     async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
-        output_path = Path(output_path)  # type: ignore
-        output_path.mkdir(parents=True, exist_ok=True)  # type: ignore
+        output_path = Path(output_path)
+        output_path.mkdir(parents=True, exist_ok=True)
 
         with tqdm(
             total=len(urls),

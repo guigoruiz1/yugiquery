@@ -31,22 +31,17 @@ import warnings
 from ast import literal_eval
 from enum import Enum
 from pathlib import Path
-from typing import (
-    Dict,
-    List,
-    Literal,
-    Tuple,
-)
+from typing import Dict, List, Literal, Tuple, Callable, Iterable, TypedDict, overload, Any
 
 # Third-party imports
 import arrow
 from ipylab import JupyterFrontEnd
-from IPython import get_ipython
+from IPython.core.getipython import get_ipython
 from IPython.display import Markdown, display
-import jupyter_client
+from jupyter_client import kernelspec
 import nbformat
 from nbconvert import HTMLExporter
-from nbconvert.writers import FilesWriter
+from nbconvert.writers.files import FilesWriter
 import numpy as np
 import pandas as pd
 import papermill as pm
@@ -57,8 +52,36 @@ from traitlets.config import Config
 # Local application imports
 if __package__:
     from .utils import *
+    from .utils import (
+        dirs,
+        api,
+        git,
+        CustomHelpFormatter,
+        CredAction,
+        auto_or_bool,
+        check_debug,
+        load_json,
+        load_secrets,
+        lock,
+        make_filename,
+        unlock,
+    )  # Explicit re-import for type checking
 else:
     from utils import *
+    from utils import (
+        dirs,
+        api,
+        git,
+        CustomHelpFormatter,
+        CredAction,
+        auto_or_bool,
+        check_debug,
+        load_json,
+        load_secrets,
+        lock,
+        make_filename,
+        unlock,
+    )  # Explicit re-import for type checking
 
 # Overwrite packages with versions specific for jupyter notebook
 if dirs.is_notebook:
@@ -89,6 +112,21 @@ class CG(Enum):
     BOTH = CG
     TCG = "TCG"
     OCG = "OCG"
+
+
+class BenchmarkEntry(TypedDict):
+    """
+    Represents a single benchmark entry.
+
+    Attributes:
+        ts (str): ISO 8601 timestamp of the benchmark.
+        average (float): Average execution time in seconds.
+        weight (float): Weight/count of this benchmark entry.
+    """
+
+    ts: str
+    average: float
+    weight: float
 
 
 #: A dictionary mapping card types to their corresponding properties to query.
@@ -226,11 +264,12 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
     """
     if isinstance(col, str):
         col = [col]
-    changelog = (
+
+    changelog = (  # Pylance thinks this is a Series but it's a DataFrame
         previous_df.merge(current_df, indicator=True, how="outer")
         .loc[lambda x: x["_merge"] != "both"]
         .sort_values(col, ignore_index=True)
-    )
+    )  # pyright: ignore[reportCallIssue]
     changelog["_merge"] = changelog["_merge"].cat.rename_categories({"left_only": "Old", "right_only": "New"})
     changelog.rename(columns={"_merge": "Version"}, inplace=True)
     nunique = changelog.groupby(col).nunique(dropna=False)
@@ -285,25 +324,31 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     print(result)
 
 
-def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
+def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
     """
     Condenses multiple changelog files into a consolidated dataframe and generates a new filename.
 
     Args:
-        files (pd.DataFrame): A dataframe containing the changelog files.
+        files (List[Path | str]): A list of changelog file paths.
 
     Returns:
-        Tuple[pd.DataFrame, str]: A tuple containing the consolidated changelog dataframe and the new filename.
+        Tuple[pd.DataFrame, Path]: A tuple containing the consolidated changelog dataframe and the new file path.
     """
     new_changelog = pd.DataFrame()
     changelog_name = None
     first_date = None
     last_date = None
+    last_file_path = None
+
     for file in files:
+        file_path = Path(str(file))
         match = re.search(
             r"(\w+)_\w+_(\d{8}T\d{4})Z_(\d{8}T\d{4})Z.bz2",
-            Path(file).name,
+            file_path.name,
         )
+        if match is None:
+            continue
+        last_file_path = file_path
         name = match.group(1)
         from_date = match.group(2)
         to_date = match.group(3)
@@ -314,7 +359,7 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
             first_date = from_date
         if last_date is None or last_date < to_date:
             last_date = to_date
-        df = pd.read_csv(file, dtype=object)
+        df = pd.read_csv(file_path, dtype=object)
         df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
         new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
 
@@ -326,7 +371,14 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     )
     new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
     index = new_changelog.drop(["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
-    new_filename = Path(file).parent.joinpath(
+
+    # Type narrowing: ensure all required values exist
+    assert last_file_path is not None, "No valid changelog files found"
+    assert changelog_name is not None, "Unable to determine changelog name"
+    assert last_date is not None, "Unable to determine last date"
+    assert first_date is not None, "Unable to determine first date"
+
+    new_filename = last_file_path.parent.joinpath(
         make_filename(
             report=changelog_name,
             timestamp=arrow.get(last_date),
@@ -336,21 +388,21 @@ def condense_changelogs(files: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
     return new_changelog.loc[index], new_filename
 
 
-def condense_benchmark(benchmark: Dict[str, List[Dict[str, str | float]]]) -> Dict[str, List[Dict[str, str | float]]]:
+def condense_benchmark(benchmark: Dict[str, List[BenchmarkEntry]]) -> Dict[str, List[BenchmarkEntry]]:
     """
     Condenses a benchmark dictionary by calculating the weighted average and total weight for each key.
 
     Args:
-        benchmark (Dict[str, List[Dict[str, str | float]]]): A dictionary containing benchmark data.
+        benchmark (Dict[str, List[BenchmarkEntry]]): A dictionary containing benchmark data.
 
     Returns:
-        Dict[str, List[Dict[str, str | float]]]: The condensed benchmark dictionary with updated entries.
+        Dict[str, List[BenchmarkEntry]]: The condensed benchmark dictionary with updated entries.
     """
     now = arrow.utcnow()
     for key, pair in benchmark.items():
         for key, values in benchmark.items():
-            weighted_sum = 0
-            total_weight = 0
+            weighted_sum = 0.0
+            total_weight = 0.0
             for entry in values:
                 weighted_sum += entry["average"] * entry["weight"]
                 total_weight += entry["weight"]
@@ -410,8 +462,8 @@ def cleanup_data(dry_run=False) -> None:
 
     # Get a list of all the files created on the same month of the same year, separated by whether they contain "changelog"
     same_month_files = {
-        "changelog": [group[1]["Name"].tolist() for group in grouped if "changelog" in group[0][0]],
-        "data": [group[1]["Name"].tolist() for group in grouped if not "changelog" in group[0][0]],
+        "changelog": [group[1]["Name"].tolist() for group in grouped if "changelog" in str(group[0][0])],
+        "data": [group[1]["Name"].tolist() for group in grouped if not "changelog" in str(group[0][0])],
     }
 
     # Get a list of all the files created in the last month and split them into weeks
@@ -489,6 +541,22 @@ def cleanup_data(dry_run=False) -> None:
         print(result)
 
 
+@overload
+def load_latest_data(
+    name_pattern: str,
+    tuple_cols: List[str] = ...,
+    return_ts: Literal[False] = False,
+) -> pd.DataFrame | None: ...
+
+
+@overload
+def load_latest_data(
+    name_pattern: str,
+    tuple_cols: List[str] = ...,
+    return_ts: Literal[True] = True,
+) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]: ...
+
+
 def load_latest_data(
     name_pattern: str,
     tuple_cols: List[str] = [
@@ -502,7 +570,7 @@ def load_latest_data(
         "Cover card",
     ],
     return_ts: bool = False,
-) -> pd.DataFrame | None | Tuple[pd.DataFrame, arrow.Arrow] | Tuple[None, None]:
+) -> pd.DataFrame | None | Tuple[pd.DataFrame | None, arrow.Arrow | None]:
     """
     Loads the most recent data file matching the specified name pattern and applies corrections.
 
@@ -511,7 +579,7 @@ def load_latest_data(
         tuple_cols (List[str]): List of columns containing tuple values to apply literal_eval. Defaults to ["Secondary type", "Effect type", "Link Arrows", "Archseries", "Artwork", "Errata", "Rarity", "Cover card"].
         return_ts (bool): If True, returns the timestamp of the file. Defaults to False.
     Returns:
-        pd.DataFrame | Tuple[pd.DataFrame, arrow.Arrow]: A pandas DataFrame containing the loaded data if found, otherwise None. If return_ts is True, returns a tuple containing the DataFrame and the timestamp of the file.
+        pd.DataFrame | None | Tuple[pd.DataFrame | None, arrow.Arrow | None]: A pandas DataFrame containing the loaded data if found, otherwise None. If return_ts is True, returns a tuple containing the DataFrame and the timestamp of the file.
     """
     name_pattern = name_pattern.lower()
     files = sorted(
@@ -624,18 +692,18 @@ def merge_set_to_cards(*card_df, set_df) -> pd.DataFrame:
 
 
 # Formatters
-def format_artwork(row: pd.Series) -> Tuple[str]:
+def format_artwork(row: pd.Series) -> Tuple[str, ...] | float:  # TODO: Pending testing
     """
     Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
     If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
     If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
-    Returns the result tuple.
+    Returns the result tuple as a pandas Series.
     Args:
 
         row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
 
     Returns:
-        Tuple[str]: The formatted row as a tuple.
+        Tuple[str, ...] | float: The formatted row as a tuple of strings, or np.nan if no artwork modifications exist.
     """
     result = tuple()
     index_str = row.index.str
@@ -653,15 +721,15 @@ def format_artwork(row: pd.Series) -> Tuple[str]:
         return result
 
 
-def format_errata(row: pd.Series) -> Tuple[str]:
+def format_errata(row: pd.Series) -> Tuple[str, ...] | float:  # TODO: Pending testing
     """
-    Formats errata information from a pandas Series and returns a tuple of errata types.
+    Formats errata information from a pandas Series and returns a pandas series of errata types.
 
     Args:
         row (pd.Series): A pandas Series containing errata information for a single card.
 
     Returns:
-        Tuple[str]: Tuple of errata types if any errata information is present in the input Series, otherwise np.nan.
+        Tuple[str,...] | None: The formatted errata information as a tuple of strings, or np.nan if no errata information is present.
     """
     result = []
     if "Cards with name errata" in row:
@@ -679,7 +747,7 @@ def format_errata(row: pd.Series) -> Tuple[str]:
         return np.nan
 
 
-def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.DataFrame:
+def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.DataFrame:  # TODO: Pending testing
     """
     Merges errata information from an input errata DataFrame into an input DataFrame based on card names.
 
@@ -691,9 +759,9 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
         pd.DataFrame: A pandas DataFrame with errata information merged into it.
     """
     if "Name" in input_df.columns:
-        errata_series = input_errata_df.apply(format_errata, axis=1).rename("Errata")
+        errata_series: pd.Series = input_errata_df.apply(format_errata, axis=1)
         input_df = input_df.merge(
-            errata_series,
+            errata_series.rename("Errata"),
             left_on="Name",
             right_index=True,
             how="left",
@@ -748,7 +816,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         set_data (bool, optional): If True, merges set specific card data from the database. Defaults to False.
 
     Returns:
-        ((List[pd.DataFrame] | pd.DataFrame): DataFrame or list of DataFrames with card names, quantities and, optionally, additional card data merged from database.
+       pd.DataFrame: DataFrame with card names, quantities and, optionally, additional card data merged from database.
 
     Raises:
         FileNotFoundError: If no card or set lists data files are found to match the input collection data against.
@@ -779,7 +847,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         if set_lists_df is None:
             return df
         df["Card number"] = df["Card number"].str.upper()
-        extra_cols = set_lists_df.columns.difference(df.columns).join(["Card number", "Name"], how="outer")
+        extra_cols = set_lists_df.columns.difference(df.columns).union(["Card number", "Name"])
         merged_df = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
         merged_df["match"] = merged_df["Name_y"] if "Name_y" in merged_df else merged_df["Name"]
         merged_df.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
@@ -841,12 +909,11 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         list_df = merge_with_keys(df=list_df, key_col="Password", ref_df=card_df, ref_key="Password", ref_val="Name")
 
     if "Name" in original_cols and not list_df["match"].notna().all() and (card_df is not None or set_lists_df is not None):
-        if card_df is None:
-            ref_df = set_lists_df
-        else:
-            ref_df = card_df
+        ref_df = card_df if card_df is not None else set_lists_df
 
-        list_df = merge_with_keys(df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
+        if ref_df is not None:
+            list_df = merge_with_keys(df=list_df, key_col="Name", ref_df=ref_df, ref_key="Name", ref_val="Name")
+
         if list_df["match"].isna().any():
             try:
                 ydk_data = get_ygoprodeck()
@@ -868,7 +935,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
     list_df = list_df.groupby(list_df.columns.difference(["Count"]).tolist(), dropna=False).sum().reset_index()
 
     if card_data and card_df is not None:
-        list_df = list_df[list_df.columns.difference(card_df.columns).join(["Name"], how="outer")].merge(
+        list_df = list_df[list_df.columns.difference(card_df.columns).union(["Name"])].merge(
             card_df.drop_duplicates(subset="Name", keep="first"), on="Name", how="left"
         )
 
@@ -876,7 +943,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
     list_df["Count"] = list_df["Count"].astype(int)
     print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
-    return list_df[0] if len(list_df) == 1 else list_df
+    return list_df
 
 
 # Timeline
@@ -1035,7 +1102,7 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         (pd.DataFrame): DataFrame with the card names, quantities, and limitations per format.
     """
-    formats = deck_df.filter(like="status").columns
+    formats = deck_df.filter(like="status").columns.tolist()
     # Turn into function
     forbidden = (deck_df[formats] == "Forbidden").any(axis=1)
     limited = (deck_df[formats] == "Limited").any(axis=1) & (deck_df["Count"] > 1)
@@ -1075,6 +1142,8 @@ def read_decklist(file_path: Path | str) -> pd.DataFrame:
     Returns:
         (pd.DataFrame): DataFrame with the card names.
     """
+    file_path = Path(file_path)
+
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -1115,9 +1184,10 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
     """
     decklist_df = pd.DataFrame()
     if not files:
-        files = list(dirs.DATA.glob("*.txt"))
+        files = tuple(dirs.DATA.glob("*.txt"))
 
     for file in files:
+        file = Path(file)
         temp_df = read_decklist(file)
         decklist_df = pd.concat([decklist_df, temp_df])
         print(f"Loaded {file.stem} deck.")
@@ -1166,6 +1236,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
         (pd.DataFrame): DataFrame with the card codes.
 
     """
+    file_path = Path(file_path)
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -1203,11 +1274,11 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
 
     ydk_df = ydk_df.copy()
 
-    def get_ydk_card(code) -> float | str:
+    def get_ydk_card(code) -> Any:
         code = int(code)
         if code not in ydk_data.index:
             return np.nan
-        return ydk_data.loc[code, "name"]
+        return ydk_data.at[code, "name"]
 
     ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
     not_found = ydk_df[ydk_df["Name"].isna()]
@@ -1235,8 +1306,9 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
     """
     ydk_df = pd.DataFrame()
     if not files:
-        files = list(dirs.DATA.glob("*.ydk"))
+        files = tuple(dirs.DATA.glob("*.ydk"))
     for file in files:
+        file = Path(file)
         temp_df = read_ydk(file)
         ydk_df = pd.concat([ydk_df, temp_df])
         print(f"Loaded {file.stem} deck.")
@@ -1251,7 +1323,7 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
 # =================== #
 
 
-def get_notebook_path() -> Path:
+def get_notebook_path() -> Path | None:
     """
     Gets the path of the current notebook opened in JupyterLab.
     If the path cannot be obtained, returns None.
@@ -1289,8 +1361,8 @@ def save_notebook() -> None:
 
 
 def export_notebook(
-    input_path: str | None = None,
-    output_path: str | None = None,
+    input_path: str | Path | None = None,
+    output_path: str | Path | None = None,
     template: str = "lab",
     theme: str | None = None,
     no_input: bool = True,
@@ -1299,8 +1371,8 @@ def export_notebook(
     Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
 
     Args:
-        input_path (str | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
-        output_path (str | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
+        input_path (str | Path | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
+        output_path (str | Path | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
         template (str, optional): The name of the nbconvert template to use. Defaults to "lab".
         theme (str | None, optional): The name of the nbconvert theme to use. Defaults to None. If template is "lab" and "auto" theme is installed, defaults to the "auto" theme.
         no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
@@ -1420,7 +1492,7 @@ def update_index(dry_run: bool = False) -> str:
         return result
 
 
-def header(name: str | None = None) -> Markdown:
+def header(name: str | None = None) -> Markdown | None:
     """
     Generates a Markdown header with a timestamp and the name of the notebook (if provided).
     If there is no header.md file in the `ASSETS` directory, prints an error message and returns None.
@@ -1429,7 +1501,7 @@ def header(name: str | None = None) -> Markdown:
         name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
 
     Returns:
-        Markdown: The generated Markdown header.
+        Markdown | None: The generated Markdown header, or None if an error occurs.
     """
     if name is None:
         path = get_notebook_path()
@@ -1451,7 +1523,7 @@ def header(name: str | None = None) -> Markdown:
     return Markdown(header)
 
 
-def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
+def footer(timestamp: arrow.Arrow | None = None) -> Markdown | None:
     """
     Generates a Markdown footer with a timestamp.
     If there is no footer.md file in the `ASSETS` directory, prints error message and  an returns None.
@@ -1460,7 +1532,7 @@ def footer(timestamp: arrow.Arrow | None = None) -> Markdown:
         timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
-        Markdown: The generated Markdown footer.
+        Markdown | None: The generated Markdown footer, or None if an error occurs.
     """
     footer_path = dirs.get_asset("markdown", "footer.md")
     try:
@@ -1764,9 +1836,9 @@ def fetch_monster(
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["monster"])
+        query_str = card_query(*card_properties["monster"])
 
     print("Downloading monsters")
     monster_df = pd.DataFrame()
@@ -1788,7 +1860,7 @@ def fetch_monster(
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
 
-        temp_df = api.fetch_properties(concept, query, step=step, limit=limit, iterator=iterator, **kwargs)
+        temp_df = api.fetch_properties(concept, query_str, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
 
     if exclude_token and "Primary type" in monster_df:
@@ -1829,12 +1901,12 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
         concept += "[[Category:TCG%20cards||OCG%20cards]]"
 
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["monster"])
+        query_str = card_query(*card_properties["monster"])
 
     print("Downloading tokens")
-    token_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    token_df = api.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     print(f"{len(token_df.index)} results\n")
 
@@ -1864,12 +1936,12 @@ def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **
         concept += f"[[Medium::{valid_cg}]]"
 
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["counter"])
+        query_str = card_query(*card_properties["counter"])
 
     print("Downloading counters")
-    counter_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    counter_df = api.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     print(f"{len(counter_df.index)} results\n")
 
@@ -1894,14 +1966,14 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
     concept = "[[Category:TCG Speed Duel cards]]"
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["speed"])
+        query_str = card_query(*card_properties["speed"])
 
     print(f"Downloading Speed duel cards")
     speed_df = api.fetch_properties(
         concept,
-        query,
+        query_str,
         step=step,
         limit=limit,
         **kwargs,
@@ -1931,12 +2003,12 @@ def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
     concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["skill"])
+        query_str = card_query(*card_properties["skill"])
 
     print("Downloading skill cards")
-    skill_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    skill_df = api.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     print(f"{len(skill_df.index)} results\n")
 
@@ -1958,12 +2030,12 @@ def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.
     """
     concept = f"[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]"
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(*card_properties["rush"])
+        query_str = card_query(*card_properties["rush"])
 
     print("Downloading Rush Duel cards")
-    rush_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    rush_df = api.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     print(f"{len(rush_df.index)} results\n")
 
@@ -2015,12 +2087,12 @@ def fetch_unusable(
     concept = up.quote(concept)
 
     if query:
-        query = "|?".join(query)
+        query_str = "|?".join(query)
     else:
-        query = card_query(default=True)
+        query_str = card_query(default=True)
 
     print(f"Downloading unusable cards")
-    unusable_df = api.fetch_properties(concept, query, step=step, limit=limit, **kwargs)
+    unusable_df = api.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
 
@@ -2184,7 +2256,10 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
         first = i * step
         last = (i + 1) * step
 
-        set_lists_df, success, error = api.fetch_set_lists(*keys[first:last], **kwargs)
+        result = api.fetch_set_lists(*keys[first:last], **kwargs)
+        if result is None:
+            continue
+        set_lists_df, success, error = result
         set_lists_df = set_lists_df.merge(sets, on="Page name", how="left").drop("Page name", axis=1)
         all_set_lists_df = pd.concat([all_set_lists_df, set_lists_df], ignore_index=True)
         total_success += success
@@ -2204,8 +2279,8 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
 # TODO: Propagate the debug flag to notebooks
 def run_notebooks(
-    reports: str | list[str],
-    external_pbar: tqdm | None = None,
+    reports: str | list[str] | List[Path],
+    external_pbar: Callable[..., tqdm | None] | None = None,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
     dry_run: bool = False,
@@ -2215,8 +2290,8 @@ def run_notebooks(
     Execute specified Jupyter notebooks using Papermill.
 
     Args:
-        reports (str | List[str]): List of notebooks to execute.
-        external_pbar (tqdm | None, optional): An external tqdm progress bar to update. Defaults to None.
+        reports (str | List[str] | List[Path]): List of notebooks to execute.
+        external_pbar (Callable[..., tqdm | None] | None, optional): A callable that returns a tqdm progress bar instance. Defaults to None.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
         dry_run (bool, optional): Whether to run in dry run mode. Default is False.
@@ -2235,7 +2310,7 @@ def run_notebooks(
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = []
 
-    pbar_kwargs = dict(
+    pbar_kwargs: dict[str, Any] = dict(
         iterable=reports,
         unit="report",
         unit_scale=True,
@@ -2245,7 +2320,7 @@ def run_notebooks(
     )
 
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    if external_pbar:
+    if external_pbar is not None:
         pbars.append(external_pbar(position=0, **pbar_kwargs))
     else:
         pbars.append(
@@ -2259,12 +2334,18 @@ def run_notebooks(
     def setup_contrib(contrib: str) -> tqdm | None:
         contrib_upper = contrib.upper()
         contrib_value = contribs.get(contrib)
+
+        # Determine channel key based on contrib type
         if contrib_upper == "DISCORD":
             ch_key = "channel_id"
         elif contrib_upper == "TELEGRAM":
             ch_key = "chat_id"
-        if contrib_value is True:
+        else:
+            cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+            return None
 
+        # Get credentials from contrib_value or secrets
+        if contrib_value is True:
             required_secrets = [f"{contrib_upper}_TOKEN", f"{contrib_upper}_{ch_key.upper()}"]
             try:
                 secrets = load_secrets(
@@ -2274,15 +2355,21 @@ def run_notebooks(
                 )
                 tkn = secrets.get(required_secrets[0])
                 ch = secrets.get(required_secrets[1])
-            except:
+            except Exception:
                 cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
-                return
+                return None
         elif isinstance(contrib_value, argparse.Namespace):
             tkn = contrib_value.tkn
             ch = contrib_value.ch
         else:
-            return
+            return None
 
+        # Validate credentials
+        if not tkn or not ch:
+            cprint(text=f"Missing {contrib} credentials. Ignoring...", color="yellow")
+            return None
+
+        # Import and initialize the appropriate tqdm contrib
         try:
             if contrib_upper == "DISCORD":
                 from tqdm.contrib.discord import tqdm as contrib_tqdm
@@ -2299,6 +2386,7 @@ def run_notebooks(
         except Exception as e:
             print(e)
             cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
+            return None
 
     # Iterate over potential contrib names
     for contrib in contribs:
@@ -2351,7 +2439,7 @@ def run_notebooks(
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = dest_report
-        if "yugiquery" in jupyter_client.kernelspec.find_kernel_specs():
+        if "yugiquery" in kernelspec.find_kernel_specs():
             kernel_name = "yugiquery"
         else:
             kernel_name = "python3"
@@ -2398,7 +2486,7 @@ def run_notebooks(
 
 
 def run(
-    reports: str | List[str] = "all",
+    reports: str | List[str] | List[Path] = "all",
     progress_handler: ProgressHandler | None = None,
     cleanup: bool | Literal["auto"] = "auto",
     dry_run: bool = False,
@@ -2412,7 +2500,7 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        reports (str | List[str], optional): The report to generate. Defaults to 'all'.
+        reports (str | List[str] | List[Path], optional): The report to generate. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
@@ -2429,7 +2517,7 @@ def run(
     """
     # debug = check_debug(debug)
 
-    reports = dirs.find_notebooks(reports)
+    report_paths = dirs.find_notebooks(reports)
 
     # Check API status
     api_status = api.check_status()
@@ -2446,9 +2534,9 @@ def run(
 
     # Execute notebooks
     try:
-        if len(reports) > 0:
+        if len(report_paths) > 0:
             run_notebooks(
-                reports=reports,
+                reports=report_paths,
                 external_pbar=progress_handler.pbar if progress_handler else None,
                 discord=discord,
                 telegram=telegram,

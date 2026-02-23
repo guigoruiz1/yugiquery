@@ -80,7 +80,7 @@ def load_secrets(
         KeyError: If a required secret is not found in the environment variables or .env file.
 
     """
-    secrets = {
+    secrets: Dict[str, str | None] = {
         key: value
         for key in requested_secrets
         if (value := os.environ.get(key, os.environ.get(f"TQDM_{key}")))  # Using walrus operator to assign and check value
@@ -132,7 +132,8 @@ class CustomHelpFormatter(argparse.HelpFormatter):
             return super()._format_action_invocation(action)
         elif isinstance(action, CredAction):
             # Override to show [TOKEN] [CHANNEL] format
-            return ", ".join(action.option_strings) + " " + " ".join(f"[{metavar}]" for metavar in action.metavar)
+            metavars = action.metavar or (self._get_default_metavar_for_optional(action),)
+            return ", ".join(action.option_strings) + " " + " ".join(f"[{metavar}]" for metavar in metavars)
         else:
             # Override to show -a, --arg [ARG] format
             default = self._get_default_metavar_for_optional(action)
@@ -141,6 +142,7 @@ class CustomHelpFormatter(argparse.HelpFormatter):
 
     def _format_actions_usage(self, actions, groups):
         # Find group indices and identify actions in groups
+        actions = list(actions)
         group_actions = set()
         inserts = {}
         for group in groups:
@@ -220,7 +222,8 @@ class CustomHelpFormatter(argparse.HelpFormatter):
                 # Handle CredAction separately
                 if isinstance(action, CredAction):
                     # Format for CredAction
-                    args_string = " ".join(f"[{metavar}]" for metavar in action.metavar)
+                    metavars = action.metavar or (self._get_default_metavar_for_optional(action),)
+                    args_string = " ".join(f"[{metavar}]" for metavar in metavars)
                     part = "%s %s" % (option_string, args_string)
                     part = f"[{part}]"
                 else:
@@ -260,10 +263,11 @@ class CustomHelpFormatter(argparse.HelpFormatter):
 
 class CredAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        if len(values) == 0:
+        values_list = list(values) if values is not None else []
+        if len(values_list) == 0:
             setattr(namespace, self.dest, True)
-        elif len(values) == 2:
-            setattr(namespace, self.dest, argparse.Namespace(tkn=values[0], ch=values[1]))
+        elif len(values_list) == 2:
+            setattr(namespace, self.dest, argparse.Namespace(tkn=values_list[0], ch=values_list[1]))
         else:
             raise argparse.ArgumentError(self, "must provide either zero or exactly two arguments")
 
@@ -410,7 +414,7 @@ def lock(file_name: str) -> None:
             if platform.system() == "Windows":
                 import msvcrt
 
-                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)  # type: ignore[attr-defined]
             else:
                 import fcntl
 
@@ -448,7 +452,7 @@ def unlock(file_name: str) -> None:
         if platform.system() == "Windows":
             import msvcrt
 
-            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
         else:
             import fcntl
 

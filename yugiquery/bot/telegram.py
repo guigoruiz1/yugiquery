@@ -165,6 +165,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             # Create a dictionary with the provided arguments if they exist
             provided_arguments = {}
             if context.args and len(context.args) > 1:
@@ -216,6 +219,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.benchmark()
             if "error" in response.keys():
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
@@ -237,25 +243,43 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
 
             response = self.data()
             if "error" in response.keys():
                 message = response["error"]
             else:
                 message = f"*{response['title']}*\n{response['description']}\n\n"
-                for field, content in response["fields"].items():
-                    message += f"*{field}*:\n{content}\n"
+
+                fields = response["fields"]
+                if isinstance(fields, dict):
+                    for field, content in fields.items():
+                        message += f"*{field}*:\n{content}\n"
 
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         @self.command_handler("git", has_args=True, filters=filters.Chat(chat_id=int(self.chat_id)))
         async def git_cmd(update: Update, context: CallbackContext) -> None:
+            """
+            Handles git-related commands sent via Telegram.
+
+            This asynchronous handler function processes incoming Telegram messages that invoke git commands.
+            It validates the command, extracts arguments, executes the corresponding git operation, and sends the result back to the user.
+
+            Args:
+                update (telegram.Update): The incoming Telegram update containing the message and chat information.
+                context (telegram.ext.CallbackContext): The context object containing arguments and bot instance.
+            """
+            if update.effective_chat is None:
+                return
+
             if not context.args or context.args[0] not in GitCommands.__members__:
                 await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid command")
                 return
 
-            command = context.args[0]
+            command = GitCommands[context.args[0]]
             passphrase = context.args[1] if len(context.args) > 1 else ""
             response = self.git_cmd(command=command, passphrase=passphrase)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
@@ -269,6 +293,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.latest()
             message = f"*{response['title']}*\n{response['description']}\n\n*Local:*\n{response['local']}"
             if "live" in message:
@@ -286,6 +313,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.links()
             message = f"*{response['title']}*\n{response['description']}"
             message = escape_chars(message)
@@ -300,6 +330,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             start_time = arrow.utcnow()
             original_message = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Calculating latency..."
@@ -322,8 +355,11 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            last_run = context.user_data.get("last_run", arrow.get(0.0))
+            user_data = context.user_data or {}
+            last_run = user_data.get("last_run", arrow.get(0.0))
             if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
+                if update.effective_message is None:
+                    return
                 granularity = get_ts_granularity(
                     (last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds()
                 )
@@ -333,10 +369,13 @@ class Telegram(Bot):
                 await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
                 return
 
+            if update.effective_chat is None:
+                return
+
             report = (
                 self.Reports[context.args[0].capitalize()]
                 if context.args and context.args[0].capitalize() in self.Reports.__members__
-                else self.Reports.All
+                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
             )
 
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
@@ -354,7 +393,8 @@ class Telegram(Bot):
             if "error" in response.keys():
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
             else:
-                context.user_data["last_run"] = arrow.utcnow()
+                user_data["last_run"] = arrow.utcnow()
+                context.user_data = user_data
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
 
         @self.command_handler("status")
@@ -366,6 +406,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             app_info = await context.bot.get_me()
             bot_name = app_info.username
 
@@ -395,6 +438,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
 
@@ -407,18 +453,18 @@ class Telegram(Bot):
         Register event handlers for the Telegram bot.
         """
 
-        async def on_command_error(update: Update, context: CallbackContext) -> None:
+        async def on_command_error(update: object, context: CallbackContext) -> None:
             """
             Event that runs whenever a command invoked by the user results in an error.
             Sends a message to the chat indicating the type of error that occurred.
 
             Args:
-                update (telegram.Update): The update object.
+                update (object): An object representing the update that caused the error.
                 context (telegram.ext.CallbackContext): The callback context.
             """
             error = str(context.error)
             print(error)
-            if update is not None and update.message is not None:
+            if isinstance(update, Update) and update.message is not None:
                 await update.message.reply_text(error)
             else:
                 await context.bot.send_message(chat_id=self.chat_id, text=error)

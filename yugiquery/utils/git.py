@@ -21,7 +21,7 @@ import git
 from termcolor import cprint
 
 # Local application imports
-from .helpers import *
+from .helpers import arrow, os
 from .dirs import dirs
 
 # ========= #
@@ -89,7 +89,7 @@ def get_repo() -> git.Repo:
         raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def unlock(passphrase: str = "") -> str:
+def unlock(passphrase: str = "") -> subprocess.CompletedProcess:
     """
     Unlock the git credential store.
 
@@ -97,7 +97,7 @@ def unlock(passphrase: str = "") -> str:
         passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
 
     Returns:
-        str: The result of the unlock operation.
+        subprocess.CompletedProcess: The result of the unlock operation.
     """
     # TODO: Better error handling
     if os.name == "nt":
@@ -115,12 +115,12 @@ def unlock(passphrase: str = "") -> str:
     return result
 
 
-def commit(files: str | List[str], message: str = "", repo: git.Repo | None = None) -> str:
+def commit(files: str | List[str | Path], message: str = "", repo: git.Repo | None = None) -> str:
     """
     Commits the specified files to the git repository after staging them.
 
     Args:
-        files (str | List[str]): A list of file paths to be committed.
+        files (str | List[str | Path]): A list of file paths to be committed.
         message (str, optional): The commit message. If not provided, a default message will be used.
         repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
@@ -264,7 +264,14 @@ def squash_commits(start_commit: git.Commit, repo: git.Repo | None = None, messa
             commits = list(repo.iter_commits(f"{start_commit.hexsha}..HEAD"))
             if not message:
                 # Collect commit messages from the range
-                commit_messages = [commit.message.strip() for commit in commits]
+                commit_messages = [
+                    (
+                        commit.message.decode("utf-8", errors="replace")
+                        if isinstance(commit.message, bytes)
+                        else str(commit.message)
+                    ).strip()
+                    for commit in commits
+                ]
                 # Form a single commit message by joining the individual messages
                 message = "\n\n".join(commit_messages)
             # Reset the branch to the start_commit (soft reset)
