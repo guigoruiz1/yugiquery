@@ -31,13 +31,13 @@ import warnings
 from ast import literal_eval
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Literal, Tuple, Callable, Iterable, TypedDict, overload, Any
+from typing import Dict, List, Literal, Tuple, Callable, TypedDict, overload, Any
 
 # Third-party imports
 import arrow
 from ipylab import JupyterFrontEnd
 from IPython.core.getipython import get_ipython
-from IPython.display import Markdown, display
+from IPython.display import HTML, display
 from jupyter_client import kernelspec
 import nbformat
 from nbconvert import HTMLExporter
@@ -1443,25 +1443,26 @@ def update_index(dry_run: bool = False) -> str:
 
     Returns:
         str: The result of the Git commit if not `dry_run`, otherwise advisory message.
+
+    Raises:
+        FileNotFoundError: If there is no index.md or README.md files in the `ASSETS` directory.
+        ValueError: If the table markers or timestamp pattern are not found in the index.md file.
     """
 
-    index_file_name = "index.md"
-    readme_file_name = "README.md"
-
-    index_input_path = dirs.get_asset("markdown", index_file_name)
-    readme_input_path = dirs.get_asset("markdown", readme_file_name)
-    index_output_path = dirs.WORK / index_file_name
-    readme_output_path = dirs.WORK / readme_file_name
+    index_path = dirs.WORK / "index.md"
+    readme_path = dirs.WORK / "README.md"
 
     timestamp = arrow.utcnow()
-    try:
-        with open(index_input_path, encoding="utf-8") as f:
-            index = f.read()
 
-        with open(readme_input_path, encoding="utf-8") as f:
-            readme = f.read()
-    except:
-        raise FileNotFoundError('Missing template files in "assets"')
+    if not index_path.is_file():
+        raise FileNotFoundError("Missing index.md file!")
+    if not readme_path.is_file():
+        raise FileNotFoundError("Missing README.md file!")
+
+    with open(index_path, encoding="utf-8") as f:
+        index = f.read()
+    with open(readme_path, encoding="utf-8") as f:
+        readme = f.read()
 
     reports = sorted(dirs.REPORTS.glob("*.html"))
     rows = []
@@ -1471,43 +1472,57 @@ def update_index(dry_run: bool = False) -> str:
         )
     table = " |\n| ".join(rows)
 
-    index = index.replace(f"@REPORT_|_TIMESTAMP@", table)
-    index = index.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+    def replace_table(content: str) -> str:
+        start_marker = "<!-- REPORT_TABLE_START -->"
+        end_marker = "<!-- REPORT_TABLE_END -->"
+        start = content.find(start_marker)
+        end = content.find(end_marker)
+        if start == -1 or end == -1 or end < start:
+            raise ValueError("Table markers not found in file.")
+        before = content[: start + len(start_marker)]
+        after = content[end:]
+        updated = before + "\n" + table + "\n" + after
 
-    readme = readme.replace(f"@REPORT_|_TIMESTAMP@", table)
-    readme = readme.replace(f"@TIMESTAMP@", timestamp.strftime("%d/%m/%Y %H:%M %Z"))
+        ts_pattern = r"(last executed at `)([^`]+)(`)"  # group 2 is the timestamp
+        new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
+        updated_new, n_subs = re.subn(ts_pattern, r"\1" + new_ts + r"\3", updated)
+        if n_subs == 0:
+            raise ValueError("Last executed timestamp pattern not found in file.")
+        return updated_new
+
+    index = replace_table(index)
+    readme = replace_table(readme)
 
     if dry_run:
         return "Dry run - README and index updated"
     else:
-        with open(index_output_path, "w+", encoding="utf-8") as o:
-            print(index, file=o)
-        with open(readme_output_path, "w+", encoding="utf-8") as o:
-            print(readme, file=o)
-
+        with open(index_path, "w", encoding="utf-8") as o:
+            o.write(index)
+        with open(readme_path, "w", encoding="utf-8") as o:
+            o.write(readme)
         result = git.commit(
-            files=[index_output_path, readme_output_path],
+            files=[index_path, readme_path],
             message=f"Index and README timestamp update - {timestamp.isoformat()}",
         )
         return result
 
 
-def header(name: str | None = None) -> Markdown | None:
+def header(name: str | None = None) -> HTML | None:
     """
-    Generates a Markdown header with a timestamp and the name of the notebook (if provided).
-    If there is no header.md file in the `ASSETS` directory, prints an error message and returns None.
+    Generates an HTML header with a timestamp and the name of the notebook (if provided).
+    If there is no header.html file in the `ASSETS` directory, prints an error message and returns None.
 
     Args:
         name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
 
     Returns:
-        Markdown | None: The generated Markdown header, or None if an error occurs.
+        HTML | None: The generated HTML header, or None if an error occurs.
     """
     if name is None:
         path = get_notebook_path()
         name = path.stem if path else "Unnamed"
 
-    header_path = dirs.get_asset("markdown", "header.md")
+    header_path = dirs.get_asset("html", "header.html")
     try:
         with open(header_path, encoding="utf-8") as f:
             header = f.read()
@@ -1520,21 +1535,21 @@ def header(name: str | None = None) -> Markdown | None:
         arrow.utcnow().strftime("%d/%m/%Y %H:%M %Z"),
     )
     header = header.replace("@NOTEBOOK@", name)
-    return Markdown(header)
+    return HTML(header)
 
 
-def footer(timestamp: arrow.Arrow | None = None) -> Markdown | None:
+def footer(timestamp: arrow.Arrow | None = None) -> HTML | None:
     """
-    Generates a Markdown footer with a timestamp.
-    If there is no footer.md file in the `ASSETS` directory, prints error message and  an returns None.
+    Generates an HTML footer with a timestamp.
+    If there is no footer.html file in the `ASSETS` directory, prints error message and  an returns None.
 
     Args:
         timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
-        Markdown | None: The generated Markdown footer, or None if an error occurs.
+        HTML | None: The generated HTML footer, or None if an error occurs.
     """
-    footer_path = dirs.get_asset("markdown", "footer.md")
+    footer_path = dirs.get_asset("html", "footer.html")
     try:
         with open(footer_path, encoding="utf-8") as f:
             footer = f.read()
@@ -1545,7 +1560,28 @@ def footer(timestamp: arrow.Arrow | None = None) -> Markdown | None:
     now = arrow.utcnow()
     footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
 
-    return Markdown(footer)
+    return HTML(footer)
+
+
+def buttons() -> HTML | None:
+    """
+    Generates HTML buttons for updating the index and rarities/regions dictionaries.
+    If there is no buttons.html file in the `ASSETS` directory, prints error message and  an returns None.
+
+    Args:
+        None
+    Returns:
+        HTML | None: The generated HTML buttons, or None if an error occurs.
+    """
+    buttons_path = dirs.get_asset("html", "buttons.html")
+    try:
+        with open(buttons_path, encoding="utf-8") as f:
+            buttons = f.read()
+    except:
+        print('Missing template file in "assets". Aborting...')
+        return None
+
+    return HTML(buttons)
 
 
 # ================== #

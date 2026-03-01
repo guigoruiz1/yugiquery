@@ -665,9 +665,7 @@ def fetch_set_lists(
                     set_df["Set"] = re.sub(pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title).strip()
                     set_df["Region"] = region.upper() if region else None
                     set_df["Page name"] = page_name
-                    set_lists_df = (
-                        pd.concat([set_lists_df, set_df], ignore_index=True).infer_objects(copy=False).fillna(np.nan)
-                    )
+                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True).infer_objects().fillna(np.nan)
                     success += 1
 
         else:
