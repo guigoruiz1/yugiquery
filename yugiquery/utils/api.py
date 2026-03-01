@@ -11,7 +11,6 @@
 # ======= #
 
 # Standard library imports
-import asyncio
 import os
 import re
 import socket
@@ -26,7 +25,6 @@ from typing import (
 import urllib.parse as up
 
 # Third-party imports
-import aiohttp
 import numpy as np
 import pandas as pd
 import requests
@@ -36,7 +34,7 @@ import wikitextparser as wtp
 
 
 # Local application imports
-from .helpers import *
+from .helpers import check_debug, load_json
 from .dirs import dirs
 from ..metadata import __title__, __url__, __version__
 
@@ -59,7 +57,6 @@ URLS: SimpleNamespace = SimpleNamespace(
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
     redirects_action="?action=query&format=json&redirects=True&titles=",
     backlinks_action="?action=query&format=json&list=backlinks&blfilterredir=redirects&bltitle=",
-    images_action="?action=query&prop=images&format=json&titles=",
     ygoprodeck="https://db.ygoprodeck.com/api/v7/cardinfo.php",
     headers={"User-Agent": f"{__title__} v{__version__} - {__url__}"} | load_json(dirs.get_asset("json", "headers.json")),
 )
@@ -680,72 +677,6 @@ def fetch_set_lists(
     return set_lists_df, success, error
 
 
-# Images
-def fetch_page_images(*titles: str, imlimit: int = 500) -> List[str]:
-    """
-    Fetches images from the MediaWiki API.
-
-    Args:
-        titles (str): Multiple page titles for which to fetch image file names.
-        imlimit (int, optional): The maximum number of images to fetch. Defaults to 500.
-
-    Returns:
-        pd.Series: A Series containing the image file names.
-    """
-    titles_str = up.quote("|".join(titles))
-    response = requests.get(
-        url=URLS.base + URLS.images_action + titles_str + f"&imlimit={imlimit}",
-        headers=URLS.headers,
-    ).json()
-
-    # Extract the pages data from the response
-    pages = response["query"]["pages"]
-
-    # Transform the data to remove "File:" prefix and filter out SVG files
-    images_list = [
-        y["title"].lstrip("File:") for page in pages.values() for y in page.get("images", []) if "svg" not in y["title"]
-    ]
-
-    return pd.Series(images_list).drop_duplicates().to_list()
-
-
-def fetch_featured_images(*titles: str, batch_size: int = 50) -> List[str]:
-    """
-    Fetches the main/featured image filenames from Yugipedia.
-
-    Uses prop=pageimages to get the featured image for each page (not all images on page).
-    Returns a list of image filenames that can be passed to download_media().
-
-    Args:
-        titles (str): Multiple page titles to fetch featured image filenames for.
-        batch_size (int, optional): Number of titles to query per API request. Defaults to 50.
-
-    Returns:
-        List[str]: A list of image filenames ready to download.
-    """
-    file_names = []
-
-    for i in range(0, len(titles), batch_size):
-        batch = titles[i : i + batch_size]
-        titles_str = up.quote("|".join(batch))
-
-        response = requests.get(
-            url=URLS.base + "?action=query&format=json&prop=pageimages&piprop=original&titles=" + titles_str,
-            headers=URLS.headers,
-        ).json()
-
-        pages = response.get("query", {}).get("pages", {})
-
-        for page in pages.values():
-            original = page.get("original")
-            if original and "source" in original:
-                # Extract filename from URL (e.g., "Black_Luster_Soldier.jpg")
-                filename = original["source"].split("/")[-1]
-                file_names.append(filename)
-
-    return file_names
-
-
 # ========== #
 # Formatting #
 # ========== #
@@ -1031,105 +962,3 @@ def extract_artwork(row: pd.Series) -> float | Tuple[str, ...]:
         return np.nan
     else:
         return result
-
-
-# =========== #
-# Downloading #
-# =========== #
-
-
-# TODO: Refactor, move somewhere else
-async def download_media(
-    *file_names: str,
-    output_path: str | Path = "media",
-    max_tasks: int = 10,
-) -> pd.DataFrame:
-    """
-    Downloads a set of files given their names and saves them to a specified folder.
-    Returns a DataFrame listing file names and URLs that failed to download.
-
-    Args:
-        file_names (str): Multiple names of the media files to be downloaded.
-        output_path (str | Path, optional): The path to the folder where the downloaded files will be saved. Defaults to "media".
-        max_tasks (int, optional): The maximum number of files to download at once. Defaults to 10.
-
-    Returns:
-        pandas.DataFrame: A DataFrame with columns "file_name", "url" and "success" for each download.
-    """
-    # Prepare URLs from file names
-    file_names_series = pd.Series(file_names)
-    file_names_md5 = file_names_series.apply(md5)
-    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names_series
-    download_results = []
-
-    # Download media from URL
-    async def download_file(session, url, save_folder, semaphore, pbar):
-        async with semaphore:
-            save_name = url.split("/")[-1]
-            save_file = Path(save_folder).joinpath(save_name)
-            try:
-                async with session.get(url) as response:
-                    if response.status != 200:
-                        raise ValueError(f"URL {url} returned status code {response.status}")
-                    total_size = int(response.headers.get("Content-Length", 0))
-                    progress = tqdm(
-                        unit="B",
-                        total=total_size,
-                        unit_scale=True,
-                        unit_divisor=1024,
-                        desc=save_name,
-                        leave=False,
-                        dynamic_ncols=(not dirs.is_notebook),
-                        disable=("PM_IN_EXECUTION" in os.environ),
-                    )
-
-                    # Remove existing file if already exists to ensure a fresh download
-                    if save_file.is_file():
-                        save_file.unlink()
-
-                    # Write downloaded content in chunks
-                    with open(save_file, "wb") as f:
-                        while True:
-                            chunk = await response.content.read(1024)
-                            if not chunk:
-                                break
-                            f.write(chunk)
-                            progress.update(len(chunk))
-                    progress.close()
-                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": True})
-            except Exception as e:
-                # Cleanup if any error occurs and log the failure
-                if save_file.is_file():
-                    save_file.unlink()
-                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": False})
-                tqdm.write(f"Failed to download {save_name}: {e}")
-            finally:
-                pbar.update()
-
-    # Parallelize file downloads
-    semaphore = asyncio.Semaphore(max_tasks)
-    async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
-        output_path = Path(output_path)
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        with tqdm(
-            total=len(urls),
-            unit="file",
-            dynamic_ncols=(not dirs.is_notebook),
-            disable=("PM_IN_EXECUTION" in os.environ),
-        ) as pbar:
-            tasks = [
-                download_file(
-                    session=session,
-                    url=url,
-                    save_folder=output_path,
-                    semaphore=semaphore,
-                    pbar=pbar,
-                )
-                for url in urls
-            ]
-            # Run tasks as they complete to handle failures gracefully
-            await asyncio.gather(*tasks, return_exceptions=True)
-
-    # Return failed downloads as a DataFrame
-    return pd.DataFrame(download_results)

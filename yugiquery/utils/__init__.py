@@ -9,3 +9,4 @@ from .plot import plt, sns
 from .helpers import *
 from .dirs import dirs
 from .progress_handler import ProgressHandler
+from .notebook import *

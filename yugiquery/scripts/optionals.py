@@ -82,7 +82,8 @@ def install_kernel(venv: bool = False) -> None:
 
                 # If __version_tuple__ exists, extract parts from the version tuple
                 if len(__version_tuple__) > 3:
-                    commit_hash = __version_tuple__[-1].split("g")[-1].split(".")[0]
+                    commit_hash = __version_tuple__[-1]
+                    commit_hash = commit_hash.split("g")[-1].split(".")[0] if isinstance(commit_hash, str) else None
             except ImportError:
                 # Fallback to __version__ if __version_tuple__ is not available
                 from yugiquery import __version__, __url__
@@ -168,18 +169,10 @@ def install_nbconvert() -> None:
     """
     Patch the nbconvert "Lab" template to include a dynamic light and dark theme, and preprocessor to remove cells tagged with "exclude".
     """
-    import importlib
-    from yugiquery.utils.dirs import dirs
+    from . import generate_auto_theme
 
     try:
-        spec = importlib.util.spec_from_file_location(
-            name="generate_auto_theme",
-            location=dirs.get_asset("scripts", "generate_auto_theme.py"),
-        )
-        auto_theme_generator = importlib.util.module_from_spec(spec=spec)
-        spec.loader.exec_module(auto_theme_generator)
-        auto_theme_generator.main()
-
+        generate_auto_theme.main()
         cprint(text="\nnbconvert templates installed.", color="green")
     except Exception as e:
         cprint(text=f"\nFailed to install nbconvert templates", color="red")
@@ -248,9 +241,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Install various additional components. If no flags are passed, all components will be installed"
+        description="Install various optional components. If no flags are passed, all components will be installed"
     )
     set_parser(parser)
     args = parser.parse_args()
-
     main(args)

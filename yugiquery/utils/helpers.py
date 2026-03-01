@@ -14,7 +14,6 @@
 import argparse
 import calendar  # Used in notebooks
 import hashlib
-import importlib.util
 import json
 import os
 import re

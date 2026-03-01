@@ -35,19 +35,15 @@ from typing import Dict, List, Literal, Tuple, Callable, TypedDict, overload, An
 
 # Third-party imports
 import arrow
-from ipylab import JupyterFrontEnd
-from IPython.core.getipython import get_ipython
-from IPython.display import HTML, display
+
+from IPython.display import display
 from jupyter_client import kernelspec
 import nbformat
-from nbconvert import HTMLExporter
-from nbconvert.writers.files import FilesWriter
 import numpy as np
 import pandas as pd
 import papermill as pm
 from termcolor import cprint
 from tqdm.auto import tqdm, trange
-from traitlets.config import Config
 
 # Local application imports
 if __package__:
@@ -65,6 +61,7 @@ if __package__:
         lock,
         make_filename,
         unlock,
+        get_notebook_path,
     )  # Explicit re-import for type checking
 else:
     from utils import *
@@ -81,6 +78,7 @@ else:
         lock,
         make_filename,
         unlock,
+        get_notebook_path,
     )  # Explicit re-import for type checking
 
 # Overwrite packages with versions specific for jupyter notebook
@@ -1318,272 +1316,6 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
     return ydk_df
 
 
-# =================== #
-# Notebook management #
-# =================== #
-
-
-def get_notebook_path() -> Path | None:
-    """
-    Gets the path of the current notebook opened in JupyterLab.
-    If the path cannot be obtained, returns None.
-
-    Args:
-        None
-
-    Returns:
-        Path: The path of the current notebook.
-    """
-
-    file_path = (
-        getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__")
-        or os.environ.get("JPY_SESSION_NAME")
-        or os.environ.get("PM_IN_EXECUTION")
-        or JupyterFrontEnd().sessions.current_session.get("name")
-    )
-
-    return Path(file_path) if file_path else None
-
-
-def save_notebook() -> None:
-    """
-    Save the current notebook opened in JupyterLab to disk.
-
-    Args:
-        None
-
-    Returns:
-        None
-    """
-    app = JupyterFrontEnd()
-    app.commands.execute("docmanager:save")
-    print("Notebook saved to disk")
-
-
-def export_notebook(
-    input_path: str | Path | None = None,
-    output_path: str | Path | None = None,
-    template: str = "lab",
-    theme: str | None = None,
-    no_input: bool = True,
-) -> None:
-    """
-    Convert a Jupyter notebook to HTML using nbconvert and save the output to disk.
-
-    Args:
-        input_path (str | Path | None, optional): The path to the Jupyter notebook file to convert. If None, gets the notebook path with `get_notebook_path`. Defaults to None.
-        output_path (str | Path | None, optional): The path to save the converted HTML file. If None, saves the file to the `REPORTS` directory. Defaults to None.
-        template (str, optional): The name of the nbconvert template to use. Defaults to "lab".
-        theme (str | None, optional): The name of the nbconvert theme to use. Defaults to None. If template is "lab" and "auto" theme is installed, defaults to the "auto" theme.
-        no_input (bool, optional): If True, excludes input cells from the output. Defaults to True.
-
-    Raises:
-        ValueError: If no notebook path is provided and cannot be found with `get_notebook_path`.
-
-    Returns:
-        None
-    """
-    if input_path is None:
-        input_path = get_notebook_path()
-        if input_path is None:
-            raise ValueError("No notebook path provided")
-        input_path = str(get_notebook_path())
-    if output_path is None:
-        output_path = str(dirs.REPORTS / Path(input_path).stem)
-
-    if template == "lab":
-        if theme == None and dirs.NBCONVERT.joinpath("lab/static/theme-auto.css").is_file():
-            theme = "auto"
-
-    # Configure the HTMLExporter
-    c = Config()
-    c.HTMLExporter.template_name = template
-    if theme:
-        c.HTMLExporter.theme = theme
-    if no_input:
-        c.TemplateExporter.exclude_output_prompt = True
-        c.TemplateExporter.exclude_input = True
-        c.TemplateExporter.exclude_input_prompt = True
-
-    # Initialize the HTMLExporter
-    html_exporter = HTMLExporter(config=c)
-
-    # Read the notebook content
-    with open(input_path, mode="r", encoding="utf-8") as f:
-        notebook_content = nbformat.read(f, as_version=4)
-
-    # Convert the notebook to HTML
-    logger = logging.getLogger("IPKernelApp")
-    logger.setLevel(logging.ERROR)
-
-    (body, resources) = html_exporter.from_notebook_node(notebook_content)
-    # Write the output to the specified directory
-    writer = FilesWriter()
-    writer.write(output=body, resources=resources, notebook_name=output_path)
-
-    logger.setLevel(logging.WARNING)
-
-    print(f"Notebook converted to HTML and saved to {output_path}.html")
-
-
-# ================ #
-# Markdown editing #
-# ================ #
-
-
-def update_index(dry_run: bool = False) -> str:
-    """
-    Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
-    Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
-    If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
-    If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
-
-    Args:
-        dry_run (bool, optional): If True, the function will not commit the changes to Git. Defaults to False.
-
-    Returns:
-        str: The result of the Git commit if not `dry_run`, otherwise advisory message.
-
-    Raises:
-        FileNotFoundError: If there is no index.md or README.md files in the `ASSETS` directory.
-        ValueError: If the table markers or timestamp pattern are not found in the index.md file.
-    """
-
-    index_path = dirs.WORK / "index.md"
-    readme_path = dirs.WORK / "README.md"
-
-    timestamp = arrow.utcnow()
-
-    if not index_path.is_file():
-        raise FileNotFoundError("Missing index.md file!")
-    if not readme_path.is_file():
-        raise FileNotFoundError("Missing README.md file!")
-
-    with open(index_path, encoding="utf-8") as f:
-        index = f.read()
-    with open(readme_path, encoding="utf-8") as f:
-        readme = f.read()
-
-    reports = sorted(dirs.REPORTS.glob("*.html"))
-    rows = []
-    for report in reports:
-        rows.append(
-            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime, unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
-        )
-    table = " |\n| ".join(rows)
-
-    def replace_table(content: str) -> str:
-        start_marker = "<!-- REPORT_TABLE_START -->"
-        end_marker = "<!-- REPORT_TABLE_END -->"
-        start = content.find(start_marker)
-        end = content.find(end_marker)
-        if start == -1 or end == -1 or end < start:
-            raise ValueError("Table markers not found in file.")
-        before = content[: start + len(start_marker)]
-        after = content[end:]
-        updated = before + "\n" + table + "\n" + after
-
-        ts_pattern = r"(last executed at `)([^`]+)(`)"  # group 2 is the timestamp
-        new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
-        updated_new, n_subs = re.subn(ts_pattern, r"\1" + new_ts + r"\3", updated)
-        if n_subs == 0:
-            raise ValueError("Last executed timestamp pattern not found in file.")
-        return updated_new
-
-    index = replace_table(index)
-    readme = replace_table(readme)
-
-    if dry_run:
-        return "Dry run - README and index updated"
-    else:
-        with open(index_path, "w", encoding="utf-8") as o:
-            o.write(index)
-        with open(readme_path, "w", encoding="utf-8") as o:
-            o.write(readme)
-        result = git.commit(
-            files=[index_path, readme_path],
-            message=f"Index and README timestamp update - {timestamp.isoformat()}",
-        )
-        return result
-
-
-def header(name: str | None = None) -> HTML | None:
-    """
-    Generates an HTML header with a timestamp and the name of the notebook (if provided).
-    If there is no header.html file in the `ASSETS` directory, prints an error message and returns None.
-
-    Args:
-        name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
-
-    Returns:
-        HTML | None: The generated HTML header, or None if an error occurs.
-    """
-    if name is None:
-        path = get_notebook_path()
-        name = path.stem if path else "Unnamed"
-
-    header_path = dirs.get_asset("html", "header.html")
-    try:
-        with open(header_path, encoding="utf-8") as f:
-            header = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
-        return None
-
-    header = header.replace(
-        "@TIMESTAMP@",
-        arrow.utcnow().strftime("%d/%m/%Y %H:%M %Z"),
-    )
-    header = header.replace("@NOTEBOOK@", name)
-    return HTML(header)
-
-
-def footer(timestamp: arrow.Arrow | None = None) -> HTML | None:
-    """
-    Generates an HTML footer with a timestamp.
-    If there is no footer.html file in the `ASSETS` directory, prints error message and  an returns None.
-
-    Args:
-        timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
-
-    Returns:
-        HTML | None: The generated HTML footer, or None if an error occurs.
-    """
-    footer_path = dirs.get_asset("html", "footer.html")
-    try:
-        with open(footer_path, encoding="utf-8") as f:
-            footer = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
-        return None
-
-    now = arrow.utcnow()
-    footer = footer.replace("@TIMESTAMP@", now.strftime("%d/%m/%Y %H:%M %Z"))
-
-    return HTML(footer)
-
-
-def buttons() -> HTML | None:
-    """
-    Generates HTML buttons for updating the index and rarities/regions dictionaries.
-    If there is no buttons.html file in the `ASSETS` directory, prints error message and  an returns None.
-
-    Args:
-        None
-    Returns:
-        HTML | None: The generated HTML buttons, or None if an error occurs.
-    """
-    buttons_path = dirs.get_asset("html", "buttons.html")
-    try:
-        with open(buttons_path, encoding="utf-8") as f:
-            buttons = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
-        return None
-
-    return HTML(buttons)
-
-
 # ================== #
 # API Query Wrappers #
 # ================== #
@@ -2306,6 +2038,87 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     print(f'{"Total: " if debug else ""}{total_success} set lists received - {total_error} missing')
 
     return all_set_lists_df
+
+
+# ============ #
+# HTML editing #
+# ============ #
+
+
+def update_index(dry_run: bool = False) -> str:
+    """
+    Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
+    Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
+    If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
+    If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
+
+    Args:
+        dry_run (bool, optional): If True, the function will not commit the changes to Git. Defaults to False.
+
+    Returns:
+        str: The result of the Git commit if not `dry_run`, otherwise advisory message.
+
+    Raises:
+        FileNotFoundError: If there is no index.md or README.md files in the `ASSETS` directory.
+        ValueError: If the table markers or timestamp pattern are not found in the index.md file.
+    """
+
+    index_path = dirs.WORK / "index.md"
+    readme_path = dirs.WORK / "README.md"
+
+    timestamp = arrow.utcnow()
+
+    if not index_path.is_file():
+        raise FileNotFoundError("Missing index.md file!")
+    if not readme_path.is_file():
+        raise FileNotFoundError("Missing README.md file!")
+
+    with open(index_path, encoding="utf-8") as f:
+        index = f.read()
+    with open(readme_path, encoding="utf-8") as f:
+        readme = f.read()
+
+    reports = sorted(dirs.REPORTS.glob("*.html"))
+    rows = []
+    for report in reports:
+        rows.append(
+            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime, unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
+        )
+    table = " |\n| ".join(rows)
+
+    def replace_table(content: str) -> str:
+        start_marker = "<!-- REPORT_TABLE_START -->"
+        end_marker = "<!-- REPORT_TABLE_END -->"
+        start = content.find(start_marker)
+        end = content.find(end_marker)
+        if start == -1 or end == -1 or end < start:
+            raise ValueError("Table markers not found in file.")
+        before = content[: start + len(start_marker)]
+        after = content[end:]
+        updated = before + "\n" + table + "\n" + after
+
+        ts_pattern = r"(last executed at `)([^`]+)(`)"  # group 2 is the timestamp
+        new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
+        updated_new, n_subs = re.subn(ts_pattern, r"\1" + new_ts + r"\3", updated)
+        if n_subs == 0:
+            raise ValueError("Last executed timestamp pattern not found in file.")
+        return updated_new
+
+    index = replace_table(index)
+    readme = replace_table(readme)
+
+    if dry_run:
+        return "Dry run - README and index updated"
+    else:
+        with open(index_path, "w", encoding="utf-8") as o:
+            o.write(index)
+        with open(readme_path, "w", encoding="utf-8") as o:
+            o.write(readme)
+        result = git.commit(
+            files=[index_path, readme_path],
+            message=f"Index and README timestamp update - {timestamp.isoformat()}",
+        )
+        return result
 
 
 # ======================= #
