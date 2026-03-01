@@ -32,7 +32,6 @@ from termcolor import cprint
 from tqdm.auto import tqdm, trange
 import wikitextparser as wtp
 
-
 # Local application imports
 from .helpers import check_debug, load_json
 from .dirs import dirs

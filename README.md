@@ -17,9 +17,7 @@
 
 [![Read the Docs](https://img.shields.io/readthedocs/yugiquery/latest)](https://yugiquery.readthedocs.io/en/latest/)
 [![Pages-build-deployment](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/pages/pages-build-deployment)
-[![Codespaces Prebuilds](https://github.com/guigoruiz1/yugiquery/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/codespaces/create_codespaces_prebuilds)
 [![CodeQL](https://github.com/guigoruiz1/yugiquery/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/guigoruiz1/yugiquery/actions/workflows/github-code-scanning/codeql)
-<!-- [![hackmd-github-sync-badge](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA/badge)](https://hackmd.io/VkEfdO3nRyuIZedC4FRPZA) -->
 
 # What is it?
 
@@ -122,91 +120,39 @@ Further details can be found in the [documentation](#documentation).
 
 ## Repository hierarchy
 
-The repository is structured such that its root contains the web page index files, while the package files are kept in the ***yugiquery*** directory. Any template files (markdown, nbconvert, notebook, etc) and files used for reference such as dictionaries are kept in the ***assets*** directory. The raw data used by the reports is saved in the ***data*** directory. The *Read The Docs* source files are kept in the ***docs*** directory. The HTML reports are generated from the notebooks in the **notebooks** directory and saved in the **reports** directory. Below is an skeleton of the directory structure.
+The repository is organized with package code in `yugiquery/`, templates and reference files in `assets/`, data and exports in `data/`, generated reports in `reports/`, and source notebooks in `notebooks/`. Jupyter notebooks are executed as reports and saved as HTML. The ReadTheDocs documentation source lives in `docs/`.
 
 ```
 yugiquery/
+├─ notebooks/                 # Source report notebooks
+├─ reports/                   # Generated HTML reports
+├─ data/                      # Persistent datasets and exports
+│  ├─ *.ydk / *.txt           # Deck files (Yu-Gi-Oh card decks)
+│  ├─ collection.csv / .xlsx  # User card collection
+│  ├─ ygoprodeck.json         # API cache from YGOProDeck
+│  ├─ benchmark.json          # Performance/test data snapshots
+│  └─ *.bz2                   # Compressed backups (report data & changelog history)
 ├─ assets/
-│  ├─ json/
-│  │  ├─ colors.json
-│  │  ├─ dates.json
-│  │  ├─ headers.json
-│  │  ├─ rarities.json
-│  │  └─ regions.json
-│  ├─ markdown/
-│  │  ├─ footer.md
-│  │  ├─ header.md
-│  │  ├─ index.md
-│  │  └─ README.md
-│  ├─ scripts/
-│  │  ├─ git_filters.sh
-│  │  ├─ post_install.py
-│  │  └─ unlock_git.sh
-│  ├─ nbconvert/
-|  |  └─ labdynamic/
-|  │      ├─ static/dynamic.css
-|  │      ├─ conf.json
-|  │      └─ index.html.j2
-│  ├─ templates/
-│  │  ├─ Collection.ipynb
-│  │  └─ Template.ipynb
-│  ├─ gateway.html
-│  └─ secrets.env
-├─ data/
-│  ├─ benchmark.json
-│  ├─ report_data.bz2
-│  └─ report_changelog.bz2
-├─ docs/
-│  ├─ Makefile
-│  ├─ make.bat
-│  ├─ conf.py
-│  ├─ utils.rst
-│  ├─ index.rst
-│  ├─ bot.rst
-│  └─ yugiquery.rst
-├─ notebooks/
-│  ├─ Bandai.ipynb
-│  ├─ Cards.ipynb
-│  ├─ Rush.ipynb
-│  ├─ Sets.ipynb
-│  ├─ Speed.ipynb
-│  └─ Timeline.ipynb
-├─ reports/
-│  └─ report.html
+│  ├─ templates/              # Notebook templates used by installer/workflow
+│  ├─ json/                   # Reference dictionaries (colors, dates, regions, etc.)
+│  ├─ html/                   # Reusable HTML snippets for rendered pages
+│  └─ scripts/                # Utility scripts (e.g., git filters)
 ├─ yugiquery/
-│  ├─ utils
-│  |  ├─ __init__.py
-│  |  ├─ api.py
-│  |  ├─ dirs.py
-│  |  ├─ git.py
-│  |  ├─ helpers.py
-│  |  ├─ plot.py
-│  |  └─ progress_handler.py
-│  ├─ bot
-│  |  ├─ __init__.py
-│  |  ├─ __main__.py
-│  |  ├─ base.py
-│  |  ├─ discord.py
-│  |  └─ telegram.py
-│  ├─ __init__.py
-│  ├─ __main__.py
-│  ├─ metadata.py
-│  └─ yugiquery.py
-├─ _config.yml
-├─ .devcontainer.json
-├─ .readthedocs.yaml
-├─ index.md
-├─ LICENSE.md
-├─ pyproject.toml
-├─ README.md
-└─ requirements.txt
+│  ├─ yugiquery.py            # Main workflow/CLI entry logic
+│  ├─ __main__.py             # Module entry point (`python -m yugiquery`)
+│  ├─ utils/                  # API, helpers, plotting, notebook utilities
+│  └─ bot/                    # Telegram/Discord bot implementations
+├─ tests/                     # Automated tests
+├─ docs/                      # ReadTheDocs source
+├─ pyproject.toml             # Package/project configuration
+├─ requirements.txt           # Pinned dependencies
+├─ index.md                   # Project site landing page content
+└─ README.md                  # Main project guide
 ```
-
-Ideally, files in the ***assets*** directory should not be edited unless you know what you are doing. Files in the ***data*** directory are read and write files for the generation of the reports. The root of the repository should only contain files intended for the web page generation by GitHub pages or files that cannot be in another location.
 
 ## Documentation
 
-The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/)
+The documentation can be found at [ReadTheDocs](https://yugiquery.readthedocs.io/en/latest/).
 
 ## Known limitations
 

@@ -30,7 +30,6 @@ from termcolor import cprint
 # Local application imports
 from .dirs import dirs
 
-
 # ============ #
 # Global Debug #
 # ============ #

@@ -34,7 +34,6 @@ from tqdm.auto import tqdm
 from ..utils import *
 from ..yugiquery import run
 
-
 # ============ #
 # Enum Classes #
 # ============ #
