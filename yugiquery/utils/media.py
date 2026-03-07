@@ -1,4 +1,4 @@
-# yugiquery/utils/image.py
+# yugiquery/utils/media.py
 
 # -*- coding: utf-8 -*-
 

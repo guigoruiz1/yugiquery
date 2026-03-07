@@ -62,6 +62,7 @@ if __package__:
         make_filename,
         unlock,
         get_notebook_path,
+        make_jekyll_page,
     )  # Explicit re-import for type checking
 else:
     from utils import *
@@ -79,6 +80,7 @@ else:
         make_filename,
         unlock,
         get_notebook_path,
+        make_jekyll_page,
     )  # Explicit re-import for type checking
 
 # Overwrite packages with versions specific for jupyter notebook
@@ -592,7 +594,7 @@ def load_latest_data(
             if col in df:
                 try:
                     df[col] = df[col].dropna().apply(literal_eval)
-                except:
+                except (ValueError, SyntaxError):
                     pass
 
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
@@ -1218,7 +1220,7 @@ def get_ygoprodeck() -> pd.DataFrame:
             ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
         else:
             print("Unable to obtain ygoprodeck data")
-            raise e
+            raise
 
     return ydk_data
 
@@ -2045,45 +2047,89 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 # ============ #
 
 
-def update_index(dry_run: bool = False) -> str:
+def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = None) -> str:
     """
-    Update the index.md and README.md files with a table of links to all HTML reports in the `REPORTS` directory.
-    Also update the @REPORT_|_TIMESTAMP@ and @TIMESTAMP@ placeholders in the index.md file with the latest timestamp.
+    Update the index.md and README.md files with a table of links to all reports in the `REPORTS` directory.
+    Prefers Jekyll pages (.md) over direct HTML files when both exist. Links to Jekyll pages use the
+    /reports/Title/ format, while direct HTML files use reports/Title.html.
+    Also updates the last execution timestamp in both files.
     If the update is successful, commit the changes to Git with a commit message that includes the timestamp.
-    If there is no index.md or README.md files in the `ASSETS` directory, print an error message and abort.
 
     Args:
         dry_run (bool, optional): If True, the function will not commit the changes to Git. Defaults to False.
+        page_paths (List[Path | str] | None, optional): Additional paths to search for Jekyll .md files.
+            Can be directories (scans for *.md) or individual .md files. Defaults to None.
 
     Returns:
         str: The result of the Git commit if not `dry_run`, otherwise advisory message.
 
     Raises:
-        FileNotFoundError: If there is no index.md or README.md files in the `ASSETS` directory.
-        ValueError: If the table markers or timestamp pattern are not found in the index.md file.
+        FileNotFoundError: If there is no index.md or README.md files in the working directory.
+        ValueError: If the table markers or timestamp pattern are not found in the files.
     """
+
+    def extract_permalink(md_file: Path) -> str | None:
+        """Extract permalink from Jekyll frontmatter, returns None if not found."""
+        with open(md_file, "r", encoding="utf-8") as f:
+            in_frontmatter = False
+            for line in f:
+                if line.strip() == "---":
+                    if in_frontmatter:
+                        return None  # End of frontmatter, not found
+                    in_frontmatter = True
+                    continue
+                if in_frontmatter and line.strip().startswith("permalink:"):
+                    permalink = line.split(":", 1)[1].strip()
+                    return permalink.strip('"').strip("'")
+        return None
 
     index_path = dirs.WORK / "index.md"
     readme_path = dirs.WORK / "README.md"
 
     timestamp = arrow.utcnow()
 
-    if not index_path.is_file():
-        raise FileNotFoundError("Missing index.md file!")
-    if not readme_path.is_file():
-        raise FileNotFoundError("Missing README.md file!")
-
     with open(index_path, encoding="utf-8") as f:
         index = f.read()
     with open(readme_path, encoding="utf-8") as f:
         readme = f.read()
 
-    reports = sorted(dirs.REPORTS.glob("*.html"))
+    # Collect all reports: start with HTML, then overwrite with .md (gives .md priority)
+    all_reports = {f.stem: ("html", f) for f in dirs.REPORTS.glob("*.html")}
+
+    # Add .md files from REPORTS
+    for f in dirs.REPORTS.glob("*.md"):
+        all_reports[f.stem] = ("md", f)
+
+    # Include additional page paths if provided
+    if page_paths:
+        for path in page_paths:
+            path = Path(path)
+            if path.is_dir():
+                for f in path.glob("*.md"):
+                    all_reports[f.stem] = ("md", f)
+            elif path.is_file() and path.suffix == ".md":
+                all_reports[path.stem] = ("md", path)
+
     rows = []
-    for report in reports:
-        rows.append(
-            f"[{Path(report).stem}]({report.relative_to(dirs.WORK)}) | {pd.to_datetime(report.stat().st_mtime, unit='s', utc=True).strftime('%d/%m/%Y %H:%M %Z')}"
-        )
+    for stem in sorted(all_reports.keys()):
+        file_type, report_file = all_reports[stem]
+
+        if file_type == "md":
+            # Jekyll page - read permalink from frontmatter
+            permalink = extract_permalink(report_file)
+            if permalink:
+                # Remove leading/trailing slashes for consistency
+                link_path = permalink.strip("/")
+            else:
+                # Fallback to default pattern
+                link_path = f"reports/{stem}"
+        else:
+            # Direct HTML file
+            link_path = str(report_file.relative_to(dirs.WORK))
+
+        timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
+        rows.append(f"[{stem}]({link_path}) | {timestamp_str}")
+
     table = " |\n| ".join(rows)
 
     def replace_table(content: str) -> str:
@@ -2340,6 +2386,7 @@ def run(
     cleanup: bool | Literal["auto"] = "auto",
     dry_run: bool = False,
     squash: bool = True,
+    jekyll: bool = False,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
     debug: bool = False,
@@ -2352,8 +2399,9 @@ def run(
         reports (str | List[str] | List[Path], optional): The report to generate. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
-        dry_run (bool, optional): dry_run flag to pass to cleanup_data method call. Defaults to False.
+        dry_run (bool, optional): dry_run flag to pass to notebook execution and other operations. If True, notebooks will be executed but no changes will be committed to Git, Jekyll pages will not be created, and the index will not be updated. Defaults to False.
         squash (bool, optional): squash commits after execution. Defaults to True.
+        jekyll (bool, optional): whether to generate Jekyll markdown pages for HTML reports. Defaults to False.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
         debug (bool, optional): Whether to enable debug mode. Default is False.
@@ -2378,64 +2426,86 @@ def run(
     # Get the current commit hash
     start_commit = git.get_repo().head.commit
 
-    # TODO: Error handling
     lock("run")
-
-    # Execute notebooks
     try:
-        if len(report_paths) > 0:
-            run_notebooks(
-                reports=report_paths,
-                external_pbar=progress_handler.pbar if progress_handler else None,
-                discord=discord,
-                telegram=telegram,
-                debug=debug,
-                dry_run=dry_run,
-            )
-        else:
-            cprint(text="No reports found. Ignoring... \n", color="yellow")
-    except Exception as e:
-        if progress_handler:
-            progress_handler.send(error=str(e))
-        # TODO: Print message informing that the subsequent steps will be skipped
-        raise e
-    finally:
-        # Update page index to reflect last execution timestamp
-        # Error is not critical but should be noted
+        # Execute notebooks
         try:
-            index_result = update_index(dry_run=dry_run)
-            print(index_result)
+            if len(report_paths) > 0:
+                run_notebooks(
+                    reports=report_paths,
+                    external_pbar=progress_handler.pbar if progress_handler else None,
+                    discord=discord,
+                    telegram=telegram,
+                    debug=debug,
+                    dry_run=dry_run,
+                )
+            else:
+                cprint(text="No reports found. Ignoring... \n", color="yellow")
         except Exception as e:
             if progress_handler:
                 progress_handler.send(error=str(e))
-            cprint(text=f"Error updating index. Ignoring... \n", color="yellow")
-            print(e)
-
-    # Cleanup redundant data files
-    # TODO: Check error handling
-    if cleanup == "auto":
-        data_files_count = len(list(dirs.DATA.glob("*.bz2")))
-        reports_count = len(list(dirs.REPORTS.glob("*.html")))
-        cleanup = data_files_count / max(reports_count, 1) > 10
-    elif cleanup:
-        cleanup_data(dry_run=dry_run)
-
-    # Squash commits if any
-    if squash:
-        if dry_run:
-            print("\nDry run - Squashing commits")
-        else:
+            raise
+        finally:
+            # Update page index to reflect last execution timestamp
             # Error is not critical but should be noted
-            print("\nSquashing commits")
             try:
-                squash_results = git.squash_commits(start_commit)
-                print(squash_results)
+                index_result = update_index(dry_run=dry_run)
+                print(index_result)
             except Exception as e:
-                cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
+                if progress_handler:
+                    progress_handler.send(error=str(e))
+                cprint(text=f"Error updating index. Ignoring... \n", color="yellow")
                 print(e)
 
-    # TODO: Error handling
-    unlock("run")
+        # Cleanup redundant data files
+        if cleanup == "auto":
+            data_files_count = len(list(dirs.DATA.glob("*.bz2")))
+            reports_count = len(list(dirs.REPORTS.glob("*.html")))
+            cleanup = data_files_count / max(reports_count, 1) > 10
+        if cleanup:
+            try:
+                cleanup_data(dry_run=dry_run)
+            except Exception as e:
+                if progress_handler:
+                    progress_handler.send(error=str(e))
+                cprint(text=f"Error cleaning up data. Ignoring... \n", color="yellow")
+                print(e)
+
+        # Generate Jekyll pages for reports
+        if jekyll:
+            print("\nGenerating Jekyll pages")
+            for report_path in report_paths:
+                title = Path(report_path).stem
+                if dry_run:
+                    print(f"Dry run - Would create Jekyll page for: {title}")
+                else:
+                    try:
+                        make_jekyll_page(title=title)
+                    except Exception as e:
+                        if progress_handler:
+                            progress_handler.send(error=str(e))
+                        cprint(text=f"Error creating Jekyll page for {title}. Ignoring... \n", color="yellow")
+                        print(e)
+
+        # Squash commits if any
+        if squash:
+            if dry_run:
+                print("\nDry run - Squashing commits")
+            else:
+                # Error is not critical but should be noted
+                print("\nSquashing commits")
+                try:
+                    squash_results = git.squash_commits(start_commit)
+                    print(squash_results)
+                except Exception as e:
+                    cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
+                    print(e)
+    finally:
+        try:
+            unlock("run")
+        except Exception as e:
+            cprint(text=f"Error unlocking run lock.\n", color="red")
+            print(e)
 
 
 # ========= #
@@ -2451,6 +2521,7 @@ def main(args):
         reports=args.reports,
         cleanup=args.cleanup,
         dry_run=args.dryrun,
+        jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
         debug=args.debug,
@@ -2465,6 +2536,12 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         default="all",
         type=str,
         help="the report(s) to be generated. Defaults to 'all'",
+    )
+    parser.add_argument(
+        "-j",
+        "--jekyll",
+        action="store_true",
+        help="generate Jekyll markdown pages for HTML reports. Defaults to False",
     )
     parser.add_argument(
         "-c",

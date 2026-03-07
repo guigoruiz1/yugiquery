@@ -91,7 +91,9 @@ def export_notebook(
     if input_path is None:
         input_path = get_notebook_path()
         if input_path is None:
-            raise ValueError("No notebook path provided")
+            raise ValueError(
+                "Notebook path not found. Please provide an input path or ensure the notebook is opened in JupyterLab."
+            )
         input_path = str(get_notebook_path())
     if output_path is None:
         output_path = str(dirs.REPORTS / Path(input_path).stem)
@@ -131,6 +133,62 @@ def export_notebook(
     print(f"Notebook converted to HTML and saved to {output_path}.html")
 
 
+# ============ #
+# Jekyll Pages #
+# ============ #
+
+
+def make_jekyll_page(
+    title: str | None = None,
+    placeholders: dict[str, str] | None = None,
+    output_path: str | Path | None = None,
+) -> None:
+    """
+    Generate a Jekyll markdown page from the ``assets/html/index.md`` template.
+
+    Args:
+        title (str | None, optional): Report title used for ``@title@`` replacement and default output filename.
+            If None or empty, uses the current notebook stem from get_notebook_path(); falls back to "index" when unavailable. Defaults to None.
+        placeholders (dict[str, str] | None, optional): Additional placeholder values.
+            Keys should be provided without @ symbols, e.g. ``{"title": "Cards"}``.
+        output_path (str | Path | None, optional): Output path. If None, defaults to
+            ``reports/<title>.md``. Relative paths are resolved relative to the reports directory.
+    """
+    if not title:
+        path = get_notebook_path()
+        title = path.stem if path else "index"
+
+    template_path = dirs.get_asset("html", "index.md")
+    with open(template_path, encoding="utf-8") as f:
+        content = f.read()
+
+    values = {"title": title}
+    if placeholders:
+        values.update({str(key): str(value) for key, value in placeholders.items()})
+
+    for key, value in values.items():
+        # Replace placeholders such as @title@
+        placeholder = f"@{key}@"
+        content = content.replace(placeholder, value)
+
+    if output_path:
+        output_path = Path(output_path)
+        # Only add .md if no extension provided
+        if not output_path.suffix:
+            output_path = output_path.with_suffix(".md")
+        if not output_path.is_absolute():
+            output_path = dirs.REPORTS / output_path
+    else:
+        output_path = dirs.REPORTS / f"{title}.md"
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, mode="w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"Report page generated at {output_path}")
+
+
 # ==== #
 # HTML #
 # ==== #
@@ -142,7 +200,7 @@ def header(name: str | None = None, timestamp: arrow.Arrow | None = None) -> HTM
     If there is no header.html file in the `ASSETS` directory, prints an error message and returns None.
 
     Args:
-        name (str | None, optional): The name of the notebook. If None, attempts to extract the name from the environment variable JPY_SESSION_NAME. Defaults to None.
+        name (str | None, optional): The name of the notebook. If None, uses the current notebook stem from get_notebook_path(); falls back to "Unnamed" when unavailable. Defaults to None.
         timestamp (arrow.Arrow | None, optional): The timestamp to use. If None, uses the current time. Defaults to None.
 
     Returns:
@@ -156,8 +214,8 @@ def header(name: str | None = None, timestamp: arrow.Arrow | None = None) -> HTM
     try:
         with open(header_path, encoding="utf-8") as f:
             header = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
+    except FileNotFoundError:
+        print(f"Template file not found: {header_path}. Ignoring.")
         return None
 
     timestamp = timestamp or arrow.utcnow()
@@ -185,8 +243,8 @@ def footer(timestamp: arrow.Arrow | None = None) -> HTML | None:
     try:
         with open(footer_path, encoding="utf-8") as f:
             footer = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
+    except FileNotFoundError:
+        print(f"Template file not found: {footer_path}. Ignoring.")
         return None
 
     now = timestamp or arrow.utcnow()
@@ -209,8 +267,8 @@ def buttons() -> HTML | None:
     try:
         with open(buttons_path, encoding="utf-8") as f:
             buttons = f.read()
-    except:
-        print('Missing template file in "assets". Aborting...')
+    except FileNotFoundError:
+        print(f"Template file not found: {buttons_path}. Ignoring.")
         return None
 
     return HTML(buttons)
