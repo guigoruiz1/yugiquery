@@ -692,36 +692,7 @@ def merge_set_to_cards(*card_df, set_df) -> pd.DataFrame:
 
 
 # Formatters
-def format_artwork(row: pd.Series) -> Tuple[str, ...] | float:  # TODO: Pending testing
-    """
-    Formats a row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
-    If the "alternate artworks" column(s) in the row contain at least one "True" value, adds "Alternate" to the result tuple.
-    If the "edited artworks" column(s) in the row contain at least one "True" value, adds "Edited" to the result tuple.
-    Returns the result tuple as a pandas Series.
-    Args:
-
-        row (pd.Series): A row of a dataframe that contains "alternate artworks" and "edited artworks" columns.
-
-    Returns:
-        Tuple[str, ...] | float: The formatted row as a tuple of strings, or np.nan if no artwork modifications exist.
-    """
-    result = tuple()
-    index_str = row.index.str
-    if index_str.endswith("alternate artworks").any():
-        matching_cols = row.index[index_str.endswith("alternate artworks")]
-        if row[matching_cols].any():
-            result += ("Alternate",)
-    if index_str.endswith("edited artworks").any():
-        matching_cols = row.index[index_str.endswith("edited artworks")]
-        if row[matching_cols].any():
-            result += ("Edited",)
-    if result == tuple():
-        return np.nan
-    else:
-        return result
-
-
-def format_errata(row: pd.Series) -> Tuple[str, ...] | float:  # TODO: Pending testing
+def _format_errata(row: pd.Series) -> Tuple[str, ...] | float:  # TODO: Pending testing
     """
     Formats errata information from a pandas Series and returns a pandas series of errata types.
 
@@ -759,7 +730,7 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
         pd.DataFrame: A pandas DataFrame with errata information merged into it.
     """
     if "Name" in input_df.columns:
-        errata_series: pd.Series = input_errata_df.apply(format_errata, axis=1)
+        errata_series: pd.Series = input_errata_df.apply(_format_errata, axis=1)
         input_df = input_df.merge(
             errata_series.rename("Errata"),
             left_on="Name",
@@ -2172,37 +2143,25 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
 # ======================= #
 
 
-# TODO: Propagate the debug flag to notebooks
-def run_notebooks(
+def _setup_progress_bars(
     reports: str | list[str] | List[Path],
-    external_pbar: Callable[..., tqdm | None] | None = None,
-    discord: bool | argparse.Namespace = False,
-    telegram: bool | argparse.Namespace = False,
-    dry_run: bool = False,
-    debug: bool = False,
-) -> None:
+    external_pbar: Callable[..., tqdm | None] | None,
+    discord: bool | argparse.Namespace,
+    telegram: bool | argparse.Namespace,
+) -> List[tqdm]:
     """
-    Execute specified Jupyter notebooks using Papermill.
+    Setup progress bars for notebook execution including local, Discord, and Telegram.
 
     Args:
-        reports (str | List[str] | List[Path]): List of notebooks to execute.
-        external_pbar (Callable[..., tqdm | None] | None, optional): A callable that returns a tqdm progress bar instance. Defaults to None.
-        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
-        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
-        dry_run (bool, optional): Whether to run in dry run mode. Default is False.
-        debug (bool, optional): Whether to enable debug mode. Default is False.
+        reports (str | list[str] | List[Path]): List of notebook paths to execute.
+        external_pbar (Callable[..., tqdm | None] | None): External progress bar callable.
+        discord (bool | argparse.Namespace): Discord configuration.
+        telegram (bool | argparse.Namespace): Telegram configuration.
 
     Returns:
-        None
-
-    Raises:
-        Exception: Raised if any exceptions occur during notebook execution.
+        List[tqdm]: List of configured progress bars.
     """
-
     contribs = {"discord": discord, "telegram": telegram}
-
-    # Initialize iterators
-    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = []
 
     pbar_kwargs: dict[str, Any] = dict(
@@ -2214,7 +2173,7 @@ def run_notebooks(
         desc="Completion",
     )
 
-    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
+    # Setup primary progress bar
     if external_pbar is not None:
         pbars.append(external_pbar(position=0, **pbar_kwargs))
     else:
@@ -2225,8 +2184,9 @@ def run_notebooks(
             )
         )
 
-    # Helper to handle each contrib
+    # Helper to setup contrib progress bars (Discord/Telegram)
     def setup_contrib(contrib: str) -> tqdm | None:
+        """Setup a single contrib progress bar (Discord or Telegram)."""
         contrib_upper = contrib.upper()
         contrib_value = contribs.get(contrib)
 
@@ -2272,6 +2232,7 @@ def run_notebooks(
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
             else:
                 cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+                return None
             return contrib_tqdm(
                 token=tkn,
                 file=open(os.devnull, "w"),
@@ -2283,11 +2244,44 @@ def run_notebooks(
             cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
             return None
 
-    # Iterate over potential contrib names
+    # Setup contrib progress bars
     for contrib in contribs:
         pbar = setup_contrib(contrib)
         if pbar:
             pbars.append(pbar)
+
+    return pbars
+
+
+# TODO: Propagate the debug flag to notebooks
+def run_notebooks(
+    reports: str | list[str] | List[Path],
+    external_pbar: Callable[..., tqdm | None] | None = None,
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+    dry_run: bool = False,
+    debug: bool = False,
+) -> None:
+    """
+    Execute specified Jupyter notebooks using Papermill.
+
+    Args:
+        reports (str | List[str] | List[Path]): List of notebooks to execute.
+        external_pbar (Callable[..., tqdm | None] | None, optional): A callable that returns a tqdm progress bar instance. Defaults to None.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        dry_run (bool, optional): Whether to run in dry run mode. Default is False.
+        debug (bool, optional): Whether to enable debug mode. Default is False.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: Raised if any exceptions occur during notebook execution.
+    """
+    # Setup progress bars
+    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
+    pbars = _setup_progress_bars(reports, external_pbar, discord, telegram)
 
     # Create the main logger
     logger = logging.getLogger("papermill")

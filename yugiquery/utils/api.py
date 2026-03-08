@@ -274,8 +274,8 @@ def fetch_properties(
                     spinner.fail(f"HTTP error code {response.status_code}")
                     break
 
-                result = extract_results(response)
-                formatted_df = format_df(input_df=result, include_all=include_all)
+                result = _extract_results(response)
+                formatted_df = _format_df(input_df=result, include_all=include_all)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
                 if debug:
@@ -421,11 +421,11 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
             url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
             headers=URLS.headers,
         )
-        formatted_response = extract_results(response)
+        formatted_response = _extract_results(response)
         formatted_response.drop(
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
+        formatted_df = _format_df(input_df=formatted_response, include_all=(True if extra_info else False))
         if debug:
             tqdm.write(f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors")
             tqdm.write("-------------------------------------------------")
@@ -681,7 +681,7 @@ def fetch_set_lists(
 # ========== #
 
 
-def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
+def _format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
     """
     Formats a dataframe containing card information.
     Returns a new dataframe with specific columns extracted and processed.
@@ -731,13 +731,13 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     }
     for col, multi in individual_cols.items():
         if col in input_df.columns:
-            extracted_col = input_df[col].apply(extract_fulltext, multiple=multi)
+            extracted_col = input_df[col].apply(_extract_fulltext, multiple=multi)
             # Primary type classification
             if col == "Primary type":
-                df[col] = extracted_col.apply(extract_primary_type)
+                df[col] = extracted_col.apply(_extract_primary_type)
             elif col == "Misc":
                 # Rush specific
-                df = df.join(extracted_col.apply(extract_misc))
+                df = df.join(extracted_col.apply(_extract_misc))
             else:
                 df[col] = extracted_col
 
@@ -758,7 +758,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     for col, extract in filter_cols.items():
         col_matches = input_df.filter(like=col).columns
         if len(col_matches) > 0:
-            extracted_cols = input_df[col_matches].map(extract_fulltext if extract else lambda x: x)
+            extracted_cols = input_df[col_matches].map(_extract_fulltext if extract else lambda x: x)
             if col == " Material":
                 df["Materials"] = extracted_cols.apply(lambda x: tuple(elem for tup in x for elem in tup), axis=1)
             else:
@@ -771,10 +771,10 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     for col, cat in category_bool_cols.items():
         col_matches = input_df.filter(regex=cat).columns
         if len(col_matches) > 0:
-            cat_bool = input_df[col_matches].map(extract_category_bool)
+            cat_bool = input_df[col_matches].map(_extract_category_bool)
             # Artworks extraction
             if col == "Artwork":
-                df[col] = cat_bool.apply(extract_artwork, axis=1)
+                df[col] = cat_bool.apply(_extract_artwork, axis=1)
             else:
                 df[col] = cat_bool
 
@@ -790,12 +790,12 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
 
     # Include other unspecified columns
     if include_all:
-        df = df.join(input_df[input_df.columns.difference(df.columns)].map(extract_fulltext, multiple=True))
+        df = df.join(input_df[input_df.columns.difference(df.columns)].map(_extract_fulltext, multiple=True))
 
     return df
 
 
-def extract_results(response: requests.Response) -> pd.DataFrame:
+def _extract_results(response: requests.Response) -> pd.DataFrame:
     """
     Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
 
@@ -818,8 +818,7 @@ def extract_results(response: requests.Response) -> pd.DataFrame:
     return df
 
 
-# Receives a list of dictionaries or strings from an element of a series or detaframe
-def extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str, ...] | float:
+def _extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str, ...] | float:
     """
     Extracts fulltext from a list of dictionaries or strings.
     If multiple is True, returns a sorted tuple of all fulltexts.
@@ -858,9 +857,7 @@ def extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False
         return np.nan
 
 
-# Cards
-# Receives a list of strings from an element of a series
-def extract_category_bool(element: List[str]) -> float | bool:
+def _extract_category_bool(element: List[str]) -> float | bool:
     """
     Extracts a boolean value from a list of strings that represent a boolean value.
     If the first string in the list is "t", returns True.
@@ -882,8 +879,7 @@ def extract_category_bool(element: List[str]) -> float | bool:
     return np.nan
 
 
-# Receives a list/tuple of strings or string from an element of a series
-def extract_primary_type(element: str | List[str] | Tuple[str]) -> str | List[str]:
+def _extract_primary_type(element: str | List[str] | Tuple[str]) -> str | List[str]:
     """
     Extracts the primary type of a card.
     If the input is a list or tuple, removes "Pendulum Monster" and "Maximum Monster" from the list.
@@ -912,8 +908,7 @@ def extract_primary_type(element: str | List[str] | Tuple[str]) -> str | List[st
     return element
 
 
-# Receives a list/tuple of strings or string from an element of a series
-def extract_misc(element: str | List[str] | Tuple[str]) -> pd.Series:
+def _extract_misc(element: str | List[str] | Tuple[str]) -> pd.Series:
     """
     Extracts the misc properties of a card.
     Checks whether the input contains the values "Legend Card" or "Requires Maximum Mode" and creates a boolean table.
@@ -933,8 +928,7 @@ def extract_misc(element: str | List[str] | Tuple[str]) -> pd.Series:
         return pd.Series([False, False], index=["Legend", "Maximum mode"])
 
 
-# Receives a series representing a row in a dataframe
-def extract_artwork(row: pd.Series) -> float | Tuple[str, ...]:
+def _extract_artwork(row: pd.Series) -> float | Tuple[str, ...]:
     """
     Formats a row in a dataframe that contains "alternate artworks" and "edited artworks" columns.
     If the "alternate artworks" column in a row contain at least one "True" value, adds "Alternate" to the result tuple.
