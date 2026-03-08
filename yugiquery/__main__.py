@@ -8,8 +8,10 @@ import importlib
 
 # Local application imports
 from .metadata import __title__, __version__
-from .utils import dirs, api, CustomHelpFormatter
-from . import yugiquery as yq
+from .cli import CustomHelpFormatter
+from .utils import dirs
+from . import api
+from . import cli
 from . import bot
 from .scripts import optionals
 
@@ -25,7 +27,7 @@ def main():
 
     # Subparser for the main yugiquery flow
     yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow", formatter_class=CustomHelpFormatter)
-    yq.set_parser(yugiquery_parser)
+    cli.set_parser(yugiquery_parser)
     # Subparser for the bot mode
     bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
     bot.set_parser(bot_parser)
@@ -66,7 +68,7 @@ def main():
             bot.main(args)
         else:
             # Main Yugiquery flow
-            yq.main(args)
+            cli.main(args)
 
 
 if __name__ == "__main__":

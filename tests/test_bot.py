@@ -13,7 +13,7 @@ def test_abort_branches(monkeypatch):
     # no process -> abort failed
     b.process = None
     b.repo = None
-    assert b.abort() == "Abort failed."
+    assert b.abort() == "No query is currently running."
 
     # with a process object exposing terminate()
     class P:
@@ -26,7 +26,7 @@ def test_abort_branches(monkeypatch):
     p = P()
     b.process = p
     b.repo = None
-    assert b.abort() == "Aborted."
+    assert b.abort() == "Query aborted."
     assert p.terminated is True
 
 

@@ -32,7 +32,7 @@ from tqdm.auto import tqdm
 
 # Local application imports
 from ..utils import *
-from ..yugiquery import run
+from ..core import run
 
 # ============ #
 # Enum Classes #

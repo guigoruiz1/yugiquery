@@ -2,7 +2,6 @@
 
 # -*- coding: utf-8 -*-
 
-from . import api
 from . import plot
 from . import git
 from .plot import plt, sns

@@ -3,13 +3,6 @@ Utils Subpackage
 
 This subpackage contains the utility modules used by the YugiQuery package.
 
-Api Module
-----------------
-
-.. automodule:: yugiquery.utils.api
-   :members:
-   :show-inheritance:
-
 Dirs Module
 ----------------
 
@@ -28,6 +21,20 @@ Helpers Module
 ----------------
 
 .. automodule:: yugiquery.utils.helpers
+   :members:
+   :show-inheritance:
+
+Image Module
+----------------
+
+.. automodule:: yugiquery.utils.image
+   :members:
+   :show-inheritance:
+
+Notebook Module
+----------------
+
+.. automodule:: yugiquery.utils.notebook
    :members:
    :show-inheritance:
 

@@ -4,7 +4,7 @@
 
 import argparse
 from .base import set_parser, main
-from ..utils import CustomHelpFormatter
+from ..cli import CustomHelpFormatter
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter)

@@ -2,7 +2,7 @@ import socket
 
 import pytest
 
-from yugiquery.utils import api
+from yugiquery import api
 
 
 class _MockResp:
