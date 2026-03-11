@@ -14,38 +14,21 @@
 import calendar  # Used in notebooks
 import hashlib
 import json
+import logging
 import os
 import platform
-from ast import literal_eval
 from pathlib import Path
 from typing import Literal, List, Dict
 
 # Third-party imports
 import arrow
 from dotenv import dotenv_values
-from termcolor import cprint
 
 # Local application imports
 from .dirs import dirs
 
-# ============ #
-# Global Debug #
-# ============ #
 
-
-# TODO: find more elegant way to handle debuging
-def check_debug(local_debug: bool = False) -> bool:
-    """
-    Check if the debug mode is enabled.
-
-    Args:
-        local_debug (bool, optional): A boolean indicating whether the debug mode is enabled locally. Defaults to False.
-
-    Returns:
-        bool: A boolean indicating whether the debug mode is enabled.
-    """
-    return literal_eval(os.environ.get("YQ_DEBUG", "False")) or local_debug
-
+logger = logging.getLogger(__name__)
 
 # ============ #
 # Data loaders #
@@ -111,8 +94,11 @@ def load_json(json_file: str | Path) -> dict:
         with open(json_file, "r") as file:
             data = json.load(file)
             return data
-    except:
-        cprint(text=f"Error loading {json_file}! Returning empty dictionary. This may break some features.", color="yellow")
+    except Exception:
+        logger.warning(
+            "Error loading %s. Returning empty dictionary. This may break some features.",
+            json_file,
+        )
         return {}
 
 
@@ -268,7 +254,7 @@ def lock(file_name: str) -> None:
             existing_pid = lock_file.read().strip()
 
             if existing_pid:
-                print(f"Stale lock file held by process {existing_pid}. Replacing with current PID.")
+                logger.warning("Stale lock file held by process %s. Replacing with current PID.", existing_pid)
 
             # Write the current process PID into the file
             lock_file.seek(0)  # Go back to the beginning of the file
@@ -289,7 +275,7 @@ def unlock(file_name: str) -> None:
     lock_file_path = dirs.temp.joinpath(file_name).with_suffix(".lock")
 
     if not lock_file_path.exists():
-        print("Lock file does not exist. Ignoring unlock request.")
+        logger.debug("Lock file does not exist. Ignoring unlock request.")
 
     lock_file = open(lock_file_path, "w")
     try:

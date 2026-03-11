@@ -10,6 +10,7 @@
 
 # Standard library packages
 import argparse
+import logging
 import multiprocessing as mp
 import os
 import random
@@ -27,12 +28,14 @@ from typing import (
 
 # Third-party imports
 import pandas as pd
-from termcolor import cprint
 from tqdm.auto import tqdm
 
 # Local application imports
 from ..utils import *
 from ..core import run
+
+
+logger = logging.getLogger(__name__)
 
 # ============ #
 # Enum Classes #
@@ -172,7 +175,7 @@ class Bot:
             self.process.terminate()
             result_messages.append("Query aborted.")
         except Exception as e:
-            print(f"Failed to terminate process: {e}")
+            logger.error("Failed to terminate process: %s", e)
             return f"Abort failed: {e}"
 
         # Restore modified notebook files
@@ -183,7 +186,7 @@ class Bot:
                     git.restore(files=notebook_files, repo=self.repo)
                     result_messages.append("Files restored.")
             except Exception as e:
-                print(f"Failed to restore files: {e}")
+                logger.error("Failed to restore files: %s", e)
                 result_messages.append("Warning: File restoration failed.")
 
         return " ".join(result_messages)
@@ -470,7 +473,7 @@ class Bot:
             self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
-            print(e)
+            logger.error("Failed to start query process: %s", e)
             # await callback(f"Initialization failed!\n{e}")
             return {"error": f"Initialization failed!\n{e}"}
 
@@ -573,14 +576,23 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="bot responses Channel/Chat ID",
     )
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        required=False,
-        help="run in debug mode (not implemented)",
+        "--log-level",
+        dest="log_level",
+        type=str,
+        default=None,
+        help="set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    parser.add_argument(
+        "--log-file",
+        dest="log_file",
+        type=str,
+        default=None,
+        help="path to a log file",
     )
 
 
 def main(args) -> None:
+    setup_logging(level=args.log_level, log_file=args.log_file)
     # Set multiprocessing start method
     mp.set_start_method("spawn")
 
@@ -591,7 +603,7 @@ def main(args) -> None:
     try:
         tkn, ch = load_secrets_with_args(args)
     except KeyError as e:
-        cprint(text=f"{e}. Aborting...", color="red")
+        logger.error("%s. Aborting...", e)
         return
 
     # Handle bots based on subclass

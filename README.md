@@ -71,7 +71,7 @@ yugiquery bot SUBCLASS
 ```
 Where `SUBCLASS` can be either `telegram` or `discord`.
 
-Both the `yugiquery.py` and `bot.py` modules within the `yugiquery` package accept command line arguments. Using `-h` or `--help` will print an useful help message listing the parameters that can be passed and their usage.
+Both the main CLI (`yugiquery` / `python -m yugiquery`) and bot commands (`yugiquery bot ...`) accept command line arguments. Using `-h` or `--help` prints a help message with the available parameters and usage.
 
 
 ## Installation
@@ -124,26 +124,31 @@ The repository is organized with package code in `yugiquery/`, templates and ref
 
 ```
 yugiquery/
-├─ notebooks/                 # Source report notebooks
-├─ reports/                   # Generated HTML reports
+├─ assets/
+│  ├─ html/                   # Reusable HTML snippets for rendered pages
+│  ├─ json/                   # Reference dictionaries (colors, dates, headers, rarities, regions)
+│  ├─ scripts/                # Utility scripts (e.g., git filters)
+│  └─ templates/              # Notebook templates used by installer/workflow
 ├─ data/                      # Persistent datasets and exports
 │  ├─ *.ydk / *.txt           # Deck files (Yu-Gi-Oh card decks)
 │  ├─ collection.csv / .xlsx  # User card collection
 │  ├─ ygoprodeck.json         # API cache from YGOProDeck
 │  ├─ benchmark.json          # Performance/test data snapshots
-│  └─ *.bz2                   # Compressed backups (report data & changelog history)
-├─ assets/
-│  ├─ templates/              # Notebook templates used by installer/workflow
-│  ├─ json/                   # Reference dictionaries (colors, dates, regions, etc.)
-│  ├─ html/                   # Reusable HTML snippets for rendered pages
-│  └─ scripts/                # Utility scripts (e.g., git filters)
-├─ yugiquery/
-│  ├─ yugiquery.py            # Main workflow/CLI entry logic
-│  ├─ __main__.py             # Module entry point (`python -m yugiquery`)
-│  ├─ utils/                  # API, helpers, plotting, notebook utilities
-│  └─ bot/                    # Telegram/Discord bot implementations
+│  └─ *_data_*.bz2 / *_changelog_*.bz2  # Historical compressed data/changelog snapshots
+├─ docs/                      # ReadTheDocs source (Sphinx)
+├─ notebooks/                 # Source report notebooks
+├─ reports/                   # Generated HTML reports
 ├─ tests/                     # Automated tests
-├─ docs/                      # ReadTheDocs source
+├─ yugiquery/
+│  ├─ __init__.py             # Package exports
+│  ├─ __main__.py             # Module entry point (python -m yugiquery)
+│  ├─ cli.py                  # CLI command orchestration
+│  ├─ metadata.py             # Package metadata/constants
+│  ├─ api/                    # Yugipedia/YGOProDeck access layer
+│  ├─ bot/                    # Telegram/Discord bot implementations
+│  ├─ core/                   # Data/deck/pipeline/maintenance workflows
+│  ├─ scripts/                # Internal maintenance/automation scripts
+│  └─ utils/                  # Dirs, git, notebook, image, plot, progress helpers
 ├─ pyproject.toml             # Package/project configuration
 ├─ requirements.txt           # Pinned dependencies
 ├─ index.md                   # Project site landing page content

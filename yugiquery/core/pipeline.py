@@ -13,12 +13,14 @@ from typing import Any, Callable, List, Literal
 import nbformat
 import papermill as pm
 from jupyter_client import kernelspec
-from termcolor import cprint
 from tqdm.auto import tqdm
 
 from .. import api
 from . import cleanup_data, update_index
-from ..utils import ProgressHandler, check_debug, dirs, git, load_secrets, lock, make_jekyll_page, unlock
+from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, setup_logging, unlock
+
+
+logger = logging.getLogger(__name__)
 
 
 def _setup_progress_bars(
@@ -74,7 +76,7 @@ def _setup_progress_bars(
         elif contrib_upper == "TELEGRAM":
             ch_key = "chat_id"
         else:
-            cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+            logger.warning("Unsupported contrib: %s. Ignoring...", contrib)
             return None
 
         # Get credentials from contrib_value or secrets
@@ -89,7 +91,7 @@ def _setup_progress_bars(
                 tkn = secrets.get(required_secrets[0])
                 ch = secrets.get(required_secrets[1])
             except Exception:
-                cprint(text=f"Missing {contrib} secrets. Ignoring...", color="yellow")
+                logger.warning("Missing %s secrets. Ignoring...", contrib)
                 return None
         elif isinstance(contrib_value, argparse.Namespace):
             tkn = contrib_value.tkn
@@ -99,7 +101,7 @@ def _setup_progress_bars(
 
         # Validate credentials
         if not tkn or not ch:
-            cprint(text=f"Missing {contrib} credentials. Ignoring...", color="yellow")
+            logger.warning("Missing %s credentials. Ignoring...", contrib)
             return None
 
         # Import and initialize the appropriate tqdm contrib
@@ -109,7 +111,7 @@ def _setup_progress_bars(
             elif contrib_upper == "TELEGRAM":
                 from tqdm.contrib.telegram import tqdm as contrib_tqdm
             else:
-                cprint(text=f"Unsupported contrib: {contrib}. Ignoring...", color="yellow")
+                logger.warning("Unsupported contrib: %s. Ignoring...", contrib)
                 return None
             return contrib_tqdm(
                 token=tkn,
@@ -118,8 +120,7 @@ def _setup_progress_bars(
                 **pbar_kwargs,
             )
         except Exception as e:
-            print(e)
-            cprint(text=f"Error setting up {contrib} progress bar. Ignoring...", color="yellow")
+            logger.warning("Error setting up %s progress bar. Ignoring... %s", contrib, e)
             return None
 
     # Setup contrib progress bars
@@ -137,7 +138,6 @@ def run_notebooks(
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
     dry_run: bool = False,
-    debug: bool = False,
 ) -> None:
     """
     Execute specified Jupyter notebooks using Papermill.
@@ -148,7 +148,6 @@ def run_notebooks(
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
         dry_run (bool, optional): Whether to run in dry run mode. Default is False.
-        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Returns:
         None
@@ -157,22 +156,22 @@ def run_notebooks(
         Exception: Raised if any exceptions occur during notebook execution.
     """
     # Setup progress bars
+    setup_logging(use_tqdm=True)
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = _setup_progress_bars(reports, external_pbar, discord, telegram)
 
     # Create the main logger
-    logger = logging.getLogger("papermill")
-    logger.setLevel(logging.INFO)
+    papermill_logger = logging.getLogger("papermill")
+    papermill_logger.setLevel(logging.INFO)
 
     # Create a StreamHandler and attach it to the logger
     stream_handler = logging.StreamHandler(io.StringIO())
     stream_handler.setFormatter(logging.Formatter("%(message)s"))
     stream_handler.addFilter(lambda record: record.getMessage().startswith("Ending Cell"))
-    logger.addHandler(stream_handler)
+    papermill_logger.addHandler(stream_handler)
 
     exceptions = []
-    os.environ["YQ_DEBUG"] = str(check_debug(debug))
-    tqdm.write("\nExecution started")
+    logger.info("Execution started")
     for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
@@ -184,7 +183,7 @@ def run_notebooks(
             pbar.set_postfix(report=report_name)
 
         if dry_run:
-            tqdm.write(f"Dry run - Generating {report_name} report")
+            logger.info("Dry run - Generating %s report", report_name)
             continue
 
         with open(report) as f:
@@ -200,7 +199,7 @@ def run_notebooks(
         # Attach the update_pbar function to the stream_handler
         stream_handler.flush = update_pbar
 
-        tqdm.write(f"\nGenerating {report_name} report")
+        logger.info("Generating %s report", report_name)
 
         # execute the notebook with papermill
         os.environ["PM_IN_EXECUTION"] = dest_report
@@ -218,7 +217,7 @@ def run_notebooks(
                 kernel_name=kernel_name,
             )
         except pm.PapermillExecutionError as e:
-            tqdm.write(str(e))
+            logger.error("%s", e)
             exceptions.append(e)
         finally:
             os.environ.pop("PM_IN_EXECUTION", default=None)
@@ -228,9 +227,7 @@ def run_notebooks(
 
             unlock(report_name)
 
-    # Empty character for better readability
-    tqdm.write("\nExecution completed")
-    os.environ.pop("YQ_DEBUG", default=None)
+    logger.info("Execution completed")
 
     # Close the iterator
     for pbar in pbars:
@@ -241,7 +238,7 @@ def run_notebooks(
     # Close the stream_handler
     stream_handler.close()
     # Clear custom handler
-    logger.handlers.clear()
+    papermill_logger.handlers.clear()
 
     warnings.filterwarnings("default")
 
@@ -259,7 +256,6 @@ def run(
     jekyll: bool = False,
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
-    debug: bool = False,
 ) -> None:
     """
     Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
@@ -274,7 +270,6 @@ def run(
         jekyll (bool, optional): whether to generate Jekyll markdown pages for HTML reports. Defaults to False.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
         telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
-        debug (bool, optional): Whether to enable debug mode. Default is False.
 
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
@@ -283,6 +278,7 @@ def run(
         None: This function does not return a value.
     """
     report_paths = dirs.find_notebooks(reports)
+    setup_logging()
 
     # Check API status
     api_status = api.check_status()
@@ -304,11 +300,10 @@ def run(
                     external_pbar=progress_handler.pbar if progress_handler else None,
                     discord=discord,
                     telegram=telegram,
-                    debug=debug,
                     dry_run=dry_run,
                 )
             else:
-                cprint(text="No reports found. Ignoring... \n", color="yellow")
+                logger.warning("No reports found. Ignoring...")
         except Exception as e:
             if progress_handler:
                 progress_handler.send(error=str(e))
@@ -318,12 +313,11 @@ def run(
             # Error is not critical but should be noted
             try:
                 index_result = update_index(dry_run=dry_run)
-                print(index_result)
+                logger.info("%s", index_result)
             except Exception as e:
                 if progress_handler:
                     progress_handler.send(error=str(e))
-                cprint(text=f"Error updating index. Ignoring... \n", color="yellow")
-                print(e)
+                logger.warning("Error updating index. Ignoring... %s", e)
 
         # Cleanup redundant data files
         if cleanup == "auto":
@@ -336,41 +330,37 @@ def run(
             except Exception as e:
                 if progress_handler:
                     progress_handler.send(error=str(e))
-                cprint(text=f"Error cleaning up data. Ignoring... \n", color="yellow")
-                print(e)
+                logger.warning("Error cleaning up data. Ignoring... %s", e)
 
         # Generate Jekyll pages for reports
         if jekyll:
-            print("\nGenerating Jekyll pages")
+            logger.info("Generating Jekyll pages")
             for report_path in report_paths:
                 title = Path(report_path).stem
                 if dry_run:
-                    print(f"Dry run - Would create Jekyll page for: {title}")
+                    logger.info("Dry run - Would create Jekyll page for: %s", title)
                 else:
                     try:
                         make_jekyll_page(title=title)
                     except Exception as e:
                         if progress_handler:
                             progress_handler.send(error=str(e))
-                        cprint(text=f"Error creating Jekyll page for {title}. Ignoring... \n", color="yellow")
-                        print(e)
+                        logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
 
         # Squash commits if any
         if squash:
             if dry_run:
-                print("\nDry run - Squashing commits")
+                logger.info("Dry run - Squashing commits")
             else:
                 # Error is not critical but should be noted
-                print("\nSquashing commits")
+                logger.info("Squashing commits")
                 try:
                     squash_results = git.squash_commits(start_commit)
-                    print(squash_results)
+                    logger.info("%s", squash_results)
                 except Exception as e:
-                    cprint(text=f"Error squashing commits. Ignoring... \n", color="yellow")
-                    print(e)
+                    logger.warning("Error squashing commits. Ignoring... %s", e)
     finally:
         try:
             unlock("run")
         except Exception as e:
-            cprint(text=f"Error unlocking run lock.\n", color="red")
-            print(e)
+            logger.error("Error unlocking run lock. %s", e)

@@ -19,7 +19,7 @@ class _MockResp:
 
 
 def test_fetch_ygoprodeck(monkeypatch):
-    monkeypatch.setattr(api.requests, "get", lambda url: _MockResp({"data": [{"id": 1}]}))
+    monkeypatch.setattr(api.requests, "get", lambda *args, **kwargs: _MockResp({"data": [{"id": 1}]}))
     data = api.fetch_ygoprodeck()
     assert isinstance(data, list) and data[0]["id"] == 1
 
@@ -43,7 +43,7 @@ def test_check_status_true_and_false(monkeypatch):
 
 
 def test_fetch_redirects(monkeypatch):
-    def _get(url, headers=None):
+    def _get(*args, **kwargs):
         return _MockResp({"query": {"redirects": [{"from": "A", "to": "B"}]}})
 
     monkeypatch.setattr(api.requests, "get", _get)

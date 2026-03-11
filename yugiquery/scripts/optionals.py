@@ -3,11 +3,16 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import logging
 import os
 import subprocess
 import sys
 import shutil
-from termcolor import cprint
+
+from yugiquery.utils import setup_logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def install_templates() -> None:
@@ -31,10 +36,9 @@ def install_templates() -> None:
         for xlsx_file in src_dir.glob("*.xlsx"):
             shutil.copy(xlsx_file, data_dst_dir)
 
-        cprint(text=f"\nTemplates copied to {notebooks_dst_dir} and {data_dst_dir}.", color="green")
+        logger.info("Templates copied to %s and %s.", notebooks_dst_dir, data_dst_dir)
     except Exception as e:
-        cprint(text=f"\nFailed to copy templates.", color="red")
-        print(e)
+        logger.error("Failed to copy templates. %s", e)
 
 
 def install_kernel(venv: bool = False) -> None:
@@ -60,10 +64,10 @@ def install_kernel(venv: bool = False) -> None:
         if not os.path.exists(venv_path):
             result = subprocess.run([sys.executable, "-m", "venv", venv_path], text=True)
             if result.returncode != 0:
-                cprint(text=f"\nFailed to create virtual environment '{venv_name}'.", color="red")
+                logger.error("Failed to create virtual environment '%s'.", venv_name)
                 return
             else:
-                cprint(text=f"\n{__title__} virtual environment created at {venv_path}.", color="green")
+                logger.info("%s virtual environment created at %s.", __title__, venv_path)
 
         # Install YugiQuery inside the virtual environment.
         cache_dir = subprocess.run(
@@ -109,10 +113,10 @@ def install_kernel(venv: bool = False) -> None:
             )
 
         if result.returncode != 0:
-            cprint(text=f"Error installing {__title__} in {venv_name}", color="red")
+            logger.error("Error installing %s in %s", __title__, venv_name)
             return
         else:
-            cprint(text=f"\n{__title__} installed in {venv_name}.", color="green")
+            logger.info("%s installed in %s.", __title__, venv_name)
     else:
         python_path = sys.executable
 
@@ -133,10 +137,10 @@ def install_kernel(venv: bool = False) -> None:
             f.write("c = get_config()\n")
             f.write("c.InteractiveShellApp.exec_lines = ['from yugiquery import *']\n")
     except:
-        cprint(text=f"\nFailed to create IPython profile for YugiQuery!", color="red")
+        logger.error("Failed to create IPython profile for YugiQuery!")
         return
 
-    cprint(text=f"\nIPython profile created for YugiQuery.", color="green")
+    logger.info("IPython profile created for YugiQuery.")
 
     # Install the Jupyter kernel using ipykernel.
     display_name = f"Python3 ({__title__})"
@@ -159,10 +163,10 @@ def install_kernel(venv: bool = False) -> None:
     )
 
     if result.returncode != 0:
-        cprint(text=f"\nFailed to install Jupyter kernel '{__title__.lower()}'!", color="red")
+        logger.error("Failed to install Jupyter kernel '%s'!", __title__.lower())
         return
     else:
-        cprint(text=f"\nJupyter kernel '{__title__.lower()}' installed.", color="green")
+        logger.info("Jupyter kernel '%s' installed.", __title__.lower())
 
 
 def install_nbconvert() -> None:
@@ -173,10 +177,9 @@ def install_nbconvert() -> None:
 
     try:
         generate_auto_theme.main()
-        cprint(text="\nnbconvert templates installed.", color="green")
+        logger.info("nbconvert templates installed.")
     except Exception as e:
-        cprint(text=f"\nFailed to install nbconvert templates", color="red")
-        print(e)
+        logger.error("Failed to install nbconvert templates. %s", e)
 
 
 def install_filters() -> None:
@@ -200,13 +203,12 @@ def install_filters() -> None:
             cwd=repo_root,
         )
         if result.returncode == 0:
-            cprint(text="\nGit filters have been installed in the current repository.", color="green")
+            logger.info("Git filters have been installed in the current repository.")
             return
         else:
-            cprint(text=f"\nFailed to install Git filters!", color="red")
+            logger.error("Failed to install Git filters!")
     except Exception as e:
-        cprint(text=f"\nFailed to install Git filters!", color="red")
-        print(e)
+        logger.error("Failed to install Git filters! %s", e)
 
 
 def set_parser(parser: argparse.ArgumentParser) -> None:
@@ -222,8 +224,9 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 
 
 def main(args):
+    setup_logging()
     if args.venv and not args.kernel:
-        cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
+        logger.warning("The --venv flag has no effect if --kernel is not passed.")
 
     # If no flags are passed, install everything.
     if not (args.templates or args.kernel or args.nbconvert or args.filters):

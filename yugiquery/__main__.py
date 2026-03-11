@@ -9,7 +9,7 @@ import importlib
 # Local application imports
 from .metadata import __title__, __version__
 from .cli import CustomHelpFormatter
-from .utils import dirs
+from .utils import dirs, setup_logging
 from . import api
 from . import cli
 from . import bot
@@ -40,6 +40,7 @@ def main():
     # Parse initial arguments
     args = parser.parse_args()
     if args.command is None:
+        setup_logging()
         if args.version:
             print(f"{__title__} {__version__}")
         if args.api:

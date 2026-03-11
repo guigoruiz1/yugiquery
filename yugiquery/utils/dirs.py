@@ -11,6 +11,7 @@
 # ======= #
 
 # Standard library imports
+import logging
 import os
 import sysconfig
 from pathlib import Path
@@ -23,6 +24,8 @@ from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
 from termcolor import cprint
 import tempfile
+
+logger = logging.getLogger(__name__)
 
 # ======= #
 # Classes #
@@ -279,8 +282,6 @@ class Dirs:
         elif pkg_asset_path and pkg_asset_path.exists():
             return pkg_asset_path
 
-        print(self.ASSETS)
-
         raise FileNotFoundError(f'Asset "{Path(*parts)}" not found!')
 
     def get_notebook(self, *parts: str) -> Path:
@@ -349,7 +350,7 @@ class Dirs:
                     try:
                         results.append(self.get_notebook(notebook_name))
                     except FileNotFoundError:
-                        cprint(f"Notebook {notebook_name} not found.", "yellow")
+                        logger.warning("Notebook %s not found.", notebook_name)
             return results
 
 

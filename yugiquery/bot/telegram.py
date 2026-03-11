@@ -9,13 +9,13 @@
 # ======= #
 
 # Standard library packages
+import logging
 import platform
 
 import telegram.ext
 
 # Third-party imports
 import arrow
-from termcolor import cprint
 
 # Local application imports
 from ..metadata import __version__
@@ -42,6 +42,9 @@ except ImportError:
 # ===================== #
 # Telegram Bot Subclass #
 # ===================== #
+
+
+logger = logging.getLogger(__name__)
 
 
 class Telegram(Bot):
@@ -87,13 +90,13 @@ class Telegram(Bot):
         chat = await application.bot.get_chat(self.chat_id)
         username = f"{chat.first_name} {chat.last_name}" if chat.first_name and chat.last_name else chat.username
         await application.bot.send_message(chat_id=self.chat_id, text=f"Hello {username}!\n{me.first_name} bot is online.")
-        cprint(text="Telegram bot initialized successfully.", color="green")
+        logger.info("Telegram bot initialized successfully.")
 
     def run(self) -> None:
         """
         Start running the Telegram bot.
         """
-        cprint(text="Running Telegram bot...", color="green")
+        logger.info("Running Telegram bot...")
         self.application.run_polling(stop_signals=None)
 
     def command_handler(self, command, **kwargs):
@@ -463,7 +466,7 @@ class Telegram(Bot):
                 context (telegram.ext.CallbackContext): The callback context.
             """
             error = str(context.error)
-            print(error)
+            logger.error("%s", error)
             if isinstance(update, Update) and update.message is not None:
                 await update.message.reply_text(error)
             else:

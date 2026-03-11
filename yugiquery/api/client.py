@@ -11,10 +11,13 @@
 # ======= #
 
 # Standard library imports
+import asyncio
+import logging
 import os
 import re
 import socket
 import time
+from pathlib import Path
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -25,17 +28,25 @@ from typing import (
 import urllib.parse as up
 
 # Third-party imports
+import aiohttp
 import numpy as np
 import pandas as pd
 import requests
-from termcolor import cprint
 from tqdm.auto import tqdm, trange
 import wikitextparser as wtp
 
 # Local application imports
 from .. import utils
 from ..metadata import __title__, __url__, __version__
-from .parsers import _extract_results, _format_df
+from ..utils import md5
+from .parsers import (
+    extract_results,
+    format_df,
+    process_content,
+)
+
+
+logger = logging.getLogger(__name__)
 
 # Import Halo according to the environment
 if utils.dirs.is_notebook:
@@ -68,9 +79,48 @@ URLS: SimpleNamespace = SimpleNamespace(
 
 """
 
+# ====================== #
+# Default API parameters #
+# ====================== #
+
+DEFAULT_HTTP_RETRIES = 3
+DEFAULT_HTTP_TIMEOUT: Tuple[float, float] = (5, 30)
+DEFAULT_HTTP_BACKOFF = 1.0
+DEFAULT_SOCKET_TIMEOUT = 2
+
+
 # ========= #
 # Functions #
 # ========= #
+
+
+def _request_with_retry(
+    url: str,
+    *,
+    headers: Dict[str, str],
+    params: Dict[str, Any] | None = None,
+    retries: int = DEFAULT_HTTP_RETRIES,
+    timeout: Tuple[float, float] = DEFAULT_HTTP_TIMEOUT,
+    backoff: float = DEFAULT_HTTP_BACKOFF,
+) -> requests.Response:
+    """GET wrapper with exponential-backoff retries for transient API failures."""
+    if retries < 1:
+        raise ValueError("retries must be at least 1")
+
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.get(url=url, headers=headers, params=params, timeout=timeout)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.RequestException as err:
+            last_error = err
+            if attempt == retries:
+                raise
+            logger.debug("Attempt %s/%s failed: %s", attempt, retries, err)
+            time.sleep(backoff * (2 ** (attempt - 1)))
+
+    raise RuntimeError("Unexpected retry loop exit") from last_error
 
 
 # YGOPRODECK
@@ -87,10 +137,8 @@ def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
     ydk_url = URLS.ygoprodeck
     if misc:
         ydk_url += "?misc=yes"
-    response = requests.get(ydk_url)
-    response.raise_for_status()
-    result = response.json()
-    return result["data"]
+    response = _request_with_retry(ydk_url, headers=URLS.headers)
+    return response.json()["data"]
 
 
 def check_status() -> bool:
@@ -108,22 +156,21 @@ def check_status() -> bool:
     }
 
     try:
-        response = requests.get(URLS.base, params=params, headers=URLS.headers)
-        response.raise_for_status()
-        cprint(text=f"{URLS.base} is up and running {response.json()['query']['general']['generator']}", color="green")
+        response = _request_with_retry(URLS.base, params=params, headers=URLS.headers)
+        logger.info("%s is up and running %s", URLS.base, response.json()["query"]["general"]["generator"])
         return True
     except requests.exceptions.RequestException as err:
-        cprint(text=f"{URLS.base} is not alive", color="red")
-        print(err)
+        logger.error("%s is not alive", URLS.base)
+        logger.error("API status request failed: %s", err)
         domain = up.urlparse(URLS.base).netloc
         port = 443
 
         try:
-            socket.create_connection((domain, port), timeout=2)
-            cprint(text=f"{domain} is reachable", color="yellow")
+            socket.create_connection((domain, port), timeout=DEFAULT_SOCKET_TIMEOUT)
+            logger.warning("%s is reachable", domain)
         except OSError as err:
-            cprint(text=f"{domain} is not reachable", color="red")
-            print(err)
+            logger.error("%s is not reachable", domain)
+            logger.error("Socket probe failed: %s", err)
 
         return False
 
@@ -133,7 +180,6 @@ def fetch_categorymembers(
     namespace: int | None = None,
     step: int = 500,
     iterator: tqdm | None = None,
-    debug: bool = False,
 ) -> pd.DataFrame:
     """
     Fetches members of a category from the API by making iterative requests with a specified step size until all members are retrieved.
@@ -143,12 +189,10 @@ def fetch_categorymembers(
         namespace (int| None, optional): The namespace ID to filter the members by. Defaults to None (no namespace).
         step (int, optional): The number of members to retrieve in each request. Defaults to 500.
         iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
-        debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the members of the category.
     """
-    debug = utils.check_debug(debug)
     params = {"cmlimit": step, "cmnamespace": namespace}
 
     lastContinue = {}
@@ -168,16 +212,12 @@ def fetch_categorymembers(
 
                 params = params.copy()
                 params.update(lastContinue)
-                response = requests.get(
+                response = _request_with_retry(
                     URLS.base + URLS.categorymembers_action + category,
                     params=params,
                     headers=URLS.headers,
                 )
-                if debug:
-                    tqdm.write("\n" + response.url)
-                if response.status_code != 200:
-                    spinner.fail(f"HTTP error code {response.status_code}")
-                    break
+                logger.debug("%s", response.url)
 
                 result = response.json()
                 if "error" in result:
@@ -188,8 +228,7 @@ def fetch_categorymembers(
                     # print(result['warnings'])
                 if "query" in result:
                     all_results += result["query"]["categorymembers"]
-                    if debug:
-                        tqdm.write(f"\nIteration {i+1}: {len(result['query']['categorymembers'])} results")
+                    logger.debug("Iteration %s: %s results", i + 1, len(result["query"]["categorymembers"]))
                 if "continue" not in result:
                     spinner.succeed("Fetch completed")
                     break
@@ -201,6 +240,11 @@ def fetch_categorymembers(
 
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+            raise
+        except requests.exceptions.RequestException as err:
+            spinner.fail(f"Request failed: {err}")
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
@@ -216,7 +260,6 @@ def fetch_properties(
     limit: int = 5000,
     iterator: tqdm | None = None,
     include_all: bool = False,
-    debug: bool = False,
 ) -> pd.DataFrame:
     """
     Fetches properties from the API by making iterative requests with a specified step size until a specified limit is reached.
@@ -228,12 +271,10 @@ def fetch_properties(
         limit (int, optional): The maximum number of properties to retrieve. Defaults to 5000.
         iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
         include_all (bool, optional): If True, includes all properties in the DataFrame. If False, includes only properties that have values. Defaults to False.
-        debug (bool, optional): If True, prints the URL of each request for debugging purposes. Defaults to False.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the properties matching the query and condition.
     """
-    debug = utils.check_debug(debug)
     df = pd.DataFrame()
     i = 0
     complete = False
@@ -250,22 +291,16 @@ def fetch_properties(
                 else:
                     iterator.set_postfix(it=i + 1)
 
-                response = requests.get(
+                response = _request_with_retry(
                     url=URLS.base + URLS.ask_action + condition + query + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
                     headers=URLS.headers,
                 )
-                if debug:
-                    tqdm.write("\n" + response.url)
-                if response.status_code != 200:
-                    spinner.fail(f"HTTP error code {response.status_code}")
-                    break
-
-                result = _extract_results(response)
-                formatted_df = _format_df(input_df=result, include_all=include_all)
+                logger.debug("%s", response.url)
+                result = extract_results(response)
+                formatted_df = format_df(input_df=result, include_all=include_all)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
-                if debug:
-                    tqdm.write(f"\nIteration {i+1}: {len(formatted_df.index)} results")
+                logger.debug("Iteration %s: %s results", i + 1, len(formatted_df.index))
 
                 if len(formatted_df.index) < step or (i + 1) * step >= limit:
                     spinner.succeed("Fetch completed")
@@ -278,6 +313,11 @@ def fetch_properties(
 
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            if "PM_IN_EXECUTION" not in os.environ:
+                time.sleep(0.5)
+            raise
+        except requests.exceptions.RequestException as err:
+            spinner.fail(f"Request failed: {err}")
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
@@ -301,10 +341,11 @@ def fetch_redirects(*titles: str) -> Dict[str, str]:
         first = i * 50
         last = (i + 1) * 50
         target_titles = "|".join(titles[first:last])
-        response = requests.get(
+        response = _request_with_retry(
             url=URLS.base + URLS.redirects_action + target_titles,
             headers=URLS.headers,
-        ).json()
+        )
+        response = response.json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
             results[redirect.get("from", "")] = redirect.get("to", "")
@@ -326,10 +367,11 @@ def fetch_backlinks(*titles: str) -> Dict[str, str]:
     iterator = tqdm(titles, dynamic_ncols=(not utils.dirs.is_notebook), desc="Backlinks", leave=False)
     for target_title in iterator:
         iterator.set_postfix(title=target_title)
-        response = requests.get(
+        response = _request_with_retry(
             url=URLS.base + URLS.backlinks_action + target_title,
             headers=URLS.headers,
-        ).json()
+        )
+        response = response.json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
             if re.match(pattern=r"^[a-zA-Z]+$", string=backlink["title"]) and backlink["title"] not in target_title.split(
@@ -362,14 +404,16 @@ def fetch_redirect_dict(
     if isinstance(names, str):
         names = [names]
     if category:
-        names.extend(fetch_categorymembers(category=category, namespace=0, **kwargs)["title"])
+        category_kwargs = dict(kwargs)
+        category_kwargs.setdefault("namespace", 0)
+        names.extend(fetch_categorymembers(category=category, **category_kwargs)["title"])
 
     backlinks = fetch_backlinks(*names)
     redirects = fetch_redirects(*codes)
     return redirects | backlinks
 
 
-def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug: bool = False) -> pd.DataFrame:
+def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
 
@@ -377,7 +421,6 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
         sets (str | List[str]): Multiple set names to fetch information for.
         extra_info (List[str], optional): A list of additional information to fetch for each set. Defaults to an empty list.
         step (int, optional): The number of sets to fetch information for at once. Defaults to 15.
-        debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         pd.DataFrame: A DataFrame containing information for all sets in the list.
@@ -385,9 +428,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
     Raises:
         Any exceptions raised by requests.get().
     """
-    debug = utils.check_debug(debug)
-    if debug:
-        print(f"{len(sets)} sets requested")
+    logger.debug("%s sets requested", len(sets))
 
     regions_dict = utils.load_json(utils.dirs.get_asset("json", "regions.json"))
     # Info to ask
@@ -403,260 +444,230 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15, debug
         first = i * step
         last = (i + 1) * step
         titles = up.quote(string="]]OR[[".join(sets[first:last]))
-        response = requests.get(
+        response = _request_with_retry(
             url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
             headers=URLS.headers,
         )
-        formatted_response = _extract_results(response)
+        formatted_response = extract_results(response)
         formatted_response.drop(
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
-        formatted_df = _format_df(input_df=formatted_response, include_all=(True if extra_info else False))
-        if debug:
-            tqdm.write(f"Iteration {i}\n{len(formatted_df)} set properties downloaded - {step-len(formatted_df)} errors")
-            tqdm.write("-------------------------------------------------")
+        formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
+        logger.debug(
+            "Iteration %s: %s set properties downloaded - %s errors",
+            i,
+            len(formatted_df),
+            step - len(formatted_df),
+        )
 
         set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
 
     set_info_df = set_info_df.convert_dtypes()
     set_info_df.sort_index(inplace=True)
 
-    print(f'{"Total:" if debug else ""}{len(set_info_df)} set properties received - {len(sets)-len(set_info_df)} errors')
+    logger.info("%s set properties received - %s errors", len(set_info_df), len(sets) - len(set_info_df))
 
     return set_info_df
 
 
-# TODO: Refactor
 # TODO: Translate region code?
-def fetch_set_lists(
-    *titles: str, debug: bool = False
-) -> None | Tuple[pd.DataFrame, int, int]:  # Separate formating function
+def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
     """
     Fetches card set lists from a list of page titles.
 
     Args:
         titles (str): Multiple page titles from which to fetch set lists.
-        debug (bool, optional): If True, prints debug information. Defaults to False.
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
     """
-    debug = utils.check_debug(debug)
-    if debug:
-        print(f"{len(titles)} sets requested")
+    logger.debug("%s sets requested", len(titles))
 
     titles_str = up.quote(string="|".join(titles))
-    rarity_dict = utils.load_json(utils.dirs.get_asset("json", "rarities.json"))
-    set_lists_df = pd.DataFrame(
-        columns=[
-            "Set",
-            "Card number",
-            "Name",
-            "Rarity",
-            "Print",
-            "Quantity",
-            "Region",
-            "Page name",
-        ]
-    )
-    success = 0
-    error = 0
+    rarities = utils.load_json(utils.dirs.get_asset("json", "rarities.json"))
 
-    response = requests.get(
+    columns = [
+        "Set",
+        "Card number",
+        "Name",
+        "Rarity",
+        "Print",
+        "Quantity",
+        "Region",
+        "Page name",
+    ]
+    result = pd.DataFrame(columns=columns)
+    total_success = 0
+    total_error = 0
+
+    response = _request_with_retry(
         url=URLS.base + URLS.revisions_action + titles_str,
         headers=URLS.headers,
     )
-    if debug:
-        print(response.url)
+    logger.debug("%s", response.url)
     try:
         json = response.json()
-    except:
-        print(response.url)
+    except Exception:
+        logger.error("Unable to parse response JSON from URL: %s", response.url)
         return
 
     contents = json["query"]["pages"].values()
 
     for content in contents:
         if "revisions" in content.keys():
-            title = None
-            raw = content["revisions"][0]["*"]
-            parsed = wtp.parse(raw)
-            for template in parsed.templates:
-                if template.name.lower() == "set page header":
-                    for argument in template.arguments:
-                        if "set=" in argument:
-                            title = argument.value
-                if template.name.lower() == "set list":
-                    set_df = pd.DataFrame(columns=set_lists_df.columns)
-                    page_name = content["title"]
+            page_df, success, error = process_content(content, rarities, columns)
 
-                    region = None
-                    rarity = None
-                    card_print = None
-                    qty = None
-                    desc = None
-                    opt = None
-                    list_df = None
-                    extra_df = None
+            if page_df is not None:
+                result = pd.concat([result, page_df], ignore_index=True).infer_objects().fillna(np.nan)
 
-                    for argument in template.arguments:
-                        if "region=" in argument:
-                            region = argument.value
-                            # if region = 'ES': # Remove second identifier for spanish
-                            #     region = 'SP'
-
-                        elif "rarities=" in argument:
-                            rarity = tuple(
-                                rarity_dict.get(
-                                    (
-                                        i[0].upper() + i[1:]
-                                        if i[0].islower()
-                                        else i
-                                        # Correct lower case accronymns (Example: c->C for common)
-                                    ).strip(),
-                                    i.strip(),
-                                )
-                                for i in (argument.value).split(",")
-                            )
-
-                        elif "print=" in argument:
-                            card_print = argument.value
-
-                        elif "qty=" in argument:
-                            qty = argument.value
-
-                        elif "description=" in argument:
-                            desc = argument.value
-
-                        elif "options=" in argument:
-                            opt = argument.value
-
-                        else:
-                            set_list = argument.value[1:-1]
-                            lines = set_list.split("\n")
-
-                            list_df = pd.DataFrame([x.split(";") for x in lines])
-                            list_df = list_df[~list_df[0].str.contains("!:")]
-
-                            # Handle extra parameters passed as "// descriptions"
-                            extra = list_df.map(
-                                lambda x: (x.split("//")[1] if isinstance(x, str) and "//" in x else None)
-                            ).dropna(how="all")
-                            if not extra.empty:
-                                extra = extra.stack().droplevel(1, axis=0).dropna()
-                                extra_lines = pd.DataFrame()
-                                for extra_idx, extra_value in extra.items():
-                                    if isinstance(extra_value, str) and "::" in extra_value:
-                                        col, val = extra_value.split("::")
-                                        # Strip and process col and val to extract desired values
-                                        col = col.strip().strip("@").lower()
-                                        val = val.strip().strip("(").strip(")").split("]]")[0].split("[[")[-1]
-                                        extra_lines.loc[extra_idx, col] = val
-
-                                extra_lines = extra_lines.dropna(how="all")
-                                if not extra_lines.empty:
-                                    extra_df = extra_lines
-                            ###
-
-                            list_df = list_df.map(lambda x: x.split("//")[0] if isinstance(x, str) and "//" in x else x)
-                            list_df = list_df.map(lambda x: x.strip() if isinstance(x, str) else x)
-                            list_df.replace(
-                                to_replace=r"^\s*$|^@.*$",
-                                value=None,
-                                regex=True,
-                                inplace=True,
-                            )
-
-                    if list_df is None:
-                        error += 1
-                        if debug:
-                            cprint(text=f'Error! Unable to parse template for "{page_name}"', color="red")
-                        continue
-
-                    noabbr = opt == "noabbr"
-                    set_df["Name"] = list_df[1 - noabbr].apply(
-                        lambda x: (x.strip("\u200e").split(" (")[0] if isinstance(x, str) else x)
-                    )
-
-                    if not noabbr and len(list_df.columns) > 1:
-                        set_df["Card number"] = list_df[0]
-
-                    if len(list_df.columns) > (2 - noabbr):  # and rare in str
-                        set_df["Rarity"] = list_df[2 - noabbr].apply(
-                            lambda x: (
-                                tuple([rarity_dict.get(y.strip(), y.strip()) for y in x.split(",")])
-                                if isinstance(x, str) and "description::" not in x
-                                else rarity
-                            )
-                        )
-
-                    else:
-                        set_df["Rarity"] = pd.Series([rarity] * len(set_df.index), index=set_df.index)
-
-                    if len(list_df.columns) > (3 - noabbr):
-                        if card_print is not None:  # and new/reprint in str
-                            set_df["Print"] = list_df[3 - noabbr].apply(
-                                lambda x: (card_print if (card_print and x is None) else x)
-                            )
-
-                            if len(list_df.columns) > (4 - noabbr) and qty:
-                                set_df["Quantity"] = list_df[4 - noabbr].apply(lambda x: x if x is not None else qty)
-
-                        elif qty:
-                            set_df["Quantity"] = list_df[3 - noabbr].apply(lambda x: x if x is not None else qty)
-
-                    if not title:
-                        title = page_name.split("Lists:")[1]
-
-                    # Handle token name and print in description
-                    if extra_df is not None:
-                        for row in set_df.index:
-                            # Handle token name in description
-                            if "description" in extra_df and row in extra_df["description"].dropna().index:
-                                name_value = set_df.at[row, "Name"]
-                                desc_value = extra_df.at[row, "description"]
-                                if (
-                                    isinstance(name_value, str)
-                                    and isinstance(desc_value, str)
-                                    and "Token" in name_value
-                                    and "Token" in desc_value
-                                ):
-                                    set_df.at[row, "Name"] = desc_value
-
-                            # Handle print in description
-                            if "print" in extra_df and row in extra_df["print"].dropna().index:
-                                set_df.at[row, "Print"] = extra_df.at[row, "print"]
-                    else:
-                        # TODO: Test
-                        # Use template-level values as fallback
-                        for row in set_df.index:
-                            name_value = set_df.at[row, "Name"]
-                            print_value = set_df.at[row, "Print"]
-
-                            # Handle token name from template description
-                            if isinstance(name_value, str) and isinstance(desc, str):
-                                if "Token" in name_value and "Token" in desc:
-                                    set_df.at[row, "Name"] = desc
-
-                            # Handle print from template card_print or description
-                            if pd.isna(print_value):
-                                if isinstance(desc, str) and "print" in desc.lower():
-                                    set_df.at[row, "Print"] = desc
-                    ###
-
-                    set_df["Set"] = re.sub(pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title).strip()
-                    set_df["Region"] = region.upper() if region else None
-                    set_df["Page name"] = page_name
-                    set_lists_df = pd.concat([set_lists_df, set_df], ignore_index=True).infer_objects().fillna(np.nan)
-                    success += 1
+            total_success += success
+            total_error += error
 
         else:
-            error += 1
-            if debug:
-                cprint(text=f"Error! No content for \"{content['title']}\"", color="red")
+            total_error += 1
+            logger.debug('Error! No content for "%s"', content["title"])
 
-    if debug:
-        print(f"{success} set lists received - {error} missing")
-        print("-------------------------------------------------")
+    logger.debug("%s set lists received - %s missing", total_success, total_error)
 
-    return set_lists_df, success, error
+    return result, total_success, total_error
+
+
+# ===== #
+# Media #
+# ===== #
+
+
+def fetch_page_images(
+    *titles: str,
+    featured: bool = False,
+    batch_size: int = 50,
+    imlimit: int = 500,
+) -> Dict[str, List[str] | str]:
+    """
+    Fetch images from the MediaWiki API for the provided page titles.
+
+    Args:
+        titles (str): Page titles to fetch images for.
+        featured (bool, optional): If True, fetch only the featured image of each page.
+            If False, fetch the page image list. Defaults to False.
+        batch_size (int, optional): Number of titles per API request. Defaults to 50.
+        imlimit (int, optional): Maximum number of images per page when featured=False.
+            Defaults to 500.
+
+    Returns:
+        Dict[str, List[str] | str]: Mapping of page title to image names.
+    """
+    results: Dict[str, List[str] | str] = {}
+
+    for i in range(0, len(titles), batch_size):
+        batch = titles[i : i + batch_size]
+        titles_str = up.quote("|".join(batch))
+
+        if featured:
+            action = URLS.pageimages_action
+        else:
+            action = URLS.images_action.replace("&titles=", f"&imlimit={imlimit}&titles=")
+
+        response = _request_with_retry(
+            url=URLS.base + action + titles_str,
+            headers=URLS.headers,
+        ).json()
+
+        pages = response.get("query", {}).get("pages", {})
+        for page in pages.values():
+            if featured:
+                original = page.get("original")
+                if original and "source" in original:
+                    results[page["title"]] = original["source"].split("/")[-1]
+            else:
+                images = page.get("images", [])
+                results[page["title"]] = [img["title"].removeprefix("File:") for img in images]
+
+    return results
+
+
+async def download_media(
+    *file_names: str,
+    output_path: str | Path = "media",
+    max_tasks: int = 10,
+) -> List[Dict[str, str | bool]]:
+    """
+    Download media files from yugipedia media storage.
+
+    Args:
+        file_names (str): Media file names to download.
+        output_path (str | Path, optional): Destination directory. Defaults to "media".
+        max_tasks (int, optional): Maximum concurrent downloads. Defaults to 10.
+
+    Returns:
+        List[Dict[str, str | bool]]: Download status entries per file.
+    """
+    file_names_series = pd.Series(file_names)
+    file_names_md5 = file_names_series.apply(md5)
+    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names_series
+    download_results = []
+
+    async def download_file(session, url, save_folder, semaphore, pbar):
+        async with semaphore:
+            save_name = url.split("/")[-1]
+            save_file = Path(save_folder).joinpath(save_name)
+            try:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        raise ValueError(f"URL {url} returned status code {response.status}")
+                    total_size = int(response.headers.get("Content-Length", 0))
+                    progress = tqdm(
+                        unit="B",
+                        total=total_size,
+                        unit_scale=True,
+                        unit_divisor=1024,
+                        desc=save_name,
+                        leave=False,
+                        dynamic_ncols=(not utils.dirs.is_notebook),
+                        disable=("PM_IN_EXECUTION" in os.environ),
+                    )
+
+                    if save_file.is_file():
+                        save_file.unlink()
+
+                    with open(save_file, "wb") as f:
+                        while True:
+                            chunk = await response.content.read(1024)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                            progress.update(len(chunk))
+                    progress.close()
+                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": True})
+            except Exception as e:
+                if save_file.is_file():
+                    save_file.unlink()
+                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": False})
+                logger.warning("Failed to download %s: %s", save_name, e)
+            finally:
+                pbar.update()
+
+    semaphore = asyncio.Semaphore(max_tasks)
+    async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
+        output_path = Path(output_path)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        with tqdm(
+            total=len(urls),
+            unit="file",
+            dynamic_ncols=(not utils.dirs.is_notebook),
+            disable=("PM_IN_EXECUTION" in os.environ),
+        ) as pbar:
+            tasks = [
+                download_file(
+                    session=session,
+                    url=url,
+                    save_folder=output_path,
+                    semaphore=semaphore,
+                    pbar=pbar,
+                )
+                for url in urls
+            ]
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    return download_results

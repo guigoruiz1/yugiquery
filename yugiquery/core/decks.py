@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,8 @@ import pandas as pd
 
 from .. import api
 from ..utils import dirs
+
+logger = logging.getLogger(__name__)
 
 
 def read_decklist(file_path: Path | str) -> pd.DataFrame:
@@ -71,7 +74,7 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
         file = Path(file)
         temp_df = read_decklist(file)
         decklist_df = pd.concat([decklist_df, temp_df])
-        print(f"Loaded {file.stem} deck.")
+        logger.info("Loaded %s deck.", file.stem)
 
     decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
     return decklist_df
@@ -178,11 +181,10 @@ def get_ygoprodeck() -> pd.DataFrame:
         ydk_data = pd.DataFrame(result).set_index("id")
     except Exception as e:
         if ygoprodeck_file.is_file():
-            print("Unable to fetch ygoprodeck data. Using local file.")
-            print(e)
+            logger.warning("Unable to fetch ygoprodeck data. Using local file. %s", e)
             ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
         else:
-            print("Unable to obtain ygoprodeck data")
+            logger.error("Unable to obtain ygoprodeck data")
             raise
 
     return ydk_data
@@ -231,7 +233,7 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
     try:
         ydk_data = get_ygoprodeck()
     except Exception as e:
-        print(e)
+        logger.error("%s", e)
         return ydk_df
 
     ydk_df = ydk_df.copy()
@@ -245,10 +247,13 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
     ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
     not_found = ydk_df[ydk_df["Name"].isna()]
     if len(not_found) > 0:
-        print()
         for deck in not_found["Deck"].unique():
-            print(f"Unable to find {len(not_found[not_found['Deck'] == deck])} cards in {deck}:")
-            print(" *", "\n * ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()), "\n")
+            logger.warning(
+                "Unable to find %d cards in %s:\n * %s",
+                len(not_found[not_found["Deck"] == deck]),
+                deck,
+                "\n * ".join(not_found[not_found["Deck"] == deck]["Code"].astype(str).unique()),
+            )
 
     ydk_df = ydk_df.drop("Code", axis=1).dropna(subset=["Name"]).reset_index(drop=True)
     ydk_df["Count"] = ydk_df.groupby(["Name", "Section", "Deck"])["Name"].transform("count").astype(int)
@@ -273,7 +278,7 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
         file = Path(file)
         temp_df = read_ydk(file)
         ydk_df = pd.concat([ydk_df, temp_df])
-        print(f"Loaded {file.stem} deck.")
+        logger.info("Loaded %s deck.", file.stem)
 
     if not ydk_df.empty:
         ydk_df = convert_ydk(ydk_df)

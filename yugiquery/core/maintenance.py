@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -13,6 +14,8 @@ from IPython.display import display
 import pandas as pd
 
 from ..utils import dirs, get_notebook_path, git, load_json, make_filename
+
+logger = logging.getLogger(__name__)
 
 
 class BenchmarkEntry(TypedDict):
@@ -55,7 +58,7 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
         changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
 
     if changelog.empty:
-        print("No changes")
+        logger.info("No changes")
 
     return changelog
 
@@ -88,7 +91,7 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
         files=[benchmark_file],
         message=f"{report.capitalize()} report benchmarked - {now.isoformat()}",
     )
-    print(result)
+    logger.info("%s", result)
 
 
 def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
@@ -120,7 +123,7 @@ def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
         from_date = match.group(2)
         to_date = match.group(3)
         if changelog_name is not None and changelog_name != name:
-            print("Names mismatch!")
+            logger.warning("Names mismatch!")
         changelog_name = name
         if first_date is None or first_date > from_date:
             first_date = from_date
@@ -298,7 +301,7 @@ def cleanup_data(dry_run: bool = False) -> None:
         benchmark = load_json(benchmark_file)
         new_benchmark = condense_benchmark(benchmark)
         if dry_run:
-            print("Benchmark:", new_benchmark)
+            logger.info("Benchmark: %s", new_benchmark)
         else:
             with open(benchmark_file, "w+") as f:
                 json.dump(new_benchmark, f, indent=4)
@@ -328,54 +331,54 @@ def cleanup_data(dry_run: bool = False) -> None:
     ]
     same_month_files["data"] = [files for files in same_month_files["data"] if files not in last_month_files["data"]]
 
-    print("\n- same month (with changelog)")
+    logger.info("same month (with changelog)")
     for files in same_month_files["changelog"]:
         if len(files) > 1:
             new_changelog, new_filepath = condense_changelogs(files)
-            print(f"New changelog file: {new_filepath}")
+            logger.info("New changelog file: %s", new_filepath)
             if dry_run:
                 display(new_changelog)
             else:
                 new_changelog.to_csv(new_filepath)
             for file in files:
                 if dry_run:
-                    print("Delete", file)
+                    logger.info("Delete %s", file)
                 else:
                     os.remove(file)
 
-    print("\n- same month (without changelog)")
+    logger.info("same month (without changelog)")
     for files in same_month_files["data"]:
         for file in files[:-1]:
             if dry_run:
-                print("Delete", file)
+                logger.info("Delete %s", file)
             else:
                 os.remove(file)
         if dry_run:
-            print("Keep", files[-1])
+            logger.info("Keep %s", files[-1])
 
     if (files := last_month_files["changelog"]) and (len(files) > 1):
-        print("\n- Last month (with changelog)")
+        logger.info("Last month (with changelog)")
         new_changelog, new_filepath = condense_changelogs(files)
-        print(f"New changelog file: {new_filepath}")
+        logger.info("New changelog file: %s", new_filepath)
         if dry_run:
             display(new_changelog)
         else:
             new_changelog.to_csv(new_filepath)
         for file in last_month_files["changelog"]:
             if dry_run:
-                print("Delete", file)
+                logger.info("Delete %s", file)
             else:
                 os.remove(file)
 
     if files := last_month_files["data"]:
-        print("\n- Last month (without changelog)")
+        logger.info("Last month (without changelog)")
         for file in files[:-1]:
             if dry_run:
-                print("Delete", file)
+                logger.info("Delete %s", file)
             else:
                 os.remove(file)
         if dry_run:
-            print("Keep", files[-1])
+            logger.info("Keep %s", files[-1])
 
     if not dry_run:
         result = git.commit(
@@ -385,4 +388,4 @@ def cleanup_data(dry_run: bool = False) -> None:
             ],
             message=f"Data cleanup {arrow.utcnow().isoformat()}",
         )
-        print(result)
+        logger.info("%s", result)

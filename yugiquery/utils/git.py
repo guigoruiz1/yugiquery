@@ -11,6 +11,7 @@
 # ======= #
 
 # Standard library imports
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -19,10 +20,11 @@ from typing import List
 # Third-party imports
 import arrow
 import git
-from termcolor import cprint
 
 # Local application imports
 from .dirs import dirs
+
+logger = logging.getLogger(__name__)
 
 # ========= #
 # Functions #
@@ -56,7 +58,7 @@ def ensure_repo() -> git.Repo:
         else:
             repo_root = dirs.WORK
         repo = git.Repo.init(repo_root)
-        cprint(text=f"\nGit repository initialized in {dirs.WORK}\n", color="yellow")
+        logger.info("Git repository initialized in %s", dirs.WORK)
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
@@ -203,8 +205,7 @@ def pull(passphrase: str = "", repo: git.Repo | None = None) -> str:
             if result.returncode != 0:
                 return result.stdout.decode("utf-8")
         except Exception as e:
-            cprint(text="Failed to unlock Git credential store.", color="yellow")
-            print(e)
+            logger.warning("Failed to unlock Git credential store. %s", e)
         try:
             return repo.git.pull()
         except git.GitCommandError as e:
@@ -236,8 +237,7 @@ def push(passphrase: str = "", repo: git.Repo | None = None) -> str:
             if result.returncode != 0:
                 return result.stdout.decode("utf-8")
         except Exception as e:
-            cprint(text="Failed to unlock Git credential store.", color="yellow")
-            print(e)
+            logger.warning("Failed to unlock Git credential store. %s", e)
 
         try:
             return repo.git.push()

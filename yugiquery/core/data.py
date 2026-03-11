@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 from ast import literal_eval
 from pathlib import Path
@@ -13,6 +14,8 @@ import pandas as pd
 
 from ..utils import dirs, load_json
 from .decks import get_ygoprodeck
+
+logger = logging.getLogger(__name__)
 
 
 @overload
@@ -67,13 +70,13 @@ def load_latest_data(
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
             df[col] = pd.to_datetime(df[col])
 
-        print(f"{name_pattern.capitalize()} file loaded.")
+        logger.info("%s file loaded.", name_pattern.capitalize())
         if return_ts:
             ts = arrow.get(Path(files[0]).stem.split("_")[-1])
             return df, ts
         return df
 
-    print(f'No file matching pattern "{name_pattern}" found.')
+    logger.warning('No file matching pattern "%s" found.', name_pattern)
     if return_ts:
         return None, None
     return None
@@ -103,7 +106,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
         input_info_df.loc[:, :"Cover card"], left_on="Set", right_index=True, how="outer"
     ).reset_index(drop=True)
 
-    print("Set properties merged")
+    logger.info("Set properties merged")
     return merged_df
 
 
@@ -158,7 +161,7 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
             suffixes=("", " errata"),
         )
     else:
-        print('Error! No "Name" column to join errata')
+        logger.error('No "Name" column to join errata')
 
     return input_df
 
@@ -178,19 +181,19 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
         collection_file = collection_file.with_suffix(".csv")
         collection_df = pd.read_csv(collection_file)
     else:
-        print(f"No {file_name} file found.")
+        logger.warning("No %s file found.", file_name)
         return None
 
     collection_df = collection_df.convert_dtypes(convert_string=False)
 
-    print(f"Loaded {collection_file.name}.")
+    logger.info("Loaded %s.", collection_file.name)
     return collection_df
 
 
 def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
     """Match a card list against latest datasets and optionally enrich with card data."""
     if list_df.empty:
-        print("List empty. Ignoring.")
+        logger.warning("List empty. Ignoring.")
         return list_df
 
     card_df = None
@@ -212,7 +215,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
     if card_df is None and set_lists_df is None:
         raise FileNotFoundError("No card or set lists data files found.")
 
-    print("\nFinding cards in database...")
+    logger.info("Finding cards in database...")
 
     def merge_set_data(df: pd.DataFrame) -> pd.DataFrame:
         if set_lists_df is None:
@@ -231,8 +234,9 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
             .astype(str)
         )
         if len(missing) > 0:
-            print(
-                f'\nUnable to find the following {len(missing)} card(s) by "Card number":\n *',
+            logger.warning(
+                'Unable to find the following %d card(s) by "Card number":\n * %s',
+                len(missing),
                 "\n * ".join(missing),
             )
         return merged_df
@@ -253,8 +257,10 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
         key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
         missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
         if len(missing) > 0:
-            print(
-                f'\nUnable to find the following {len(missing)} card(s) by "{ref_key}":\n *',
+            logger.warning(
+                'Unable to find the following %d card(s) by "%s":\n * %s',
+                len(missing),
+                ref_key,
                 "\n * ".join(missing),
             )
         matches = keys.map(key_name_dict.get)
@@ -299,7 +305,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
                     ref_val="name",
                 )
             except Exception as e:
-                print("\nUnable to get old names from ygoprodeck:", e)
+                logger.warning("Unable to get old names from ygoprodeck: %s", e)
 
     list_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
     list_df.rename(columns={"match": "Name"}, inplace=True)
@@ -312,7 +318,7 @@ def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, se
 
     list_df = list_df.convert_dtypes(convert_string=False).sort_values(by=["Name", "Count"], ignore_index=True)
     list_df["Count"] = list_df["Count"].astype(int)
-    print(f"\n{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
+    logger.info("%d out of %d cards found.", list_df[list_df["Name"].notna()]["Count"].sum(), list_df["Count"].sum())
 
     return list_df
 

@@ -7,7 +7,7 @@ import re
 from typing import Literal
 
 from .core import run
-from .utils import auto_or_bool, dirs, git
+from .utils import auto_or_bool, dirs, git, setup_logging
 
 # Note: CredAction & CustomHelpFormatter are defined in this module
 
@@ -174,6 +174,7 @@ class CredAction(argparse.Action):
 
 
 def main(args):
+    setup_logging(level=args.log_level, log_file=args.log_file)
     # Assures the script is within a git repository before processing
     _ = git.ensure_repo()
     # Execute the complete workflow
@@ -184,7 +185,6 @@ def main(args):
         jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
-        debug=args.debug,
     )
 
 
@@ -243,9 +243,18 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         help="run in dry run mode",
     )
     debug_group.add_argument(
-        "--debug",
-        action="store_true",
+        "--log-level",
+        type=str,
         required=False,
-        help="run in debug mode",
+        default=None,
+        help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    debug_group.add_argument(
+        "--log-file",
+        type=str,
+        required=False,
+        default=None,
+        metavar="PATH",
+        help="write log output to a file in addition to stderr",
     )
     debug_group.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")

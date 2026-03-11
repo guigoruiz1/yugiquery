@@ -9,8 +9,9 @@
 # ======= #
 
 # Standard library packages
-import platform
 import io
+import logging
+import platform
 
 # Local application imports
 from ..metadata import __version__
@@ -32,6 +33,9 @@ discord.VoiceClient.warn_nacl = False
 # ==================== #
 # Discord Bot Subclass #
 # ==================== #
+
+
+logger = logging.getLogger(__name__)
 
 
 class Discord(Bot, commands.Bot):
@@ -114,14 +118,14 @@ class Discord(Bot, commands.Bot):
         Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
         """
-        print("You are logged as {}".format(self.user))
+        logger.info("You are logged as %s", self.user)
         await self.tree.sync()
 
-        print(f"{self.user} is connected to the following guilds:")
+        logger.info("%s is connected to the following guilds:", self.user)
         for guild in self.guilds:
-            print(f"{guild.name}(id: {guild.id})")
+            logger.info("%s(id: %s)", guild.name, guild.id)
             members = "\n - ".join([member.name for member in guild.members])
-            print(f"Guild Members:\n - {members}")
+            logger.info("Guild Members:\n - %s", members)
 
         info = await self.application_info()
         await info.owner.send(f"Hello {info.owner.global_name}!\n{info.name} bot is online.")
@@ -151,7 +155,7 @@ class Discord(Bot, commands.Bot):
             ctx (commands.Context): The context of the error.
             error (commands.CommandError): The error received.
         """
-        print(error)
+        logger.error("%s", error)
         # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
             await self.send_long_message(ctx, content=str(error), filename="cooldown.txt", ephemeral=True, delete_after=60)

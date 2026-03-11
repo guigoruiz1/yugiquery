@@ -19,6 +19,8 @@ from IPython.display import HTML, Markdown
 from pathlib import Path
 from .dirs import dirs
 
+logger = logging.getLogger(__name__)
+
 # ========= #
 # Functions #
 # ========= #
@@ -62,7 +64,7 @@ def save_notebook() -> None:
     """
     app = JupyterFrontEnd()
     app.commands.execute("docmanager:save")
-    print("Notebook saved to disk")
+    logger.info("Notebook saved to disk")
 
 
 def export_notebook(
@@ -120,17 +122,17 @@ def export_notebook(
         notebook_content = nbformat.read(f, as_version=4)
 
     # Convert the notebook to HTML
-    logger = logging.getLogger("IPKernelApp")
-    logger.setLevel(logging.ERROR)
+    ipkernel_logger = logging.getLogger("IPKernelApp")
+    ipkernel_logger.setLevel(logging.ERROR)
 
     (body, resources) = html_exporter.from_notebook_node(notebook_content)
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
 
-    logger.setLevel(logging.WARNING)
+    ipkernel_logger.setLevel(logging.WARNING)
 
-    print(f"Notebook converted to HTML and saved to {output_path}.html")
+    logger.info("Notebook converted to HTML and saved to %s.html", output_path)
 
 
 # ============ #
@@ -186,7 +188,7 @@ def make_jekyll_page(
     with open(output_path, mode="w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"Report page generated at {output_path}")
+    logger.info("Report page generated at %s", output_path)
 
 
 # ==== #
@@ -215,7 +217,7 @@ def header(name: str | None = None, timestamp: arrow.Arrow | None = None) -> HTM
         with open(header_path, encoding="utf-8") as f:
             header = f.read()
     except FileNotFoundError:
-        print(f"Template file not found: {header_path}. Ignoring.")
+        logger.warning("Template file not found: %s. Ignoring.", header_path)
         return None
 
     timestamp = timestamp or arrow.utcnow()
@@ -244,7 +246,7 @@ def footer(timestamp: arrow.Arrow | None = None) -> HTML | None:
         with open(footer_path, encoding="utf-8") as f:
             footer = f.read()
     except FileNotFoundError:
-        print(f"Template file not found: {footer_path}. Ignoring.")
+        logger.warning("Template file not found: %s. Ignoring.", footer_path)
         return None
 
     now = timestamp or arrow.utcnow()
@@ -268,7 +270,7 @@ def buttons() -> HTML | None:
         with open(buttons_path, encoding="utf-8") as f:
             buttons = f.read()
     except FileNotFoundError:
-        print(f"Template file not found: {buttons_path}. Ignoring.")
+        logger.warning("Template file not found: %s. Ignoring.", buttons_path)
         return None
 
     return HTML(buttons)
