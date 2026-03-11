@@ -40,10 +40,10 @@ def main():
     # Parse initial arguments
     args = parser.parse_args()
     if args.command is None:
-        setup_logging()
         if args.version:
             print(f"{__title__} {__version__}")
         if args.api:
+            setup_logging()
             api.check_status()
         if args.paths:
             dirs.print()

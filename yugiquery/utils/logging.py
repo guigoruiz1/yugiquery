@@ -8,15 +8,10 @@ import sys
 from pathlib import Path
 
 from tqdm.auto import tqdm
-
-try:
-    from termcolor import colored as _colored
-
-    _HAS_TERMCOLOR = True
-except ImportError:
-    _HAS_TERMCOLOR = False
+from termcolor import colored as _colored
 
 _DEFAULT_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+_CONCISE_FORMAT = "%(message)s"
 _DEFAULT_DATEFMT = "%Y-%m-%d %H:%M:%S"
 
 _LEVEL_COLORS = {
@@ -33,7 +28,7 @@ class ColorFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         msg = super().format(record)
-        if not _HAS_TERMCOLOR or not sys.stderr.isatty():
+        if not sys.stderr.isatty():
             return msg
         color = _LEVEL_COLORS.get(record.levelno)
         attrs = ["bold"] if record.levelno >= logging.CRITICAL else []
@@ -105,7 +100,8 @@ def setup_logging(
 
     if not stream_handlers:
         stream_handler = stream_handler_class()
-        stream_handler.setFormatter(ColorFormatter(_DEFAULT_FORMAT, datefmt=_DEFAULT_DATEFMT))
+        stream_format = _DEFAULT_FORMAT if selected_level == logging.DEBUG else _CONCISE_FORMAT
+        stream_handler.setFormatter(ColorFormatter(stream_format, datefmt=_DEFAULT_DATEFMT))
         logger.addHandler(stream_handler)
 
     if log_file is not None and not any(
@@ -118,8 +114,3 @@ def setup_logging(
 
     logger.propagate = False
     return logger
-
-
-def is_debug_enabled() -> bool:
-    """Return whether the package logger is currently emitting DEBUG logs."""
-    return logging.getLogger("yugiquery").isEnabledFor(logging.DEBUG)

@@ -7,7 +7,6 @@ from yugiquery.utils.logging import (
     ColorFormatter,
     TqdmLoggingHandler,
     _parse_level,
-    is_debug_enabled,
     setup_logging,
 )
 
@@ -142,23 +141,6 @@ def test_setup_logging_replaces_stream_handler_type():
     assert any(isinstance(handler, TqdmLoggingHandler) for handler in logger.handlers)
 
 
-# ================= #
-# is_debug_enabled  #
-# ================= #
-
-
-def test_is_debug_enabled_when_logger_at_info(monkeypatch):
-    _reset_logger()
-    setup_logging(level="INFO")
-    assert is_debug_enabled() is False
-
-
-def test_is_debug_enabled_when_logger_at_debug(monkeypatch):
-    _reset_logger()
-    setup_logging(level="DEBUG")
-    assert is_debug_enabled() is True
-
-
 # ================ #
 # ColorFormatter   #
 # ================ #
@@ -174,14 +156,9 @@ def test_color_formatter_non_tty_no_color(monkeypatch):
     assert "\x1b" not in result
 
 
-def test_color_formatter_plain_fallback(monkeypatch):
-    """When termcolor is absent, output is plain regardless of TTY."""
-    import sys
-
-    log_mod = sys.modules["yugiquery.utils.logging"]
-    monkeypatch.setattr(log_mod, "_HAS_TERMCOLOR", False)
-    # Pretend it's a TTY
-    monkeypatch.setattr("sys.stderr.isatty", lambda: True, raising=False)
+def test_color_formatter_plain_on_non_tty(monkeypatch):
+    """When stderr is not a TTY, output is plain."""
+    monkeypatch.setattr("sys.stderr.isatty", lambda: False, raising=False)
     fmt = ColorFormatter("%(levelname)s %(message)s")
     record = logging.LogRecord("test", logging.ERROR, "", 0, "oops", (), None)
     result = fmt.format(record)

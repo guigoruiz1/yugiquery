@@ -273,7 +273,7 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
 
         ts_pattern = r"(last executed at `)([^`]+)(`)"
         new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
-        updated_new, n_subs = re.subn(ts_pattern, r"\1" + new_ts + r"\3", updated)
+        updated_new, n_subs = re.subn(ts_pattern, r"\g<1>" + new_ts + r"\g<3>", updated)
         if n_subs == 0:
             raise ValueError("Last executed timestamp pattern not found in file.")
         return updated_new
@@ -295,7 +295,20 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
 
 
 def cleanup_data(dry_run: bool = False) -> None:
-    """Clean up redundant data files and compact benchmark/changelog history."""
+    """
+    Clean up redundant data files and compact benchmark/changelog history.
+
+    Performs two main operations:
+    1. Condenses benchmark history using weighted averages.
+    2. Removes redundant changelog and data files, keeping only the most recent from each month
+       and condensing multiple changelogs within the same month into a single consolidated file.
+
+    Args:
+        dry_run (bool, optional): If True, log intended actions without modifying files. Defaults to False.
+    """
+    dry_run_str = " (dry run)" if dry_run else ""
+    logger.info("Starting data cleanup%s", dry_run_str)
+
     benchmark_file = dirs.DATA / "benchmark.json"
     if benchmark_file.is_file():
         benchmark = load_json(benchmark_file)
@@ -322,14 +335,21 @@ def cleanup_data(dry_run: bool = False) -> None:
 
     last_month_files = df[df["Date"] >= df["Date"].max() - pd.DateOffset(months=1)].resample("W", on="Date").first()
     last_month_files = {
-        "changelog": last_month_files[last_month_files["Group"].str.contains("changelog")]["Name"].tolist(),
-        "data": last_month_files[~last_month_files["Group"].str.contains("changelog")]["Name"].tolist(),
+        "changelog": last_month_files[last_month_files["Group"].str.contains("changelog", na=False)]["Name"]
+        .dropna()
+        .tolist(),
+        "data": last_month_files[~last_month_files["Group"].str.contains("changelog", na=False)]["Name"].dropna().tolist(),
     }
 
+    last_month_changelog = set(last_month_files["changelog"])
+    last_month_data = set(last_month_files["data"])
+
     same_month_files["changelog"] = [
-        files for files in same_month_files["changelog"] if files not in last_month_files["changelog"]
+        files for files in same_month_files["changelog"] if not any(file in last_month_changelog for file in files)
     ]
-    same_month_files["data"] = [files for files in same_month_files["data"] if files not in last_month_files["data"]]
+    same_month_files["data"] = [
+        files for files in same_month_files["data"] if not any(file in last_month_data for file in files)
+    ]
 
     logger.info("same month (with changelog)")
     for files in same_month_files["changelog"]:

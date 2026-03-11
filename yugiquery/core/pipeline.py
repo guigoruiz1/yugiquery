@@ -113,12 +113,15 @@ def _setup_progress_bars(
             else:
                 logger.warning("Unsupported contrib: %s. Ignoring...", contrib)
                 return None
-            return contrib_tqdm(
+            contrib_fp = open(os.devnull, "w")
+            contrib_pbar = contrib_tqdm(
                 token=tkn,
-                file=open(os.devnull, "w"),
+                file=contrib_fp,
                 **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
+            setattr(contrib_pbar, "_yq_owned_fp", contrib_fp)
+            return contrib_pbar
         except Exception as e:
             logger.warning("Error setting up %s progress bar. Ignoring... %s", contrib, e)
             return None
@@ -158,7 +161,7 @@ def run_notebooks(
     # Setup progress bars
     setup_logging(use_tqdm=True)
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    pbars = _setup_progress_bars(reports, external_pbar, discord, telegram)
+    pbars = [] if dry_run else _setup_progress_bars(reports, external_pbar, discord, telegram)
 
     # Create the main logger
     papermill_logger = logging.getLogger("papermill")
@@ -177,63 +180,64 @@ def run_notebooks(
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
 
         lock(report_name)
-
-        # Update the postfix
-        for pbar in pbars:
-            pbar.set_postfix(report=report_name)
-
-        if dry_run:
-            logger.info("Dry run - Generating %s report", report_name)
-            continue
-
-        with open(report) as f:
-            nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
-            cells = len(nb.cells)
-
-        # Define a function to update the output variable
-        def update_pbar():
-            for pbar in pbars:
-                pbar.update(1 / cells)
-                pbar.refresh()
-
-        # Attach the update_pbar function to the stream_handler
-        stream_handler.flush = update_pbar
-
-        logger.info("Generating %s report", report_name)
-
-        # execute the notebook with papermill
-        os.environ["PM_IN_EXECUTION"] = dest_report
-        if "yugiquery" in kernelspec.find_kernel_specs():
-            kernel_name = "yugiquery"
-        else:
-            kernel_name = "python3"
-
         try:
-            pm.execute_notebook(
-                input_path=report,
-                output_path=dest_report,
-                log_output=True,
-                progress_bar=True,
-                kernel_name=kernel_name,
-            )
-        except pm.PapermillExecutionError as e:
-            logger.error("%s", e)
-            exceptions.append(e)
-        finally:
-            os.environ.pop("PM_IN_EXECUTION", default=None)
+            # Update the postfix
             for pbar in pbars:
-                pbar.update(1 + i - pbar.n)
-                pbar.refresh()
+                pbar.set_postfix(report=report_name)
 
+            if dry_run:
+                logger.info("Dry run - Generating %s report", report_name)
+                continue
+
+            with open(report) as f:
+                nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
+                cells = len(nb.cells)
+
+            # Define a function to update the output variable
+            def update_pbar():
+                for pbar in pbars:
+                    pbar.update(1 / cells)
+                    pbar.refresh()
+
+            # Attach the update_pbar function to the stream_handler
+            stream_handler.flush = update_pbar
+
+            logger.info("Generating %s report", report_name)
+
+            # execute the notebook with papermill
+            os.environ["PM_IN_EXECUTION"] = dest_report
+            if "yugiquery" in kernelspec.find_kernel_specs():
+                kernel_name = "yugiquery"
+            else:
+                kernel_name = "python3"
+
+            try:
+                pm.execute_notebook(
+                    input_path=report,
+                    output_path=dest_report,
+                    log_output=True,
+                    progress_bar=True,
+                    kernel_name=kernel_name,
+                )
+            except pm.PapermillExecutionError as e:
+                logger.error("%s", e)
+                exceptions.append(e)
+            finally:
+                os.environ.pop("PM_IN_EXECUTION", default=None)
+                for pbar in pbars:
+                    pbar.update(1 + i - pbar.n)
+                    pbar.refresh()
+        finally:
             unlock(report_name)
-
-    logger.info("Execution completed")
 
     # Close the iterator
     for pbar in pbars:
         pbar.close()
-        if pbar.fp:
-            pbar.fp.close()
+        owned_fp = getattr(pbar, "_yq_owned_fp", None)
+        if owned_fp is not None and not owned_fp.closed:
+            owned_fp.close()
+
+    logger.info("Execution completed")
 
     # Close the stream_handler
     stream_handler.close()
