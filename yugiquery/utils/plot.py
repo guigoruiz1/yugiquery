@@ -1255,7 +1255,7 @@ def deck_stem(
         if hasna:
             xticks = xticks + [max_idx + steps[1]]
 
-        xticks_labels = str(xticks[:-1] + ["?"] if hasna else xticks)
+        xticks_labels = [str(x) for x in (xticks[:-1] + ["?"] if hasna else xticks)]
 
         ax.set_xticks(ticks=xticks, labels=xticks_labels, rotation=45 * (xticks[-1] > 100))
         ax.set_xticks(minor_xticks, minor=True)

@@ -159,7 +159,7 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
         columns="Status",
         values="Value",
         aggfunc=lambda x: "/".join(sorted(set(x))),
-    )
+    ).reset_index()
     return result
 
 
@@ -238,11 +238,51 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
 
     ydk_df = ydk_df.copy()
 
+    lookup_cache: dict[int, Any] = {}
+
+    def is_target_id(value: Any, target: int) -> bool:
+        try:
+            return int(value) == target
+        except (TypeError, ValueError):
+            return False
+
+    def find_nested_card_name(target: int) -> Any:
+        for row in ydk_data.itertuples():
+            card_name = getattr(row, "name", None)
+            if not card_name:
+                continue
+
+            card_images = getattr(row, "card_images", None)
+            if isinstance(card_images, list):
+                for image in card_images:
+                    if isinstance(image, dict) and is_target_id(image.get("id"), target):
+                        return card_name
+
+            misc_info = getattr(row, "misc_info", None)
+            if isinstance(misc_info, list):
+                for info in misc_info:
+                    if isinstance(info, dict) and is_target_id(info.get("beta_id"), target):
+                        return card_name
+
+        return np.nan
+
     def get_ydk_card(code) -> Any:
-        code = int(code)
-        if code not in ydk_data.index:
+        try:
+            code = int(code)
+        except (TypeError, ValueError):
             return np.nan
-        return ydk_data.at[code, "name"]
+
+        if code in lookup_cache:
+            return lookup_cache[code]
+
+        if code in ydk_data.index:
+            name = ydk_data.at[code, "name"]
+            lookup_cache[code] = name
+            return name
+
+        name = find_nested_card_name(code)
+        lookup_cache[code] = name
+        return name
 
     ydk_df["Name"] = ydk_df["Code"].apply(get_ydk_card)
     not_found = ydk_df[ydk_df["Name"].isna()]
