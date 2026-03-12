@@ -144,7 +144,6 @@ def update_conf_json(template_dir):
 
 def main():
     """Main function to generate theme-auto.css and update template files."""
-    setup_logging()
     template_dir = find_theme_directory()
     generate_theme_css(template_dir)
     update_index_html(template_dir)

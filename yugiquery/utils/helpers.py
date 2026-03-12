@@ -98,10 +98,12 @@ def auto_or_bool(value: str) -> bool | Literal["auto"]:
 
     if value is None:
         return True
-    elif value.lower() == "auto":
+    val = value.lower()
+    if val == "auto":
         return "auto"
-    else:
-        return bool(value)
+    if val == "false":
+        return False
+    return bool(value)
 
 
 # --- Validators --- #

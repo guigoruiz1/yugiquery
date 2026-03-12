@@ -18,6 +18,7 @@ import aiohttp
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm, trange
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from . import client
@@ -432,7 +433,8 @@ def fetch_monster(
     )
     for att in iterator:
         iterator.set_description(att)
-        logger.debug("- %s", att)
+        with logging_redirect_tqdm():
+            logger.debug("- %s", att)
 
         concept = f"[[Concept:CG monsters]][[Attribute::{att}]]"
 
@@ -613,7 +615,8 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     for cat in iterator:
         desc = cat.split("Category:")[-1]
         iterator.set_description(desc)
-        logger.debug("- %s", cat)
+        with logging_redirect_tqdm():
+            logger.debug("- %s", cat)
 
         temp = client.fetch_categorymembers(cat, namespace=3010, step=step, iterator=iterator)
         errata_data = temp["title"].apply(lambda x: x.split("Card Errata:")[-1])
@@ -644,7 +647,9 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         disable=("PM_IN_EXECUTION" in os.environ),
     )
     for cat in iterator:
-        logger.debug("- %s", cat)
+        with logging_redirect_tqdm():
+            logger.debug("- %s", cat)
+
         iterator.set_description(cat.split("Category:")[-1])
         temp = client.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator)
         sub_categories = pd.DataFrame(temp)["title"]
@@ -656,7 +661,9 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             disable=("PM_IN_EXECUTION" in os.environ),
         )
         for sub_cat in sub_iterator:
-            logger.debug("- %s", sub_cat)
+            with logging_redirect_tqdm():
+                logger.debug("- %s", sub_cat)
+
             sub_iterator.set_description(sub_cat.split("Category:")[-1])
             temp = client.fetch_properties(
                 f"[[{sub_cat}]]",
@@ -679,15 +686,18 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     total_success = 0
     total_error = 0
 
+    logger.info("Downloading set lists for %s sets", len(keys))
     for i in trange(np.ceil(len(keys) / step).astype(int), leave=False):
         success = 0
         error = 0
-        logger.debug("Iteration %s:", i)
 
         first = i * step
         last = (i + 1) * step
 
-        result = client.fetch_set_lists(*keys[first:last])
+        with logging_redirect_tqdm():
+            logger.debug("Iteration %s:", i)
+            result = client.fetch_set_lists(*keys[first:last])
+
         if result is None:
             continue
         set_lists_df, success, error = result

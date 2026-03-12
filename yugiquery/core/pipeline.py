@@ -168,7 +168,6 @@ def run_notebooks(
         Exception: Raised if any exceptions occur during notebook execution.
     """
     # Setup progress bars
-    setup_logging(use_tqdm=True)
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
     pbars = [] if dry_run else _setup_progress_bars(reports, external_pbar, discord, telegram)
 
@@ -291,7 +290,6 @@ def run(
         None: This function does not return a value.
     """
     report_paths = dirs.find_notebooks(reports)
-    setup_logging()
 
     # Check API status
     api_status = api.check_status()

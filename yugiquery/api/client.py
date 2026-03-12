@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 import requests
 from tqdm.auto import tqdm, trange
+from tqdm.contrib.logging import logging_redirect_tqdm
 import wikitextparser as wtp
 
 # --- Imports: Local Application --- #
@@ -188,6 +189,7 @@ def fetch_categorymembers(
     lastContinue = {}
     all_results = []
     i = 0
+
     with Halo(
         text="Fetching category members...",
         spinner="line",
@@ -207,7 +209,8 @@ def fetch_categorymembers(
                     params=params,
                     headers=URLS.headers,
                 )
-                logger.debug("%s", response.url)
+                with logging_redirect_tqdm():
+                    logger.debug("%s", response.url)
 
                 result = response.json()
                 if "error" in result:
@@ -218,7 +221,8 @@ def fetch_categorymembers(
                     # print(result['warnings'])
                 if "query" in result:
                     all_results += result["query"]["categorymembers"]
-                    logger.debug("Iteration %s: %s results", i + 1, len(result["query"]["categorymembers"]))
+                    with logging_redirect_tqdm():
+                        logger.debug("Iteration %s: %s results", i + 1, len(result["query"]["categorymembers"]))
                 if "continue" not in result:
                     spinner.succeed("Fetch completed")
                     break
@@ -288,12 +292,15 @@ def fetch_properties(
                     url=URLS.base + URLS.ask_action + condition + query + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
                     headers=URLS.headers,
                 )
-                logger.debug("%s", response.url)
+                with logging_redirect_tqdm():
+                    logger.debug("%s", response.url)
+
                 result = extract_results(response)
                 formatted_df = format_df(input_df=result, include_all=include_all)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
-                logger.debug("Iteration %s: %s results", i + 1, len(formatted_df.index))
+                with logging_redirect_tqdm():
+                    logger.debug("Iteration %s: %s results", i + 1, len(formatted_df.index))
 
                 if len(formatted_df.index) < step or (i + 1) * step >= limit:
                     spinner.succeed("Fetch completed")
@@ -341,6 +348,8 @@ def fetch_redirects(*titles: str) -> Dict[str, str]:
             url=URLS.base + URLS.redirects_action + target_titles,
             headers=URLS.headers,
         )
+        with logging_redirect_tqdm():
+            logger.debug("%s", response.url)
         response = response.json()
         redirects = response["query"]["redirects"]
         for redirect in redirects:
@@ -370,6 +379,8 @@ def fetch_backlinks(*titles: str) -> Dict[str, str]:
             url=URLS.base + URLS.backlinks_action + target_title,
             headers=URLS.headers,
         )
+        with logging_redirect_tqdm():
+            logger.debug("%s", response.url)
         response = response.json()
         backlinks = response["query"]["backlinks"]
         for backlink in backlinks:
@@ -452,17 +463,20 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
             url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
             headers=URLS.headers,
         )
+        with logging_redirect_tqdm():
+            logger.debug("Iteration %s:", i)
+            logger.debug("%s", response.url)
         formatted_response = extract_results(response)
         formatted_response.drop(
             "Page name", axis=1, inplace=True
         )  # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
-        logger.debug(
-            "Iteration %s: Information for %s sets downloaded - %s errors",
-            i,
-            len(formatted_df),
-            step - len(formatted_df),
-        )
+        with logging_redirect_tqdm():
+            logger.debug(
+                "Information for %s sets downloaded - %s errors",
+                len(formatted_df),
+                step - len(formatted_df),
+            )
 
         set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
 
@@ -648,7 +662,8 @@ async def download_media(
                 if save_file.is_file():
                     save_file.unlink()
                 download_results.append({"file_name": save_name, "url": URLS.media + url, "success": False})
-                logger.warning("Failed to download %s: %s", save_name, e)
+                with logging_redirect_tqdm():
+                    logger.warning("Failed to download %s: %s", save_name, e)
             finally:
                 pbar.update()
 

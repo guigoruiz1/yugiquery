@@ -242,7 +242,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         "--log-level",
         type=str,
         required=False,
-        default=None,
+        default="INFO",
         help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
     debug_group.add_argument(
@@ -253,4 +253,3 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         metavar="PATH",
         help="write log output to a file in addition to stderr",
     )
-    debug_group.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")

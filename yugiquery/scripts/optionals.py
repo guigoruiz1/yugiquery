@@ -228,7 +228,6 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 
 
 def main(args):
-    setup_logging()
     if args.venv and not args.kernel:
         logger.warning("The --venv flag has no effect if --kernel is not passed.")
 

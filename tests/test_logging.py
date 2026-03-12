@@ -5,8 +5,6 @@ import pytest
 
 from yugiquery.utils.logging import (
     ColorFormatter,
-    TqdmLoggingHandler,
-    _parse_level,
     setup_logging,
 )
 
@@ -19,32 +17,6 @@ def _reset_logger():
     for h in list(logger.handlers):
         logger.removeHandler(h)
     logger.setLevel(logging.NOTSET)
-
-
-# ============== #
-# _parse_level   #
-# ============== #
-
-
-def test_parse_level_none():
-    assert _parse_level(None) is None
-
-
-def test_parse_level_int():
-    assert _parse_level(logging.WARNING) == logging.WARNING
-
-
-def test_parse_level_string_name():
-    assert _parse_level("DEBUG") == logging.DEBUG
-    assert _parse_level("warning") == logging.WARNING
-
-
-def test_parse_level_numeric_string():
-    assert _parse_level("20") == 20
-
-
-def test_parse_level_unknown_string():
-    assert _parse_level("NONSENSE") is None
 
 
 # ============== #
@@ -73,21 +45,6 @@ def test_setup_logging_level_arg_overrides_env(monkeypatch):
     assert logger.level == logging.ERROR
 
 
-def test_setup_logging_env_level(monkeypatch):
-    _reset_logger()
-    monkeypatch.setenv("YQ_LOG_LEVEL", "WARNING")
-    logger = setup_logging()
-    assert logger.level == logging.WARNING
-
-
-def test_setup_logging_preserves_existing_level(monkeypatch):
-    _reset_logger()
-    monkeypatch.delenv("YQ_LOG_LEVEL", raising=False)
-    setup_logging(level="ERROR")
-    logger = setup_logging()
-    assert logger.level == logging.ERROR
-
-
 def test_setup_logging_adds_handler():
     _reset_logger()
     logger = setup_logging()
@@ -102,43 +59,33 @@ def test_setup_logging_idempotent():
     assert len(logging.getLogger("yugiquery").handlers) == 1
 
 
-def test_setup_logging_force_resets_handlers():
-    _reset_logger()
-    setup_logging()
-    setup_logging(force=True, level="WARNING")
-    logger = logging.getLogger("yugiquery")
-    assert len(logger.handlers) == 1
-    assert logger.level == logging.WARNING
-
-
-def test_setup_logging_log_file(tmp_path):
-    _reset_logger()
-    log_path = tmp_path / "test.log"
-    logger = setup_logging(force=True, log_file=log_path)
-    assert len(logger.handlers) == 2
-    logger.warning("file test")
-    assert log_path.exists()
-    assert "file test" in log_path.read_text()
-
-
 def test_setup_logging_propagate_false():
     _reset_logger()
     logger = setup_logging()
     assert logger.propagate is False
 
 
-def test_setup_logging_switches_to_tqdm_handler():
-    _reset_logger()
-    logger = setup_logging(use_tqdm=True)
-    assert any(isinstance(handler, TqdmLoggingHandler) for handler in logger.handlers)
-
-
-def test_setup_logging_replaces_stream_handler_type():
+def test_logger_setLevel_updates_format():
     _reset_logger()
     logger = setup_logging()
-    assert any(type(handler) is logging.StreamHandler for handler in logger.handlers)
-    logger = setup_logging(use_tqdm=True)
-    assert any(isinstance(handler, TqdmLoggingHandler) for handler in logger.handlers)
+    # Should start with INFO and concise format
+    assert logger.level == logging.INFO
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            fmt = handler.formatter._fmt
+            assert fmt == "%(message)s"
+    # Switch to DEBUG, should update to default format
+    logger.setLevel(logging.DEBUG)
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            fmt = handler.formatter._fmt
+            assert fmt == "%(asctime)s | %(levelname)s | %(message)s"
+    # Switch back to INFO, should update to concise format
+    logger.setLevel(logging.INFO)
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            fmt = handler.formatter._fmt
+            assert fmt == "%(message)s"
 
 
 # ================ #

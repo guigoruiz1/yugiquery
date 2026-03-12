@@ -9,14 +9,13 @@ import sys
 from pathlib import Path
 
 # --- Imports: Third-Party --- #
-from tqdm.auto import tqdm
 from termcolor import colored as _colored
+import logging
+import sys
+import os
+from pathlib import Path
 
-# --- Constants --- #
-_DEFAULT_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
-_CONCISE_FORMAT = "%(message)s"
-_DEFAULT_DATEFMT = "%Y-%m-%d %H:%M:%S"
-
+# Color mapping for log levels
 _LEVEL_COLORS = {
     logging.DEBUG: "cyan",
     logging.INFO: None,
@@ -25,98 +24,64 @@ _LEVEL_COLORS = {
     logging.CRITICAL: "red",
 }
 
-# --- Classes --- #
+
+# Custom logger that updates handler format on setLevel
+class YugiqueryLogger(logging.Logger):
+    _DEFAULT_FORMAT = "%(asctime)s | %(levelname)s | %(message)s"
+    _CONCISE_FORMAT = "%(message)s"
+
+    def setLevel(self, level):
+        super().setLevel(level)
+        use_concise = level == logging.INFO
+        fmt = self._CONCISE_FORMAT if use_concise else self._DEFAULT_FORMAT
+        for handler in self.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.setFormatter(ColorFormatter(fmt, datefmt="%Y-%m-%d %H:%M:%S", use_concise=use_concise))
 
 
+# ColorFormatter class
 class ColorFormatter(logging.Formatter):
-    """Formatter that applies ANSI colour codes by log level (TTY only)."""
+    def __init__(self, fmt, datefmt=None, use_concise=False):
+        super().__init__(fmt, datefmt)
+        self.use_concise = use_concise
 
     def format(self, record: logging.LogRecord) -> str:
-        msg = super().format(record)
-        if not sys.stderr.isatty():
-            return msg
+        if self.use_concise:
+            fmt = "%(message)s"
+            msg = logging.Formatter(fmt).format(record)
+        else:
+            msg = super().format(record)
         color = _LEVEL_COLORS.get(record.levelno)
         attrs = ["bold"] if record.levelno >= logging.CRITICAL else []
         return _colored(msg, color, attrs=attrs or None) if color or attrs else msg
 
 
-class TqdmLoggingHandler(logging.StreamHandler):
-    """Stream handler that writes through tqdm to preserve active progress bars."""
-
-    def emit(self, record: logging.LogRecord) -> None:
-        try:
-            msg = self.format(record)
-            tqdm.write(msg, file=self.stream)
-            self.flush()
-        except Exception:
-            self.handleError(record)
-
-
-# --- Functions --- #
-
-
-def _parse_level(level: str | int | None) -> int | None:
-    if level is None:
-        return None
-    if isinstance(level, int):
-        return level
-    normalized = str(level).strip().upper()
-    if normalized.isdigit():
-        return int(normalized)
-    return logging._nameToLevel.get(normalized)
+def _parse_level(level):
+    if isinstance(level, str):
+        level = level.upper()
+        return logging._nameToLevel.get(level, logging.INFO)
+    return level
 
 
 def setup_logging(
     *,
-    level: str | int | None = None,
+    level: str | int = logging.INFO,
     log_file: str | Path | None = None,
-    force: bool = False,
-    use_tqdm: bool = False,
 ) -> logging.Logger:
-    """Configure package logging handlers and level.
-
-    The package logger is `yugiquery` and child loggers inherit from it.
-    """
+    logging.setLoggerClass(YugiqueryLogger)
     logger = logging.getLogger("yugiquery")
-    env_level = _parse_level(os.environ.get("YQ_LOG_LEVEL"))
-    selected_level = _parse_level(level)
-
-    if selected_level is None and logger.handlers and logger.level != logging.NOTSET:
-        selected_level = logger.level
-    if selected_level is None:
-        selected_level = env_level or logging.INFO
-
-    logger.setLevel(selected_level)
-
-    if force:
-        for handler in list(logger.handlers):
-            logger.removeHandler(handler)
-
-    stream_handler_class = TqdmLoggingHandler if use_tqdm else logging.StreamHandler
-    stream_handlers = [
-        handler
-        for handler in logger.handlers
-        if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
-    ]
-
-    if any(type(handler) is not stream_handler_class for handler in stream_handlers):
-        for handler in stream_handlers:
-            logger.removeHandler(handler)
-        stream_handlers = []
-
-    if not stream_handlers:
-        stream_handler = stream_handler_class()
-        stream_format = _DEFAULT_FORMAT if selected_level == logging.DEBUG else _CONCISE_FORMAT
-        stream_handler.setFormatter(ColorFormatter(stream_format, datefmt=_DEFAULT_DATEFMT))
-        logger.addHandler(stream_handler)
-
-    if log_file is not None and not any(
-        isinstance(handler, logging.FileHandler) and Path(handler.baseFilename) == Path(log_file)
-        for handler in logger.handlers
-    ):
+    level_int = _parse_level(level)
+    logger.setLevel(level_int)
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
+    use_concise = level_int == logging.INFO
+    fmt = YugiqueryLogger._CONCISE_FORMAT if use_concise else YugiqueryLogger._DEFAULT_FORMAT
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(ColorFormatter(fmt, datefmt="%Y-%m-%d %H:%M:%S", use_concise=use_concise))
+    logger.addHandler(stream_handler)
+    if log_file is not None:
         file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(logging.Formatter(_DEFAULT_FORMAT, datefmt=_DEFAULT_DATEFMT))
+        file_handler.setFormatter(logging.Formatter(YugiqueryLogger._DEFAULT_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"))
         logger.addHandler(file_handler)
-
     logger.propagate = False
     return logger

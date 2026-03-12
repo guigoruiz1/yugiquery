@@ -19,8 +19,7 @@ if dirs.is_notebook:
     from pathlib import Path
     from itables import init_notebook_mode
 
-    # TODO: Check if there's a better way
-    setup_logging()
-
     # Default pandas display settings
     pd.set_option("display.max_columns", 40)
+
+_ = setup_logging()
