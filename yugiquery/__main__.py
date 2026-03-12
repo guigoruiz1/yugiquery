@@ -2,11 +2,11 @@
 
 # -*- coding: utf-8 -*-
 
-# Standard library imports
+# --- Imports: Standard Library --- #
 import argparse
 import importlib
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .metadata import __title__, __version__
 from .cli import CustomHelpFormatter
 from .utils import dirs, setup_logging
@@ -16,6 +16,7 @@ from . import bot
 from .scripts import optionals
 
 
+# --- Main Execution --- #
 def main():
     # Create the primary parser
     parser = argparse.ArgumentParser(description="Yugiquery CLI tool", prog=__title__, formatter_class=CustomHelpFormatter)

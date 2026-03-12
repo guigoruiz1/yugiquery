@@ -2,10 +2,14 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import importlib
+
+# --- Imports: Local Application --- #
 from .base import Bot, set_parser, main
 
 
+# --- Lazy Loading of Bot Subclasses --- #
 class _LazyLoader:
     def __init__(self, module_name, class_name):
         self.module_name = module_name
@@ -22,6 +26,5 @@ class _LazyLoader:
         return self._load_class()(*args, **kwargs)
 
 
-# Lazy loading the subclasses only when needed
 Discord = _LazyLoader(module_name=".discord", class_name="Discord")
 Telegram = _LazyLoader(module_name=".telegram", class_name="Telegram")

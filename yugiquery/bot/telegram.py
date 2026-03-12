@@ -4,20 +4,16 @@
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
+# --- Imports --- #
 
-# Standard library packages
+# --- Imports: Standard Library --- #
 import logging
 import platform
 
-import telegram.ext
-
-# Third-party imports
+# --- Imports: Third-Party --- #
 import arrow
 
-# Local application imports
+# --- Imports: Local Application --- #
 from ..metadata import __version__
 from ..utils import get_ts_granularity, escape_chars
 from .base import Bot, GitCommands
@@ -39,14 +35,13 @@ except ImportError:
         'Missing bot Telegram bot package. Please install the required packages with "pip install yugiquery[telegram]".'
     )
 
-# ===================== #
-# Telegram Bot Subclass #
-# ===================== #
+# --- Telegram Bot Subclass --- #
 
 
 logger = logging.getLogger(__name__)
 
 
+# --- Telegram Bot Class Definition --- #
 class Telegram(Bot):
     """
     Telegram bot subclass. Inherits from Bot class.
@@ -118,9 +113,7 @@ class Telegram(Bot):
 
         return decorator
 
-    # ======== #
-    # Commands #
-    # ======== #
+    # --- Commands --- #
 
     def register_commands(self) -> None:
         """
@@ -447,9 +440,7 @@ class Telegram(Bot):
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
 
-    # ====== #
-    # Events #
-    # ====== #
+    # --- Events --- #
 
     def register_events(self) -> None:
         """

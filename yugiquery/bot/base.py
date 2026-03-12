@@ -1,14 +1,8 @@
-#!/usr/bin/env python3
-
 # yugiquery/bot.py
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
+# --- Imports: Standard Library --- #
 import argparse
 import logging
 import multiprocessing as mp
@@ -26,22 +20,19 @@ from typing import (
     Type,
 )
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import pandas as pd
 from tqdm.auto import tqdm
 
-# Local application imports
+# --- Imports: Local Application --- #
 from ..utils import *
 from ..core import run
 
 
 logger = logging.getLogger(__name__)
 
-# ============ #
-# Enum Classes #
-# ============ #
 
-
+# --- Enum Classes --- #
 class GitCommands(StrEnum):
     """
     Enum class to represent the available git commands.
@@ -53,11 +44,7 @@ class GitCommands(StrEnum):
     push = "push"
 
 
-# ============== #
-# Bot Superclass #
-# ============== #
-
-
+# --- Bot Superclass --- #
 class Bot:
     """
     Bot superclass.
@@ -88,9 +75,7 @@ class Bot:
         except:
             self.repo = None
 
-    # ======================== #
-    # Bot Superclass Variables #
-    # ======================== #
+    # --- Bot Superclass Variables --- #
     process: mp.Process | None = None
     cooldown_limit: int = 12 * 3600  # 12 hours
     # Placeholder for the Enum object
@@ -136,9 +121,7 @@ class Bot:
             webpage=webpage_url or None,
         )
 
-    # ====================== #
-    # Bot Superclass Methods #
-    # ====================== #
+    # --- Bot Superclass Methods --- #
 
     def init_reports_enum(self) -> None:
         """
@@ -507,12 +490,10 @@ class Bot:
         return humanized
 
 
-# ========= #
-# Execution #
-# ========= #
+# --- Execution and CLI --- #
 
 
-# Helper function
+# --- CLI Helper Functions --- #
 def load_secrets_with_args(args: Any) -> Tuple[str, int | str]:
     """
     Load secrets from command-line arguments, and update them with values from
@@ -591,6 +572,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
     )
 
 
+# --- Main Entry Point --- #
 def main(args) -> None:
     setup_logging(level=args.log_level, log_file=args.log_file)
     # Set multiprocessing start method

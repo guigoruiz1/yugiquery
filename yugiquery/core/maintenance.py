@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import json
 import logging
 import os
@@ -9,19 +10,27 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple, TypedDict
 
+# --- Imports: Third-Party --- #
 import arrow
 from IPython.display import display
 import pandas as pd
 
+# --- Imports: Local Application --- #
 from ..utils import dirs, get_notebook_path, git, load_json, make_filename
 
 logger = logging.getLogger(__name__)
+
+
+# --- Benchmark Entry Type --- #
 
 
 class BenchmarkEntry(TypedDict):
     ts: str
     average: float
     weight: float
+
+
+# --- Changelog Generation --- #
 
 
 def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col: str | List[str]) -> pd.DataFrame:
@@ -63,6 +72,9 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
     return changelog
 
 
+# --- Benchmarking --- #
+
+
 def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
     """
     Record report execution time and persist benchmark history.
@@ -92,6 +104,9 @@ def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
         message=f"{report.capitalize()} report benchmarked - {now.isoformat()}",
     )
     logger.info("%s", result)
+
+
+# --- Changelog Condensing --- #
 
 
 def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
@@ -157,6 +172,9 @@ def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
     return new_changelog.loc[index], new_filename
 
 
+# --- Benchmark Condensing --- #
+
+
 def condense_benchmark(benchmark: Dict[str, List[BenchmarkEntry]]) -> Dict[str, List[BenchmarkEntry]]:
     """
     Condense benchmark history by weighted average and total weight for each key.
@@ -189,6 +207,9 @@ def condense_benchmark(benchmark: Dict[str, List[BenchmarkEntry]]) -> Dict[str, 
             )
 
     return benchmark
+
+
+# --- Index Updating --- #
 
 
 def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = None) -> str:
@@ -292,6 +313,9 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
         files=[index_path, readme_path],
         message=f"Index and README timestamp update - {timestamp.isoformat()}",
     )
+
+
+# --- Data Cleanup --- #
 
 
 def cleanup_data(dry_run: bool = False) -> None:

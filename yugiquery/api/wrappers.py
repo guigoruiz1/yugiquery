@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import asyncio
 import json
 import logging
@@ -12,19 +13,23 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List
 
+# --- Imports: Third-Party --- #
 import aiohttp
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm, trange
 
+# --- Imports: Local Application --- #
 from . import client
 from ..utils import dirs, load_json
 from .client import download_media
 
 
+# --- Logger Setup --- #
 logger = logging.getLogger(__name__)
 
 
+# --- Card Game Enum & Properties --- #
 class CG(Enum):
     """
     Enum representing the card game formats.
@@ -161,7 +166,7 @@ card_properties = {
 }
 
 
-# Assets JSON dictionary updating
+# --- Asset Management Functions --- #
 def update_rarities(save: bool = True) -> Dict[str, str]:
     """
     Update rarities dictionary with redirects/backlinks fetched from the API.
@@ -215,7 +220,39 @@ def update_regions(save: bool = True) -> Dict[str, str]:
     return regions_dict
 
 
-# Query builder
+def get_ygoprodeck() -> pd.DataFrame:
+    """
+    Fetch YGOProDeck data from the API and persist a local cache.
+
+    Returns:
+        pd.DataFrame: YGOProDeck card data indexed by card id.
+
+    Raises:
+        Exception: Exceptions raised by client.fetch_ygoprodeck when no cache exists.
+    """
+    ygoprodeck_file = dirs.DATA / "ygoprodeck.json"
+    try:
+        result = client.fetch_ygoprodeck()
+        ygoprodeck_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(ygoprodeck_file, "w+") as file:
+            json.dump(result, file, indent=4)
+        return pd.DataFrame(result).set_index("id")
+    except (OSError, ValueError, RuntimeError) as e:
+        logger.warning("Unable to fetch ygoprodeck data due to %s: %s. Attempting to use local cache.", type(e).__name__, e)
+        if ygoprodeck_file.is_file():
+            try:
+                with open(ygoprodeck_file, "r") as file:
+                    cached_result = json.load(file)
+                return pd.DataFrame(cached_result).set_index("id")
+            except (OSError, ValueError) as cache_err:
+                logger.error("Failed to load ygoprodeck cache due to %s: %s", type(cache_err).__name__, cache_err)
+                raise RuntimeError("Unable to fetch ygoprodeck data and failed to load cache.") from cache_err
+        else:
+            logger.error("Unable to obtain ygoprodeck data and no cache file exists.")
+            raise RuntimeError("Unable to fetch ygoprodeck data and no cache file exists.") from e
+
+
+# --- Query Builder & Property Mapping --- #
 def card_query(*args, **kwargs) -> str:
     """
     Build the query string used for yugipedia card searches.
@@ -315,7 +352,7 @@ def card_query(*args, **kwargs) -> str:
     return search_string
 
 
-# Bandai
+# --- Card Fetching Functions --- #
 def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) -> pd.DataFrame:
     concept = "[[Medium::Bandai]]"
     if bandai_query is None:
@@ -589,6 +626,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     return errata_df
 
 
+# --- Set List Fetching Functions --- #
 def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs) -> pd.DataFrame:
     valid_cg = cg.value
     if valid_cg == "CG":

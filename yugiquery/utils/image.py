@@ -2,32 +2,22 @@
 
 # -*- coding: utf-8 -*-
 
-# ============ #
-# Image module #
-# ============ #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import base64
 from io import BytesIO
 from pathlib import Path
 from typing import Tuple, List
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import qrcode
 import numpy as np
 from PIL import Image
 from tqdm.auto import tqdm
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .dirs import dirs
 
-# ========= #
-# Functions #
-# ========= #
+# --- Functions --- #
 
 
 def make_qrcode_html(url: str, size: Tuple[int, int] | None = None) -> str:

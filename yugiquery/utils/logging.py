@@ -2,14 +2,17 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import logging
 import os
 import sys
 from pathlib import Path
 
+# --- Imports: Third-Party --- #
 from tqdm.auto import tqdm
 from termcolor import colored as _colored
 
+# --- Constants --- #
 _DEFAULT_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 _CONCISE_FORMAT = "%(message)s"
 _DEFAULT_DATEFMT = "%Y-%m-%d %H:%M:%S"
@@ -21,6 +24,8 @@ _LEVEL_COLORS = {
     logging.ERROR: "red",
     logging.CRITICAL: "red",
 }
+
+# --- Classes --- #
 
 
 class ColorFormatter(logging.Formatter):
@@ -47,16 +52,17 @@ class TqdmLoggingHandler(logging.StreamHandler):
             self.handleError(record)
 
 
+# --- Functions --- #
+
+
 def _parse_level(level: str | int | None) -> int | None:
     if level is None:
         return None
     if isinstance(level, int):
         return level
-
     normalized = str(level).strip().upper()
     if normalized.isdigit():
         return int(normalized)
-
     return logging._nameToLevel.get(normalized)
 
 

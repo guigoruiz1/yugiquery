@@ -2,20 +2,25 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import logging
 import os
 from ast import literal_eval
 from pathlib import Path
 from typing import List, Literal, Tuple, overload
 
+# --- Imports: Third-Party --- #
 import arrow
 import numpy as np
 import pandas as pd
 
+# --- Imports: Local Application --- #
+from .. import api
 from ..utils import dirs, load_json
-from .decks import get_ygoprodeck
 
 logger = logging.getLogger(__name__)
+
+# --- Data File Loading and Normalization --- #
 
 
 @overload
@@ -80,6 +85,9 @@ def load_latest_data(
     if return_ts:
         return None, None
     return None
+
+
+# --- Set and Card Dataset Merges --- #
 
 
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.DataFrame:
@@ -166,6 +174,9 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
     return input_df
 
 
+# --- Collection Loading --- #
+
+
 def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
     """Load a user collection from CSV or Excel."""
     collection_file = dirs.DATA.joinpath(file_name)
@@ -190,74 +201,10 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
     return collection_df
 
 
-def _merge_with_keys(df: pd.DataFrame, key_col: str, ref_df: pd.DataFrame, ref_key: str, ref_val: str) -> pd.DataFrame:
-    """Merge cards by key column (Card number, Password, or Name) against reference dataframe."""
-    if ref_df is None:
-        return df
-
-    keys = df[df["match"].isna()][key_col].dropna()
-    ref_df = ref_df.dropna(subset=ref_key)
-    list_keys = ref_df[ref_key]
-
-    # Normalize keys for comparison (case-insensitive for names, numeric for passwords)
-    if key_col != "Password":
-        keys = keys.str.lower().str.strip()
-        list_keys = list_keys.str.lower().str.strip()
-    else:
-        keys = keys.astype(int)
-        list_keys = list_keys.astype(int)
-
-    # Create mapping and identify missing cards
-    key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
-    missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
-
-    if len(missing) > 0:
-        logger.warning(
-            'Unable to find the following %d card(s) by "%s":\n * %s',
-            len(missing),
-            ref_key,
-            "\n * ".join(missing),
-        )
-
-    # Apply matches to dataframe
-    matches = keys.map(key_name_dict.get)
-    df.loc[matches.index, "match"] = matches
-    return df
+# --- Card Matching Pipeline --- #
 
 
-def _merge_set_data(df: pd.DataFrame, set_lists_df: pd.DataFrame | None) -> None:
-    """Merge set data by card number when set_data flag is true. Updates df in place."""
-    if set_lists_df is None:
-        return
-
-    df["Card number"] = df["Card number"].str.upper()
-    extra_cols = set_lists_df.columns.difference(df.columns).union(["Card number", "Name"])
-    merged_result = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
-    merged_result["match"] = merged_result["Name_y"] if "Name_y" in merged_result else merged_result["Name"]
-    merged_result.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
-    merged_result.drop(columns=["Name_y"], inplace=True, errors="ignore")
-
-    # Log missing card numbers
-    missing = (
-        merged_result["Card number"][~merged_result["Card number"].isin(set_lists_df["Card number"])]
-        .dropna()
-        .sort_values()
-        .unique()
-        .astype(str)
-    )
-    if len(missing) > 0:
-        logger.warning(
-            'Unable to find the following %d card(s) by "Card number":\n * %s',
-            len(missing),
-            "\n * ".join(missing),
-        )
-
-    # Update input dataframe columns
-    for col in merged_result.columns:
-        df[col] = merged_result[col]
-
-
-def find_cards(list_df: pd.DataFrame | pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
+def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
     """Match a card list against latest datasets and optionally enrich with card data."""
     if list_df.empty:
         logger.warning("List empty. Ignoring.")
@@ -329,6 +276,38 @@ def _match_cards_by_card_number(
         _merge_with_keys(list_df, "Card number", set_lists_df, "Card number", "Name")
 
 
+def _merge_set_data(df: pd.DataFrame, set_lists_df: pd.DataFrame | None) -> None:
+    """Merge set data by card number when set_data flag is true. Updates df in place."""
+    if set_lists_df is None:
+        return
+
+    df["Card number"] = df["Card number"].str.upper()
+    extra_cols = set_lists_df.columns.difference(df.columns).union(["Card number", "Name"])
+    merged_result = df.merge(set_lists_df[extra_cols], on="Card number", how="left")
+    merged_result["match"] = merged_result["Name_y"] if "Name_y" in merged_result else merged_result["Name"]
+    merged_result.rename({"Name_x": "Name"}, axis=1, inplace=True, errors="ignore")
+    merged_result.drop(columns=["Name_y"], inplace=True, errors="ignore")
+
+    # Log missing card numbers
+    missing = (
+        merged_result["Card number"][~merged_result["Card number"].isin(set_lists_df["Card number"])]
+        .dropna()
+        .sort_values()
+        .unique()
+        .astype(str)
+    )
+    if len(missing) > 0:
+        logger.warning(
+            'Unable to find the following %d card(s) by "Card number":\n * %s',
+            len(missing),
+            "\n * ".join(missing),
+        )
+
+    # Update input dataframe columns
+    for col in merged_result.columns:
+        df[col] = merged_result[col]
+
+
 def _match_cards_by_password(list_df: pd.DataFrame, original_cols: pd.Index, card_df: pd.DataFrame | None) -> None:
     """Match remaining unmatched cards by password."""
     if "Password" not in original_cols or card_df is None or list_df["match"].notna().all():
@@ -355,7 +334,7 @@ def _match_cards_by_name(
     # Try ygoprodeck for old card names as fallback
     if list_df["match"].isna().any():
         try:
-            ydk_data = get_ygoprodeck()
+            ydk_data = api.get_ygoprodeck()
             ydk_data["Old name"] = ydk_data["misc_info"].apply(
                 lambda x: tuple(y["beta_name"] for y in x if "beta_name" in y)
             )
@@ -368,6 +347,41 @@ def _match_cards_by_name(
             )
         except Exception as e:
             logger.warning("Unable to get old names from ygoprodeck: %s", e)
+
+
+def _merge_with_keys(df: pd.DataFrame, key_col: str, ref_df: pd.DataFrame, ref_key: str, ref_val: str) -> pd.DataFrame:
+    """Merge cards by key column (Card number, Password, or Name) against reference dataframe."""
+    if ref_df is None:
+        return df
+
+    keys = df[df["match"].isna()][key_col].dropna()
+    ref_df = ref_df.dropna(subset=ref_key)
+    list_keys = ref_df[ref_key]
+
+    # Normalize keys for comparison (case-insensitive for names, numeric for passwords)
+    if key_col != "Password":
+        keys = keys.str.lower().str.strip()
+        list_keys = list_keys.str.lower().str.strip()
+    else:
+        keys = keys.astype(int)
+        list_keys = list_keys.astype(int)
+
+    # Create mapping and identify missing cards
+    key_name_dict = dict(zip(list_keys, ref_df[ref_val]))
+    missing = df.loc[keys[~keys.isin(list_keys)].index, key_col].sort_values().unique().astype(str)
+
+    if len(missing) > 0:
+        logger.warning(
+            'Unable to find the following %d card(s) by "%s":\n * %s',
+            len(missing),
+            ref_key,
+            "\n * ".join(missing),
+        )
+
+    # Apply matches to dataframe
+    matches = keys.map(key_name_dict.get)
+    df.loc[matches.index, "match"] = matches
+    return df
 
 
 def _finalize_matched_cards(list_df: pd.DataFrame, card_df: pd.DataFrame | None, card_data: bool) -> pd.DataFrame:
@@ -390,6 +404,9 @@ def _finalize_matched_cards(list_df: pd.DataFrame, card_df: pd.DataFrame | None,
     list_df["Count"] = list_df["Count"].astype(int)
 
     return list_df
+
+
+# --- Release Timeline Utilities --- #
 
 
 def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=False) -> pd.DataFrame:

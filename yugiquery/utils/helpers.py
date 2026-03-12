@@ -2,15 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
-# ============== #
-# Helpers module #
-# ============== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import calendar  # Used in notebooks
 import hashlib
 import json
@@ -20,19 +12,16 @@ import platform
 from pathlib import Path
 from typing import Literal, List, Dict
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import arrow
 from dotenv import dotenv_values
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .dirs import dirs
-
 
 logger = logging.getLogger(__name__)
 
-# ============ #
-# Data loaders #
-# ============ #
+# --- Data Loaders --- #
 
 
 def load_secrets(
@@ -115,9 +104,7 @@ def auto_or_bool(value: str) -> bool | Literal["auto"]:
         return bool(value)
 
 
-# ========== #
-# Validators #
-# ========== #
+# --- Validators --- #
 
 
 def md5(name: str) -> str:
@@ -135,9 +122,7 @@ def md5(name: str) -> str:
     return hash_md5.hexdigest()
 
 
-# =================== #
-# String Manipulators #
-# =================== #
+# --- String Manipulators --- #
 
 
 def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
@@ -156,9 +141,7 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
     return string
 
 
-# ====================== #
-# Timestamp Manipulators #
-# ====================== #
+# --- Timestamp Manipulators --- #
 
 
 def get_ts_granularity(seconds: int) -> List[arrow.arrow._GRANULARITY]:
@@ -220,9 +203,7 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
         return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
 
 
-# ============== #
-# Lock Mechanism #
-# ============== #
+# --- Lock Mechanism --- #
 
 
 def lock(file_name: str) -> None:

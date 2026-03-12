@@ -1,13 +1,13 @@
-# =============== #
-# Notebook module #
-# =============== #
+# yugiquery/utils/notebook.py
 
-# ======= #
-# Imports #
-# ======= #
+# -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import os
 import logging
+from pathlib import Path
+
+# --- Imports: Third-Party --- #
 import arrow
 from ipylab import JupyterFrontEnd
 from IPython.core.getipython import get_ipython
@@ -16,18 +16,13 @@ from nbconvert import HTMLExporter
 from nbconvert.writers.files import FilesWriter
 from traitlets.config import Config
 from IPython.display import HTML, Markdown
-from pathlib import Path
+
+# --- Imports: Local Application --- #
 from .dirs import dirs
 
 logger = logging.getLogger(__name__)
 
-# ========= #
-# Functions #
-# ========= #
-
-# =================== #
-# Notebook Management #
-# =================== #
+# --- Helper Functions --- #
 
 
 def get_notebook_path() -> Path | None:
@@ -52,6 +47,9 @@ def get_notebook_path() -> Path | None:
     return Path(file_path) if file_path else None
 
 
+# --- Save Functions --- #
+
+
 def save_notebook() -> None:
     """
     Save the current notebook opened in JupyterLab to disk.
@@ -65,6 +63,9 @@ def save_notebook() -> None:
     app = JupyterFrontEnd()
     app.commands.execute("docmanager:save")
     logger.info("Notebook saved to disk")
+
+
+# --- Export Functions --- #
 
 
 def export_notebook(
@@ -135,9 +136,7 @@ def export_notebook(
     logger.info("Notebook converted to HTML and saved to %s.html", output_path)
 
 
-# ============ #
-# Jekyll Pages #
-# ============ #
+# --- Jekyll Pages --- #
 
 
 def make_jekyll_page(
@@ -191,9 +190,7 @@ def make_jekyll_page(
     logger.info("Report page generated at %s", output_path)
 
 
-# ==== #
-# HTML #
-# ==== #
+# --- HTML Functions --- #
 
 
 def header(name: str | None = None, timestamp: arrow.Arrow | None = None) -> HTML | None:

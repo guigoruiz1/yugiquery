@@ -2,15 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
-# =============== #
-# API call module #
-# =============== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import asyncio
 import logging
 import os
@@ -27,7 +19,7 @@ from typing import (
 )
 import urllib.parse as up
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import aiohttp
 import numpy as np
 import pandas as pd
@@ -35,7 +27,7 @@ import requests
 from tqdm.auto import tqdm, trange
 import wikitextparser as wtp
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .. import utils
 from ..metadata import __title__, __url__, __version__
 from ..utils import md5
@@ -48,16 +40,13 @@ from .parsers import (
 
 logger = logging.getLogger(__name__)
 
-# Import Halo according to the environment
+# --- Halo Spinner Import --- #
 if utils.dirs.is_notebook:
     from halo import HaloNotebook as Halo
 else:
     from halo import Halo
 
-# ============ #
-# Dictionaries #
-# ============ #
-
+# --- API URL Dictionaries --- #
 URLS: SimpleNamespace = SimpleNamespace(
     base="https://yugipedia.com/api.php",
     media="https://ms.yugipedia.com/",
@@ -79,9 +68,8 @@ URLS: SimpleNamespace = SimpleNamespace(
 
 """
 
-# ====================== #
-# Default API parameters #
-# ====================== #
+
+# --- Default API Parameters --- #
 
 DEFAULT_HTTP_RETRIES = 3
 DEFAULT_HTTP_TIMEOUT: Tuple[float, float] = (5, 30)
@@ -89,9 +77,7 @@ DEFAULT_HTTP_BACKOFF = 1.0
 DEFAULT_SOCKET_TIMEOUT = 2
 
 
-# ========= #
-# Functions #
-# ========= #
+# --- Functions --- #
 
 
 def _request_with_retry(
@@ -107,23 +93,21 @@ def _request_with_retry(
     if retries < 1:
         raise ValueError("retries must be at least 1")
 
-    last_error: Exception | None = None
     for attempt in range(1, retries + 1):
         try:
             response = requests.get(url=url, headers=headers, params=params, timeout=timeout)
             response.raise_for_status()
             return response
         except requests.exceptions.RequestException as err:
-            last_error = err
             if attempt == retries:
                 raise
             logger.debug("Attempt %s/%s failed: %s", attempt, retries, err)
             time.sleep(backoff * (2 ** (attempt - 1)))
 
-    raise RuntimeError("Unexpected retry loop exit") from last_error
+
+# --- YGOPRODECK --- #
 
 
-# YGOPRODECK
 def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
     """
     Fetch the card data from ygoprodeck.com.
@@ -139,6 +123,9 @@ def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
         ydk_url += "?misc=yes"
     response = _request_with_retry(ydk_url, headers=URLS.headers)
     return response.json()["data"]
+
+
+# --- API Status --- #
 
 
 def check_status() -> bool:
@@ -173,6 +160,9 @@ def check_status() -> bool:
             logger.error("Socket probe failed: %s", err)
 
         return False
+
+
+# --- Category Members --- #
 
 
 def fetch_categorymembers(
@@ -253,6 +243,9 @@ def fetch_categorymembers(
     return results_df
 
 
+# --- Properties --- #
+
+
 def fetch_properties(
     condition: str,
     query: str,
@@ -325,6 +318,9 @@ def fetch_properties(
     return df
 
 
+# --- Redirects --- #
+
+
 def fetch_redirects(*titles: str) -> Dict[str, str]:
     """
     Fetches redirects for a list of page titles.
@@ -351,6 +347,9 @@ def fetch_redirects(*titles: str) -> Dict[str, str]:
             results[redirect.get("from", "")] = redirect.get("to", "")
 
     return results
+
+
+# --- Backlinks --- #
 
 
 def fetch_backlinks(*titles: str) -> Dict[str, str]:
@@ -382,7 +381,9 @@ def fetch_backlinks(*titles: str) -> Dict[str, str]:
     return results
 
 
-# Wrapper for dictionaries
+# --- Wrapper for dictionaries --- #
+
+
 def fetch_redirect_dict(
     codes: str | List[str] = [], names: str | List[str] = [], category: str = "", **kwargs
 ) -> Dict[str, str]:
@@ -413,6 +414,9 @@ def fetch_redirect_dict(
     return redirects | backlinks
 
 
+# --- Set Information --- #
+
+
 def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd.DataFrame:
     """
     Fetches information for a list of sets.
@@ -428,7 +432,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
     Raises:
         Any exceptions raised by requests.get().
     """
-    logger.debug("%s sets requested", len(sets))
+    logger.info("Downloading information for %s sets...", len(sets))
 
     regions_dict = utils.load_json(utils.dirs.get_asset("json", "regions.json"))
     # Info to ask
@@ -454,7 +458,7 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
         )  # Page name not needed - no set errata, set name same as page name
         formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
         logger.debug(
-            "Iteration %s: %s set properties downloaded - %s errors",
+            "Iteration %s: Information for %s sets downloaded - %s errors",
             i,
             len(formatted_df),
             step - len(formatted_df),
@@ -465,9 +469,12 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
     set_info_df = set_info_df.convert_dtypes()
     set_info_df.sort_index(inplace=True)
 
-    logger.info("%s set properties received - %s errors", len(set_info_df), len(sets) - len(set_info_df))
+    logger.info("Information received for %s sets - %s errors", len(set_info_df), len(sets) - len(set_info_df))
 
     return set_info_df
+
+
+# --- Set Lists --- #
 
 
 # TODO: Translate region code?
@@ -532,9 +539,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
     return result, total_success, total_error
 
 
-# ===== #
-# Media #
-# ===== #
+# --- Media --- #
 
 
 def fetch_page_images(

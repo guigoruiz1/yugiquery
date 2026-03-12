@@ -2,33 +2,23 @@
 
 # -*- coding: utf-8 -*-
 
-# ===================== #
-# Git Management module #
-# ===================== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import logging
 import os
 import subprocess
 from pathlib import Path
 from typing import List
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import arrow
 import git
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .dirs import dirs
 
 logger = logging.getLogger(__name__)
 
-# ========= #
-# Functions #
-# ========= #
+# --- Functions --- #
 
 
 def ensure_repo() -> git.Repo:

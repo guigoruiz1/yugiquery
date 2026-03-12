@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import argparse
 import io
 import logging
@@ -10,17 +11,22 @@ import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
 
+# --- Imports: Third-Party --- #
 import nbformat
 import papermill as pm
 from jupyter_client import kernelspec
 from tqdm.auto import tqdm
 
+# --- Imports: Local Application --- #
 from .. import api
 from . import cleanup_data, update_index
 from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, setup_logging, unlock
 
 
 logger = logging.getLogger(__name__)
+
+
+# --- Progress Bar Setup --- #
 
 
 def _setup_progress_bars(
@@ -133,6 +139,9 @@ def _setup_progress_bars(
             pbars.append(pbar)
 
     return pbars
+
+
+# --- Notebook Execution --- #
 
 
 def run_notebooks(

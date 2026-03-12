@@ -1,19 +1,13 @@
-#!/usr/bin/env python3
-
 # yugiquery/bot/discord.py
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
+# --- Imports: Standard Library --- #
 import io
 import logging
 import platform
 
-# Local application imports
+# --- Imports: Local Application --- #
 from ..metadata import __version__
 from .base import Bot, GitCommands
 
@@ -30,14 +24,13 @@ except ImportError:
 # Silence discord.py pynacl optional dependency warning.
 discord.VoiceClient.warn_nacl = False
 
-# ==================== #
-# Discord Bot Subclass #
-# ==================== #
+# --- Discord Bot Subclass --- #
 
 
 logger = logging.getLogger(__name__)
 
 
+# --- Discord Bot Class Definition --- #
 class Discord(Bot, commands.Bot):
     """
     Discord bot subclass. Inherits from Bot class and discord.ext.commands.Bot.
@@ -109,9 +102,7 @@ class Discord(Bot, commands.Bot):
             file = discord.File(io.BytesIO(content.encode("utf-8")), filename=filename)
             await ctx.send(content="Response too long, sending as an attachment:", file=file, **kwargs)
 
-    # ====== #
-    # Events #
-    # ====== #
+    # --- Events --- #
 
     async def on_ready(self) -> None:
         """
@@ -170,9 +161,7 @@ class Discord(Bot, commands.Bot):
                 ctx, content=str(error), filename="unknown_error.txt", ephemeral=True, delete_after=60
             )
 
-    # ======== #
-    # Commands #
-    # ======== #
+    # --- Commands --- #
 
     def register_commands(self) -> None:
         """

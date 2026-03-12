@@ -2,10 +2,6 @@
 
 # -*- coding: utf-8 -*-
 
-# =============== #
-# Metadata module #
-# =============== #
-
 __all__ = [
     "__title__",
     "__description__",

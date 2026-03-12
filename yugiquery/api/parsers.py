@@ -2,14 +2,12 @@
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
+# --- Imports: Standard Library --- #
 import re
 import logging
 from typing import Any, Dict, List, Tuple
 
+# --- Imports: Third-Party --- #
 import numpy as np
 import pandas as pd
 import requests
@@ -18,7 +16,7 @@ import wikitextparser as wtp
 
 logger = logging.getLogger(__name__)
 
-
+# --- Arrows Dictionary --- #
 arrows_dict: Dict[str, str] = {
     "Middle-Left": "←",
     "Middle-Right": "→",
@@ -30,10 +28,7 @@ arrows_dict: Dict[str, str] = {
     "Bottom-Right": "↘",
 }
 
-
-# ========== #
-# Formatting #
-# ========== #
+# --- Formatting Functions --- #
 
 
 def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
@@ -171,6 +166,9 @@ def extract_results(response: requests.Response) -> pd.DataFrame:
         df = pd.concat([df, page_name, page_url], axis=1)
 
     return df
+
+
+# --- Helper Functions --- #
 
 
 def _extract_fulltext(element: List[Dict[str, Any] | str], multiple: bool = False) -> str | Tuple[str, ...] | float:
@@ -312,9 +310,7 @@ def _extract_artwork(row: pd.Series) -> float | Tuple[str, ...]:
         return result
 
 
-# ==================== #
-# Set list parsing     #
-# ==================== #
+# --- Set List Parsing Utilities --- #
 
 
 def _process_list_extras(df: pd.DataFrame) -> pd.DataFrame | None:

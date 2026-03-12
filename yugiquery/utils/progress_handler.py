@@ -2,22 +2,15 @@
 
 # -*- coding: utf-8 -*-
 
-# ======================= #
-# Progress handler Module #
-# ======================= #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
-# from __future__ import annotations
+# --- Imports: Standard Library --- #
 import asyncio
 import multiprocessing as mp
 from typing import Any, Dict, Iterable, Optional
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 from tqdm.auto import tqdm
+
+# --- Classes --- #
 
 
 class ProgressHandler:

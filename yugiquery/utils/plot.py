@@ -2,20 +2,12 @@
 
 # -*- coding: utf-8 -*-
 
-# =============== #
-# Plotting module #
-# =============== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import warnings
 import colorsys
 from typing import List, Tuple, Callable
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import numpy as np
 import pandas as pd
 from cycler import cycler
@@ -31,29 +23,25 @@ from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import seaborn as sns
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .helpers import *
 from .dirs import dirs
 
-# Matplotlib default settings overrides
+
+# --- Matplotlib Settings & Overrides --- #
 plt.style.use("default")  # TODO: Make this configurable
 if dirs.is_notebook:
     from matplotlib_inline.backend_inline import set_matplotlib_formats
 
     set_matplotlib_formats("svg")  # Needed for dynanmic theme
 
-# ========= #
-# Variables #
-# ========= #
 
-#: Dictionary containing the colors used in the plots.
+# --- Plot Colors Dictionary --- #
 colors_dict = load_json(dirs.get_asset("json", "colors.json"))
 # TODO: Adapt colors to style
 
 
-# ======= #
-# Classes #
-# ======= #
+# --- Custom Legend Handler Class --- #
 
 
 class MulticolorPatchHandler:
@@ -61,6 +49,7 @@ class MulticolorPatchHandler:
     Custom legend handler to display a multicolored rectangle with a single uniform hatch across the entire box.
     """
 
+    # --- Helper Functions --- #
     def __init__(self, colors, hatch=None, edgecolor="black", **kwargs):
         self.colors = colors  # List of colors for different segments
         self.hatch = hatch  # Single hatch applied across the entire box
@@ -98,17 +87,13 @@ class MulticolorPatchHandler:
             **self.kwargs,
         )
         handlebox.add_artist(hatch_patch)
-
         return hatch_patch
 
 
-# ========= #
-# Functions #
-# ========= #
+# --- Helper Functions --- #
 
 
-# Helpers
-def is_light_color(color, threshold=0.6) -> bool:
+def _is_light_color(color, threshold=0.6) -> bool:
     """
     Check if a given color is light or dark based on a specified threshold.
 
@@ -128,7 +113,7 @@ def is_light_color(color, threshold=0.6) -> bool:
     return hsv[2] > threshold
 
 
-def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:
+def _adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, float]:
     """
     Adjust the lightness of a given color by a specified amount.
 
@@ -148,7 +133,7 @@ def adjust_lightness(color: str, amount: float = 0.5) -> tuple[float, float, flo
     return colorsys.hls_to_rgb(h=c[0], l=max(0, min(1, amount * c[1])), s=c[2])
 
 
-def align_yaxis(ax1: Axes, v1: float, ax2: Axes, v2: float) -> None:
+def _align_yaxis(ax1: Axes, v1: float, ax2: Axes, v2: float) -> None:
     """
     Adjust the y-axis of two subplots so that the specified values in each subplot are aligned.
 
@@ -167,8 +152,8 @@ def align_yaxis(ax1: Axes, v1: float, ax2: Axes, v2: float) -> None:
     adjust_yaxis(ax=ax1, ydif=(y2 - y1) / 2, v=v1)
 
 
-# Rates
-def adjust_yaxis(ax: Axes, ydif: float, v: float) -> None:
+# --- Rate Utilities --- #
+def _adjust_yaxis(ax: Axes, ydif: float, v: float) -> None:
     """
     Shift the y-axis of a subplot by a specified amount, while maintaining the location of a specified point.
 
@@ -193,7 +178,7 @@ def adjust_yaxis(ax: Axes, ydif: float, v: float) -> None:
     ax.set_ylim(bottom=nminy + v, top=nmaxy + v)
 
 
-def generate_rate_grid(
+def _generate_rate_grid(
     df: pd.DataFrame,
     ax: Axes,
     xlabel: str | None = "Date",
@@ -451,7 +436,7 @@ def rate(
     return fig
 
 
-def add_background_shading(axes: List[Axes], bg: pd.DataFrame, colors: List | None = None) -> None:
+def _add_background_shading(axes: List[Axes], bg: pd.DataFrame, colors: List | None = None) -> None:
     """
     Add background shading to the subplots.
 
@@ -481,7 +466,7 @@ def add_background_shading(axes: List[Axes], bg: pd.DataFrame, colors: List | No
                     c += 1
 
 
-def add_vertical_lines(axes: List[Axes], vlines: pd.Series, color="maroon", cumsum: bool = False) -> None:
+def _add_vertical_lines(axes: List[Axes], vlines: pd.Series, color="maroon", cumsum: bool = False) -> None:
     """
     Add vertical lines to the subplots.
 
@@ -513,7 +498,7 @@ def add_vertical_lines(axes: List[Axes], vlines: pd.Series, color="maroon", cums
                     )
 
 
-# Dedicated plots
+# --- Dedicated Plot Types --- #
 def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> Figure:
     """
     Create a polar plot to visualize the frequency of each arrow direction in a pandas Series.
@@ -712,9 +697,7 @@ def pyramid(
     return fig
 
 
-# =================== #
-# Deck specific plots #
-# =================== #
+# --- Deck Specific Plots --- #
 
 
 def deck_composition(

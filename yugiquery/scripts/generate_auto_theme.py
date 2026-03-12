@@ -1,8 +1,14 @@
+#!/usr/bin/env python3
+
+# -*- coding: utf-8 -*-
+
+# --- Imports: Standard Library --- #
 import logging
 import re
 import os
 import json
 
+# --- Imports: Local Application --- #
 from yugiquery.utils import setup_logging
 
 

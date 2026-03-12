@@ -2,18 +2,23 @@
 
 # -*- coding: utf-8 -*-
 
-import json
+# --- Imports: Standard Library --- #
 import logging
 from pathlib import Path
 from typing import Any
 
+# --- Imports: Third-Party --- #
 import numpy as np
 import pandas as pd
 
+# --- Imports: Local Application --- #
 from .. import api
 from ..utils import dirs
 
 logger = logging.getLogger(__name__)
+
+
+# --- Decklist and YDK Readers --- #
 
 
 def read_decklist(file_path: Path | str) -> pd.DataFrame:
@@ -78,6 +83,9 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
 
     decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)
     return decklist_df
+
+
+# --- Deck/Collection Operations --- #
 
 
 def assign_deck(collection_df: pd.DataFrame, deck_df: pd.DataFrame, return_collection: bool = False) -> pd.DataFrame:
@@ -163,31 +171,7 @@ def check_limits(deck_df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-def get_ygoprodeck() -> pd.DataFrame:
-    """
-    Fetch the YGOProDeck data from the API or local file.
-
-    Returns:
-        pd.DataFrame: A DataFrame of the YGOProDeck data.
-
-    Raises:
-        Exception: Exceptions raised by api.fetch_ygoprodeck.
-    """
-    ygoprodeck_file = dirs.DATA.joinpath("ygoprodeck.json")
-    try:
-        result = api.fetch_ygoprodeck()
-        with open(ygoprodeck_file, "w+") as file:
-            json.dump(result, file, indent=4)
-        ydk_data = pd.DataFrame(result).set_index("id")
-    except Exception as e:
-        if ygoprodeck_file.is_file():
-            logger.warning("Unable to fetch ygoprodeck data. Using local file. %s", e)
-            ydk_data = pd.read_json(ygoprodeck_file).set_index("id")
-        else:
-            logger.error("Unable to obtain ygoprodeck data")
-            raise
-
-    return ydk_data
+# --- YDK Conversion and Loading --- #
 
 
 def read_ydk(file_path: Path | str) -> pd.DataFrame:
@@ -231,7 +215,7 @@ def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
         (pd.DataFrame): DataFrame with card names. If unable to obtain the card data, returns input DataFrame.
     """
     try:
-        ydk_data = get_ygoprodeck()
+        ydk_data = api.get_ygoprodeck()
     except Exception as e:
         logger.error("%s", e)
         return ydk_df

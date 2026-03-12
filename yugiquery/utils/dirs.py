@@ -2,15 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
-# =========================== #
-# Directory Management module #
-# =========================== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
 import logging
 import os
 import sysconfig
@@ -18,7 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import List
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 from IPython.core.getipython import get_ipython
 from jupyter_core.paths import jupyter_path
 from platformdirs import user_data_dir, site_data_dir
@@ -27,9 +19,7 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
-# ======= #
-# Classes #
-# ======= #
+# --- Classes --- #
 
 
 class Dirs:

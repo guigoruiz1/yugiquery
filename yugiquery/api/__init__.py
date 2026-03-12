@@ -2,6 +2,7 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Client Submodule --- #
 from .client import (
     check_status,
     download_media,
@@ -17,6 +18,8 @@ from .client import (
     requests,
     URLS,
 )
+
+# --- Imports: Wrappers Submodule --- #
 from .wrappers import (
     CG,
     card_properties,
@@ -32,6 +35,7 @@ from .wrappers import (
     fetch_speed,
     fetch_st,
     fetch_token,
+    get_ygoprodeck,
     fetch_unusable,
     update_rarities,
     update_regions,

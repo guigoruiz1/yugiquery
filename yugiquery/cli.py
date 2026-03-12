@@ -2,19 +2,17 @@
 
 # -*- coding: utf-8 -*-
 
+# --- Imports: Standard Library --- #
 import argparse
 import re
 from typing import Literal
 
+# --- Imports: Local Application --- #
 from .core import run
 from .utils import auto_or_bool, dirs, git, setup_logging
 
-# Note: CredAction & CustomHelpFormatter are defined in this module
 
-
-# ======== #
-# Argparse #
-# ======== #
+# --- Argparse Utilities --- #
 
 
 class CustomHelpFormatter(argparse.HelpFormatter):
@@ -168,9 +166,7 @@ class CredAction(argparse.Action):
             raise argparse.ArgumentError(self, "must provide either zero or exactly two arguments")
 
 
-# ======== #
-# CLI Main #
-# ======== #
+# --- CLI Main --- #
 
 
 def main(args):
