@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.logging import logging_redirect_tqdm
+from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from . import client
@@ -359,12 +360,14 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
     if bandai_query is None:
         bandai_query = card_query(*card_properties["bandai"])
 
+    print("Downloading bandai cards")
     logger.info("Downloading bandai cards")
     bandai_df = client.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
         bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
     logger.debug("- Total")
 
+    print(f"{len(bandai_df.index)} results\n")
     logger.info("%s results", len(bandai_df.index))
 
     time.sleep(0.5)
@@ -396,11 +399,13 @@ def fetch_st(
     if st_query is None:
         st_query = card_query(*card_properties["st"])
 
+    print(f"Downloading {st}s")
     logger.info("Downloading %ss", st)
     st_df = client.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
 
     logger.debug("- Total")
 
+    print(f"{len(st_df.index)} results\n")
     logger.info("%s results", len(st_df.index))
 
     return st_df
@@ -421,6 +426,7 @@ def fetch_monster(
     else:
         query_str = card_query(*card_properties["monster"])
 
+    print("Downloading monsters")
     logger.info("Downloading monsters")
     monster_df = pd.DataFrame()
     iterator = tqdm(
@@ -449,6 +455,7 @@ def fetch_monster(
 
     logger.debug("- Total")
 
+    print(f"{len(monster_df.index)} results\n")
     logger.info("%s results", len(monster_df.index))
 
     return monster_df
@@ -468,9 +475,11 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
     else:
         query_str = card_query(*card_properties["monster"])
 
+    print("Downloading tokens")
     logger.info("Downloading tokens")
     token_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    print(f"{len(token_df.index)} results\n")
     logger.info("%s results", len(token_df.index))
 
     return token_df
@@ -488,9 +497,11 @@ def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **
     else:
         query_str = card_query(*card_properties["counter"])
 
+    print("Downloading counters")
     logger.info("Downloading counters")
     counter_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    print(f"{len(counter_df.index)} results\n")
     logger.info("%s results", len(counter_df.index))
 
     return counter_df
@@ -503,6 +514,7 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
     else:
         query_str = card_query(*card_properties["speed"])
 
+    print("Downloading Speed duel cards")
     logger.info("Downloading Speed duel cards")
     speed_df = client.fetch_properties(
         concept,
@@ -514,6 +526,7 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
     logger.debug("- Total")
 
+    print(f"{len(speed_df.index)} results\n")
     logger.info("%s results", len(speed_df.index))
 
     return speed_df
@@ -526,9 +539,11 @@ def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
     else:
         query_str = card_query(*card_properties["skill"])
 
+    print("Downloading skill cards")
     logger.info("Downloading skill cards")
     skill_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    print(f"{len(skill_df.index)} results\n")
     logger.info("%s results", len(skill_df.index))
 
     return skill_df
@@ -541,9 +556,11 @@ def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.
     else:
         query_str = card_query(*card_properties["rush"])
 
+    print("Downloading Rush Duel cards")
     logger.info("Downloading Rush Duel cards")
     rush_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    print(f"{len(rush_df.index)} results\n")
     logger.info("%s results", len(rush_df.index))
 
     return rush_df
@@ -575,6 +592,7 @@ def fetch_unusable(
     else:
         query_str = card_query(default=True)
 
+    print("Downloading unusable cards")
     logger.info("Downloading unusable cards")
     unusable_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
@@ -582,6 +600,7 @@ def fetch_unusable(
 
     logger.debug("- Total")
 
+    print(f"{len(unusable_df.index)} results\n")
     logger.info("%s results", len(unusable_df.index))
 
     return unusable_df
@@ -603,6 +622,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     else:
         categories = list(categories["errata"])
 
+    print(f"Downloading {errata} errata")
     logger.info("Downloading %s errata", errata)
     errata_df = pd.DataFrame(dtype=bool)
     iterator = tqdm(
@@ -615,6 +635,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     for cat in iterator:
         desc = cat.split("Category:")[-1]
         iterator.set_description(desc)
+
         with logging_redirect_tqdm():
             logger.debug("- %s", cat)
 
@@ -625,6 +646,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
 
     logger.debug("- Total")
 
+    print(f"{len(errata_df.index)} results\n")
     logger.info("%s results", len(errata_df.index))
     return errata_df
 
@@ -637,6 +659,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     else:
         category = [f"{valid_cg} Set Card Lists"]
 
+    print("Downloading list of 'Set Card Lists' pages")
     logger.info("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
     iterator = tqdm(
@@ -686,6 +709,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     total_success = 0
     total_error = 0
 
+    print(f"Downloading set lists for {len(keys)} sets")
     logger.info("Downloading set lists for %s sets", len(keys))
     for i in trange(np.ceil(len(keys) / step).astype(int), leave=False):
         success = 0

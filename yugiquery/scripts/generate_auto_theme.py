@@ -78,6 +78,7 @@ def generate_theme_css(template_dir):
     output_file = os.path.join(template_dir, "static", "theme-auto.css")
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(css))
+    print(text=f"Generated theme-auto.css at {output_file}")
     logger.info("Generated theme-auto.css at %s", output_file)
 
 
@@ -122,6 +123,7 @@ def update_index_html(template_dir):
 
     with open(index_file, "w", encoding="utf-8") as f:
         f.write(updated_content)
+    print(text=f"Updated {index_file}")
     logger.info("Updated %s", index_file)
 
 
@@ -139,6 +141,7 @@ def update_conf_json(template_dir):
 
     with open(conf_file, "w", encoding="utf-8") as f:
         json.dump(conf, f, indent=4)
+    print(text=f"Updated {conf_file}")
     logger.info("Updated %s", conf_file)
 
 

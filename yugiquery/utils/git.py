@@ -48,6 +48,7 @@ def ensure_repo() -> git.Repo:
         else:
             repo_root = dirs.WORK
         repo = git.Repo.init(repo_root)
+        cprint(f"Git repository initialized in {dirs.WORK}", color="yellow")
         logger.info("Git repository initialized in %s", dirs.WORK)
 
     except Exception as e:
@@ -196,6 +197,9 @@ def pull(passphrase: str = "", repo: git.Repo | None = None) -> str:
                 return result.stdout.decode("utf-8")
         except Exception as e:
             logger.warning("Failed to unlock Git credential store. %s", e)
+            cprint(text="Failed to unlock Git credential store.", color="yellow")
+            print(e)
+
         try:
             return repo.git.pull()
         except git.GitCommandError as e:
@@ -228,6 +232,8 @@ def push(passphrase: str = "", repo: git.Repo | None = None) -> str:
                 return result.stdout.decode("utf-8")
         except Exception as e:
             logger.warning("Failed to unlock Git credential store. %s", e)
+            cprint(text="Failed to unlock Git credential store.", color="yellow")
+            print(e)
 
         try:
             return repo.git.push()

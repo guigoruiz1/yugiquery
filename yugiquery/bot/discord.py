@@ -109,13 +109,17 @@ class Discord(Bot, commands.Bot):
         Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
         """
+        print(text=f"You are logged as {self.user}")
         logger.info("You are logged as %s", self.user)
         await self.tree.sync()
 
+        print(text=f"{self.user} is connected to the following guilds:")
         logger.info("%s is connected to the following guilds:", self.user)
         for guild in self.guilds:
+            print(text=f"{guild.name}(id: {guild.id})")
             logger.info("%s(id: %s)", guild.name, guild.id)
             members = "\n - ".join([member.name for member in guild.members])
+            print(text=f"Guild Members:\n - {members}")
             logger.info("Guild Members:\n - %s", members)
 
         info = await self.application_info()

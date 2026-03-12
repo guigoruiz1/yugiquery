@@ -62,6 +62,7 @@ def save_notebook() -> None:
     """
     app = JupyterFrontEnd()
     app.commands.execute("docmanager:save")
+    print("Notebook saved to disk")
     logger.info("Notebook saved to disk")
 
 
@@ -133,6 +134,7 @@ def export_notebook(
 
     ipkernel_logger.setLevel(logging.WARNING)
 
+    print(f"Notebook converted to HTML and saved to {output_path}.html")
     logger.info("Notebook converted to HTML and saved to %s.html", output_path)
 
 

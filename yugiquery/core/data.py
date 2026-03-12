@@ -76,6 +76,7 @@ def load_latest_data(
             df[col] = pd.to_datetime(df[col])
 
         logger.info("%s file loaded.", name_pattern.capitalize())
+        print(f"{name_pattern.capitalize()} file loaded.")
         if return_ts:
             ts = arrow.get(Path(files[0]).stem.split("_")[-1])
             return df, ts
@@ -115,6 +116,7 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
     ).reset_index(drop=True)
 
     logger.info("Set properties merged")
+    print("Set properties merged")
     return merged_df
 
 
@@ -198,6 +200,7 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
     collection_df = collection_df.convert_dtypes(convert_string=False)
 
     logger.info("Loaded %s.", collection_file.name)
+    print(f"Loaded {collection_file.name}.")
     return collection_df
 
 
@@ -218,6 +221,7 @@ def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = 
         raise FileNotFoundError("No card or set lists data files found.")
 
     logger.info("Finding cards in database...")
+    print("Finding cards in database...")
 
     # Prepare list dataframe for matching
     original_cols = list_df.columns
@@ -232,6 +236,7 @@ def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = 
     list_df = _finalize_matched_cards(list_df, card_df, card_data)
 
     logger.info("%d out of %d cards found.", list_df[list_df["Name"].notna()]["Count"].sum(), list_df["Count"].sum())
+    print(f"{list_df[list_df['Name'].notna()['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
     return list_df
 

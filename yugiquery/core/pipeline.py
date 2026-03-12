@@ -183,6 +183,7 @@ def run_notebooks(
 
     exceptions = []
     logger.info("Execution started")
+    print("Execution started")
     for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
@@ -195,6 +196,7 @@ def run_notebooks(
 
             if dry_run:
                 logger.info("Dry run - Generating %s report", report_name)
+                print(f"Dry run - Generating {report_name} report")
                 continue
 
             with open(report) as f:
@@ -211,6 +213,7 @@ def run_notebooks(
             stream_handler.flush = update_pbar
 
             logger.info("Generating %s report", report_name)
+            print(f"Generating {report_name} report")
 
             # execute the notebook with papermill
             os.environ["PM_IN_EXECUTION"] = dest_report
@@ -246,6 +249,7 @@ def run_notebooks(
             owned_fp.close()
 
     logger.info("Execution completed")
+    print("Execution completed")
 
     # Close the stream_handler
     stream_handler.close()
@@ -325,6 +329,7 @@ def run(
             try:
                 index_result = update_index(dry_run=dry_run)
                 logger.info("%s", index_result)
+                print(index_result)
             except Exception as e:
                 if progress_handler:
                     progress_handler.send(error=str(e))
@@ -346,10 +351,12 @@ def run(
         # Generate Jekyll pages for reports
         if jekyll:
             logger.info("Generating Jekyll pages")
+            print("Generating Jekyll pages")
             for report_path in report_paths:
                 title = Path(report_path).stem
                 if dry_run:
                     logger.info("Dry run - Would create Jekyll page for: %s", title)
+                    print(f"Dry run - Would create Jekyll page for: {title}")
                 else:
                     try:
                         make_jekyll_page(title=title)
@@ -362,12 +369,15 @@ def run(
         if squash:
             if dry_run:
                 logger.info("Dry run - Squashing commits")
+                print("Dry run - Squashing commits")
             else:
                 # Error is not critical but should be noted
                 logger.info("Squashing commits")
+                print("Squashing commits")
                 try:
                     squash_results = git.squash_commits(start_commit)
                     logger.info("%s", squash_results)
+                    print(squash_results)
                 except Exception as e:
                     logger.warning("Error squashing commits. Ignoring... %s", e)
     finally:

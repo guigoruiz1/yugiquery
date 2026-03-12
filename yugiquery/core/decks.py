@@ -79,6 +79,7 @@ def get_decklists(*files: Path | str) -> pd.DataFrame:
         file = Path(file)
         temp_df = read_decklist(file)
         decklist_df = pd.concat([decklist_df, temp_df])
+        print("Deck loaded successfully.")
         logger.info("Loaded %s deck.", file.stem)
 
     decklist_df.replace({"Section": {"Monster": "Main", "Spell": "Main", "Trap": "Main"}}, inplace=True)

@@ -26,6 +26,7 @@ import pandas as pd
 import requests
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.logging import logging_redirect_tqdm
+from termcolor import cprint
 import wikitextparser as wtp
 
 # --- Imports: Local Application --- #
@@ -145,6 +146,7 @@ def check_status() -> bool:
 
     try:
         response = _request_with_retry(URLS.base, params=params, headers=URLS.headers)
+        cprint(text=f"{URLS.base} is up and running {response.json()['query']['general']['generator']}", color="green")
         logger.info("%s is up and running %s", URLS.base, response.json()["query"]["general"]["generator"])
         return True
     except requests.exceptions.RequestException as err:
@@ -155,8 +157,10 @@ def check_status() -> bool:
 
         try:
             socket.create_connection((domain, port), timeout=DEFAULT_SOCKET_TIMEOUT)
+            cprint(text=f"{domain} is reachable", color="yellow")
             logger.warning("%s is reachable", domain)
         except OSError as err:
+            cprint(text=f"{domain} is not reachable", color="red")
             logger.error("%s is not reachable", domain)
             logger.error("Socket probe failed: %s", err)
 
