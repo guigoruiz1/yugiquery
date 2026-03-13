@@ -27,7 +27,6 @@ from ..utils import (
     load_secrets,
     lock,
     make_jekyll_page,
-    setup_logging,
     unlock,
     LoggerWriter,
     get_logger,

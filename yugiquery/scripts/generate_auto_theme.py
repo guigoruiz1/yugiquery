@@ -9,10 +9,10 @@ import os
 import json
 
 # --- Imports: Local Application --- #
-from yugiquery.utils import setup_logging
+from ..utils import get_logger
 
-
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 os.environ["JUPYTER_PLATFORM_DIRS"] = "1"  # Use platform-specific directories
 from jupyter_core.paths import jupyter_path

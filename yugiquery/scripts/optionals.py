@@ -14,10 +14,11 @@ import shutil
 from termcolor import cprint
 
 # --- Imports: Local Application --- #
-from yugiquery.utils import setup_logging
+from ..utils import get_logger
 
 
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 
 def install_templates() -> None:

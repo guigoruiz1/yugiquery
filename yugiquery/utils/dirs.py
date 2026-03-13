@@ -17,7 +17,11 @@ from platformdirs import user_data_dir, site_data_dir
 from termcolor import cprint
 import tempfile
 
-logger = logging.getLogger(__name__)
+# --- Imports: Local Application --- #
+from .logging import get_logger
+
+# --- Logger Setup --- #
+logger = get_logger()
 
 # --- Classes --- #
 

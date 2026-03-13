@@ -16,7 +16,7 @@ from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from ..metadata import __version__
-from ..utils import get_ts_granularity, escape_chars
+from ..utils import get_ts_granularity, escape_chars, get_logger
 from .base import Bot, GitCommands
 
 # Telegram
@@ -36,10 +36,9 @@ except ImportError:
         'Missing bot Telegram bot package. Please install the required packages with "pip install yugiquery[telegram]".'
     )
 
-# --- Telegram Bot Subclass --- #
 
-
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 
 # --- Telegram Bot Class Definition --- #

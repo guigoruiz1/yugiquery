@@ -15,8 +15,10 @@ import git
 
 # --- Imports: Local Application --- #
 from .dirs import dirs
+from .logging import get_logger
 
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 # --- Functions --- #
 

@@ -13,8 +13,11 @@ import pandas as pd
 import requests
 import wikitextparser as wtp
 
+# --- Imports: Local Application --- #
+from ..utils import get_logger
 
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 # --- Arrows Dictionary --- #
 arrows_dict: Dict[str, str] = {

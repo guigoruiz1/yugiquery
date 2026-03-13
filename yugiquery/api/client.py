@@ -32,15 +32,15 @@ import wikitextparser as wtp
 # --- Imports: Local Application --- #
 from .. import utils
 from ..metadata import __title__, __url__, __version__
-from ..utils import md5
+from ..utils import md5, get_logger
 from .parsers import (
     extract_results,
     format_df,
     process_content,
 )
 
-
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 # --- Halo Spinner Import --- #
 if utils.dirs.is_notebook:

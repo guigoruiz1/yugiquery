@@ -10,6 +10,7 @@ import platform
 # --- Imports: Local Application --- #
 from ..metadata import __version__
 from .base import Bot, GitCommands
+from ..utils import get_logger
 
 # Discord
 try:
@@ -24,10 +25,8 @@ except ImportError:
 # Silence discord.py pynacl optional dependency warning.
 discord.VoiceClient.warn_nacl = False
 
-# --- Discord Bot Subclass --- #
-
-
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 
 # --- Discord Bot Class Definition --- #

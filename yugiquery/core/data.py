@@ -16,9 +16,10 @@ import pandas as pd
 
 # --- Imports: Local Application --- #
 from .. import api
-from ..utils import dirs, load_json
+from ..utils import dirs, load_json, get_logger
 
-logger = logging.getLogger(__name__)
+# --- Logger Setup --- #
+logger = get_logger()
 
 # --- Data File Loading and Normalization --- #
 

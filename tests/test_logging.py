@@ -6,6 +6,7 @@ import pytest
 from yugiquery.utils.logging import (
     ColorFormatter,
     setup_logging,
+    get_logger,
 )
 
 # Helpers to isolate tests from each other's logger state
@@ -13,7 +14,7 @@ from yugiquery.utils.logging import (
 
 def _reset_logger():
     """Remove all handlers and reset the yugiquery logger between tests."""
-    logger = logging.getLogger("yugiquery")
+    logger = get_logger()
     for h in list(logger.handlers):
         logger.removeHandler(h)
     logger.setLevel(logging.NOTSET)

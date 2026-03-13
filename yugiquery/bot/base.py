@@ -29,7 +29,11 @@ from ..utils import *
 from ..core import run
 
 
-logger = logging.getLogger(__name__)
+# --- Imports: Local Application --- #
+from ..utils import get_logger
+
+# --- Logger Setup --- #
+logger = get_logger()
 
 
 # --- Enum Classes --- #
