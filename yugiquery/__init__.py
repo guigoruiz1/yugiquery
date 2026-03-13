@@ -21,5 +21,3 @@ if dirs.is_notebook:
 
     # Default pandas display settings
     pd.set_option("display.max_columns", 40)
-
-_ = setup_logging()

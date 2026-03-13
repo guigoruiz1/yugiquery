@@ -303,7 +303,7 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
     readme = replace_table(readme)
 
     if dry_run:
-        return "Dry run - README and index updated"
+        return "\nDry run - README and index updated"
 
     with open(index_path, "w", encoding="utf-8") as o:
         o.write(index)

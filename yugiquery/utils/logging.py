@@ -25,18 +25,24 @@ _LEVEL_COLORS = {
 }
 
 
-# Custom logger that updates handler format on setLevel
-class YugiqueryLogger(logging.Logger):
-    _DEFAULT_FORMAT = "%(asctime)s | %(levelname)s | %(message)s"
-    _CONCISE_FORMAT = "%(message)s"
+class LoggerWriter:
+    def __init__(self, logger, level=logging.INFO):
+        self.logger = logger
+        self.level = level
+        self._buffer = ""
 
-    def setLevel(self, level):
-        super().setLevel(level)
-        use_concise = level == logging.INFO
-        fmt = self._CONCISE_FORMAT if use_concise else self._DEFAULT_FORMAT
-        for handler in self.handlers:
-            if isinstance(handler, logging.StreamHandler):
-                handler.setFormatter(ColorFormatter(fmt, datefmt="%Y-%m-%d %H:%M:%S", use_concise=use_concise))
+    def write(self, message):
+        # tqdm may send partial lines, so buffer until newline
+        self._buffer += message
+        while "\n" in self._buffer:
+            line, self._buffer = self._buffer.split("\n", 1)
+            if line.strip():
+                self.logger.log(self.level, line)
+
+    def flush(self):
+        if self._buffer.strip():
+            self.logger.log(self.level, self._buffer.strip())
+        self._buffer = ""
 
 
 # ColorFormatter class
@@ -65,23 +71,25 @@ def _parse_level(level):
 
 def setup_logging(
     *,
-    level: str | int = logging.INFO,
+    level: str | int | None = None,
     log_file: str | Path | None = None,
 ) -> logging.Logger:
-    logging.setLoggerClass(YugiqueryLogger)
     logger = logging.getLogger("yugiquery")
-    level_int = _parse_level(level)
-    logger.setLevel(level_int)
+    parsed_level = _parse_level(level)
+    if parsed_level:
+        logger.setLevel(parsed_level)
     for handler in list(logger.handlers):
         logger.removeHandler(handler)
-    use_concise = level_int == logging.INFO
-    fmt = YugiqueryLogger._CONCISE_FORMAT if use_concise else YugiqueryLogger._DEFAULT_FORMAT
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setFormatter(ColorFormatter(fmt, datefmt="%Y-%m-%d %H:%M:%S", use_concise=use_concise))
-    logger.addHandler(stream_handler)
     if log_file is not None:
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(logging.Formatter(YugiqueryLogger._DEFAULT_FORMAT, datefmt="%Y-%m-%d %H:%M:%S"))
-        logger.addHandler(file_handler)
+        handler = logging.FileHandler(log_file)
+    else:
+        handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
     logger.propagate = False
     return logger
+
+
+# --- Logger Accessor --- #
+def get_logger():
+    return logging.getLogger("yugiquery")

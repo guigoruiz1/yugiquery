@@ -236,7 +236,7 @@ def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = 
     list_df = _finalize_matched_cards(list_df, card_df, card_data)
 
     logger.info("%d out of %d cards found.", list_df[list_df["Name"].notna()]["Count"].sum(), list_df["Count"].sum())
-    print(f"{list_df[list_df['Name'].notna()['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
+    print(f"{list_df[list_df['Name'].notna()]['Count'].sum()} out of {list_df['Count'].sum()} cards found.")
 
     return list_df
 

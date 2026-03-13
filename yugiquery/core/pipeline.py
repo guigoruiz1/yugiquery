@@ -20,10 +20,21 @@ from tqdm.auto import tqdm
 # --- Imports: Local Application --- #
 from .. import api
 from . import cleanup_data, update_index
-from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, setup_logging, unlock
+from ..utils import (
+    ProgressHandler,
+    dirs,
+    git,
+    load_secrets,
+    lock,
+    make_jekyll_page,
+    setup_logging,
+    unlock,
+    LoggerWriter,
+    get_logger,
+)
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 # --- Progress Bar Setup --- #
@@ -55,20 +66,9 @@ def _setup_progress_bars(
         unit="report",
         unit_scale=True,
         dynamic_ncols=(not dirs.is_notebook),
-        delay=2,
+        # delay=2,
         desc="Completion",
     )
-
-    # Setup primary progress bar
-    if external_pbar is not None:
-        pbars.append(external_pbar(position=0, **pbar_kwargs))
-    else:
-        pbars.append(
-            tqdm(
-                position=0,
-                **pbar_kwargs,
-            )
-        )
 
     # Helper to setup contrib progress bars (Discord/Telegram)
     def setup_contrib(contrib: str) -> tqdm | None:
@@ -119,18 +119,28 @@ def _setup_progress_bars(
             else:
                 logger.warning("Unsupported contrib: %s. Ignoring...", contrib)
                 return None
-            contrib_fp = open(os.devnull, "w")
             contrib_pbar = contrib_tqdm(
                 token=tkn,
-                file=contrib_fp,
+                position=len(pbars) + 1,
+                file=LoggerWriter(logger),
                 **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
-            setattr(contrib_pbar, "_yq_owned_fp", contrib_fp)
             return contrib_pbar
         except Exception as e:
             logger.warning("Error setting up %s progress bar. Ignoring... %s", contrib, e)
             return None
+
+    # Setup primary progress bar
+    if external_pbar is not None:
+        pbars.append(external_pbar(**pbar_kwargs))
+    else:
+        pbars.append(
+            tqdm(
+                position=0,
+                **pbar_kwargs,
+            )
+        )
 
     # Setup contrib progress bars
     for contrib in contribs:
@@ -167,9 +177,6 @@ def run_notebooks(
     Raises:
         Exception: Raised if any exceptions occur during notebook execution.
     """
-    # Setup progress bars
-    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    pbars = [] if dry_run else _setup_progress_bars(reports, external_pbar, discord, telegram)
 
     # Create the main logger
     papermill_logger = logging.getLogger("papermill")
@@ -183,7 +190,12 @@ def run_notebooks(
 
     exceptions = []
     logger.info("Execution started")
-    print("Execution started")
+    print("\nExecution started")
+
+    # Setup progress bars
+    warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
+    pbars = [] if dry_run else _setup_progress_bars(reports, external_pbar, discord, telegram)
+
     for i, report in enumerate(reports):
         report_name = Path(report).stem
         dest_report = str(dirs.NOTEBOOKS.user / f"{report_name}.ipynb")
@@ -196,7 +208,7 @@ def run_notebooks(
 
             if dry_run:
                 logger.info("Dry run - Generating %s report", report_name)
-                print(f"Dry run - Generating {report_name} report")
+                print(f"\nDry run - Generating {report_name} report")
                 continue
 
             with open(report) as f:
@@ -207,13 +219,13 @@ def run_notebooks(
             def update_pbar():
                 for pbar in pbars:
                     pbar.update(1 / cells)
-                    pbar.refresh()
+                    # pbar.refresh()
 
             # Attach the update_pbar function to the stream_handler
             stream_handler.flush = update_pbar
 
             logger.info("Generating %s report", report_name)
-            print(f"Generating {report_name} report")
+            tqdm.write(f"\nGenerating {report_name} report")
 
             # execute the notebook with papermill
             os.environ["PM_IN_EXECUTION"] = dest_report
@@ -227,7 +239,7 @@ def run_notebooks(
                     input_path=report,
                     output_path=dest_report,
                     log_output=True,
-                    progress_bar=True,
+                    progress_bar={"position": 1, "desc": report_name},
                     kernel_name=kernel_name,
                 )
             except pm.PapermillExecutionError as e:
@@ -237,19 +249,9 @@ def run_notebooks(
                 os.environ.pop("PM_IN_EXECUTION", default=None)
                 for pbar in pbars:
                     pbar.update(1 + i - pbar.n)
-                    pbar.refresh()
+                    # pbar.refresh()
         finally:
             unlock(report_name)
-
-    # Close the iterator
-    for pbar in pbars:
-        pbar.close()
-        owned_fp = getattr(pbar, "_yq_owned_fp", None)
-        if owned_fp is not None and not owned_fp.closed:
-            owned_fp.close()
-
-    logger.info("Execution completed")
-    print("Execution completed")
 
     # Close the stream_handler
     stream_handler.close()
@@ -257,6 +259,15 @@ def run_notebooks(
     papermill_logger.handlers.clear()
 
     warnings.filterwarnings("default")
+
+    logger.info("Execution completed")
+    tqdm.write("\nExecution completed")
+
+    # Close the iterator
+    for pbar in pbars[::-1]:
+        pbar.close()
+
+    print()
 
     if exceptions:
         combined_message = "\n".join(str(e) for e in exceptions)
@@ -351,7 +362,7 @@ def run(
         # Generate Jekyll pages for reports
         if jekyll:
             logger.info("Generating Jekyll pages")
-            print("Generating Jekyll pages")
+            print("\nGenerating Jekyll pages")
             for report_path in report_paths:
                 title = Path(report_path).stem
                 if dry_run:
@@ -369,11 +380,11 @@ def run(
         if squash:
             if dry_run:
                 logger.info("Dry run - Squashing commits")
-                print("Dry run - Squashing commits")
+                print("\nDry run - Squashing commits")
             else:
                 # Error is not critical but should be noted
                 logger.info("Squashing commits")
-                print("Squashing commits")
+                print("\nSquashing commits")
                 try:
                     squash_results = git.squash_commits(start_commit)
                     logger.info("%s", squash_results)

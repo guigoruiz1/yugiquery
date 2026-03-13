@@ -242,7 +242,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         "--log-level",
         type=str,
         required=False,
-        default="INFO",
+        default=None,
         help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
     debug_group.add_argument(
