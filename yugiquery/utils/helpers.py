@@ -18,10 +18,10 @@ from dotenv import dotenv_values
 
 # --- Imports: Local Application --- #
 from .dirs import dirs
-from .logging import get_logger
+from .logging import LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Data Loaders --- #
 

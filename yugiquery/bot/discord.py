@@ -10,7 +10,7 @@ import platform
 # --- Imports: Local Application --- #
 from ..metadata import __version__
 from .base import Bot, GitCommands
-from ..utils import get_logger
+from ..utils import LoggerConfig
 
 # Discord
 try:
@@ -26,7 +26,7 @@ except ImportError:
 discord.VoiceClient.warn_nacl = False
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Discord Bot Class Definition --- #
@@ -82,7 +82,9 @@ class Discord(Bot, commands.Bot):
         """
         Starts running the discord Bot.
         """
-        commands.Bot.run(self, token=self.token)
+        commands.Bot.run(
+            self, token=self.token, log_level=LoggerConfig.get_level()
+        )  # Use the logging level from the CLI configuration
 
     async def send_long_message(self, ctx, content: str, filename: str = "message.txt", **kwargs):
         """
@@ -108,17 +110,17 @@ class Discord(Bot, commands.Bot):
         Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
         """
-        print(text=f"You are logged as {self.user}")
+        print(f"You are logged as {self.user}")
         logger.info("You are logged as %s", self.user)
         await self.tree.sync()
 
-        print(text=f"{self.user} is connected to the following guilds:")
+        print(f"{self.user} is connected to the following guilds:")
         logger.info("%s is connected to the following guilds:", self.user)
         for guild in self.guilds:
-            print(text=f"{guild.name}(id: {guild.id})")
+            print(f"{guild.name}(id: {guild.id})")
             logger.info("%s(id: %s)", guild.name, guild.id)
             members = "\n - ".join([member.name for member in guild.members])
-            print(text=f"Guild Members:\n - {members}")
+            print(f"Guild Members:\n - {members}")
             logger.info("Guild Members:\n - %s", members)
 
         info = await self.application_info()

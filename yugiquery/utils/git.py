@@ -12,13 +12,14 @@ from typing import List
 # --- Imports: Third-Party --- #
 import arrow
 import git
+from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from .dirs import dirs
-from .logging import get_logger
+from .logging import LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Functions --- #
 

@@ -14,10 +14,10 @@ import requests
 import wikitextparser as wtp
 
 # --- Imports: Local Application --- #
-from ..utils import get_logger
+from ..utils import LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Arrows Dictionary --- #
 arrows_dict: Dict[str, str] = {

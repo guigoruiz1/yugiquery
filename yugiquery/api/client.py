@@ -32,7 +32,7 @@ import wikitextparser as wtp
 # --- Imports: Local Application --- #
 from .. import utils
 from ..metadata import __title__, __url__, __version__
-from ..utils import md5, get_logger
+from ..utils import md5, LoggerConfig
 from .parsers import (
     extract_results,
     format_df,
@@ -40,7 +40,7 @@ from .parsers import (
 )
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Halo Spinner Import --- #
 if utils.dirs.is_notebook:
@@ -105,6 +105,8 @@ def _request_with_retry(
                 raise
             logger.debug("Attempt %s/%s failed: %s", attempt, retries, err)
             time.sleep(backoff * (2 ** (attempt - 1)))
+
+    raise RuntimeError("Request failed and no exception was captured.")
 
 
 # --- YGOPRODECK --- #

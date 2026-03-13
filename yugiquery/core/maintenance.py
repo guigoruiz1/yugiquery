@@ -16,10 +16,10 @@ from IPython.display import display
 import pandas as pd
 
 # --- Imports: Local Application --- #
-from ..utils import dirs, get_notebook_path, git, load_json, make_filename, get_logger
+from ..utils import dirs, get_notebook_path, git, load_json, make_filename, LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Benchmark Entry Type --- #

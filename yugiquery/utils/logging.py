@@ -14,6 +14,7 @@ import logging
 import sys
 import os
 from pathlib import Path
+from tqdm import tqdm
 
 # Color mapping for log levels
 _LEVEL_COLORS = {
@@ -23,30 +24,6 @@ _LEVEL_COLORS = {
     logging.ERROR: "red",
     logging.CRITICAL: "red",
 }
-
-
-class LoggerWriter:
-    def __init__(self, logger, level=logging.INFO):
-        self.logger = logger
-        self.level = level
-        self._buffer = ""
-
-    def write(self, message):
-        # tqdm may send partial lines, so buffer until newline
-        self._buffer += message
-        while "\n" in self._buffer:
-            line, self._buffer = self._buffer.split("\n", 1)
-            if line.strip():
-                self.logger.log(self.level, line)
-
-    def flush(self):
-        if self._buffer.strip():
-            self.logger.log(self.level, self._buffer.strip())
-        self._buffer = ""
-
-
-# --- Tqdm Logging Handler --- #
-from tqdm import tqdm
 
 
 class TqdmLoggingHandler(logging.StreamHandler):
@@ -59,10 +36,13 @@ class TqdmLoggingHandler(logging.StreamHandler):
             self.handleError(record)
 
 
-# ColorFormatter class
+# --- ColorFormatter class --- #
 class ColorFormatter(logging.Formatter):
-    def __init__(self):
-        fmt = "%(asctime)s | %(levelname)s | %(message)s"
+    def __init__(self, show_source=False):
+        if show_source:
+            fmt = "%(asctime)s | %(levelname)s | %(module)s.%(funcName)s | %(message)s"
+        else:
+            fmt = "%(asctime)s | %(levelname)s | %(message)s"
         datefmt = "%Y-%m-%d %H:%M:%S"
         super().__init__(fmt, datefmt)
 
@@ -73,34 +53,51 @@ class ColorFormatter(logging.Formatter):
         return _colored(msg, color, attrs=attrs or None) if color or attrs else msg
 
 
-def _parse_level(level):
-    if isinstance(level, str):
-        level = level.upper()
-        return logging._nameToLevel.get(level, logging.INFO)
-    return level
+# --- LoggerConfig class --- #
+class LoggerConfig:
+    _level = None
+    _log_file = None
+    _logger_name = None
 
+    @classmethod
+    def setup(cls, level=None, log_file=None, logger_name=None):
+        cls._level = level or os.environ.get("YQ_LOG_LEVEL", "WARNING")
+        cls._log_file = log_file or os.environ.get("YQ_LOG_FILE", None)
+        cls._logger_name = logger_name or cls._logger_name or "yugiquery"
+        logger = logging.getLogger(cls._logger_name)
+        logger.setLevel(logging._nameToLevel.get(str(cls._level).upper(), logging.INFO))
+        for handler in list(logger.handlers):
+            logger.removeHandler(handler)
+        if cls._log_file:
+            handler = logging.FileHandler(cls._log_file)
+            handler.setFormatter(ColorFormatter(show_source=True))
+        else:
+            handler = TqdmLoggingHandler()
+            handler.setFormatter(ColorFormatter(show_source=False))
+        logger.addHandler(handler)
+        logger.propagate = False
+        return logger
 
-def setup_logging(
-    *,
-    level: str | int | None = None,
-    log_file: str | Path | None = None,
-) -> logging.Logger:
-    logger = logging.getLogger("yugiquery")
-    parsed_level = _parse_level(level)
-    if parsed_level:
-        logger.setLevel(parsed_level)
-    for handler in list(logger.handlers):
-        logger.removeHandler(handler)
-    if log_file is not None:
-        handler = logging.FileHandler(log_file)
-    else:
-        handler = TqdmLoggingHandler()
-    handler.setFormatter(ColorFormatter())
-    logger.addHandler(handler)
-    logger.propagate = False
-    return logger
+    @classmethod
+    def get_logger(cls, logger_name="yugiquery"):
+        return logging.getLogger(logger_name)
 
+    @classmethod
+    def propagate_env(cls):
+        if cls._level is not None:
+            os.environ["YQ_LOG_LEVEL"] = cls._level
+        if cls._log_file is not None:
+            os.environ["YQ_LOG_FILE"] = cls._log_file
 
-# --- Logger Accessor --- #
-def get_logger():
-    return logging.getLogger("yugiquery")
+    @classmethod
+    def clean_env(cls):
+        os.environ.pop("YQ_LOG_LEVEL", None)
+        os.environ.pop("YQ_LOG_FILE", None)
+
+    @classmethod
+    def get_level(cls):
+        """
+        Returns the current logging level as a logging enum value (e.g., logging.INFO).
+        If not set, defaults to logging.WARNING.
+        """
+        return logging._nameToLevel.get(str(cls._level).upper(), logging.WARNING)

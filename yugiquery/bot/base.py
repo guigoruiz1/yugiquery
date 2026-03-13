@@ -29,11 +29,8 @@ from ..utils import *
 from ..core import run
 
 
-# --- Imports: Local Application --- #
-from ..utils import get_logger
-
-# --- Logger Setup --- #
-logger = get_logger()
+# --- Logger Config --- #
+logger = LoggerConfig.get_logger()
 
 
 # --- Enum Classes --- #
@@ -560,14 +557,15 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         type=int,
         help="bot responses Channel/Chat ID",
     )
-    parser.add_argument(
+    debug_group = parser.add_argument_group("Debugging")
+    debug_group.add_argument(
         "--log-level",
         dest="log_level",
         type=str,
         default=None,
         help="set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
-    parser.add_argument(
+    debug_group.add_argument(
         "--log-file",
         dest="log_file",
         type=str,
@@ -578,7 +576,7 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
 
 # --- Main Entry Point --- #
 def main(args) -> None:
-    setup_logging(level=args.log_level, log_file=args.log_file)
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     # Set multiprocessing start method
     mp.set_start_method("spawn")
 

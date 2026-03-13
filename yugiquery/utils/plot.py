@@ -148,8 +148,8 @@ def _align_yaxis(ax1: Axes, v1: float, ax2: Axes, v2: float) -> None:
     """
     _, y1 = ax1.transData.transform((0, v1))
     _, y2 = ax2.transData.transform((0, v2))
-    adjust_yaxis(ax=ax2, ydif=(y1 - y2) / 2, v=v2)
-    adjust_yaxis(ax=ax1, ydif=(y2 - y1) / 2, v=v1)
+    _adjust_yaxis(ax=ax2, ydif=(y1 - y2) / 2, v=v2)
+    _adjust_yaxis(ax=ax1, ydif=(y2 - y1) / 2, v=v1)
 
 
 # --- Rate Utilities --- #
@@ -306,7 +306,7 @@ def _generate_rate_grid(
     yearly_ax.tick_params(axis="x", rotation=45)
 
     if len(df.columns) == 1:
-        align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
+        _align_yaxis(ax1=yearly_ax, v1=0, ax2=monthly_ax, v2=0)
         l = yearly_ax.get_ylim()
         l2 = monthly_ax.get_ylim()
 
@@ -410,7 +410,7 @@ def rate(
         else:
             subplot_colors = colors
 
-        sub_axes = generate_rate_grid(
+        sub_axes = _generate_rate_grid(
             df=df[col].to_frame() if subplots else df,
             ax=ax,
             colors=subplot_colors,
@@ -428,9 +428,9 @@ def rate(
     if bg is not None and "end" in bg:
         bg = bg.copy()
         bg["end"] = bg["end"].fillna(df.index.max())
-        add_background_shading(axes=axes, bg=bg)
+        _add_background_shading(axes=axes, bg=bg)
     if vlines is not None:
-        add_vertical_lines(axes=axes, vlines=vlines, cumsum=cumsum)
+        _add_vertical_lines(axes=axes, vlines=vlines, cumsum=cumsum)
 
     fig.subplots_adjust(top=1 - top_space / fig.get_figheight())
     return fig
@@ -803,10 +803,10 @@ def deck_composition(
 
         for wedge, text in zip(wedges1, autotexts1):
             color = wedge.get_facecolor()[:3]
-            text.set_color("black" if is_light_color(color) else "white")
+            text.set_color("black" if _is_light_color(color) else "white")
         for wedge, text in zip(wedges2, autotexts2):
             color = wedge.get_facecolor()[:3]
-            text.set_color("black" if is_light_color(color) else "white")
+            text.set_color("black" if _is_light_color(color) else "white")
 
         ax_pie.text(
             0,
@@ -844,7 +844,7 @@ def deck_composition(
                     bc,
                     labels=[f"{count/side_total*100:.0f}%\n({count})"],
                     label_type="center",
-                    color="black" if is_light_color(color) else "white",
+                    color="black" if _is_light_color(color) else "white",
                 )
             ax_bar.set_title(f"Side: {side_total}", fontsize=label_font_size)
             ax_bar.set_xlim(-side_total, 0)

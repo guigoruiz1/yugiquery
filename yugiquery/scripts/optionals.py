@@ -14,11 +14,11 @@ import shutil
 from termcolor import cprint
 
 # --- Imports: Local Application --- #
-from ..utils import get_logger
+from ..utils import LoggerConfig
 
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 def install_templates() -> None:
@@ -234,15 +234,33 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed",
     )
+    debug_group = parser.add_argument_group("Debugging")
+    debug_group.add_argument(
+        "--log-level",
+        type=str,
+        required=False,
+        default=None,
+        help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    debug_group.add_argument(
+        "--log-file",
+        type=str,
+        required=False,
+        default=None,
+        help="write log output to a file in addition to stderr",
+    )
 
 
 def main(args):
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
+    no_flags = not (args.templates or args.kernel or args.nbconvert or args.filters)
     if args.venv and not args.kernel:
-        cprint(text="The --venv flag has no effect if --kernel is not passed.", color="yellow")
         logger.warning("The --venv flag has no effect if --kernel is not passed.")
+        if no_flags:
+            return
 
     # If no flags are passed, install everything.
-    if not (args.templates or args.kernel or args.nbconvert or args.filters):
+    if no_flags:
         args.templates = args.kernel = args.nbconvert = args.filters = True
 
     if args.templates:

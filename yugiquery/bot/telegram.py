@@ -16,7 +16,7 @@ from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from ..metadata import __version__
-from ..utils import get_ts_granularity, escape_chars, get_logger
+from ..utils import get_ts_granularity, escape_chars, LoggerConfig
 from .base import Bot, GitCommands
 
 # Telegram
@@ -38,7 +38,7 @@ except ImportError:
 
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Telegram Bot Class Definition --- #

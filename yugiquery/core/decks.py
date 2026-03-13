@@ -13,10 +13,10 @@ import pandas as pd
 
 # --- Imports: Local Application --- #
 from .. import api
-from ..utils import dirs, get_logger
+from ..utils import dirs, LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Decklist and YDK Readers --- #

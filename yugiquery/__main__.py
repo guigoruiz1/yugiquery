@@ -9,7 +9,7 @@ import importlib
 # --- Imports: Local Application --- #
 from .metadata import __title__, __version__
 from .cli import CustomHelpFormatter
-from .utils import dirs, setup_logging
+from .utils import dirs, LoggerConfig
 from . import api
 from . import cli
 from . import bot
@@ -44,7 +44,7 @@ def main():
         if args.version:
             print(f"{__title__} {__version__}")
         if args.api:
-            setup_logging()
+            LoggerConfig.setup()
             api.check_status()
         if args.paths:
             dirs.print()

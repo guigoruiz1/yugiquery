@@ -23,12 +23,12 @@ from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from . import client
-from ..utils import dirs, load_json, get_logger
+from ..utils import dirs, load_json, LoggerConfig
 from .client import download_media
 
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Card Game Enum & Properties --- #

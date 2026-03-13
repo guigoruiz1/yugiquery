@@ -18,10 +18,10 @@ from termcolor import cprint
 import tempfile
 
 # --- Imports: Local Application --- #
-from .logging import get_logger
+from .logging import LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Classes --- #
 

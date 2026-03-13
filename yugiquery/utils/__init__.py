@@ -6,7 +6,7 @@ from . import plot
 from . import git
 from .plot import plt, sns
 from .helpers import *
-from .logging import setup_logging, LoggerWriter, get_logger
+from .logging import LoggerConfig
 from .dirs import dirs
 from .progress_handler import ProgressHandler
 from .notebook import *

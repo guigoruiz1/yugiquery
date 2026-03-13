@@ -9,7 +9,7 @@ from typing import Literal
 
 # --- Imports: Local Application --- #
 from .core import run
-from .utils import auto_or_bool, dirs, git, setup_logging
+from .utils import auto_or_bool, git, LoggerConfig
 
 
 # --- Argparse Utilities --- #
@@ -170,7 +170,7 @@ class CredAction(argparse.Action):
 
 
 def main(args):
-    setup_logging(level=args.log_level, log_file=args.log_file)
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     # Assures the script is within a git repository before processing
     _ = git.ensure_repo()
     # Execute the complete workflow
@@ -250,6 +250,5 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         type=str,
         required=False,
         default=None,
-        metavar="PATH",
         help="write log output to a file in addition to stderr",
     )

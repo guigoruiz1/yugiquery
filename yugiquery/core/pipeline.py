@@ -20,19 +20,10 @@ from tqdm.auto import tqdm
 # --- Imports: Local Application --- #
 from .. import api
 from . import cleanup_data, update_index
-from ..utils import (
-    ProgressHandler,
-    dirs,
-    git,
-    load_secrets,
-    lock,
-    make_jekyll_page,
-    unlock,
-    get_logger,
-)
+from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, unlock, LoggerConfig
 
 
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 
 # --- Progress Bar Setup --- #
@@ -225,8 +216,10 @@ def run_notebooks(
             tqdm.write(f"\nGenerating {report_name} report")
             logger.info("Generating %s report", report_name)
 
-            # execute the notebook with papermill
+            # Set logger environment variables for notebook execution
             os.environ["PM_IN_EXECUTION"] = dest_report
+            LoggerConfig.propagate_env()
+
             if "yugiquery" in kernelspec.find_kernel_specs():
                 kernel_name = "yugiquery"
             else:
@@ -244,7 +237,8 @@ def run_notebooks(
                 logger.error("%s", e)
                 exceptions.append(e)
             finally:
-                os.environ.pop("PM_IN_EXECUTION", default=None)
+                os.environ.pop("PM_IN_EXECUTION", None)
+                LoggerConfig.clean_env()
                 for pbar in pbars:
                     pbar.update(1 + i - pbar.n)
                     # pbar.refresh()

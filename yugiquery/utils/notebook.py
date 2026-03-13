@@ -19,10 +19,10 @@ from IPython.display import HTML, Markdown
 
 # --- Imports: Local Application --- #
 from .dirs import dirs
-from .logging import get_logger
+from .logging import LoggerConfig
 
 # --- Logger Setup --- #
-logger = get_logger()
+logger = LoggerConfig.get_logger()
 
 # --- Helper Functions --- #
 
