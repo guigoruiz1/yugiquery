@@ -45,18 +45,29 @@ class LoggerWriter:
         self._buffer = ""
 
 
+# --- Tqdm Logging Handler --- #
+from tqdm import tqdm
+
+
+class TqdmLoggingHandler(logging.StreamHandler):
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            tqdm.write(msg)
+            self.flush()
+        except Exception:
+            self.handleError(record)
+
+
 # ColorFormatter class
 class ColorFormatter(logging.Formatter):
-    def __init__(self, fmt, datefmt=None, use_concise=False):
+    def __init__(self):
+        fmt = "%(asctime)s | %(levelname)s | %(message)s"
+        datefmt = "%Y-%m-%d %H:%M:%S"
         super().__init__(fmt, datefmt)
-        self.use_concise = use_concise
 
     def format(self, record: logging.LogRecord) -> str:
-        if self.use_concise:
-            fmt = "%(message)s"
-            msg = logging.Formatter(fmt).format(record)
-        else:
-            msg = super().format(record)
+        msg = super().format(record)
         color = _LEVEL_COLORS.get(record.levelno)
         attrs = ["bold"] if record.levelno >= logging.CRITICAL else []
         return _colored(msg, color, attrs=attrs or None) if color or attrs else msg
@@ -83,8 +94,8 @@ def setup_logging(
     if log_file is not None:
         handler = logging.FileHandler(log_file)
     else:
-        handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(message)s"))
+        handler = TqdmLoggingHandler()
+    handler.setFormatter(ColorFormatter())
     logger.addHandler(handler)
     logger.propagate = False
     return logger

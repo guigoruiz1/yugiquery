@@ -28,7 +28,6 @@ from ..utils import (
     lock,
     make_jekyll_page,
     unlock,
-    LoggerWriter,
     get_logger,
 )
 
@@ -121,7 +120,7 @@ def _setup_progress_bars(
             contrib_pbar = contrib_tqdm(
                 token=tkn,
                 position=len(pbars) + 1,
-                file=LoggerWriter(logger),
+                file=open(os.devnull, "w"),  # TODO: Make tqdm safe
                 **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
@@ -188,8 +187,9 @@ def run_notebooks(
     papermill_logger.addHandler(stream_handler)
 
     exceptions = []
-    logger.info("Execution started")
+
     print("\nExecution started")
+    logger.info("Execution started")
 
     # Setup progress bars
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
@@ -218,13 +218,12 @@ def run_notebooks(
             def update_pbar():
                 for pbar in pbars:
                     pbar.update(1 / cells)
-                    # pbar.refresh()
 
             # Attach the update_pbar function to the stream_handler
             stream_handler.flush = update_pbar
 
-            logger.info("Generating %s report", report_name)
             tqdm.write(f"\nGenerating {report_name} report")
+            logger.info("Generating %s report", report_name)
 
             # execute the notebook with papermill
             os.environ["PM_IN_EXECUTION"] = dest_report
@@ -238,7 +237,7 @@ def run_notebooks(
                     input_path=report,
                     output_path=dest_report,
                     log_output=True,
-                    progress_bar={"position": 1, "desc": report_name},
+                    progress_bar={"position": 1, "desc": report_name},  # pyright: ignore[reportArgumentType]
                     kernel_name=kernel_name,
                 )
             except pm.PapermillExecutionError as e:
@@ -259,14 +258,14 @@ def run_notebooks(
 
     warnings.filterwarnings("default")
 
-    logger.info("Execution completed")
     tqdm.write("\nExecution completed")
+    logger.info("Execution completed")
 
     # Close the iterator
     for pbar in pbars[::-1]:
         pbar.close()
 
-    print()
+    print()  # Line break after progress bars
 
     if exceptions:
         combined_message = "\n".join(str(e) for e in exceptions)
