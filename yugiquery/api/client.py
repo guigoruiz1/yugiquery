@@ -4,7 +4,6 @@
 
 # --- Imports: Standard Library --- #
 import asyncio
-import logging
 import os
 import re
 import socket
@@ -27,7 +26,6 @@ import requests
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.logging import logging_redirect_tqdm
 from termcolor import cprint
-import wikitextparser as wtp
 
 # --- Imports: Local Application --- #
 from .. import utils

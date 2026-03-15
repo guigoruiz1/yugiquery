@@ -5,7 +5,6 @@
 # --- Imports: Standard Library --- #
 import argparse
 import re
-from typing import Literal
 
 # --- Imports: Local Application --- #
 from .core import run

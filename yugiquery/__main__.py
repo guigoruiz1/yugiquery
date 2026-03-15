@@ -4,7 +4,6 @@
 
 # --- Imports: Standard Library --- #
 import argparse
-import importlib
 
 # --- Imports: Local Application --- #
 from .metadata import __title__, __version__

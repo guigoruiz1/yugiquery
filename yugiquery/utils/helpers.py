@@ -6,7 +6,6 @@
 import calendar  # Used in notebooks
 import hashlib
 import json
-import logging
 import os
 import platform
 from pathlib import Path

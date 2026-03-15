@@ -14,9 +14,6 @@ import numpy as np
 from PIL import Image
 from tqdm.auto import tqdm
 
-# --- Imports: Local Application --- #
-from .dirs import dirs
-
 # --- Functions --- #
 
 

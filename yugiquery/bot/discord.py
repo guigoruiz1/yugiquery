@@ -4,7 +4,6 @@
 
 # --- Imports: Standard Library --- #
 import io
-import logging
 import platform
 
 # --- Imports: Local Application --- #

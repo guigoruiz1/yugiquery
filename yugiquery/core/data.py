@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import logging
 import os
 from ast import literal_eval
 from pathlib import Path

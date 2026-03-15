@@ -3,15 +3,12 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import asyncio
 import json
-import logging
 import os
 import time
 import urllib.parse as up
 from enum import Enum
-from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 # --- Imports: Third-Party --- #
 import aiohttp
@@ -19,12 +16,10 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm, trange
 from tqdm.contrib.logging import logging_redirect_tqdm
-from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from . import client
 from ..utils import dirs, load_json, LoggerConfig
-from .client import download_media
 
 
 # --- Logger Setup --- #

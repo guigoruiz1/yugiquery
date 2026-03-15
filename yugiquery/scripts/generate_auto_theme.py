@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import logging
 import re
 import os
 import json

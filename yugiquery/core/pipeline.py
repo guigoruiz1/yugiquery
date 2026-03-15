@@ -220,7 +220,7 @@ def run_notebooks(
             os.environ["PM_IN_EXECUTION"] = dest_report
             LoggerConfig.propagate_env()
 
-            if "yugiquery" in kernelspec.find_kernel_specs():
+            if "yugiquery" in kernelspec.find_kernel_specs():  # TODO: use package name
                 kernel_name = "yugiquery"
             else:
                 kernel_name = "python3"

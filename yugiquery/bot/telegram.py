@@ -1,13 +1,8 @@
-#!/usr/bin/env python3
-
 # yugiquery/bot/telegram.py
 
 # -*- coding: utf-8 -*-
 
-# --- Imports --- #
-
 # --- Imports: Standard Library --- #
-import logging
 import platform
 
 # --- Imports: Third-Party --- #
