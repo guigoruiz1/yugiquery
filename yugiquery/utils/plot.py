@@ -1055,7 +1055,8 @@ def deck_distribution(
         matplotlib.figure.Figure: The generated figure.
     """
     decks = sorted(deck_df[deck_df[column].notna()]["Deck"].unique())
-    max_label_len = max([len(x) for x in deck_df[column].dropna().unique()])
+    label_texts = [str(x) for x in deck_df[column].dropna().unique()]
+    max_label_len = max([len(x) for x in label_texts])
     mean_labels = deck_df.groupby("Deck")[column].nunique()
     mean_labels = mean_labels[mean_labels > 0].mean()
 
@@ -1063,11 +1064,20 @@ def deck_distribution(
     label_font_size = kwargs.pop("label_font_size", DEFAULT_FONT_SIZES["label"])
     legend_font_size = kwargs.pop("legend_font_size", DEFAULT_FONT_SIZES["legend"])
 
-    plot_width = 6 if plot_size is None else plot_size[0]  # Width of each plot
+    # Keep plot width fixed, but increase horizontal spacing for long labels
+    plot_width = 6 if plot_size is None else plot_size[0]
     # Reduce bar height for more compact plots
     bar_height = 0.45  # Reduced from 0.7 for compactness
     plot_height = max(mean_labels * bar_height + 1.0, 1.5) if plot_size is None else plot_size[1]
-    horizontal_space = grid_spacing[0] + max(2 * int(max_label_len / 10) - 3, 0)
+    # Dynamically increase horizontal_space for long labels (very aggressive for pathological cases)
+    base_horizontal_space = grid_spacing[0]
+    extra_hspace = 0
+    if max_label_len > 15:
+        # Add 0.45 inch per character above 15 (aggressive)
+        extra_hspace = 0.45 * (max_label_len - 15)
+    # Set a minimum horizontal space for extremely long labels
+    min_hspace = 3.5 if max_label_len > 30 else 0
+    horizontal_space = max(base_horizontal_space + extra_hspace, min_hspace)
     # Add extra vertical margin for better subplot separation
     vertical_space = grid_spacing[1] + 0.5  # Increased vertical space
     # Add top margin for header separation
@@ -1112,28 +1122,40 @@ def deck_distribution(
     temp_dfs = []
     left_margin = 0.07
     right_margin = 0.97
-    top_margin = header_space / fig_height
+    subplot_margin = 0.22  # compact margin for title/xlabel
+    row_gap = 0.95  # slightly increased vertical gap between subplots
+    top_margin_in = 1.2  # increased top margin in inches
     for deck in decks:
         temp_df = deck_df[deck_df["Deck"] == deck].groupby(["Section", column])["Count"].sum().unstack(0)
         temp_dfs.append(temp_df)
         num_bars = len(temp_df) if temp_df is not None else 0
-        subplot_heights.append(bar_height * max(num_bars, 1) + 0.7)  # 0.7 margin for title/xlabel
+        subplot_heights.append(bar_height * max(num_bars, 1) + subplot_margin)  # margin for title/xlabel
 
     # Keep horizontal gap, reduce vertical gap
     col_width = plot_width / fig_width
     col_count = cols
     col_gap = (horizontal_space * 0.25) / fig_width  # Keep horizontal gap as before
-    row_gap = (vertical_space * 0.7) / fig_height  # Reduce vertical gap
 
-    # For each column, keep track of the current y-position (from top)
-    col_ypos = [top_margin for _ in range(col_count)]
+    # Compute total height in inches for each column
+    col_heights = [
+        sum(subplot_heights[i] for i in range(j, len(decks), col_count))
+        + row_gap * (len([i for i in range(j, len(decks), col_count)]) - 1)
+        for j in range(col_count)
+    ]
+    max_col_height = max(col_heights)
+    fig_height = max_col_height + top_margin_in
+    fig_width = plot_width * col_count + (col_count - 1) * horizontal_space
+    fig = plt.figure(figsize=(fig_width, fig_height))
+
+    # For each column, keep track of the current y-position (in inches)
+    col_ypos = [top_margin_in for _ in range(col_count)]
 
     for idx, (deck, temp_df) in enumerate(zip(decks, temp_dfs)):
         col = idx % col_count
         left = col * (col_width + col_gap) + left_margin
         width = col_width * (right_margin - left_margin)
         height = subplot_heights[idx] / fig_height
-        bottom = 1 - (col_ypos[col] + height)
+        bottom = 1 - (col_ypos[col] + subplot_heights[idx]) / fig_height
         ax = fig.add_axes((float(left), float(bottom), float(width), float(height)))
         if not temp_df.empty:
             temp_df = temp_df[_sort_sections(temp_df.sum())]
@@ -1151,10 +1173,22 @@ def deck_distribution(
             )
         ax.set_title(deck, fontsize=label_font_size)
         axes.append(ax)
-        col_ypos[col] += height + row_gap
+        col_ypos[col] += subplot_heights[idx] + row_gap
 
-    # Bring legend even closer to the title
-    legend_y = 1 - top_margin / 2
+    # Dynamically center the legend above the axes area, just below the title
+    legend_offset = 0.6  # fraction of top_margin_in to offset below title
+    fig.canvas.draw()  # Ensure positions are up to date
+    axes_pos = [ax.get_position() for ax in fig.axes if hasattr(ax, 'get_position')]
+    if axes_pos:
+        lefts = [pos.x0 for pos in axes_pos]
+        rights = [pos.x1 for pos in axes_pos]
+        axes_left = min(lefts)
+        axes_right = max(rights)
+        axes_center = (axes_left + axes_right) / 2
+        legend_x = axes_center
+    else:
+        legend_x = 0.5
+    legend_y = 1 - (top_margin_in / fig_height) * legend_offset
 
     handler = {}
     for section in sorted_sections:
@@ -1172,13 +1206,24 @@ def deck_distribution(
         loc="center",
         fontsize=legend_font_size,
         ncol=3,
-        bbox_to_anchor=(0.5, legend_y),
+        bbox_to_anchor=(legend_x, legend_y),
         borderaxespad=0.5,
         frameon=False,
         handlelength=3,
         handleheight=1.2,
     )
-    fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1)
+    # Dynamically center the suptitle above the axes area, not just the figure
+    fig.canvas.draw()  # Needed to get correct positions
+    axes_pos = [ax.get_position() for ax in fig.axes if hasattr(ax, "get_position")]
+    if axes_pos:
+        lefts = [pos.x0 for pos in axes_pos]
+        rights = [pos.x1 for pos in axes_pos]
+        axes_left = min(lefts)
+        axes_right = max(rights)
+        axes_center = (axes_left + axes_right) / 2
+        fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1, x=axes_center, ha="center")
+    else:
+        fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1, x=0.5, ha="center")
 
     return fig
 
