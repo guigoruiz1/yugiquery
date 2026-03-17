@@ -43,7 +43,7 @@ Dictionary mapping card or type names to color hex codes, loaded from the colors
 Used for consistent color assignment in plots.
 """
 
-DEFAULT_FONT_SIZES: dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12, "suptitle": 20}
+DEFAULT_FONTSIZES: dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12, "suptitle": 20}
 """
 Default font sizes for plot elements (labels, titles, ticks, legends, suptitles).
 Keys are element names, values are font sizes in points.
@@ -592,7 +592,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> Fi
     # Create a polar plot
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(polar=True)
-    ax.bar(x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
+    ax.bar(x=angles, height=counts, width=0.5, color=colors_dict.get("Link Monster", "blue"), **kwargs)
 
     # Set the label for each arrow
     ax.set_xticks(list(_angle_map.values()))
@@ -770,11 +770,12 @@ def pyramid(
 
 def deck_composition(
     deck_df: pd.DataFrame,
-    grid_spacing: Tuple[int, int] = (2, 1),
     grid_cols: int = 3,
-    plot_size: Tuple[int, int] = (5, 5),
     ring_radius: float = 0.3,
     pctdistances: List[float] = [0.85, 0.75],
+    scale: float = 1,
+    pie_kwargs: dict = {},
+    bar_kwargs: dict = {},
     **kwargs,
 ) -> Figure:
     """
@@ -782,17 +783,18 @@ def deck_composition(
 
     Args:
         deck_df (pd.DataFrame): The DataFrame containing the deck data.
-        grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (2, 1).
         grid_cols (int, optional): The number of columns in the grid. Defaults to 3.
-        plot_size (Tuple[int, int], optional): The width and height of each plot. Defaults to (5, 5).
         ring_radius (float, optional): The radius of the ring in the pie chart. Defaults to 0.3.
         pctdistances (List[float], optional): The distances of the percentage labels from the center of the chart rings. Defaults to [0.85, 0.75].
-        **kwargs: Not implemented.
+        scale (float, optional): The scale factor for the plot size. Defaults to 1.
+        pie_kwargs (dict, optional): Additional keyword arguments to pass to the pie chart plotting function. Defaults to None.
+        bar_kwargs (dict, optional): Additional keyword arguments to pass to the side bar plotting function. Defaults to None.
+        **kwargs: Additional keyword arguments such as font sizes.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-
+    # Deck data preparation
     decks = deck_df["Deck"].unique()
     temp = deck_df.copy()
     temp["Primary type"] = deck_df["Primary type"].fillna(deck_df["Card type"])
@@ -800,22 +802,27 @@ def deck_composition(
     extra_df = temp[temp["Section"] == "Extra"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
     side_df = temp[temp["Section"] == "Side"].groupby(["Deck", "Primary type"])["Count"].sum().unstack(0)
 
-    label_font_size = kwargs.get("label_font_size", DEFAULT_FONT_SIZES["label"])
-    title_font_size = kwargs.get("title_font_size", DEFAULT_FONT_SIZES["title"])
-    suptitle_font_size = kwargs.get("suptitle_font_size", DEFAULT_FONT_SIZES["suptitle"])
-    legend_font_size = kwargs.get("legend_font_size", DEFAULT_FONT_SIZES["legend"])
+    # Colors
+    MAIN_TYPES = ["Effect Monster", "Normal Monster", "Ritual Monster", "Trap Card", "Spell Card"]
+    EXTRA_TYPES = ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
+    colors_all = {type: colors_dict.get(type, f"C{i}") for i, type in enumerate(temp["Primary type"].unique())}
+    colors_main = {type: colors_all[type] for type in MAIN_TYPES if type in main_df.index.union(side_df.index)}
+    colors_extra = {type: colors_all[type] for type in EXTRA_TYPES if type in extra_df.index.union(side_df.index)}
 
-    plot_width = plot_size[0]
-    plot_height = plot_size[1]
-    horizontal_space = grid_spacing[0]
-    vertical_space = grid_spacing[1]
-    header_space = (2 * legend_font_size + 2) / 10
+    # Font sizes
+    label_fontsize = kwargs.get("label_fontsize", DEFAULT_FONTSIZES["label"])
+    title_fontsize = kwargs.get("title_fontsize", DEFAULT_FONTSIZES["title"])
+    suptitle_fontsize = kwargs.get("suptitle_fontsize", DEFAULT_FONTSIZES["suptitle"])
+    legend_fontsize = kwargs.get("legend_fontsize", DEFAULT_FONTSIZES["legend"])
+
+    # Plot layout calculations
+    plot_width = 5 * scale
+    plot_height = 5 * scale
+    horizontal_space = max(2 * scale, 0.5)
+    vertical_space = max(1 * scale, 0.5)
+    header_space = max(scale * legend_fontsize / 5, 2)
     cols = min(grid_cols, len(decks))
     rows = int(np.ceil(len(decks) / cols))
-
-    colors_main = [colors_dict[type] for type in main_df.index]
-    colors_extra = [colors_dict[type] for type in extra_df.index]
-    colors_remaining = side_df.index.difference(main_df.index.union(extra_df.index))
 
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
@@ -828,26 +835,29 @@ def deck_composition(
         hspace=vertical_space / plot_height,
     )
 
-    for i, deck in enumerate(decks):
+    for i, deck in enumerate(sorted(decks)):
         sub_gs = gs[(i // cols), i % cols].subgridspec(2, 1, height_ratios=[9, 1], hspace=0.2)
         ax_pie = fig.add_subplot(sub_gs[0, 0])
-        wedges1, texts1, autotexts1 = _plot_pie(
+        colors = list(colors_main[type] for type in main_df[deck].dropna().index)
+        _plot_pie(
             ax_pie,
             main_df[deck].dropna(),
-            np.array(colors_main)[main_df[deck].notna()].tolist(),
+            colors,
             _make_autopct(main_df[deck].dropna()),
             ring_radius,
             pctdistances[0],
         )
         if deck in extra_df.columns:
-            wedges2, texts2, autotexts2 = _plot_pie(
+            colors = list(colors_extra[type] for type in extra_df[deck].dropna().index)
+            _plot_pie(
                 ax=ax_pie,
                 data=extra_df[deck].dropna(),
-                colors=np.array(colors_extra)[extra_df[deck].notna()].tolist(),
+                colors=colors,
                 autopct=_make_autopct(extra_df[deck].dropna()),
                 ring_radius=ring_radius,
                 pctdistance=pctdistances[1],
                 radius=1 - ring_radius,
+                **pie_kwargs,
             )
         ax_pie.text(
             0,
@@ -855,38 +865,31 @@ def deck_composition(
             f"Main: {main_df[deck].sum().astype(int)}\nExtra: {extra_df[deck].sum().astype(int)}",
             ha="center",
             va="center",
-            fontsize=label_font_size,
+            fontsize=label_fontsize,
         )
-        ax_pie.set_title(deck, fontsize=title_font_size)
+        ax_pie.set_title(deck, fontsize=title_fontsize)
         ax_pie.set_xlim(-1, 1)
         ax_pie.set_ylim(-1, 1)
         ax_pie.set_aspect("equal", adjustable="box")
 
+        # Side bar setup
         ax_bar = fig.add_subplot(sub_gs[1, 0])
         ax_bar.axis("off")
         if deck in side_df and side_df[deck] is not None:
             sorted_side = side_df[deck].sort_values(ascending=True).dropna()
             side_total = sorted_side.sum().astype(int)
-            _plot_side_bar(ax_bar, sorted_side, side_total, **kwargs)
-            ax_bar.set_title(f"Side: {side_total}", fontsize=label_font_size)
+            colors = list(colors_all[type] for type in sorted_side.index)
+            _plot_side_bar(ax_bar, sorted_side, side_total, colors=colors, **bar_kwargs)
+            ax_bar.set_title(f"Side: {side_total}", fontsize=label_fontsize)
             ax_bar.set_xlim(-side_total, 0)
             ax_bar.set_ylim(-0.05, 0.05)
             ax_bar.set_aspect(side_total, adjustable="box")
         else:
-            ax_bar.set_title(f"Side: 0", fontsize=label_font_size)
+            ax_bar.set_title(f"Side: 0", fontsize=label_fontsize)
 
-    colors_main += [
-        colors_dict[type]
-        for type in colors_remaining
-        if type not in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
-    ]
-    colors_main += [
-        colors_dict[type]
-        for type in colors_remaining
-        if type in ["Fusion Monster", "Synchro Monster", "Xyz Monster", "Link Monster"]
-    ]
-    handles1 = [mpatches.Patch(color=colors_dict[type], label=type) for type in main_df.index]
-    handles2 = [mpatches.Patch(color=colors_dict[type], label=type) for type in extra_df.index]
+    # Legend setup
+    handles1 = [mpatches.Patch(color=colors_main[type], label=type) for type in colors_main.keys()]
+    handles2 = [mpatches.Patch(color=colors_extra[type], label=type) for type in colors_extra.keys()]
 
     top = 1 - header_space / fig_height
     legend_y = top + 3 * (1 - top) / 5
@@ -897,26 +900,26 @@ def deck_composition(
         handles=handles1,
         title="Main deck",
         loc="lower center",
-        fontsize=legend_font_size,
+        fontsize=legend_fontsize,
         ncol=len(handles1),
         bbox_to_anchor=(0.5, legend_y),
         frameon=False,
         borderaxespad=0,
-        title_fontsize=legend_font_size + 2,
+        title_fontsize=legend_fontsize + 2,
     )
     fig.legend(
         handles=handles2,
         title="Extra deck",
         loc="upper center",
-        fontsize=legend_font_size,
+        fontsize=legend_fontsize,
         ncol=len(handles2),
         bbox_to_anchor=(0.5, legend_y),
         frameon=False,
         borderaxespad=0,
-        title_fontsize=legend_font_size + 2,
+        title_fontsize=legend_fontsize + 2,
     )
 
-    fig.suptitle("Deck composition", fontsize=suptitle_font_size, y=1)
+    fig.suptitle("Deck composition", fontsize=suptitle_fontsize, y=1)
     return fig
 
 
@@ -949,7 +952,8 @@ def _plot_pie(
     startangle: float = 90,
     radius: float = 1,
     counterclock: bool = False,
-) -> tuple:
+    **kwargs,
+) -> None:
     """
     Plot a ring (donut) pie chart on the given axis with custom label formatting and colors.
 
@@ -963,9 +967,10 @@ def _plot_pie(
         startangle (float, optional): Starting angle for the pie chart. Defaults to 90.
         radius (float, optional): Radius of the pie chart. Defaults to 1.
         counterclock (bool, optional): Plot wedges counterclockwise. Defaults to False.
+        **kwargs: Additional keyword arguments to pass to ax.pie().
 
     Returns:
-        tuple: (wedges, texts, autotexts) from matplotlib pie chart.
+        None
     """
     pie_result = ax.pie(
         data,
@@ -976,6 +981,7 @@ def _plot_pie(
         pctdistance=pctdistance,
         colors=colors,
         counterclock=counterclock,
+        **kwargs,
     )
     # ax.pie can return 2 or 3 values depending on autopct
     if len(pie_result) == 3:
@@ -986,13 +992,13 @@ def _plot_pie(
     for wedge, text in zip(wedges, autotexts):
         color = wedge.get_facecolor()[:3]
         text.set_color("black" if _is_light_color(color) else "white")
-    return wedges, texts, autotexts
 
 
 def _plot_side_bar(
     ax: Axes,
-    sorted_side: pd.Series | dict,
+    sorted_side: pd.Series | List[float],
     side_total: int,
+    colors: List[str],
     **kwargs,
 ) -> None:
     """
@@ -1000,23 +1006,25 @@ def _plot_side_bar(
 
     Args:
         ax (matplotlib.axes.Axes): The axis to plot on.
-        sorted_side (dict): Mapping of card type to count, sorted.
+        sorted_side (pd.Series): Series mapping of card type to count, sorted.
         side_total (int): Total number of cards in the side deck.
-        **kwargs: Additional keyword arguments (unused).
+        colors (list): List of colors for each bar segment.
+        **kwargs: Additional keyword arguments to pass to ax.barh().
     """
     left = 0
     height = 0.1
-    for name, count in sorted_side.items():
+    for idx, count in enumerate(sorted_side):
         left -= count
-        color = colors_dict[name]
         bc = ax.barh(
             0,
             width=count,
             height=height,
             left=left,
-            color=color,
+            color=colors[idx],
             edgecolor="white",
+            **kwargs,
         )
+        color = bc.patches[0].get_facecolor()[:3]
         ax.bar_label(
             bc,
             labels=[f"{count/side_total*100:.0f}%\n({count:.0f})"],
@@ -1028,12 +1036,12 @@ def _plot_side_bar(
 def deck_distribution(
     deck_df: pd.DataFrame,
     column: str,
-    grid_spacing: Tuple[int, int] = (3, 1),
+    scale: float = 1.0,
     grid_cols: int = 2,
-    plot_size: Tuple[int, int] | None = None,
     colors: Dict[str, str] | List[str] | None = None,
     hatches: Dict[str, str] | List[str] | str = "",
     edgecolors: Dict[str, str] | List[str] | str = "white",
+    align=False,
     **kwargs,
 ) -> Figure:
     """
@@ -1042,55 +1050,19 @@ def deck_distribution(
     Args:
         deck_df (pd.DataFrame): The DataFrame containing the deck data.
         column (str): The column to be plotted.
-        grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (3, 1).
+        scale (float, optional): The scaling factor for the plot. Defaults to 1.0.
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
-        plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         hatches (Dict[str, str] | List[str] | str, optional): A dictionary of hatches for each section, or a list of hatches to be used in the plot. If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "".
         edgecolors (Dict[str, str] | List[str] | str, optional): The colors of the edges of the bars and hatches.  If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "white".
-        font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
-        **kwargs: Not implemented.
+        **kwargs: Extra keyword arguments such as font sizes.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-    decks = sorted(deck_df[deck_df[column].notna()]["Deck"].unique())
-    label_texts = [str(x) for x in deck_df[column].dropna().unique()]
-    max_label_len = max([len(x) for x in label_texts])
-    mean_labels = deck_df.groupby("Deck")[column].nunique()
-    mean_labels = mean_labels[mean_labels > 0].mean()
-
-    title_font_size = kwargs.pop("title_font_size", DEFAULT_FONT_SIZES["title"])
-    label_font_size = kwargs.pop("label_font_size", DEFAULT_FONT_SIZES["label"])
-    legend_font_size = kwargs.pop("legend_font_size", DEFAULT_FONT_SIZES["legend"])
-
-    # Keep plot width fixed, but increase horizontal spacing for long labels
-    plot_width = 6 if plot_size is None else plot_size[0]
-    # Reduce bar height for more compact plots
-    bar_height = 0.45  # Reduced from 0.7 for compactness
-    plot_height = max(mean_labels * bar_height + 1.0, 1.5) if plot_size is None else plot_size[1]
-    # Dynamically increase horizontal_space for long labels (very aggressive for pathological cases)
-    base_horizontal_space = grid_spacing[0]
-    extra_hspace = 0
-    if max_label_len > 15:
-        # Add 0.45 inch per character above 15 (aggressive)
-        extra_hspace = 0.45 * (max_label_len - 15)
-    # Set a minimum horizontal space for extremely long labels
-    min_hspace = 3.5 if max_label_len > 30 else 0
-    horizontal_space = max(base_horizontal_space + extra_hspace, min_hspace)
-    # Add extra vertical margin for better subplot separation
-    vertical_space = grid_spacing[1] + 0.5  # Increased vertical space
-    # Add top margin for header separation
-    header_space = legend_font_size / 10
-
-    # Calculate number of columns and rows
-    cols = min(grid_cols, len(decks))
-    rows = int(np.ceil(len(decks) / cols))
-
-    fig_width = plot_width * cols + (cols - 1) * horizontal_space
-    fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
-
-    fig = plt.figure(figsize=(fig_width, fig_height))
+    title_fontsize = kwargs.pop("title_fontsize", DEFAULT_FONTSIZES["title"])
+    label_fontsize = kwargs.pop("label_fontsize", DEFAULT_FONTSIZES["label"])
+    legend_fontsize = kwargs.pop("legend_fontsize", DEFAULT_FONTSIZES["legend"])
 
     section_counts = deck_df[deck_df[column].notna()].groupby("Section")["Count"].sum()
     sorted_sections = _sort_sections(section_counts)
@@ -1116,46 +1088,80 @@ def deck_distribution(
         index=sorted_sections,
     )
 
+    # Base values
+    plot_width = 6 * scale
+    bar_height = 0.45 * scale
+    horizontal_space = 3 * scale
+    left_margin = 0.07
+    right_margin = 0.97
+    subplot_margin = 0.22 * scale
+    row_gap = max(1.2 * scale, 0.8)
+    top_margin_in = max(1.2 * scale, 0.8)
+
+    # Dynamically increase horizontal_space for long labels
+    label_texts = [str(x) for x in deck_df[column].dropna().unique()]
+    max_label_len = max([len(x) for x in label_texts])
+    mean_labels = deck_df.groupby("Deck")[column].nunique()
+    mean_labels = mean_labels[mean_labels > 0].mean()
+    extra_hspace = 0
+    if max_label_len > 10:
+        # 0.45 is a base value, scale it linearly
+        extra_hspace = 0.45 * scale * (max_label_len - 10)
+
+    horizontal_space = max(horizontal_space + extra_hspace, 1.6)
+
+    # Calculate number of columns and rows
+    decks = sorted(deck_df[deck_df[column].notna()]["Deck"].unique())
+    cols = min(grid_cols, len(decks))
+    rows = int(np.ceil(len(decks) / cols))
+
     # Manual axes placement for per-subplot heights
     axes = []
     subplot_heights = []
     temp_dfs = []
-    left_margin = 0.07
-    right_margin = 0.97
-    subplot_margin = 0.22  # compact margin for title/xlabel
-    row_gap = 0.95  # slightly increased vertical gap between subplots
-    top_margin_in = 1.2  # increased top margin in inches
     for deck in decks:
         temp_df = deck_df[deck_df["Deck"] == deck].groupby(["Section", column])["Count"].sum().unstack(0)
         temp_dfs.append(temp_df)
         num_bars = len(temp_df) if temp_df is not None else 0
         subplot_heights.append(bar_height * max(num_bars, 1) + subplot_margin)  # margin for title/xlabel
 
-    # Keep horizontal gap, reduce vertical gap
-    col_width = plot_width / fig_width
-    col_count = cols
-    col_gap = (horizontal_space * 0.25) / fig_width  # Keep horizontal gap as before
-
     # Compute total height in inches for each column
     col_heights = [
-        sum(subplot_heights[i] for i in range(j, len(decks), col_count))
-        + row_gap * (len([i for i in range(j, len(decks), col_count)]) - 1)
-        for j in range(col_count)
+        sum(subplot_heights[i] for i in range(j, len(decks), cols))
+        + row_gap * (len([i for i in range(j, len(decks), cols)]) - 1)
+        for j in range(cols)
     ]
     max_col_height = max(col_heights)
     fig_height = max_col_height + top_margin_in
-    fig_width = plot_width * col_count + (col_count - 1) * horizontal_space
+    fig_width = plot_width * cols + (cols - 1) * horizontal_space
+    col_width = plot_width / fig_width
+    col_gap = (horizontal_space * 0.25) / fig_width  # Keep horizontal gap as before
+
+    # Precompute row heights if align is enabled
+    if align:
+        row_heights = []
+        for row in range(rows):
+            row_idxs = [i for i in range(len(decks)) if i // cols == row]
+            row_heights.append(max([subplot_heights[i] for i in row_idxs]))
+        row_ypos = []
+        ypos = top_margin_in
+        for h in row_heights:
+            row_ypos.append(ypos)
+            ypos += h + row_gap
+    else:
+        col_ypos = [top_margin_in for _ in range(cols)]
+
     fig = plt.figure(figsize=(fig_width, fig_height))
-
-    # For each column, keep track of the current y-position (in inches)
-    col_ypos = [top_margin_in for _ in range(col_count)]
-
     for idx, (deck, temp_df) in enumerate(zip(decks, temp_dfs)):
-        col = idx % col_count
+        row = idx // cols
+        col = idx % cols
         left = col * (col_width + col_gap) + left_margin
         width = col_width * (right_margin - left_margin)
         height = subplot_heights[idx] / fig_height
-        bottom = 1 - (col_ypos[col] + subplot_heights[idx]) / fig_height
+        if align:
+            bottom = 1 - (row_ypos[row] + subplot_heights[idx]) / fig_height
+        else:
+            bottom = 1 - (col_ypos[col] + subplot_heights[idx]) / fig_height
         ax = fig.add_axes((float(left), float(bottom), float(width), float(height)))
         if not temp_df.empty:
             temp_df = temp_df[_sort_sections(temp_df.sum())]
@@ -1168,17 +1174,16 @@ def deck_distribution(
                 plot_colors,
                 hatches_series,
                 edgecolors_series,
-                bar_height=bar_height,
                 **kwargs,
             )
-        ax.set_title(deck, fontsize=label_font_size)
+        ax.set_title(deck, fontsize=label_fontsize)
         axes.append(ax)
-        col_ypos[col] += subplot_heights[idx] + row_gap
+        if not align:
+            col_ypos[col] += subplot_heights[idx] + row_gap
 
     # Dynamically center the legend above the axes area, just below the title
-    legend_offset = 0.6  # fraction of top_margin_in to offset below title
     fig.canvas.draw()  # Ensure positions are up to date
-    axes_pos = [ax.get_position() for ax in fig.axes if hasattr(ax, 'get_position')]
+    axes_pos = [ax.get_position() for ax in fig.axes if hasattr(ax, "get_position")]
     if axes_pos:
         lefts = [pos.x0 for pos in axes_pos]
         rights = [pos.x1 for pos in axes_pos]
@@ -1188,7 +1193,7 @@ def deck_distribution(
         legend_x = axes_center
     else:
         legend_x = 0.5
-    legend_y = 1 - (top_margin_in / fig_height) * legend_offset
+    legend_y = 1 - (top_margin_in / fig_height) / 2
 
     handler = {}
     for section in sorted_sections:
@@ -1204,7 +1209,7 @@ def deck_distribution(
         handles=list(handler.keys()),
         handler_map=handler,
         loc="center",
-        fontsize=legend_font_size,
+        fontsize=legend_fontsize,
         ncol=3,
         bbox_to_anchor=(legend_x, legend_y),
         borderaxespad=0.5,
@@ -1213,17 +1218,7 @@ def deck_distribution(
         handleheight=1.2,
     )
     # Dynamically center the suptitle above the axes area, not just the figure
-    fig.canvas.draw()  # Needed to get correct positions
-    axes_pos = [ax.get_position() for ax in fig.axes if hasattr(ax, "get_position")]
-    if axes_pos:
-        lefts = [pos.x0 for pos in axes_pos]
-        rights = [pos.x1 for pos in axes_pos]
-        axes_left = min(lefts)
-        axes_right = max(rights)
-        axes_center = (axes_left + axes_right) / 2
-        fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1, x=axes_center, ha="center")
-    else:
-        fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1, x=0.5, ha="center")
+    fig.suptitle(f"{column} distribution", fontsize=title_fontsize, y=1, x=legend_x, ha="center")
 
     return fig
 
@@ -1252,29 +1247,28 @@ def _plot_distribution_bar(
     """
 
     num_bars = len(temp_df)
-    max_labels = temp_df.shape[0] if temp_df.shape[0] > 0 else 1
-    bar_height_scale = (num_bars) / (2 * max_labels)
-    label_font_size = kwargs.get("label_font_size", DEFAULT_FONT_SIZES["label"])
-    tick_font_size = kwargs.get("tick_font_size", DEFAULT_FONT_SIZES["tick"])
+    label_fontsize = kwargs.pop("label_fontsize", DEFAULT_FONTSIZES["label"])
+    tick_fontsize = kwargs.pop("tick_fontsize", DEFAULT_FONTSIZES["tick"])
 
     bar_ax = temp_df.plot.barh(
         ax=ax,
         stacked=True,
         legend=False,
-        fontsize=label_font_size,
+        fontsize=label_fontsize,
         color=section_colors,
-        width=kwargs.get("bar_height", 0.45),
+        **kwargs,
     )
     for j, bar in enumerate(bar_ax.patches):
         hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
         bar.set_hatch(hatches_series.iloc[hatch_index])
         bar.set_edgecolor(edgecolors_series.iloc[hatch_index])
+
     ax.set_ylabel("")
-    ax.set_xlabel("Count", fontsize=label_font_size)
+    ax.set_xlabel("Count", fontsize=label_fontsize)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.grid(axis="x", which="major", linestyle=":")
     ax.set_ylim(-0.5, num_bars - 0.5)
-    ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
+    ax.tick_params(axis="both", which="major", labelsize=tick_fontsize)
     ax.set_axisbelow(True)
     ax.xaxis.set_minor_locator(MultipleLocator(1))
 
@@ -1283,8 +1277,7 @@ def deck_stem(
     deck_df: pd.DataFrame,
     y1: str,
     y2: str | None = None,
-    plot_size: Tuple[int, int] | None = None,
-    grid_spacing: Tuple[int, int] = (2, 1),
+    scale: float = 1.0,
     grid_cols: int = 2,
     colors: Dict[str, str] | List[str] | None = None,
     markers: Dict[str, str] | List[str] = ["s", "o", "+"],
@@ -1299,15 +1292,13 @@ def deck_stem(
         deck_df (pd.DataFrame): The DataFrame containing the deck data.
         y1 (str): The first column to be plotted.
         y2 (str, optional): The second column to be plotted. Defaults to None.
-        plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
-        grid_spacing (Tuple[int, int], optional): The horizontal and vertical spacing between plots. Defaults to (2, 1).
+        scale (float, optional): The scaling factor for the plot size. Defaults to 1.0.
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
-        label_font_size, title_font_size, legend_font_size, tick_font_size (int, optional): Font sizes for labels, titles, legend, and ticks. Pass as keyword arguments if you want to override defaults.
         markers (Dict[str, str], optional): A dictionary mapping section names to marker styles. Defaults to {"Section1": "s", "Section2": "o", "Section3": "+"}.
         hollow (bool, optional): Whether to make the markers hollow. Defaults to False.
         marker_size (int, optional): The initial size of the markers. Defaults to 10.
-        **kwargs: Not implemented.
+        **kwargs: Additional keyword arguments such as font sizes.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
@@ -1316,18 +1307,17 @@ def deck_stem(
     decks = deck_df["Deck"].unique()
     section_counts = deck_df[deck_df[columns].notna().any(axis=1)].groupby("Section")["Count"].sum()
     sorted_sections = _sort_sections(section_counts)
-    title_font_size = kwargs.pop("title_font_size", DEFAULT_FONT_SIZES["title"])
-    legend_font_size = kwargs.pop("legend_font_size", DEFAULT_FONT_SIZES["legend"])
-    label_font_size = kwargs.pop("label_font_size", DEFAULT_FONT_SIZES["label"])
+
+    title_fontsize = kwargs.pop("title_fontsize", DEFAULT_FONTSIZES["title"])
+    legend_fontsize = kwargs.pop("legend_fontsize", DEFAULT_FONTSIZES["legend"])
+    label_fontsize = kwargs.pop("label_fontsize", DEFAULT_FONTSIZES["label"])
 
     # Set constants for plot sizes and spacing
-    plot_width = 9 if plot_size is None else plot_size[0]  # Width of each plot
-    # Fixed height for each plot
-    plot_height = 4 if plot_size is None else plot_size[1]
-    horizontal_space = grid_spacing[0]  # Fixed horizontal space between plots
-    vertical_space = grid_spacing[1]  # Fixed vertical space between plots
-    # Fixed space between figure top and subplots
-    header_space = legend_font_size / 10
+    plot_width = 8 * scale
+    plot_height = 2 * len(columns) * scale
+    horizontal_space = 2 * scale
+    vertical_space = max(1 * scale, 0.8)
+    header_space = max(legend_fontsize / 10 * scale, 1)
 
     # Calculate number of columns and rows
     cols = min(grid_cols, len(decks))
@@ -1337,11 +1327,13 @@ def deck_stem(
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
+    fallback_colors = {"Main": "Effect Monster", "Extra": "Fusion Monster", "Side": "Xyz Monster"}
     section_colors = _make_section_colors(
         colors=colors,
         sections=sorted_sections,
         index=[y1, y2] if y2 is not None else [y1],
-        fallback_colors=["Effect Monster", "Fusion Monster", "Xyz Monster"],
+        fallback_colors=[fallback_colors.get(key) for key in sorted_sections if key in fallback_colors],
+        index_fallback=False,
     )
     if not isinstance(markers, dict):
         markers = {section: markers[i % len(markers)] for i, section in enumerate(sorted_sections)}
@@ -1369,7 +1361,7 @@ def deck_stem(
             marker_size,
             **kwargs,
         )
-        ax.set_title(deck, fontsize=label_font_size)
+        ax.set_title(deck, fontsize=label_fontsize)
 
     top = 1 - header_space / fig_height
     legend_y = top + (1 - top) / 2
@@ -1380,12 +1372,12 @@ def deck_stem(
 
     handles = None
     ncols = None
+    stat_colors = [
+        [section_colors[s][columns[0]] for s in sorted_sections],
+    ]
     if len(columns) == 2:
+        stat_colors.append([section_colors[s][columns[1]] for s in sorted_sections])
         stat_labels = [str(c) for c in columns]
-        stat_colors = [
-            [section_colors[s][columns[0]] for s in sorted_sections],
-            [section_colors[s][columns[1]] for s in sorted_sections],
-        ]
         if not all(a == b for a, b in zip(stat_colors[0], stat_colors[1])):
             # Stat label (no marker), then section markers in correct order, all in a single row
             stat1_handle = Line2D([], [], color="none", marker="", linestyle="None", label=f"{stat_labels[0]}:")
@@ -1436,14 +1428,14 @@ def deck_stem(
         ncol=len(handles),
         loc="center",
         bbox_to_anchor=(0.5, legend_y),
-        fontsize=legend_font_size,
+        fontsize=legend_fontsize,
         frameon=False,
         ncols=ncols if ncols else len(handles),
         handletextpad=1.0,
         columnspacing=1.5,
     )
 
-    fig.suptitle(f"{' & '.join(columns)} distribution", fontsize=title_font_size, y=1)
+    fig.suptitle(f"{' & '.join(columns)} distribution", fontsize=title_fontsize, y=1)
     return fig
 
 
@@ -1473,8 +1465,8 @@ def _plot_stem_subplot(
     Returns:
         None
     """
-    label_font_size = kwargs.get("label_font_size", DEFAULT_FONT_SIZES["label"])
-    tick_font_size = kwargs.get("tick_font_size", DEFAULT_FONT_SIZES["tick"])
+    label_fontsize = kwargs.get("label_fontsize", DEFAULT_FONTSIZES["label"])
+    tick_fontsize = kwargs.get("tick_fontsize", DEFAULT_FONTSIZES["tick"])
     msize = marker_size
     max_idx = 0
     min_idx = np.inf
@@ -1533,14 +1525,14 @@ def _plot_stem_subplot(
     nlim = int(ax.get_ylim()[0] - 1) if ax.get_ylim()[0] < -1 else 0
     ax.set_ylim(nlim, plim)
     if nlim < 0:
-        ax.set_ylabel("← " + " | ".join(reversed(it_columns)) + " →", fontsize=label_font_size)
+        ax.set_ylabel("← " + " | ".join(reversed(it_columns)) + " →", fontsize=label_fontsize)
     else:
-        ax.set_ylabel(it_columns[0], fontsize=label_font_size)
+        ax.set_ylabel(it_columns[0], fontsize=label_fontsize)
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: str(int(abs(x)))))
     ax.xaxis.set_minor_locator(MultipleLocator(steps[0]))
     ax.yaxis.set_minor_locator(MultipleLocator(1))
-    ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
+    ax.tick_params(axis="both", which="major", labelsize=tick_fontsize)
     ax.grid(ls=":", axis="y")
     ax.set_axisbelow(True)
 
@@ -1550,6 +1542,7 @@ def _make_section_colors(
     index: list | pd.Index = [0],
     sections: list = ["Main", "Extra", "Side"],
     fallback_colors=["Effect Monster", "Fusion Monster", "Counter"],
+    index_fallback: bool = True,
 ) -> dict:
     """
     Generate a mapping from section names to color(s) for plotting.
@@ -1560,6 +1553,7 @@ def _make_section_colors(
         index: List of row values or columns.
         sections: List of section names.
         fallback_colors: List of fallback color keys for each section if not specified in colors.
+        index_fallback: Whether to prefer index-based fallback colors over section-based ones.
     Returns:
         dict: {section: {index: color}}
     """
@@ -1612,10 +1606,12 @@ def _make_section_colors(
                 color = colors
             # fallback: prefer colors_dict[section] if available, else default color
             if color is None:
-                if section in colors_dict:
-                    color = colors_dict[section]
+                if index_fallback:
+                    color = colors_dict.get(idx)
                 else:
-                    color = colors_dict.get(fallback_colors[i % len(fallback_colors)], f"C{i}")
+                    color = colors_dict.get(section)
+
+                color = color or colors_dict.get(fallback_colors[i % len(fallback_colors)], f"C{i}")
 
             # Cumulative lightness adjustment for repeated colors in the same row
             count = color_repeat_count[idx].get(color, 0)
