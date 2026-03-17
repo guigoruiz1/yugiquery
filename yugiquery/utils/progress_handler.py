@@ -75,7 +75,21 @@ class ProgressHandler:
         """
         self.queue.put(kwargs)
 
-    async def await_result(self, process: mp.Process) -> tuple[int | None, list]:
+    async def await_result(self, process: mp.Process) -> tuple[int | None, list]:  # TODO: Docstrings
+        """
+        Waits asynchronously for a multiprocessing process to finish and retrieves results from a queue.
+
+        Args:
+            process (multiprocessing.Process): The multiprocessing process to await.
+
+        Returns:
+            tuple[int | None, list]: A tuple containing the API status (int or None) and a list of errors.
+
+        Notes:
+            - The method periodically checks if the process is alive and waits until it finishes.
+            - After completion, it extracts 'API_status' and 'error' messages from the queue.
+            - The queue is closed after processing.
+        """
         while process.is_alive():
             await asyncio.sleep(1)
 

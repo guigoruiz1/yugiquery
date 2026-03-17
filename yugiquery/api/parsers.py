@@ -19,7 +19,7 @@ from ..utils import LoggerConfig
 logger = LoggerConfig.get_logger()
 
 # --- Arrows Dictionary --- #
-arrows_dict: Dict[str, str] = {
+_arrows_dict: Dict[str, str] = {
     "Middle-Left": "←",
     "Middle-Right": "→",
     "Top-Left": "↖",
@@ -29,6 +29,10 @@ arrows_dict: Dict[str, str] = {
     "Bottom-Center": "↓",
     "Bottom-Right": "↘",
 }
+"""
+Mapping from link arrow names to their corresponding Unicode symbols.
+Keys are the standard link arrow names (e.g., "Middle-Left"), and values are the corresponding Unicode symbols for those arrows.
+"""
 
 # --- Formatting Functions --- #
 
@@ -96,7 +100,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     # Link arrows styling
     if "Link Arrows" in input_df.columns:
         df["Link Arrows"] = input_df["Link Arrows"].apply(
-            lambda x: (tuple([arrows_dict[i] for i in sorted(x)]) if len(x) > 0 else np.nan)
+            lambda x: (tuple([_arrows_dict[i] for i in sorted(x)]) if len(x) > 0 else np.nan)
         )
 
     # Columns with matching name pattern: extraction function

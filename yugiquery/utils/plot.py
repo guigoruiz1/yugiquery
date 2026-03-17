@@ -17,8 +17,10 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator, FixedLocator, FuncFormatter, MaxNLocator, MultipleLocator
 from matplotlib.gridspec import GridSpec
+from matplotlib.lines import Line2D
 from matplotlib_venn import venn2
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import seaborn as sns
 
 # --- Imports: Local Application --- #
@@ -36,8 +38,31 @@ if dirs.is_notebook:
 
 # --- Plot Dictionaries --- #
 colors_dict = load_json(dirs.get_asset("json", "colors.json"))
-# TODO: Adapt colors to style
-DEFAULT_FONT_SIZES = {"label": 14, "title": 20, "tick": 12, "legend": 12, "suptitle": 20}
+"""
+Dictionary mapping card or type names to color hex codes, loaded from the colors.json asset.
+Used for consistent color assignment in plots.
+"""
+
+DEFAULT_FONT_SIZES: dict[str, int] = {"label": 14, "title": 20, "tick": 12, "legend": 12, "suptitle": 20}
+"""
+Default font sizes for plot elements (labels, titles, ticks, legends, suptitles).
+Keys are element names, values are font sizes in points.
+"""
+
+_angle_map = {
+    "→": 0,
+    "↗": np.pi / 4,
+    "↑": np.pi / 2,
+    "↖": 3 * np.pi / 4,
+    "←": np.pi,
+    "↙": 5 * np.pi / 4,
+    "↓": 3 * np.pi / 2,
+    "↘": 7 * np.pi / 4,
+}
+"""Mapping of arrow symbols to angles in radians for polar plotting of link arrows.
+Keys are arrow symbols (e.g., "→"), values are corresponding angles in radians (e.g., 0 for "→", π/4 for "↗", etc.).
+Used in the arrows() plotting function to convert arrow symbols to angles for polar bar plots.
+"""
 
 
 # --- Custom Legend Handler Class --- #
@@ -560,20 +585,9 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> Fi
     # Count the frequency of each arrow direction
     counts = arrows.value_counts().sort_index()
 
-    # Map the arrows to angles
-    angle_map = {
-        "→": 0,
-        "↗": np.pi / 4,
-        "↑": np.pi / 2,
-        "↖": 3 * np.pi / 4,
-        "←": np.pi,
-        "↙": 5 * np.pi / 4,
-        "↓": 3 * np.pi / 2,
-        "↘": 7 * np.pi / 4,
-    }
-    if not all(a in angle_map for a in counts.index):
+    if not all(a in _angle_map for a in counts.index):
         raise ValueError("Input Series contains invalid arrow symbols.")
-    angles = counts.index.map(angle_map)
+    angles = counts.index.map(_angle_map)
 
     # Create a polar plot
     fig = plt.figure(figsize=figsize)
@@ -581,7 +595,7 @@ def arrows(arrows: pd.Series, figsize: Tuple[int, int] = (6, 6), **kwargs) -> Fi
     ax.bar(x=angles, height=counts, width=0.5, color=colors_dict["Link Monster"], **kwargs)
 
     # Set the label for each arrow
-    ax.set_xticks(list(angle_map.values()))
+    ax.set_xticks(list(_angle_map.values()))
     ax.set_xticklabels(["▶", "◥", "▲", "◤", "◀", "◣", "▼", "◢"], fontsize=18)
 
     # Set radius grid location
@@ -1018,8 +1032,8 @@ def deck_distribution(
     grid_cols: int = 2,
     plot_size: Tuple[int, int] | None = None,
     colors: Dict[str, str] | List[str] | None = None,
-    hatches: List[str] | str = "",
-    edgecolors: List[str] | str = "white",
+    hatches: Dict[str, str] | List[str] | str = "",
+    edgecolors: Dict[str, str] | List[str] | str = "white",
     **kwargs,
 ) -> Figure:
     """
@@ -1032,15 +1046,15 @@ def deck_distribution(
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         plot_size (Tuple[int, int], optional): The width and height of each plot. If None, is calculated to fit all labels. Defaults to None.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
-        hatches (List[str] | str, optional): A list of hatches to be used in the plot. If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "".
-        edgecolors (List[str] | str, optional): The colors of the edges of the bars and hatches.  If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "white".
+        hatches (Dict[str, str] | List[str] | str, optional): A dictionary of hatches for each section, or a list of hatches to be used in the plot. If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "".
+        edgecolors (Dict[str, str] | List[str] | str, optional): The colors of the edges of the bars and hatches.  If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "white".
         font_size (Dict[str,int], optional): The dictionary of font sizes to override defaults for the labels, title, suptitle, and legend. Defaults to {"label": 14, "title": 16, "suptitle": 20, "legend": 12}.
         **kwargs: Not implemented.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-    decks = deck_df[deck_df[column].notna()]["Deck"].unique()
+    decks = sorted(deck_df[deck_df[column].notna()]["Deck"].unique())
     max_label_len = max([len(x) for x in deck_df[column].dropna().unique()])
     mean_labels = deck_df.groupby("Deck")[column].nunique()
     mean_labels = mean_labels[mean_labels > 0].mean()
@@ -1049,36 +1063,30 @@ def deck_distribution(
     label_font_size = kwargs.pop("label_font_size", DEFAULT_FONT_SIZES["label"])
     legend_font_size = kwargs.pop("legend_font_size", DEFAULT_FONT_SIZES["legend"])
 
-    # Set constants for plot sizes and spacing
     plot_width = 6 if plot_size is None else plot_size[0]  # Width of each plot
-    # Fixed height for each plot
-    plot_height = max(mean_labels / 2, 0.5) if plot_size is None else plot_size[1]
-    # Fixed horizontal space between plots
+    # Reduce bar height for more compact plots
+    bar_height = 0.45  # Reduced from 0.7 for compactness
+    plot_height = max(mean_labels * bar_height + 1.0, 1.5) if plot_size is None else plot_size[1]
     horizontal_space = grid_spacing[0] + max(2 * int(max_label_len / 10) - 3, 0)
-    vertical_space = grid_spacing[1]  # Fixed vertical space between plots
-    # Fixed space between figure top and subplots
+    # Add extra vertical margin for better subplot separation
+    vertical_space = grid_spacing[1] + 0.5  # Increased vertical space
+    # Add top margin for header separation
     header_space = legend_font_size / 10
 
     # Calculate number of columns and rows
     cols = min(grid_cols, len(decks))
     rows = int(np.ceil(len(decks) / cols))
 
-    # Dynamically calculate the figure size based on the number of rows and columns
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
     fig = plt.figure(figsize=(fig_width, fig_height))
-    gs = GridSpec(
-        nrows=rows,
-        ncols=cols,
-        wspace=horizontal_space / plot_width,
-        hspace=vertical_space / plot_height,
-    )
 
-    section_colors = _make_section_colors(colors=colors, index=sorted(deck_df[column].dropna().unique()))
+    section_counts = deck_df[deck_df[column].notna()].groupby("Section")["Count"].sum()
+    sorted_sections = _sort_sections(section_counts)
 
-    sorted_sections = (
-        deck_df[deck_df[column].notna()].groupby("Section")["Count"].sum().sort_values(ascending=False).index.tolist()
+    section_colors = _make_section_colors(
+        colors=colors, sections=sorted_sections, index=sorted(deck_df[column].dropna().unique())
     )
 
     hatches_series = pd.Series(
@@ -1098,51 +1106,63 @@ def deck_distribution(
         index=sorted_sections,
     )
 
-    # Plotting each deck's data
-    for i, deck in enumerate(decks):
+    # Manual axes placement for per-subplot heights
+    axes = []
+    subplot_heights = []
+    temp_dfs = []
+    left_margin = 0.07
+    right_margin = 0.97
+    top_margin = header_space / fig_height
+    for deck in decks:
         temp_df = deck_df[deck_df["Deck"] == deck].groupby(["Section", column])["Count"].sum().unstack(0)
-        temp_df = temp_df[temp_df.sum().sort_values(ascending=False).index]
+        temp_dfs.append(temp_df)
+        num_bars = len(temp_df) if temp_df is not None else 0
+        subplot_heights.append(bar_height * max(num_bars, 1) + 0.7)  # 0.7 margin for title/xlabel
+
+    # Keep horizontal gap, reduce vertical gap
+    col_width = plot_width / fig_width
+    col_count = cols
+    col_gap = (horizontal_space * 0.25) / fig_width  # Keep horizontal gap as before
+    row_gap = (vertical_space * 0.7) / fig_height  # Reduce vertical gap
+
+    # For each column, keep track of the current y-position (from top)
+    col_ypos = [top_margin for _ in range(col_count)]
+
+    for idx, (deck, temp_df) in enumerate(zip(decks, temp_dfs)):
+        col = idx % col_count
+        left = col * (col_width + col_gap) + left_margin
+        width = col_width * (right_margin - left_margin)
+        height = subplot_heights[idx] / fig_height
+        bottom = 1 - (col_ypos[col] + height)
+        ax = fig.add_axes((float(left), float(bottom), float(width), float(height)))
         if not temp_df.empty:
-            ax = fig.add_subplot(gs[i // cols, i % cols])
-            plot_colors = (
-                {
-                    section: (
-                        section_colors[section].loc[temp_df[section].index]
-                        if len(section_colors[section]) > 1
-                        else section_colors[section]
-                    )
-                    for section in temp_df.columns
-                }
-                if colors is not None
-                else section_colors
-            )
+            temp_df = temp_df[_sort_sections(temp_df.sum())]
+            plot_colors = {
+                section: [section_colors[section][idx] for idx in temp_df[section].index] for section in temp_df.columns
+            }
             _plot_distribution_bar(
                 ax,
                 temp_df,
                 plot_colors,
                 hatches_series,
                 edgecolors_series,
+                bar_height=bar_height,
                 **kwargs,
             )
-            ax.set_title(deck, fontsize=label_font_size)
+        ax.set_title(deck, fontsize=label_font_size)
+        axes.append(ax)
+        col_ypos[col] += height + row_gap
 
-    # Adjust margins and add suptitle
-    top = 1 - header_space / fig_height
-    legend_y = top + (1 - top) / 2
-
-    fig.subplots_adjust(
-        top=top,
-        bottom=0,
-    )
+    # Bring legend even closer to the title
+    legend_y = 1 - top_margin / 2
 
     handler = {}
     for section in sorted_sections:
-        color = section_colors[section]
-        if isinstance(color, str):
-            color = [color]
-        color = list(color)
+        # Build color list for legend using all unique indices
+        color_dict = section_colors[section]
+        color_list = list({color_dict[idx] for idx in color_dict})  # unique colors only
         handler[mpatches.Patch(label=section)] = MulticolorPatchHandler(
-            color, hatches_series[section], edgecolor=edgecolors_series[section]
+            color_list, hatches_series[section], edgecolor=edgecolors_series[section]
         )
 
     # Add legend with a fixed position
@@ -1152,10 +1172,7 @@ def deck_distribution(
         loc="center",
         fontsize=legend_font_size,
         ncol=3,
-        bbox_to_anchor=(
-            0.5,
-            legend_y,
-        ),
+        bbox_to_anchor=(0.5, legend_y),
         borderaxespad=0.5,
         frameon=False,
         handlelength=3,
@@ -1164,75 +1181,6 @@ def deck_distribution(
     fig.suptitle(f"{column} distribution", fontsize=title_font_size, y=1)
 
     return fig
-
-
-def _make_section_colors(
-    colors: Dict[str, str] | List[str] | None = None, index: List[Any] | pd.Index[Any] = [0]
-) -> Dict[str, Any] | Dict[Any, pd.Series[Any]]:
-    """
-    Generate a mapping from section names to color(s) for plotting.
-
-    Args:
-        colors (Dict[str, str] | List[str] | None, optional):
-            - If None, uses default color mapping from colors_dict and DEFAULT_COLORS.
-            - If dict, maps section names to color(s).
-            - If list, uses the list for all sections.
-        index (List[Any] | pd.Index[Any], optional):
-            Index to use for the pd.Series if colors is not None. Defaults to [0].
-
-    Returns:
-        dict: Mapping from section name to color string or pd.Series of colors.
-    """
-    sections = ["Main", "Extra", "Side"]
-    DEFAULT_COLORS = ["Effect Monster", "Fusion Monster", "Counter"]
-    section_colors = {}
-
-    # For each row, track how many times a color has been used so far
-    color_repeat_count = {idx: {} for idx in index}
-    color_last_adjusted = {idx: {} for idx in index}
-
-    for i, section in enumerate(sections):
-        color_series = []
-        for j, idx in enumerate(index):
-            color = None
-            # 1. {section: {row: color}}
-            if (
-                isinstance(colors, dict)
-                and section in colors
-                and isinstance(colors[section], dict)
-                and idx in colors[section]
-            ):
-                color = colors[section][idx]
-            # 2. {row: {section: color}}
-            elif isinstance(colors, dict) and idx in colors and isinstance(colors[idx], dict) and section in colors[idx]:
-                color = colors[idx][section]  # pyright: ignore[reportArgumentType]
-            # 3. {section: color}
-            elif isinstance(colors, dict) and section in colors and not isinstance(colors[section], dict):
-                color = colors[section]
-            # 4. {row: color}
-            elif isinstance(colors, dict) and idx in colors and not isinstance(colors[idx], dict):
-                color = colors[idx]
-            # 5. list (cycled)
-            elif isinstance(colors, list):
-                color = colors[j % len(colors)]
-            # 6. string (single color)
-            elif isinstance(colors, str):
-                color = colors
-            # 7. fallback (default color)
-            if color is None:
-                color = colors_dict.get(DEFAULT_COLORS[i], f"C{i}")
-
-            # Cumulative lightness adjustment for repeated colors in the same row
-            count = color_repeat_count[idx].get(color, 0)
-            adjusted_color = color
-            if count > 0:
-                adjusted_color = _adjust_lightness(adjusted_color, amount=1 + 0.25 * count)
-            print(section, idx, adjusted_color)
-            color_repeat_count[idx][color] = count + 1
-            color_series.append(adjusted_color)
-        section_colors[section] = pd.Series(color_series, index=index)
-
-    return section_colors
 
 
 def _plot_distribution_bar(
@@ -1270,7 +1218,7 @@ def _plot_distribution_bar(
         legend=False,
         fontsize=label_font_size,
         color=section_colors,
-        width=bar_height_scale,
+        width=kwargs.get("bar_height", 0.45),
     )
     for j, bar in enumerate(bar_ax.patches):
         hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
@@ -1294,7 +1242,7 @@ def deck_stem(
     grid_spacing: Tuple[int, int] = (2, 1),
     grid_cols: int = 2,
     colors: Dict[str, str] | List[str] | None = None,
-    markers: List[str] = ["s", "o", "+"],
+    markers: Dict[str, str] | List[str] = ["s", "o", "+"],
     hollow: bool = False,
     marker_size: int = 10,
     **kwargs,
@@ -1311,7 +1259,7 @@ def deck_stem(
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         label_font_size, title_font_size, legend_font_size, tick_font_size (int, optional): Font sizes for labels, titles, legend, and ticks. Pass as keyword arguments if you want to override defaults.
-        markers (List[str], optional): The list of markers to be used in the plot for each deck section. Defaults to ["s", "o", "+"].
+        markers (Dict[str, str], optional): A dictionary mapping section names to marker styles. Defaults to {"Section1": "s", "Section2": "o", "Section3": "+"}.
         hollow (bool, optional): Whether to make the markers hollow. Defaults to False.
         marker_size (int, optional): The initial size of the markers. Defaults to 10.
         **kwargs: Not implemented.
@@ -1321,15 +1269,11 @@ def deck_stem(
     """
     columns = [y1] if y2 is None else [y1, y2]
     decks = deck_df["Deck"].unique()
-    sorted_sections = (
-        deck_df[deck_df[columns].notna().any(axis=1)]
-        .groupby("Section")["Count"]
-        .sum()
-        .sort_values(ascending=False)
-        .index.tolist()
-    )
+    section_counts = deck_df[deck_df[columns].notna().any(axis=1)].groupby("Section")["Count"].sum()
+    sorted_sections = _sort_sections(section_counts)
     title_font_size = kwargs.pop("title_font_size", DEFAULT_FONT_SIZES["title"])
     legend_font_size = kwargs.pop("legend_font_size", DEFAULT_FONT_SIZES["legend"])
+    label_font_size = kwargs.pop("label_font_size", DEFAULT_FONT_SIZES["label"])
 
     # Set constants for plot sizes and spacing
     plot_width = 9 if plot_size is None else plot_size[0]  # Width of each plot
@@ -1348,18 +1292,14 @@ def deck_stem(
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
-    if colors is None:
-        colors = {
-            section: colors_dict.get(c, f"C{i}")
-            for i, (section, c) in enumerate(
-                zip(["Main", "Extra", "Side"], ["Effect Monster", "Fusion Monster", "Xyz Monster"])
-            )
-        }
-    else:
-        colors = {
-            section: (colors.get(section, f"C{i}") if isinstance(colors, dict) else colors[i])
-            for i, section in enumerate(sorted_sections)
-        }
+    section_colors = _make_section_colors(
+        colors=colors,
+        sections=sorted_sections,
+        index=[y1, y2] if y2 is not None else [y1],
+        fallback_colors=["Effect Monster", "Fusion Monster", "Xyz Monster"],
+    )
+    if not isinstance(markers, dict):
+        markers = {section: markers[i % len(markers)] for i, section in enumerate(sorted_sections)}
 
     fig = plt.figure(figsize=(fig_width, fig_height))
     gs = GridSpec(
@@ -1378,29 +1318,87 @@ def deck_stem(
             ax,
             sub_df,
             columns,
-            colors,
+            section_colors,
             markers,
             hollow,
             marker_size,
             **kwargs,
         )
+        ax.set_title(deck, fontsize=label_font_size)
 
     top = 1 - header_space / fig_height
     legend_y = top + (1 - top) / 2
-
     fig.subplots_adjust(
         top=top,
         bottom=0,
     )
+
+    handles = None
+    ncols = None
+    if len(columns) == 2:
+        stat_labels = [str(c) for c in columns]
+        stat_colors = [
+            [section_colors[s][columns[0]] for s in sorted_sections],
+            [section_colors[s][columns[1]] for s in sorted_sections],
+        ]
+        if not all(a == b for a, b in zip(stat_colors[0], stat_colors[1])):
+            # Stat label (no marker), then section markers in correct order, all in a single row
+            stat1_handle = Line2D([], [], color="none", marker="", linestyle="None", label=f"{stat_labels[0]}:")
+            stat2_handle = Line2D([], [], color="none", marker="", linestyle="None", label=f"{stat_labels[1]}:")
+            handles = [stat1_handle, stat2_handle]
+            for i, s in enumerate(sorted_sections):
+                handles.append(
+                    Line2D(
+                        [0],
+                        [0],
+                        marker=markers[s] if isinstance(markers, dict) and s in markers else "o",
+                        color=stat_colors[0][i],
+                        linestyle="None",
+                        markersize=marker_size,
+                        label=s,
+                    )
+                )
+                handles.append(
+                    Line2D(
+                        [0],
+                        [0],
+                        marker=markers[s] if isinstance(markers, dict) and s in markers else "o",
+                        color=stat_colors[1][i],
+                        linestyle="None",
+                        markersize=marker_size,
+                        label=s,
+                    )
+                )
+                ncols = len(handles) // 2
+
+    if not handles:
+        # Only one line needed
+        handles = [
+            Line2D(
+                [0],
+                [0],
+                marker=markers[s] if isinstance(markers, dict) and s in markers else "o",
+                color=stat_colors[0][i],
+                label=s,
+                linestyle="None",
+                markersize=marker_size,
+            )
+            for i, s in enumerate(sorted_sections)
+        ]
+
     fig.legend(
-        sorted_sections,
-        ncols=3,
+        handles=handles,
+        ncol=len(handles),
         loc="center",
         bbox_to_anchor=(0.5, legend_y),
         fontsize=legend_font_size,
         frameon=False,
+        ncols=ncols if ncols else len(handles),
+        handletextpad=1.0,
+        columnspacing=1.5,
     )
-    fig.suptitle(f"{', '.join(columns)} distribution", fontsize=title_font_size, y=1)
+
+    fig.suptitle(f"{' & '.join(columns)} distribution", fontsize=title_font_size, y=1)
     return fig
 
 
@@ -1408,8 +1406,8 @@ def _plot_stem_subplot(
     ax: Axes,
     sub_df: pd.DataFrame,
     columns: List[str],
-    colors: Dict[str, str],
-    markers: List[str],
+    colors: Dict[str, Dict[str, Any]],
+    markers: Dict[str, str],
     hollow: bool,
     marker_size: int,
     **kwargs,
@@ -1421,8 +1419,8 @@ def _plot_stem_subplot(
         ax (matplotlib.axes.Axes): The axis to plot on.
         sub_df (pd.DataFrame): DataFrame for the current deck.
         columns (List[str]): List of columns to plot (e.g., ["ATK", "DEF"]).
-        colors (Dict[str, str]): Mapping from section name to color string.
-        markers (List[str]): List of marker styles for each section.
+        colors (Dict[str, Dict[str, Any]]): Mapping from section name and column name to color.
+        markers (Dict[str, str]): Mapping from section name to marker style.
         hollow (bool): Whether to use hollow markers.
         marker_size (int): Initial marker size.
         **kwargs: Additional keyword arguments for font sizes, etc.
@@ -1436,8 +1434,9 @@ def _plot_stem_subplot(
     max_idx = 0
     min_idx = np.inf
     hasna = False
-    it_columns = sub_df[columns].dropna(axis=1, how="all").columns
-    sorted_sections = sub_df.groupby("Section")["Count"].sum().sort_values(ascending=False).index.tolist()
+    it_columns = sorted(sub_df[columns].dropna(axis=1, how="all").columns)
+    section_counts = sub_df.groupby("Section")["Count"].sum()
+    sorted_sections = _sort_sections(section_counts)
     steps = (100, 500) if sub_df[columns].map(pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
     for k, col in enumerate(it_columns):
         msize = marker_size
@@ -1448,27 +1447,29 @@ def _plot_stem_subplot(
             series = sub_sub_df.groupby(col)["Count"].sum().mul(np.power(-1, k))
             if series.empty:
                 continue
-            index = pd.to_numeric(series.index, errors="coerce")
+            index = pd.to_numeric(series.index.to_series(), errors="coerce")
             if not index.isna().all():
                 max_idx = max(int(index.max()), max_idx)
                 min_idx = min(int(index.min()), min_idx)
             if index.isna().any():
                 hasna = True
             series.index = index.fillna(max_idx + steps[1])
+            color = colors.get(s, {}).get(col, "C0")
+            marker = markers.get(s, "o")
             stem = ax.stem(
                 series.index,
                 series,
                 linefmt=":",
-                markerfmt=markers[(j)],
+                markerfmt=marker,
                 basefmt=":",
             )
             if hollow:
-                stem.markerline.set_markeredgecolor(colors.get(s, f"C{j}"))
+                stem.markerline.set_markeredgecolor(color)
                 stem.markerline.set_markerfacecolor("none")
             else:
-                stem.markerline.set_color(colors.get(s, f"C{j}"))
-            stem.stemlines.set_color(colors.get(s, f"C{j}"))
-            stem.baseline.set_color(colors.get(s, f"C{j}"))
+                stem.markerline.set_color(color)
+            stem.stemlines.set_color(color)
+            stem.baseline.set_color(color)
             stem.markerline.set_markersize(msize)
             msize = max(msize - 2, 2)
     if steps[1] < 10:
@@ -1497,3 +1498,102 @@ def _plot_stem_subplot(
     ax.tick_params(axis="both", which="major", labelsize=tick_font_size)
     ax.grid(ls=":", axis="y")
     ax.set_axisbelow(True)
+
+
+def _make_section_colors(
+    colors: dict | list | str | None = None,
+    index: list | pd.Index = [0],
+    sections: list = ["Main", "Extra", "Side"],
+    fallback_colors=["Effect Monster", "Fusion Monster", "Counter"],
+) -> dict:
+    """
+    Generate a mapping from section names to color(s) for plotting.
+    Always returns {section: {index: color}}.
+
+    Args:
+        colors: User color input. Accepts dict, list, str, or None.
+        index: List of row values or columns.
+        sections: List of section names.
+        fallback_colors: List of fallback color keys for each section if not specified in colors.
+    Returns:
+        dict: {section: {index: color}}
+    """
+    section_colors = {}
+    color_repeat_count = {idx: {} for idx in index}
+
+    for i, section in enumerate(sections):
+        section_colors[section] = {}
+        for j, idx in enumerate(index):
+            color = None
+            # {section: {index: color}}
+            if (
+                isinstance(colors, dict)
+                and section in colors
+                and isinstance(colors[section], dict)
+                and idx in colors[section]
+            ):
+                color = colors[section][idx]
+            # {index: {section: color}}
+            elif isinstance(colors, dict) and idx in colors and isinstance(colors[idx], dict) and section in colors[idx]:
+                color = colors[idx][section]
+            # {section: color}
+            elif isinstance(colors, dict) and section in colors and not isinstance(colors[section], dict):
+                color = colors[section]
+            # {index: color}
+            elif isinstance(colors, dict) and idx in colors and not isinstance(colors[idx], dict):
+                color = colors[idx]
+            # {section: list}
+            elif isinstance(colors, dict) and section in colors and isinstance(colors[section], list):
+                if len(colors[section]) == len(index):
+                    color = colors[section][j]
+                else:
+                    color = colors[section][j % len(colors[section])]
+            # {index: list}
+            elif isinstance(colors, dict) and idx in colors and isinstance(colors[idx], list):
+                if len(colors[idx]) == len(sections):
+                    color = colors[idx][i]
+                else:
+                    color = colors[idx][i % len(colors[idx])]
+            # list: if matches sections, treat as per-section; if matches index, treat as per-index; else cycle
+            elif isinstance(colors, list):
+                if len(colors) == len(sections):
+                    color = colors[i]
+                elif len(colors) == len(index):
+                    color = colors[j]
+                else:
+                    color = colors[j % len(colors)]
+            # string: single color
+            elif isinstance(colors, str):
+                color = colors
+            # fallback: prefer colors_dict[section] if available, else default color
+            if color is None:
+                if section in colors_dict:
+                    color = colors_dict[section]
+                else:
+                    color = colors_dict.get(fallback_colors[i % len(fallback_colors)], f"C{i}")
+
+            # Cumulative lightness adjustment for repeated colors in the same row
+            count = color_repeat_count[idx].get(color, 0)
+            adjusted_color = color
+            if count > 0:
+                adjusted_color = _adjust_lightness(adjusted_color, amount=1 + 0.25 * count)
+            color_repeat_count[idx][color] = count + 1
+            section_colors[section][idx] = adjusted_color
+
+    return section_colors
+
+
+def _sort_sections(section_counts, section_order=["Main", "Extra", "Side"]):
+    """
+    Sort sections by fixed priority order first, then by descending size for extras.
+    Args:
+        section_counts (pd.Series): Series mapping section name to total count.
+        section_order (list): List of section names to prioritize.
+    Returns:
+        list: Sorted section names.
+    """
+    available_sections = section_counts.index.tolist()
+    sorted_sections = [s for s in section_order if s in available_sections]
+    extra_sections = [s for s in available_sections if s not in section_order]
+    extra_sections_sorted = sorted(extra_sections, key=lambda s: section_counts[s], reverse=True)
+    return sorted_sections + extra_sections_sorted

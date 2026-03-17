@@ -158,6 +158,8 @@ def make_jekyll_page(
             Keys should be provided without @ symbols, e.g. ``{"title": "Cards"}``.
         output_path (str | Path | None, optional): Output path. If None, defaults to
             ``reports/<title>.md``. Relative paths are resolved relative to the reports directory.
+    Returns:
+        None
     """
     if not title:
         path = get_notebook_path()

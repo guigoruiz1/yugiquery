@@ -25,6 +25,12 @@ _LEVEL_COLORS = {
     logging.ERROR: "red",
     logging.CRITICAL: "red",
 }
+"""
+Mapping from logging level (int) to color name (str or None) for colored log output.
+
+Keys are standard logging levels (e.g., logging.DEBUG), values are color names for use with termcolor.
+If the value is None, no color is applied for that level.
+"""
 
 
 class TqdmLoggingHandler(logging.StreamHandler):
