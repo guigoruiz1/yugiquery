@@ -1055,7 +1055,7 @@ def deck_distribution(
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         hatches (Dict[str, str] | List[str] | str, optional): A dictionary of hatches for each section, or a list of hatches to be used in the plot. If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "".
         edgecolors (Dict[str, str] | List[str] | str, optional): The colors of the edges of the bars and hatches.  If passed, must be the same length as the number of sections in deck_df or a single string for the entire plot. Defaults to "white".
-        **kwargs: Extra keyword arguments such as font sizes.
+        **kwargs: Extra keyword arguments such as font sizes. Passed to the bar plotting function.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
@@ -1068,7 +1068,9 @@ def deck_distribution(
     sorted_sections = _sort_sections(section_counts)
 
     section_colors = _make_section_colors(
-        colors=colors, sections=sorted_sections, index=sorted(deck_df[column].dropna().unique())
+        colors=colors,
+        sections=sorted_sections,
+        index=sorted(deck_df[column].dropna().unique()),
     )
 
     hatches_series = pd.Series(
@@ -1225,7 +1227,7 @@ def deck_distribution(
 
 def _plot_distribution_bar(
     ax: Axes,
-    temp_df: pd.DataFrame,
+    deck_df: pd.DataFrame,
     section_colors: Dict[str, Any],
     hatches_series: pd.Series,
     edgecolors_series: pd.Series,
@@ -1236,7 +1238,7 @@ def _plot_distribution_bar(
 
     Args:
         ax (matplotlib.axes.Axes): The axis to plot on.
-        temp_df (pd.DataFrame): DataFrame with counts for each section/label.
+        deck_df (pd.DataFrame): DataFrame with counts for each section/label.
         section_colors (Dict[str, Any]): Colors for each section/bar.
         hatches_series (pd.Series): Hatches for each section/bar.
         edgecolors_series (pd.Series): Edge colors for each section/bar.
@@ -1246,11 +1248,11 @@ def _plot_distribution_bar(
         None
     """
 
-    num_bars = len(temp_df)
+    num_bars = len(deck_df)
     label_fontsize = kwargs.pop("label_fontsize", DEFAULT_FONTSIZES["label"])
     tick_fontsize = kwargs.pop("tick_fontsize", DEFAULT_FONTSIZES["tick"])
 
-    bar_ax = temp_df.plot.barh(
+    bar_ax = deck_df.plot.barh(
         ax=ax,
         stacked=True,
         legend=False,
@@ -1259,7 +1261,7 @@ def _plot_distribution_bar(
         **kwargs,
     )
     for j, bar in enumerate(bar_ax.patches):
-        hatch_index = j // (len(bar_ax.patches) // len(temp_df.columns))
+        hatch_index = j // (len(bar_ax.patches) // len(deck_df.columns))
         bar.set_hatch(hatches_series.iloc[hatch_index])
         bar.set_edgecolor(edgecolors_series.iloc[hatch_index])
 
@@ -1275,14 +1277,14 @@ def _plot_distribution_bar(
 
 def deck_stem(
     deck_df: pd.DataFrame,
-    y1: str,
-    y2: str | None = None,
+    columns: str | List[str],
     scale: float = 1.0,
     grid_cols: int = 2,
     colors: Dict[str, str] | List[str] | None = None,
     markers: Dict[str, str] | List[str] = ["s", "o", "+"],
     hollow: bool = False,
     marker_size: int = 10,
+    align_zero: bool = False,
     **kwargs,
 ) -> Figure:
     """
@@ -1290,20 +1292,22 @@ def deck_stem(
 
     Args:
         deck_df (pd.DataFrame): The DataFrame containing the deck data.
-        y1 (str): The first column to be plotted.
-        y2 (str, optional): The second column to be plotted. Defaults to None.
+        columns (str | List[str]): The column(s) to be plotted. If a single string is passed, it will be converted to a list with one element. Must be one or two columns.
         scale (float, optional): The scaling factor for the plot size. Defaults to 1.0.
         grid_cols (int, optional): The number of columns in the grid. Defaults to 2.
         colors (Dict[str, str] | List[str] | None, optional): A dictionary of colors for each section, or a list of colors to be used in the plot. If not provided, colors_dict is used. Defaults to None.
         markers (Dict[str, str], optional): A dictionary mapping section names to marker styles. Defaults to {"Section1": "s", "Section2": "o", "Section3": "+"}.
         hollow (bool, optional): Whether to make the markers hollow. Defaults to False.
         marker_size (int, optional): The initial size of the markers. Defaults to 10.
-        **kwargs: Additional keyword arguments such as font sizes.
+        align_zero (bool, optional): Whether to align the zero point of the y-axis across all subplots. Defaults to False.
+        **kwargs: Additional keyword arguments such as font sizes. Passed to the stem plotting function.
 
     Returns:
         matplotlib.figure.Figure: The generated figure.
     """
-    columns = [y1] if y2 is None else [y1, y2]
+    columns = [columns] if isinstance(columns, str) else columns
+    if len(columns) > 2:
+        raise ValueError("deck_stem only supports up to two columns (got %d)" % len(columns))
     decks = deck_df["Deck"].unique()
     section_counts = deck_df[deck_df[columns].notna().any(axis=1)].groupby("Section")["Count"].sum()
     sorted_sections = _sort_sections(section_counts)
@@ -1327,12 +1331,11 @@ def deck_stem(
     fig_width = plot_width * cols + (cols - 1) * horizontal_space
     fig_height = plot_height * rows + (rows - 1) * vertical_space + header_space
 
-    fallback_colors = {"Main": "Effect Monster", "Extra": "Fusion Monster", "Side": "Xyz Monster"}
     section_colors = _make_section_colors(
         colors=colors,
         sections=sorted_sections,
-        index=[y1, y2] if y2 is not None else [y1],
-        fallback_colors=[fallback_colors.get(key) for key in sorted_sections if key in fallback_colors],
+        index=columns,
+        fallback_override={"Side": "#000000"},
         index_fallback=False,
     )
     if not isinstance(markers, dict):
@@ -1352,13 +1355,14 @@ def deck_stem(
         if sub_df.empty:
             continue
         _plot_stem_subplot(
-            ax,
-            sub_df,
-            columns,
-            section_colors,
-            markers,
-            hollow,
-            marker_size,
+            ax=ax,
+            deck_df=sub_df,
+            columns=columns,
+            colors=section_colors,
+            markers=markers,
+            hollow=hollow,
+            marker_size=marker_size,
+            align_zero=align_zero,
             **kwargs,
         )
         ax.set_title(deck, fontsize=label_fontsize)
@@ -1441,12 +1445,13 @@ def deck_stem(
 
 def _plot_stem_subplot(
     ax: Axes,
-    sub_df: pd.DataFrame,
+    deck_df: pd.DataFrame,
     columns: List[str],
     colors: Dict[str, Dict[str, Any]],
     markers: Dict[str, str],
     hollow: bool,
     marker_size: int,
+    align_zero: bool = False,
     **kwargs,
 ) -> None:
     """
@@ -1454,31 +1459,32 @@ def _plot_stem_subplot(
 
     Args:
         ax (matplotlib.axes.Axes): The axis to plot on.
-        sub_df (pd.DataFrame): DataFrame for the current deck.
+        deck_df (pd.DataFrame): DataFrame for the current deck.
         columns (List[str]): List of columns to plot (e.g., ["ATK", "DEF"]).
         colors (Dict[str, Dict[str, Any]]): Mapping from section name and column name to color.
         markers (Dict[str, str]): Mapping from section name to marker style.
         hollow (bool): Whether to use hollow markers.
         marker_size (int): Initial marker size.
+        align_zero (bool): Whether to align the y-axis limits to center at 0.
         **kwargs: Additional keyword arguments for font sizes, etc.
 
     Returns:
         None
     """
-    label_fontsize = kwargs.get("label_fontsize", DEFAULT_FONTSIZES["label"])
-    tick_fontsize = kwargs.get("tick_fontsize", DEFAULT_FONTSIZES["tick"])
+    label_fontsize = kwargs.pop("label_fontsize", DEFAULT_FONTSIZES["label"])
+    tick_fontsize = kwargs.pop("tick_fontsize", DEFAULT_FONTSIZES["tick"])
     msize = marker_size
     max_idx = 0
     min_idx = np.inf
     hasna = False
-    it_columns = sorted(sub_df[columns].dropna(axis=1, how="all").columns)
-    section_counts = sub_df.groupby("Section")["Count"].sum()
+
+    section_counts = deck_df.groupby("Section")["Count"].sum()
     sorted_sections = _sort_sections(section_counts)
-    steps = (100, 500) if sub_df[columns].map(pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
-    for k, col in enumerate(it_columns):
+    steps = (100, 500) if deck_df[columns].map(pd.to_numeric, errors="coerce").diff().max().max() > 12 else (1, 1)
+    for k, col in enumerate(columns):
         msize = marker_size
         for j, s in enumerate(sorted_sections):
-            sub_sub_df = sub_df[sub_df["Section"] == s]
+            sub_sub_df = deck_df[deck_df["Section"] == s]
             if sub_sub_df.empty:
                 continue
             series = sub_sub_df.groupby(col)["Count"].sum().mul(np.power(-1, k))
@@ -1499,6 +1505,7 @@ def _plot_stem_subplot(
                 linefmt=":",
                 markerfmt=marker,
                 basefmt=":",
+                **kwargs,
             )
             if hollow:
                 stem.markerline.set_markeredgecolor(color)
@@ -1523,11 +1530,14 @@ def _plot_stem_subplot(
     ax.set_xlim(-min(steps[0], steps[1] / 2) + min(xticks), max(xticks) + min(steps[0], steps[1] / 2))
     plim = int(ax.get_ylim()[1] + 1)
     nlim = int(ax.get_ylim()[0] - 1) if ax.get_ylim()[0] < -1 else 0
+    if align_zero:
+        plim = max(plim, abs(nlim))
+        nlim = -plim
     ax.set_ylim(nlim, plim)
     if nlim < 0:
-        ax.set_ylabel("← " + " | ".join(reversed(it_columns)) + " →", fontsize=label_fontsize)
+        ax.set_ylabel("← " + " | ".join(reversed(columns)) + " →", fontsize=label_fontsize)
     else:
-        ax.set_ylabel(it_columns[0], fontsize=label_fontsize)
+        ax.set_ylabel(columns[0], fontsize=label_fontsize)
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.yaxis.set_major_formatter(FuncFormatter(lambda x, _: str(int(abs(x)))))
     ax.xaxis.set_minor_locator(MultipleLocator(steps[0]))
@@ -1541,7 +1551,7 @@ def _make_section_colors(
     colors: dict | list | str | None = None,
     index: list | pd.Index = [0],
     sections: list = ["Main", "Extra", "Side"],
-    fallback_colors=["Effect Monster", "Fusion Monster", "Counter"],
+    fallback_override: Dict[str, str] = {},
     index_fallback: bool = True,
 ) -> dict:
     """
@@ -1549,14 +1559,16 @@ def _make_section_colors(
     Always returns {section: {index: color}}.
 
     Args:
-        colors: User color input. Accepts dict, list, str, or None.
-        index: List of row values or columns.
-        sections: List of section names.
-        fallback_colors: List of fallback color keys for each section if not specified in colors.
-        index_fallback: Whether to prefer index-based fallback colors over section-based ones.
+        colors (dict | list | str | None): User color input. Accepts dict, list, str, or None.
+        index (list | pd.Index): List of row values or columns.
+        sections (list): List of section names.
+        fallback_override (dict, optional): Dictionary mapping section names to override color keys in internal fallback colors.
+        index_fallback (bool): Whether to prefer index-based fallback colors over section-based ones.
     Returns:
         dict: {section: {index: color}}
     """
+    fallback_colors = {"Main": "#FF8B53", "Extra": "#A086B7", "Side": "#C0C0C0"}
+    fallback_colors.update(fallback_override)
     section_colors = {}
     color_repeat_count = {idx: {} for idx in index}
 
@@ -1611,7 +1623,7 @@ def _make_section_colors(
                 else:
                     color = colors_dict.get(section)
 
-                color = color or colors_dict.get(fallback_colors[i % len(fallback_colors)], f"C{i}")
+                color = color or fallback_colors.get(section, f"C{i}")
 
             # Cumulative lightness adjustment for repeated colors in the same row
             count = color_repeat_count[idx].get(color, 0)
