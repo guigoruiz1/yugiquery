@@ -455,3 +455,89 @@ def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=
             result = pd.crosstab(result[operation], result[column])
 
     return result
+
+
+# --- Data Selectors --- #
+
+
+def select_level(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards with a valid "Level" attribute, excluding "Xyz Monster" and "Link Monster" types.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link" or "Level".
+
+    Raises:
+        ValueError: If neither "Level/Rank/Link" nor "Level" columns are present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with a "Level" column, containing only rows with non-null level values and excluding "Xyz Monster" and "Link Monster" types.
+    """
+    filter = (df["Primary type"] != "Xyz Monster") & (df["Primary type"] != "Link Monster")
+    if "Level/Rank/Link" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Level"})
+    elif "Level" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"])
+    else:
+        raise ValueError("No Level or Level/Rank/Link columns found")
+
+
+def select_rank(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards with a valid "Rank" attribute, including only "Xyz Monster" types.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link" or "Rank".
+    Raises:
+        ValueError: If neither "Level/Rank/Link" nor "Rank" columns are present in the DataFrame.
+    Returns:
+        pd.DataFrame: Filtered DataFrame with a "Rank" column, containing only rows
+    """
+    filter = df["Primary type"] == "Xyz Monster"
+    if "Level/Rank/Link" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Rank"})
+    elif "Rank" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"])
+    else:
+        raise ValueError("No Rank or Level/Rank/Link columns found")
+
+
+def select_link(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards with a valid "Link" attribute, including only "Link Monster" types.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link" or "Link".
+
+    Raises:
+        ValueError: If neither "Level/Rank/Link" nor "Link" columns are present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with a "Link" column, containing only rows with non-null link values and including only "Link Monster" types.
+    """
+    filter = df["Primary type"] == "Link Monster"
+    if "Level/Rank/Link" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Link"})
+    elif "Link" in df:
+        return df[filter].dropna(subset=["Level/Rank/Link"])
+    else:
+        raise ValueError("No Link or Level/Rank/Link columns found")
+
+
+def select_pendulum(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards with a valid "Pendulum Scale" attribute, including only "Pendulum Monster" types.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and "Pendulum Scale".
+
+    Raises:
+        ValueError: If "Pendulum Scale" column is not present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with a "Pendulum Scale" column, containing only rows with non-null pendulum scale values and including only "Pendulum Monster" types.
+    """
+    if "Pendulum Scale" in df:
+        return df.dropna(subset=["Pendulum Scale"])
+    else:
+        raise ValueError("No Pendulum Scale column found")
