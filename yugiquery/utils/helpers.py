@@ -196,13 +196,11 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
         str: The generated filename.
     """
     report = report.lower()
-    formated_ts = timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "").replace("-", "")
+    formated_ts = timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
     if previous_timestamp is None:
         return f"{report}_data_{formated_ts}.bz2"
     else:
-        formated_previous_ts = (
-            previous_timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "-").replace("-", "")
-        )
+        formated_previous_ts = previous_timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
         return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
 
 

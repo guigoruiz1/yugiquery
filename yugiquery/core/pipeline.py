@@ -12,50 +12,353 @@ from pathlib import Path
 from typing import Any, Callable, List, Literal
 
 # --- Imports: Third-Party --- #
+import arrow
 import nbformat
 import papermill as pm
+import pandas as pd
 from jupyter_client import kernelspec
 from tqdm.auto import tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
 from . import cleanup_data, update_index
-from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, unlock, LoggerConfig
+from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, unlock, LoggerConfig, make_filename
+from .data import load_latest, merge_errata, merge_set_info
+from .maintenance import generate_changelog, benchmark
 
-
+# --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
+
+# --- Data Update Flows --- #
+
+
+def _update_cards_data(
+    errata_df=None, save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Retrieve, process, and save cards data. Optionally generate a changelog.
+    Returns (full_cards_df, cards_path, changelog_path).
+    """
+    now = arrow.utcnow()
+    lock("cards_data_update")
+    try:
+        logger.info("Updating cards data...")
+
+        if errata_df is None:
+            errata_df = api.fetch_errata()
+
+        monster_df = api.fetch_monster()
+        st_df = api.fetch_st()
+        token_df = api.fetch_token()
+        counter_df = api.fetch_counter()
+        unusable_df = api.fetch_unusable()
+
+        full_cards_df = pd.concat(
+            [monster_df, st_df, token_df, counter_df, unusable_df], ignore_index=True, axis=0
+        ).sort_values("Name", ignore_index=True)
+
+        if errata_df is not None:
+            full_cards_df = merge_errata(full_cards_df, errata_df)
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("cards", return_ts=True)
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, full_cards_df, now, "cards", col="Name")
+
+        cards_path = dirs.DATA / make_filename(report="cards", timestamp=now)
+        full_cards_df.to_csv(cards_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "cards")
+
+        if commit:
+            git.commit(["*[Cc]ards*", "data/benchmark.json"], message=f"Cards data updated - {now.isoformat()}")
+
+        logger.info(f"Cards data saved to {cards_path}")
+
+        return full_cards_df, cards_path, changelog_path
+
+    except Exception as e:
+        logger.error(f"Cards data update failed: {e}")
+        return None, None, None
+    finally:
+        unlock("cards_data_update")
+
+
+def _update_rush_data(
+    errata_df=None, save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Retrieve, process, and save Rush Duel cards data. Optionally generate a changelog.
+    Returns the DataFrame and changelog path (if generated).
+    """
+    lock("rush_data_update")
+    now = arrow.utcnow()
+    try:
+        logger.info("Updating Rush Duel cards data...")
+        if errata_df is None:
+            errata_df = api.fetch_errata()
+
+        rush_df = api.fetch_rush()
+        if errata_df is not None:
+            rush_df = merge_errata(rush_df, errata_df)
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("rush", return_ts=True)
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, rush_df, now, "rush", col="Name")
+
+        rush_path = dirs.DATA / make_filename(report="rush", timestamp=now)
+        rush_df.to_csv(rush_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "rush")
+
+        if commit:
+            git.commit(["*[Rr]ush*", "data/benchmark.json"], message=f"Rush Duel data updated - {now.isoformat()}")
+
+        logger.info(f"Rush Duel cards data saved to {rush_path}")
+
+        return rush_df, rush_path, changelog_path
+
+    except Exception as e:
+        logger.error(f"Rush Duel data update failed: {e}")
+        return None, None, None
+    finally:
+        unlock("rush_data_update")
+
+
+def _update_speed_data(
+    errata_df=None, save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Retrieve, process, and save Speed Duel cards data. Optionally generate a changelog.
+    Returns the DataFrame and changelog path (if generated).
+    """
+    lock("speed_data_update")
+    now = arrow.utcnow()
+    try:
+        logger.info("Updating Speed Duel cards data...")
+        if errata_df is None:
+            errata_df = api.fetch_errata()
+
+        speed_df = api.fetch_speed()
+        skill_df = api.fetch_skill()
+        full_speed_df = pd.concat([speed_df, skill_df], ignore_index=True, axis=0).sort_values("Name", ignore_index=True)
+
+        if errata_df is not None:
+            full_speed_df = merge_errata(full_speed_df, errata_df)
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("speed", return_ts=True)
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, full_speed_df, now, "speed", col="Name")
+
+        speed_path = dirs.DATA / make_filename(report="speed", timestamp=now)
+        full_speed_df.to_csv(speed_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "speed")
+
+        if commit:
+            git.commit(["*[Ss]peed*", "data/benchmark.json"], message=f"Speed Duel data updated - {now.isoformat()}")
+
+        logger.info(f"Speed Duel cards data saved to {speed_path}")
+
+        return full_speed_df, speed_path, changelog_path
+
+    except Exception as e:
+        logger.error(f"Speed Duel data update failed: {e}")
+        return None, None, None
+    finally:
+        unlock("speed_data_update")
+
+
+def _update_bandai_data(
+    save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Retrieve, process, and save Bandai cards data. Optionally generate a changelog.
+    Returns the DataFrame and changelog path (if generated).
+    """
+    lock("bandai_data_update")
+    now = arrow.utcnow()
+    try:
+        logger.info("Updating Bandai cards data...")
+        bandai_df = api.fetch_bandai()
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("bandai", return_ts=True)
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, bandai_df, now, "bandai", col="Name")
+
+        bandai_path = dirs.DATA / make_filename(report="bandai", timestamp=now)
+        bandai_df.to_csv(bandai_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "bandai")
+
+        if commit:
+            git.commit(["*[Bb]andai*", "data/benchmark.json"], message=f"Bandai data updated - {now.isoformat()}")
+
+        logger.info(f"Bandai cards data saved to {bandai_path}")
+
+        return bandai_df, bandai_path, changelog_path
+
+    except Exception as e:
+        logger.error(f"Bandai data update failed: {e}")
+        return None, None, None
+    finally:
+        unlock("bandai_data_update")
+
+
+def _update_sets_data(
+    save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Retrieve, process, and save sets data. Optionally generate a changelog.
+    Returns the DataFrame and changelog path (if generated).
+    """
+    lock("sets_data_update")
+    now = arrow.utcnow()
+    try:
+        logger.info("Updating sets data...")
+        all_set_lists_df = api.fetch_all_set_lists()
+        sets = all_set_lists_df["Set"].unique()
+        set_info_df = api.fetch_set_info(*sets)
+        all_set_lists_df = merge_set_info(all_set_lists_df, set_info_df)
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("sets", return_ts=True)
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, all_set_lists_df, now, "sets", col="Card number")
+
+        sets_path = dirs.DATA / make_filename(report="sets", timestamp=now)
+        all_set_lists_df.to_csv(sets_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "sets")
+
+        if commit:
+            git.commit(["*[Ss]ets*", "data/benchmark.json"], message=f"Sets data updated - {now.isoformat()}")
+
+        logger.info(f"Sets data saved to {sets_path}")
+
+        return all_set_lists_df, sets_path, changelog_path
+
+    except Exception as e:
+        logger.error(f"Sets block failed: {e}")
+        return None, None, None
+    finally:
+        unlock("sets_data_update")
+
+
+def _write_changelog(prev_df, prev_ts, new_df, new_ts, file_name: str, col: str = "Name") -> Path | None:
+    """
+    Generate and save a changelog comparing prev_df and new_df.
+    Returns the changelog path if generated, else None.
+    """
+    try:
+        changelog_df = generate_changelog(prev_df, new_df, col=col)
+        if not changelog_df.empty:
+            changelog_path = dirs.DATA / make_filename(report=file_name, timestamp=new_ts, previous_timestamp=prev_ts)
+            changelog_df.to_csv(changelog_path, index=True)
+            logger.info(f"{file_name.capitalize()} changelog saved to {changelog_path}")
+            return changelog_path
+        else:
+            logger.info(f"No changes detected for {file_name}, no changelog generated.")
+    except Exception as e:
+        logger.error(f"Changelog for {file_name} failed: {e}")
+    return None
+
+
+def update_data(
+    flows: List[str] | str = "all", pbars: List[tqdm] = [], changelog=True, benchmark=True, commit=True
+) -> dict[Any, tuple[pd.DataFrame | None, Path | None, Path | None]]:
+    """
+    Update data for the specified flow(s). Accepts a string or a list of strings.
+    If 'all', updates all flows. Ignores unknown flows.
+    Returns a dictionary with results for each flow.
+    """
+    valid_flows = {
+        "cards": _update_cards_data,
+        "rush": _update_rush_data,
+        "speed": _update_speed_data,
+        "bandai": _update_bandai_data,
+        "sets": _update_sets_data,
+    }
+    has_errata = {"cards", "rush", "speed"}
+    results = {}
+    # Always work with lowercase flow names for case-insensitivity
+    if isinstance(flows, str):
+        flows = [flows]
+    else:
+        flows = list(flows)
+    flows = [f.lower() if isinstance(f, str) else f for f in flows]
+    if len(flows) == 1 and flows[0] == "all":
+        flows_to_run = list(valid_flows.keys())
+    else:
+        flows_to_run = flows
+
+    if any(flow in has_errata for flow in flows_to_run):
+        for pbar in pbars:
+            pbar.set_postfix(report=f"Errata data update")
+        errata_df = api.fetch_errata()
+        for pbar in pbars:
+            pbar.update(1)
+
+    for flow in flows_to_run:
+        func = valid_flows.get(flow)
+        if func:
+            for pbar in pbars:
+                pbar.set_postfix(data=flow)
+            if flow in has_errata:
+                results[flow] = func(save_changelog=changelog, save_benchmark=benchmark, commit=commit, errata_df=errata_df)
+            else:
+                results[flow] = func(save_changelog=changelog, save_benchmark=benchmark, commit=commit)
+            for pbar in pbars:
+                pbar.update(1)
+        else:
+            logger.warning(f"Unknown data update flow: {flow} (skipped)")
+
+    return results
 
 
 # --- Progress Bar Setup --- #
 
 
 def _setup_progress_bars(
-    reports: str | list[str] | List[Path],
+    total: int,
     external_pbar: Callable[..., tqdm | None] | None,
     discord: bool | argparse.Namespace,
     telegram: bool | argparse.Namespace,
-) -> List[tqdm]:
+) -> tuple[List[tqdm], dict[str, Any]]:
     """
     Setup progress bars for notebook execution including local, Discord, and Telegram.
 
     Args:
-        reports (str | list[str] | List[Path]): List of notebook paths to execute.
+        total (int): Total number of items to process.
         external_pbar (Callable[..., tqdm | None] | None): External progress bar callable.
         discord (bool | argparse.Namespace): Discord configuration.
         telegram (bool | argparse.Namespace): Telegram configuration.
 
     Returns:
-        List[tqdm]: List of configured progress bars.
+        tuple[List[tqdm], dict[str, Any]]: List of configured progress bars and their keyword arguments.
     """
     contribs = {"discord": discord, "telegram": telegram}
     pbars = []
 
     pbar_kwargs: dict[str, Any] = dict(
-        iterable=reports,
+        total=total,
         unit="report",
         unit_scale=True,
         dynamic_ncols=(not dirs.is_notebook),
-        # delay=2,
+        delay=2,
         desc="Completion",
     )
 
@@ -111,7 +414,7 @@ def _setup_progress_bars(
             contrib_pbar = contrib_tqdm(
                 token=tkn,
                 position=len(pbars) + 1,
-                file=open(os.devnull, "w"),  # TODO: Make tqdm safe
+                file=open(os.devnull, "w"),
                 **{ch_key.lower(): ch},
                 **pbar_kwargs,
             )
@@ -123,13 +426,6 @@ def _setup_progress_bars(
     # Setup primary progress bar
     if external_pbar is not None:
         pbars.append(external_pbar(**pbar_kwargs))
-    else:
-        pbars.append(
-            tqdm(
-                position=0,
-                **pbar_kwargs,
-            )
-        )
 
     # Setup contrib progress bars
     for contrib in contribs:
@@ -137,17 +433,246 @@ def _setup_progress_bars(
         if pbar:
             pbars.append(pbar)
 
-    return pbars
+    return pbars, pbar_kwargs
+
+
+# --- Main Pipeline Function --- #
+
+
+def run(
+    reports: str | List[str] | List[Path] = "all",
+    progress_handler: ProgressHandler | None = None,
+    cleanup: bool | Literal["auto"] = "auto",
+    dry_run: bool = False,
+    changelog: bool = True,
+    benchmark: bool = True,
+    squash: bool = True,
+    jekyll: bool = False,
+    operation: Literal["data", "reports", "both", "all"] = "all",
+    discord: bool | argparse.Namespace = False,
+    telegram: bool | argparse.Namespace = False,
+) -> None:
+    """
+    Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
+    to reflect the last execution timestamp, and clean up redundant data files.
+
+    Args:
+        reports (str | List[str] | List[Path], optional): The report to generate. Defaults to 'all'.
+        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
+        cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
+        dry_run (bool, optional): dry_run flag to pass to notebook execution and other operations. If True, notebooks will be executed but no changes will be committed to Git, Jekyll pages will not be created, and the index will not be updated. Defaults to False.
+        squash (bool, optional): squash commits after execution. Defaults to True.
+        jekyll (bool, optional): whether to generate Jekyll markdown pages for HTML reports. Defaults to False.
+        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
+        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+
+    Raises:
+        Exception: Raised if any exceptions occur during notebook execution.
+
+    Returns:
+        None: This function does not return a value.
+    """
+    if operation not in ("data", "reports", "all"):
+        raise ValueError("Invalid operation. Must be 'data', 'reports', 'both', or 'all'.")
+
+    print("\nExecution started")
+    logger.info("Execution started")
+
+    # Get the current commit hash
+    start_commit = git.get_repo().head.commit
+
+    # Setup progress bars
+    report_paths = dirs.find_notebooks(reports) if operation in ("reports", "both", "all") else []
+    all_data_flows = ["bandai", "cards", "rush", "speed", "sets"]
+    data_flows = (
+        [flow for flow in all_data_flows if flow in reports or reports == "all"]
+        if operation in ("data", "both", "all")
+        else []
+    )
+
+    if operation in ("data", "both", "all") and len(data_flows) > 0:
+        total = len(data_flows)
+        # Need to account for errata
+        if any(flow in ["cards", "rush", "speed"] for flow in data_flows):
+            total += 1
+
+        data_pbars, data_pbar_kwargs = _setup_progress_bars(
+            total=total,
+            external_pbar=progress_handler.pbar if progress_handler else None,
+            discord=discord,
+            telegram=telegram,
+        )
+        _run_data(
+            data_flows=data_flows,
+            benchmark=benchmark,
+            changelog=changelog,
+            dry_run=dry_run,
+            cleanup=cleanup,
+            progress_handler=progress_handler,
+            pbars=data_pbars,
+        )
+
+    if operation in ("reports", "both", "all") and len(report_paths) > 0:
+        reports_pbars, reports_pbar_kwargs = _setup_progress_bars(
+            total=len(report_paths),
+            external_pbar=progress_handler.pbar if progress_handler else None,
+            discord=discord,
+            telegram=telegram,
+        )
+        # Only show local progress bar if no external progress handler is provided. Not needed for data flows
+        if progress_handler is None:
+            reports_pbars.append(
+                tqdm(
+                    position=0,
+                    **reports_pbar_kwargs,
+                )
+            )
+
+        _run_reports(
+            report_paths=report_paths,
+            dry_run=dry_run,
+            jekyll=jekyll,
+            progress_handler=progress_handler,
+            pbars=reports_pbars,
+        )
+
+    # 7. Squash commits into one with a message referencing the new index timestamp
+    if squash and not dry_run:
+        logger.info("Squashing commits")
+        print("\nSquashing commits")
+        try:
+            squash_results = git.squash_commits(start_commit)
+            logger.info("%s", squash_results)
+            print(squash_results)
+        except Exception as e:
+            logger.warning("Error squashing commits. Ignoring... %s", e)
+
+    print("\nExecution completed")
+    logger.info("Execution completed")
+
+
+def _run_data(
+    data_flows: list[str],
+    dry_run: bool = False,
+    benchmark: bool = True,
+    changelog: bool = True,
+    cleanup: bool | Literal["auto"] = "auto",
+    progress_handler: ProgressHandler | None = None,
+    pbars: list[tqdm] = [],
+):
+    """
+    Runs API status check, data update, and cleanup. Always squashes commits at the end.
+    """
+    lock("run_data")
+    try:
+        # 1. Check API status
+        api_status = api.check_status()
+        if progress_handler:
+            progress_handler.send(API_status=api_status)
+        if not api_status:
+            return
+
+        # 2. Update data for relevant flows
+        update_data(
+            flows=data_flows,
+            pbars=pbars,
+            changelog=changelog,
+            benchmark=benchmark,
+            commit=not dry_run,
+        )
+        for pbar in pbars:
+            pbar.close()
+            if pbar.fp is not None:
+                pbar.fp.close()
+
+        # 3. Cleanup redundant data files
+        if cleanup == "auto":
+            data_files_count = len(list(dirs.DATA.glob("*.bz2")))
+            reports_count = len(list(dirs.REPORTS.glob("*.html")))
+            cleanup = data_files_count / max(reports_count, 1) > 10
+        if cleanup:
+            try:
+                cleanup_data(dry_run=dry_run)
+            except Exception as e:
+                if progress_handler:
+                    progress_handler.send(error=str(e))
+                logger.warning("Error cleaning up data. Ignoring... %s", e)
+    finally:
+        try:
+            unlock("run_data")
+        except Exception as e:
+            logger.error("Error unlocking run_data lock. %s", e)
 
 
 # --- Notebook Execution --- #
 
 
-def run_notebooks(
+def _run_reports(
+    report_paths: List[Path],
+    dry_run: bool = False,
+    jekyll: bool = False,
+    progress_handler: ProgressHandler | None = None,
+    pbars: list[tqdm] = [],
+):
+    """
+    Runs notebook execution, index update, and Jekyll page generation. Always squashes commits at the end.
+    """
+    lock("run_reports")
+    try:
+        # 4. Execute notebooks
+
+        try:
+            _run_notebooks(
+                reports=report_paths,
+                pbars=pbars,
+                dry_run=dry_run,
+            )
+            for pbar in pbars:
+                pbar.close()
+                if pbar.fp is not None:
+                    pbar.fp.close()
+        except Exception as e:
+            if progress_handler:
+                progress_handler.send(error=str(e))
+            raise
+
+        # 6. Generate Jekyll pages for reports
+        if jekyll:
+            logger.info("Generating Jekyll pages")
+            print("\nGenerating Jekyll pages")
+            for report_path in report_paths:
+                title = Path(report_path).stem
+                if dry_run:
+                    logger.info("Dry run - Would create Jekyll page for: %s", title)
+                    print(f"Dry run - Would create Jekyll page for: {title}")
+                else:
+                    try:
+                        make_jekyll_page(title=title)
+                    except Exception as e:
+                        if progress_handler:
+                            progress_handler.send(error=str(e))
+                        logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
+
+        # 5. Update page index
+        try:
+            index_result = update_index(dry_run=dry_run)
+            logger.info("%s", index_result)
+            print("\n", index_result)
+        except Exception as e:
+            if progress_handler:
+                progress_handler.send(error=str(e))
+            logger.warning("Error updating index. Ignoring... %s", e)
+
+    finally:
+        try:
+            unlock("run_reports")
+        except Exception as e:
+            logger.error("Error unlocking run_reports lock. %s", e)
+
+
+def _run_notebooks(
     reports: str | list[str] | List[Path],
-    external_pbar: Callable[..., tqdm | None] | None = None,
-    discord: bool | argparse.Namespace = False,
-    telegram: bool | argparse.Namespace = False,
+    pbars: List[tqdm] = [],
     dry_run: bool = False,
 ) -> None:
     """
@@ -155,9 +680,7 @@ def run_notebooks(
 
     Args:
         reports (str | List[str] | List[Path]): List of notebooks to execute.
-        external_pbar (Callable[..., tqdm | None] | None, optional): A callable that returns a tqdm progress bar instance. Defaults to None.
-        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
-        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
+        pbars (List[tqdm], optional): List of progress bars to update during execution. Default is an empty list.
         dry_run (bool, optional): Whether to run in dry run mode. Default is False.
 
     Returns:
@@ -179,12 +702,8 @@ def run_notebooks(
 
     exceptions = []
 
-    print("\nExecution started")
-    logger.info("Execution started")
-
     # Setup progress bars
     warnings.filterwarnings("ignore", message=".*clamping frac to range.*")
-    pbars = [] if dry_run else _setup_progress_bars(reports, external_pbar, discord, telegram)
 
     for i, report in enumerate(reports):
         report_name = Path(report).stem
@@ -245,146 +764,12 @@ def run_notebooks(
         finally:
             unlock(report_name)
 
-    # Close the stream_handler
+    # Close and clear the stream_handler
     stream_handler.close()
-    # Clear custom handler
     papermill_logger.handlers.clear()
 
     warnings.filterwarnings("default")
 
-    tqdm.write("\nExecution completed")
-    logger.info("Execution completed")
-
-    # Close the iterator
-    for pbar in pbars[::-1]:
-        pbar.close()
-
-    print()  # Line break after progress bars
-
     if exceptions:
         combined_message = "\n".join(str(e) for e in exceptions)
         raise Exception(combined_message)
-
-
-def run(
-    reports: str | List[str] | List[Path] = "all",
-    progress_handler: ProgressHandler | None = None,
-    cleanup: bool | Literal["auto"] = "auto",
-    dry_run: bool = False,
-    squash: bool = True,
-    jekyll: bool = False,
-    discord: bool | argparse.Namespace = False,
-    telegram: bool | argparse.Namespace = False,
-) -> None:
-    """
-    Executes all notebooks in the user and package `NOTEBOOKS` directories that match the specified report, updates the page index
-    to reflect the last execution timestamp, and clean up redundant data files.
-
-    Args:
-        reports (str | List[str] | List[Path], optional): The report to generate. Defaults to 'all'.
-        progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
-        cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
-        dry_run (bool, optional): dry_run flag to pass to notebook execution and other operations. If True, notebooks will be executed but no changes will be committed to Git, Jekyll pages will not be created, and the index will not be updated. Defaults to False.
-        squash (bool, optional): squash commits after execution. Defaults to True.
-        jekyll (bool, optional): whether to generate Jekyll markdown pages for HTML reports. Defaults to False.
-        discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
-        telegram (bool | argparse.Namespace, optional): Telegram configuration, either as a boolean or argparse.Namespace. Default is False.
-
-    Raises:
-        Exception: Raised if any exceptions occur during notebook execution.
-
-    Returns:
-        None: This function does not return a value.
-    """
-    report_paths = dirs.find_notebooks(reports)
-
-    # Check API status
-    api_status = api.check_status()
-    if progress_handler:
-        progress_handler.send(API_status=api_status)
-    if not api_status:
-        return
-
-    # Get the current commit hash
-    start_commit = git.get_repo().head.commit
-
-    lock("run")
-    try:
-        # Execute notebooks
-        try:
-            if len(report_paths) > 0:
-                run_notebooks(
-                    reports=report_paths,
-                    external_pbar=progress_handler.pbar if progress_handler else None,
-                    discord=discord,
-                    telegram=telegram,
-                    dry_run=dry_run,
-                )
-            else:
-                logger.warning("No reports found. Ignoring...")
-        except Exception as e:
-            if progress_handler:
-                progress_handler.send(error=str(e))
-            raise
-        finally:
-            # Update page index to reflect last execution timestamp
-            # Error is not critical but should be noted
-            try:
-                index_result = update_index(dry_run=dry_run)
-                logger.info("%s", index_result)
-                print(index_result)
-            except Exception as e:
-                if progress_handler:
-                    progress_handler.send(error=str(e))
-                logger.warning("Error updating index. Ignoring... %s", e)
-
-        # Cleanup redundant data files
-        if cleanup == "auto":
-            data_files_count = len(list(dirs.DATA.glob("*.bz2")))
-            reports_count = len(list(dirs.REPORTS.glob("*.html")))
-            cleanup = data_files_count / max(reports_count, 1) > 10
-        if cleanup:
-            try:
-                cleanup_data(dry_run=dry_run)
-            except Exception as e:
-                if progress_handler:
-                    progress_handler.send(error=str(e))
-                logger.warning("Error cleaning up data. Ignoring... %s", e)
-
-        # Generate Jekyll pages for reports
-        if jekyll:
-            logger.info("Generating Jekyll pages")
-            print("\nGenerating Jekyll pages")
-            for report_path in report_paths:
-                title = Path(report_path).stem
-                if dry_run:
-                    logger.info("Dry run - Would create Jekyll page for: %s", title)
-                    print(f"Dry run - Would create Jekyll page for: {title}")
-                else:
-                    try:
-                        make_jekyll_page(title=title)
-                    except Exception as e:
-                        if progress_handler:
-                            progress_handler.send(error=str(e))
-                        logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
-
-        # Squash commits if any
-        if squash:
-            if dry_run:
-                logger.info("Dry run - Squashing commits")
-                print("\nDry run - Squashing commits")
-            else:
-                # Error is not critical but should be noted
-                logger.info("Squashing commits")
-                print("\nSquashing commits")
-                try:
-                    squash_results = git.squash_commits(start_commit)
-                    logger.info("%s", squash_results)
-                    print(squash_results)
-                except Exception as e:
-                    logger.warning("Error squashing commits. Ignoring... %s", e)
-    finally:
-        try:
-            unlock("run")
-        except Exception as e:
-            logger.error("Error unlocking run lock. %s", e)

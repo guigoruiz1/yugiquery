@@ -332,7 +332,7 @@ def card_query(*args, **kwargs) -> str:
         "raw_level": "Level",
     }
 
-    search_string = "|?English%20name=Name"
+    search_string = "|?English name=Name"
     default = kwargs.pop("default", False)
     props = set(default_properties) if default else set()
     props.update(args)
@@ -355,14 +355,14 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
     if bandai_query is None:
         bandai_query = card_query(*card_properties["bandai"])
 
-    print("Downloading bandai cards")
+    tqdm.write("Downloading bandai cards")
     logger.info("Downloading bandai cards")
     bandai_df = client.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
         bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
     logger.debug("- Total")
 
-    print(f"{len(bandai_df.index)} results\n")
+    tqdm.write(f"{len(bandai_df.index)} results\n")
     logger.info("%s results", len(bandai_df.index))
 
     time.sleep(0.5)
@@ -394,13 +394,13 @@ def fetch_st(
     if st_query is None:
         st_query = card_query(*card_properties["st"])
 
-    print(f"Downloading {st}s")
+    tqdm.write(f"Downloading {st}s")
     logger.info("Downloading %ss", st)
     st_df = client.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
 
     logger.debug("- Total")
 
-    print(f"{len(st_df.index)} results\n")
+    tqdm.write(f"{len(st_df.index)} results\n")
     logger.info("%s results", len(st_df.index))
 
     return st_df
@@ -421,8 +421,7 @@ def fetch_monster(
     else:
         query_str = card_query(*card_properties["monster"])
 
-    print("Downloading monsters")
-    logger.info("Downloading monsters")
+    logger.info("Downloading Monsters")
     monster_df = pd.DataFrame()
     iterator = tqdm(
         attributes,
@@ -441,6 +440,8 @@ def fetch_monster(
 
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
+        tqdm.write(f'Downloading Monsters with attribute "{att}"')
+        logger.info('Downloading Monsters with attribute "%s"', att)
 
         temp_df = client.fetch_properties(concept, query_str, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
@@ -450,7 +451,7 @@ def fetch_monster(
 
     logger.debug("- Total")
 
-    print(f"{len(monster_df.index)} results\n")
+    tqdm.write(f"{len(monster_df.index)} results\n")
     logger.info("%s results", len(monster_df.index))
 
     return monster_df
@@ -461,20 +462,20 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
 
     concept = f"[[Category:Tokens]]"
     if valid_cg != "CG":
-        concept += f"[[Category:{valid_cg}%20cards]]"
+        concept += f"[[Category:{valid_cg} cards]]"
     else:
-        concept += "[[Category:TCG%20cards||OCG%20cards]]"
+        concept += "[[Category:TCG cards||OCG cards]]"
 
     if query:
         query_str = "|?".join(query)
     else:
         query_str = card_query(*card_properties["monster"])
 
-    print("Downloading tokens")
+    tqdm.write("Downloading tokens")
     logger.info("Downloading tokens")
     token_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
-    print(f"{len(token_df.index)} results\n")
+    tqdm.write(f"{len(token_df.index)} results\n")
     logger.info("%s results", len(token_df.index))
 
     return token_df
@@ -483,7 +484,7 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
 def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     valid_cg = cg.value
 
-    concept = f"[[Category:Counters]][[Page%20type::Card%20page]]"
+    concept = f"[[Category:Counters]][[Page type::Card page]]"
     if valid_cg != "CG":
         concept += f"[[Medium::{valid_cg}]]"
 
@@ -492,11 +493,11 @@ def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **
     else:
         query_str = card_query(*card_properties["counter"])
 
-    print("Downloading counters")
+    tqdm.write("Downloading counters")
     logger.info("Downloading counters")
     counter_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
-    print(f"{len(counter_df.index)} results\n")
+    tqdm.write(f"{len(counter_df.index)} results\n")
     logger.info("%s results", len(counter_df.index))
 
     return counter_df
@@ -509,7 +510,7 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
     else:
         query_str = card_query(*card_properties["speed"])
 
-    print("Downloading Speed duel cards")
+    tqdm.write("Downloading Speed duel cards")
     logger.info("Downloading Speed duel cards")
     speed_df = client.fetch_properties(
         concept,
@@ -521,41 +522,42 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
     logger.debug("- Total")
 
-    print(f"{len(speed_df.index)} results\n")
+    tqdm.write(f"{len(speed_df.index)} results\n")
     logger.info("%s results", len(speed_df.index))
 
     return speed_df
 
 
+# TODO: Add Rush
 def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
-    concept = "[[Category:Skill%20Cards]][[Card type::Skill Card]]"
+    concept = "[[Category:Skill Cards]][[Card type::Skill Card]]"
     if query:
         query_str = "|?".join(query)
     else:
         query_str = card_query(*card_properties["skill"])
 
-    print("Downloading skill cards")
+    tqdm.write("Downloading skill cards")
     logger.info("Downloading skill cards")
     skill_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
-    print(f"{len(skill_df.index)} results\n")
+    tqdm.write(f"{len(skill_df.index)} results\n")
     logger.info("%s results", len(skill_df.index))
 
     return skill_df
 
 
 def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
-    concept = f"[[Category:Rush%20Duel%20cards]][[Medium::Rush%20Duel]]"
+    concept = f"[[Category:Rush Duel cards]][[Medium::Rush Duel]]"
     if query:
         query_str = "|?".join(query)
     else:
         query_str = card_query(*card_properties["rush"])
 
-    print("Downloading Rush Duel cards")
+    tqdm.write("Downloading Rush Duel cards")
     logger.info("Downloading Rush Duel cards")
     rush_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
-    print(f"{len(rush_df.index)} results\n")
+    tqdm.write(f"{len(rush_df.index)} results\n")
     logger.info("%s results", len(rush_df.index))
 
     return rush_df
@@ -580,14 +582,12 @@ def fetch_unusable(
     else:
         concept += f"[[{valid_cg} status::+]]"
 
-    concept = up.quote(concept)
-
     if query:
         query_str = "|?".join(query)
     else:
         query_str = card_query(default=True)
 
-    print("Downloading unusable cards")
+    tqdm.write("Downloading unusable cards")
     logger.info("Downloading unusable cards")
     unusable_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
@@ -595,7 +595,7 @@ def fetch_unusable(
 
     logger.debug("- Total")
 
-    print(f"{len(unusable_df.index)} results\n")
+    tqdm.write(f"{len(unusable_df.index)} results\n")
     logger.info("%s results", len(unusable_df.index))
 
     return unusable_df
@@ -617,7 +617,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
     else:
         categories = list(categories["errata"])
 
-    print(f"Downloading {errata} errata")
+    tqdm.write(f"Downloading {errata} errata")
     logger.info("Downloading %s errata", errata)
     errata_df = pd.DataFrame(dtype=bool)
     iterator = tqdm(
@@ -626,6 +626,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         unit="initial",
         dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
+        position=1,
     )
     for cat in iterator:
         desc = cat.split("Category:")[-1]
@@ -641,7 +642,7 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
 
     logger.debug("- Total")
 
-    print(f"{len(errata_df.index)} results\n")
+    tqdm.write(f"{len(errata_df.index)} results\n")
     logger.info("%s results", len(errata_df.index))
     return errata_df
 
@@ -654,7 +655,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     else:
         category = [f"{valid_cg} Set Card Lists"]
 
-    print("Downloading list of 'Set Card Lists' pages")
+    tqdm.write("Downloading list of 'Set Card Lists' pages")
     logger.info("Downloading list of 'Set Card Lists' pages")
     set_list_pages = pd.DataFrame()
     iterator = tqdm(
@@ -663,6 +664,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
         unit="category",
         dynamic_ncols=(not dirs.is_notebook),
         disable=("PM_IN_EXECUTION" in os.environ),
+        position=1,
     )
     for cat in iterator:
         with logging_redirect_tqdm():
@@ -677,10 +679,13 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             unit="subcategory",
             dynamic_ncols=(not dirs.is_notebook),
             disable=("PM_IN_EXECUTION" in os.environ),
+            position=2,
         )
         for sub_cat in sub_iterator:
             with logging_redirect_tqdm():
                 logger.debug("- %s", sub_cat)
+
+            tqdm.write(f"Downloading properties for {sub_cat}")
 
             sub_iterator.set_description(sub_cat.split("Category:")[-1])
             temp = client.fetch_properties(
@@ -704,7 +709,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     total_success = 0
     total_error = 0
 
-    print(f"Downloading set lists for {len(keys)} sets")
+    tqdm.write(f"Downloading set lists for {len(keys)} sets")
     logger.info("Downloading set lists for %s sets", len(keys))
     for i in trange(np.ceil(len(keys) / step).astype(int), leave=False):
         success = 0

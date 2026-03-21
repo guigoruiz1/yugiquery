@@ -146,7 +146,7 @@ def check_status() -> bool:
 
     try:
         response = _request_with_retry(URLS.base, params=params, headers=URLS.headers)
-        cprint(text=f"{URLS.base} is up and running {response.json()['query']['general']['generator']}", color="green")
+        cprint(text=f"{URLS.base} is up and running {response.json()['query']['general']['generator']}\n", color="green")
         logger.info("%s is up and running %s", URLS.base, response.json()["query"]["general"]["generator"])
         return True
     except requests.exceptions.RequestException as err:
@@ -157,10 +157,10 @@ def check_status() -> bool:
 
         try:
             socket.create_connection((domain, port), timeout=DEFAULT_SOCKET_TIMEOUT)
-            cprint(text=f"{domain} is reachable", color="yellow")
+            cprint(text=f"{domain} is reachable\n", color="yellow")
             logger.warning("%s is reachable", domain)
         except OSError as err:
-            cprint(text=f"{domain} is not reachable", color="red")
+            cprint(text=f"{domain} is not reachable\n", color="red")
             logger.error("%s is not reachable", domain)
             logger.error("Socket probe failed: %s", err)
 
@@ -209,7 +209,7 @@ def fetch_categorymembers(
                 params = params.copy()
                 params.update(lastContinue)
                 response = _request_with_retry(
-                    URLS.base + URLS.categorymembers_action + category,
+                    URLS.base + URLS.categorymembers_action + up.quote(category),
                     params=params,
                     headers=URLS.headers,
                 )
@@ -228,7 +228,7 @@ def fetch_categorymembers(
                     with logging_redirect_tqdm():
                         logger.debug("Iteration %s: %s results", i + 1, len(result["query"]["categorymembers"]))
                 if "continue" not in result:
-                    spinner.succeed("Fetch completed")
+                    spinner.succeed(f'{i+1} iteration(s) completed for category "{category}"')
                     break
                 lastContinue = result["continue"]
                 i += 1
@@ -293,7 +293,11 @@ def fetch_properties(
                     iterator.set_postfix(it=i + 1)
 
                 response = _request_with_retry(
-                    url=URLS.base + URLS.ask_action + condition + query + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
+                    url=URLS.base
+                    + URLS.ask_action
+                    + up.quote(condition)
+                    + query
+                    + f"|limit%3D{step}|offset={i*step}|order%3Dasc",
                     headers=URLS.headers,
                 )
                 with logging_redirect_tqdm():
@@ -307,7 +311,7 @@ def fetch_properties(
                     logger.debug("Iteration %s: %s results", i + 1, len(formatted_df.index))
 
                 if len(formatted_df.index) < step or (i + 1) * step >= limit:
-                    spinner.succeed("Fetch completed")
+                    spinner.succeed(f"{i+1} iteration(s) completed")
                     complete = True
                 else:
                     i += 1
@@ -447,6 +451,9 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
     Raises:
         Any exceptions raised by requests.get().
     """
+    tqdm.write(
+        f"Downloading information for {len(sets)} sets...",
+    )
     logger.info("Downloading information for %s sets...", len(sets))
 
     regions_dict = utils.load_json(utils.dirs.get_asset("json", "regions.json"))

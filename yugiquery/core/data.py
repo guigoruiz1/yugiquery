@@ -12,6 +12,8 @@ from typing import List, Literal, Tuple, overload
 import arrow
 import numpy as np
 import pandas as pd
+from IPython.display import Markdown, display
+from tqdm.auto import tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
@@ -24,24 +26,41 @@ logger = LoggerConfig.get_logger()
 
 
 @overload
-def load_latest_data(
+def load_latest(
     name_pattern: str,
-    tuple_cols: List[str] = ...,
+    type: str = "data",
+    tuple_cols: List[str] = [],
     return_ts: Literal[False] = False,
 ) -> pd.DataFrame | None: ...
 
 
 @overload
-def load_latest_data(
+def load_latest(
     name_pattern: str,
-    tuple_cols: List[str] = ...,
+    type: str = "data",
+    tuple_cols: List[str] = [],
     return_ts: Literal[True] = True,
 ) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]: ...
 
 
-def load_latest_data(
+def load_latest(
     name_pattern: str,
-    tuple_cols: List[str] = [
+    type: str = "data",
+    tuple_cols: List[str] = [],
+    return_ts: bool = False,
+) -> pd.DataFrame | None | Tuple[pd.DataFrame | None, arrow.Arrow | None]:
+    """
+    Loads the most recent data file matching the specified name pattern and applies corrections.
+
+    Args:
+        name_pattern (str): The pattern to match in the filename (e.g., "cards")
+        type (str, optional): The type of file to look for, either "data" or "changelog". Defaults to "data".
+        tuple_cols (List[str], optional): Additional list of column names to attempt to parse as tuples. Defaults to [].
+        return_ts (bool, optional): Whether to return the timestamp of the loaded file. Defaults to False.
+    Returns:
+        pd.DataFrame | None: The loaded DataFrame if a file is found, otherwise None. If return_ts is True, returns a tuple of (DataFrame | None, arrow.Arrow | None).
+    """
+    default_tuple_cols = [
         "Secondary type",
         "Effect type",
         "Link Arrows",
@@ -50,15 +69,15 @@ def load_latest_data(
         "Errata",
         "Rarity",
         "Cover card",
-    ],
-    return_ts: bool = False,
-) -> pd.DataFrame | None | Tuple[pd.DataFrame | None, arrow.Arrow | None]:
-    """
-    Loads the most recent data file matching the specified name pattern and applies corrections.
-    """
+        "Legend",
+        "Maximum mode",
+        "Rarity",
+        "Cover card",
+    ]
+    tuple_cols += default_tuple_cols
     name_pattern = name_pattern.lower()
     files = sorted(
-        list(dirs.DATA.glob(f"{name_pattern}_data_*.bz2")),
+        list(dirs.DATA.glob(f"{name_pattern}_{type}_*.bz2")),
         key=os.path.getctime,
         reverse=True,
     )
@@ -75,8 +94,14 @@ def load_latest_data(
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
             df[col] = pd.to_datetime(df[col])
 
-        logger.info("%s file loaded.", name_pattern.capitalize())
-        print(f"{name_pattern.capitalize()} file loaded.")
+        relpath = Path(os.path.relpath(files[0], dirs.WORK)).as_posix()
+        logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
+        if dirs.is_notebook:
+            display(Markdown(f"{name_pattern.capitalize()} {type} loaded from [{relpath}]({relpath})"))
+        else:
+            tqdm.write(f"{name_pattern.capitalize()} {type} loaded from {relpath}")
+
+        logger.info(f"{name_pattern.capitalize()} {type} loaded from {relpath}")
         if return_ts:
             ts = arrow.get(Path(files[0]).stem.split("_")[-1])
             return df, ts
@@ -88,12 +113,64 @@ def load_latest_data(
     return None
 
 
+def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.DataFrame | None:
+    """
+    Loads the changelog file associated with a given data file name and timestamp, matching the timestamp
+    as the 'to' timestamp in the changelog filename.
+
+    Args:
+        name (str): The base name of the data file (e.g., 'bandai', 'cards', etc.)
+        timestamp (str | arrow.Arrow | None): The timestamp string or Arrow object (e.g., '20250301T1551Z')
+
+    Returns:
+        pd.DataFrame | None: The loaded changelog DataFrame if found, otherwise None.
+    """
+    if isinstance(timestamp, arrow.Arrow):
+        timestamp = timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
+    if timestamp is None:
+        # Find all changelogs for this name, pick the latest by ctime
+        changelogs = list(dirs.DATA.glob(f"{name}_changelog_*.bz2"))
+        if not changelogs:
+            logger.info(f"No changelog found for {name} (no changelogs present)")
+            return None
+        changelog_file = max(changelogs, key=os.path.getctime)
+        timestamp_str = Path(changelog_file).stem.split("_")[-1]
+    else:
+        changelogs = list(dirs.DATA.glob(f"{name}_changelog_*_{timestamp}.bz2"))
+        if not changelogs:
+            logger.info(f"No changelog found for {name.capitalize()} data associated with timestamp {timestamp}")
+            return None
+        changelog_file = max(changelogs, key=os.path.getctime)
+        timestamp_str = timestamp
+    try:
+        df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
+        relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
+        logger.info(f"Changelog loaded from {changelog_file} for {name} {timestamp_str}")
+        if dirs.is_notebook:
+            display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
+        else:
+            tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
+
+        logger.info(f"Changelog loaded from {relpath} for {name.capitalize()} data")
+        return df
+    except Exception as e:
+        logger.warning(f"Error loading changelog {changelog_file}: {e}")
+        return None
+
+
 # --- Set and Card Dataset Merges --- #
 
 
 def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.DataFrame:
     """
     Merge set metadata into set list data by set and region.
+    The input dataframe must contain "Set" and "Region" columns. The function will look up release dates based on the region and merge additional set information from the input_info_df, which should be indexed by set name.
+
+    Args:
+        input_df (pd.DataFrame): DataFrame containing at least "Set" and "Region" columns.
+        input_info_df (pd.DataFrame): DataFrame indexed by set name containing set metadata, including release dates by region.
+    Returns:
+        pd.DataFrame: The input dataframe merged with set metadata and release dates.
     """
     required_columns = ["Set", "Region"]
     if not all(col in input_df.columns for col in required_columns):
@@ -116,13 +193,19 @@ def merge_set_info(input_df: pd.DataFrame, input_info_df: pd.DataFrame) -> pd.Da
     ).reset_index(drop=True)
 
     logger.info("Set properties merged")
-    print("Set properties merged")
     return merged_df
 
 
 def merge_set_to_cards(*card_df, set_df) -> pd.DataFrame:
     """
     Merge set lists into one or more card information dataframes.
+    The function takes one or more card dataframes and a set dataframe, and merges them based on card names. It creates an "index" column by normalizing card names (lowercasing and removing "#") in both the card and set dataframes, then performs an inner merge on this index. The resulting dataframe is cleaned up by dropping the index and renaming columns appropriately.
+
+    Args:
+        *card_df: One or more DataFrames containing card information, each with a "Name" column.
+        set_df (pd.DataFrame): DataFrame containing set information, with a "Name" column.
+    Returns:
+        pd.DataFrame: A merged DataFrame containing card information enriched with set data, matched by normalized card names.
     """
     full_df = pd.concat(card_df).drop_duplicates(ignore_index=True)
     full_df["index"] = full_df["Name"].str.lower().str.replace("#", "")
@@ -147,6 +230,7 @@ def merge_set_to_cards(*card_df, set_df) -> pd.DataFrame:
 
 
 def _format_errata(row: pd.Series) -> Tuple[str, ...] | float:
+    """Helper function to format errata information into a tuple of affected fields."""
     result = []
     if "Cards with name errata" in row and row["Cards with name errata"]:
         result.append("Name")
@@ -160,7 +244,17 @@ def _format_errata(row: pd.Series) -> Tuple[str, ...] | float:
 
 
 def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.DataFrame:
-    """Merge errata information into the input DataFrame by card name."""
+    """
+    Merge errata information into the input DataFrame by card name.
+    The function checks if the input DataFrame contains a "Name" column, then applies the _format_errata helper function to the input_errata_df to create a Series of errata information. This Series is merged into the input DataFrame based on the "Name" column, resulting in an "Errata" column that indicates which fields are affected by errata for each card.
+
+    Args:
+        input_df (pd.DataFrame): DataFrame containing card information, must include a "Name" column.
+        input_errata_df (pd.DataFrame): DataFrame containing errata information, with columns indicating which cards have name or type errata.
+
+    Returns:
+        pd.DataFrame: The input DataFrame merged with errata information, containing an "Errata" column that specifies which fields are affected by errata for each card.
+    """
     if "Name" in input_df.columns:
         errata_series: pd.Series = input_errata_df.apply(_format_errata, axis=1)
         input_df = input_df.merge(
@@ -180,7 +274,15 @@ def merge_errata(input_df: pd.DataFrame, input_errata_df: pd.DataFrame) -> pd.Da
 
 
 def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
-    """Load a user collection from CSV or Excel."""
+    """
+    Load a user collection from CSV or Excel.
+    The function looks for a file with the specified name in the data directory, first checking for an Excel file and then a CSV file. If an Excel file is found, it loads all sheets and concatenates them into a single DataFrame with an additional "Collection" column indicating the sheet name. If a CSV file is found, it loads it directly into a DataFrame. If no file is found, it logs a warning and returns None.
+
+    Args:
+        file_name (str, optional): The base name of the collection file (without extension). Defaults to "collection".
+    Returns:
+        pd.DataFrame | None: The loaded collection DataFrame if a file is found, otherwise None.
+    """
     collection_file = dirs.DATA.joinpath(file_name)
     if collection_file.with_suffix(".xlsx").is_file():
         collection_file = collection_file.with_suffix(".xlsx")
@@ -208,7 +310,18 @@ def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
 
 
 def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = False) -> pd.DataFrame:
-    """Match a card list against latest datasets and optionally enrich with card data."""
+    """
+    Match a card list against latest datasets and optionally enrich with card data.
+    The function takes an input DataFrame containing a list of cards, and attempts to match each card against the latest card and set datasets. It first checks if the input DataFrame is empty and returns it if so. Then it loads the necessary reference data based on the columns present in the input DataFrame. The matching process is performed in three stages: first by "Card number" using set data, then by "Password" using card data, and finally by "Name" using either card or set data. After matching, the function finalizes the matched cards by grouping and summing counts, and optionally merging with card data for enrichment.
+
+    Args:
+        list_df (pd.DataFrame): DataFrame containing a list of cards to match, with columns such as "Name", "Card number", or "Password".
+        card_data (bool, optional): Whether to load and merge card data for enrichment. Defaults to False.
+        set_data (bool, optional): Whether to load and merge set data for matching by card number. Defaults to False.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the matched cards, enriched with card data if requested.
+    """
     if list_df.empty:
         logger.warning("List empty. Ignoring.")
         return list_df
@@ -242,9 +355,18 @@ def find_cards(list_df: pd.DataFrame, card_data: bool = False, set_data: bool = 
 
 
 def _load_card_data(list_df: pd.DataFrame, card_data: bool) -> pd.DataFrame | None:
-    """Load card data if needed."""
+    """
+    Helper function to load card data if "Name" or "Password" columns are present in the input DataFrame of find_cards.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list to be matched.
+        card_data (bool): Flag indicating whether to load card data for enrichment.
+
+    Returns:
+        pd.DataFrame | None: The loaded card data DataFrame if relevant columns are present and card_data is True, otherwise None.
+    """
     if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
-        card_df = load_latest_data(name_pattern="cards")
+        card_df = load_latest(name_pattern="cards")
         if card_df is not None:
             card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
         return card_df
@@ -252,9 +374,17 @@ def _load_card_data(list_df: pd.DataFrame, card_data: bool) -> pd.DataFrame | No
 
 
 def _load_set_data(list_df: pd.DataFrame) -> pd.DataFrame | None:
-    """Load set list data if card numbers are present."""
+    """
+    Helper function to load set lists data if "Card number" column is present in the input DataFrame of find_cards.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list to be matched.
+
+    Returns:
+        pd.DataFrame | None: The loaded set lists DataFrame if "Card number" column is present and not empty, otherwise None.
+    """
     if "Card number" in list_df and not list_df["Card number"].dropna().empty:
-        set_lists_df = load_latest_data(name_pattern="sets")
+        set_lists_df = load_latest(name_pattern="sets")
         if set_lists_df is not None:
             set_lists_df = (
                 set_lists_df.sort_values(by="Release")
@@ -268,7 +398,18 @@ def _load_set_data(list_df: pd.DataFrame) -> pd.DataFrame | None:
 def _match_cards_by_card_number(
     list_df: pd.DataFrame, original_cols: pd.Index, set_lists_df: pd.DataFrame | None, set_data: bool
 ) -> None:
-    """Match cards by card number from set data."""
+    """
+    Helper function to match cards by "Card number" using set data if the column is present in the input DataFrame of find_cards.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list to be matched, with a "match" column for storing results.
+        original_cols (pd.Index): The original columns of the input DataFrame before processing.
+        set_lists_df (pd.DataFrame | None): The loaded set lists DataFrame to be used for matching by card number, or None if not available.
+        set_data (bool): Flag indicating whether to use set data for matching by card number.
+
+    Returns:
+        None: The function updates the input list_df in place with matched card names based on card number.
+    """
     if "Card number" not in original_cols or set_lists_df is None:
         return
 
@@ -282,7 +423,16 @@ def _match_cards_by_card_number(
 
 
 def _merge_set_data(df: pd.DataFrame, set_lists_df: pd.DataFrame | None) -> None:
-    """Merge set data by card number when set_data flag is true. Updates df in place."""
+    """
+    Helper function to merge set data into the input DataFrame for matching by "Card number".
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the card list to be matched, with a "match" column for storing results.
+        set_lists_df (pd.DataFrame | None): The loaded set lists DataFrame to be used for merging, or None if not available.
+
+    Returns:
+        None: The function updates the input df in place by merging set data based on "Card number" and logs any missing card numbers that could not be matched.
+    """
     if set_lists_df is None:
         return
 
@@ -314,7 +464,17 @@ def _merge_set_data(df: pd.DataFrame, set_lists_df: pd.DataFrame | None) -> None
 
 
 def _match_cards_by_password(list_df: pd.DataFrame, original_cols: pd.Index, card_df: pd.DataFrame | None) -> None:
-    """Match remaining unmatched cards by password."""
+    """
+    Helper function to match cards by "Password" using card data if the column is present in the input DataFrame of find_cards.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list to be matched, with a "match" column for storing results.
+        original_cols (pd.Index): The original columns of the input DataFrame before processing.
+        card_df (pd.DataFrame | None): The loaded card data DataFrame to be used for matching by password, or None if not available.
+
+    Returns:
+        None: The function updates the input list_df in place with matched card names based on password.
+    """
     if "Password" not in original_cols or card_df is None or list_df["match"].notna().all():
         return
 
@@ -327,7 +487,18 @@ def _match_cards_by_name(
     card_df: pd.DataFrame | None,
     set_lists_df: pd.DataFrame | None,
 ) -> None:
-    """Match remaining unmatched cards by name, including old card names."""
+    """
+    Helper function to match cards by "Name" using either card or set data if the column is present in the input DataFrame of find_cards.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list to be matched, with a "match" column for storing results.
+        original_cols (pd.Index): The original columns of the input DataFrame before processing.
+        card_df (pd.DataFrame | None): The loaded card data DataFrame to be used for matching by name, or None if not available.
+        set_lists_df (pd.DataFrame | None): The loaded set lists DataFrame to be used for matching by name, or None if not available.
+
+    Returns:
+        None: The function updates the input list_df in place with matched card names based on name.
+    """
     if "Name" not in original_cols or list_df["match"].notna().all():
         return
 
@@ -355,7 +526,19 @@ def _match_cards_by_name(
 
 
 def _merge_with_keys(df: pd.DataFrame, key_col: str, ref_df: pd.DataFrame, ref_key: str, ref_val: str) -> pd.DataFrame:
-    """Merge cards by key column (Card number, Password, or Name) against reference dataframe."""
+    """
+    Helper function to merge reference data into the input DataFrame based on a specified key column and reference key-value pair.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing the card list to be matched, with a "match" column for storing results.
+        key_col (str): The column name in the input DataFrame to be used as the key for merging.
+        ref_df (pd.DataFrame): The reference DataFrame containing the data to merge.
+        ref_key (str): The column name in the reference DataFrame to be used as the key for merging.
+        ref_val (str): The column name in the reference DataFrame to be used as the value for merging.
+
+    Returns:
+        pd.DataFrame: The merged DataFrame.
+    """
     if ref_df is None:
         return df
 
@@ -390,7 +573,17 @@ def _merge_with_keys(df: pd.DataFrame, key_col: str, ref_df: pd.DataFrame, ref_k
 
 
 def _finalize_matched_cards(list_df: pd.DataFrame, card_df: pd.DataFrame | None, card_data: bool) -> pd.DataFrame:
-    """Clean up and finalize the matched cards dataframe."""
+    """
+    Helper function to finalize the matched cards by grouping and summing counts, and optionally merging with card data for enrichment.
+
+    Args:
+        list_df (pd.DataFrame): The input DataFrame containing the card list with a "match" column for matched card names and a "Count" column for quantities.
+        card_df (pd.DataFrame | None): The loaded card data DataFrame to be used for enrichment, or None if not available.
+        card_data (bool): Flag indicating whether to merge with card data for enrichment.
+
+    Returns:
+        pd.DataFrame: The finalized DataFrame containing matched cards, grouped and summed by name, and enriched with card data if requested.
+    """
     # Drop original key columns and rename match to Name
     list_df.drop(columns=["Card number", "Password", "Name"], inplace=True, errors="ignore")
     list_df.rename(columns={"match": "Name"}, inplace=True)
@@ -415,7 +608,22 @@ def _finalize_matched_cards(list_df: pd.DataFrame, card_df: pd.DataFrame | None,
 
 
 def get_releases_by(df, column=None, operation="debut", numeric=False, crosstab=False) -> pd.DataFrame:
-    """Get release dates grouped by column using a selectable operation."""
+    """
+    Get release dates grouped by column using a selectable operation among "debut", "last", "first", or "all".
+    By default, it returns the debut release date for each group, but it can also return the last release date, the first release date, or all unique release dates for each group.
+    If a column is specified, it groups by that column and "Name", otherwise it groups by "Name" alone.
+    The function also attempts to convert the grouping column to numeric if numeric is True, and can return a crosstab of release dates by the grouping column if crosstab is True.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with a "Release" column and optionally a column to group by.
+        column (str, optional): The column name to group by (e.g., "Primary type"). If None, groups by "Name". Defaults to None.
+        operation (str, optional): The operation to perform on release dates. Options are "debut" (default), "last", "first", or "all". Defaults to "debut".
+        numeric (bool, optional): Whether to attempt to convert the grouping column to numeric. Defaults to False.
+        crosstab (bool, optional): Whether to return a crosstab of release dates by the grouping column instead of a DataFrame with release dates. Defaults to False.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing release dates grouped by the specified column and operation, or a crosstab if crosstab is True.
+    """
 
     if column is None:
         group_cols = ["Name"]
@@ -468,18 +676,25 @@ def select_level(df: pd.DataFrame) -> pd.DataFrame:
         df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link" or "Level".
 
     Raises:
-        ValueError: If neither "Level/Rank/Link" nor "Level" columns are present in the DataFrame.
+        ValueError: If neither "Level/Rank/Link", "Level/Rank" nor "Level" columns are present in the DataFrame.
 
     Returns:
         pd.DataFrame: Filtered DataFrame with a "Level" column, containing only rows with non-null level values and excluding "Xyz Monster" and "Link Monster" types.
     """
     filter = (df["Primary type"] != "Xyz Monster") & (df["Primary type"] != "Link Monster")
     if "Level/Rank/Link" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Level"})
+        return (
+            df[filter]
+            .dropna(subset=["Level/Rank/Link"])
+            .rename(columns={"Level/Rank/Link": "Level"})
+            .dropna(how="all", axis=1)
+        )
+    elif "Level/Rank" in df:
+        return df[filter].dropna(subset=["Level/Rank"]).rename(columns={"Level/Rank": "Level"}).dropna(how="all", axis=1)
     elif "Level" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"])
+        return df[filter].dropna(subset=["Level"]).dropna(how="all", axis=1)
     else:
-        raise ValueError("No Level or Level/Rank/Link columns found")
+        raise ValueError("No Level, Level/Rank or Level/Rank/Link columns found")
 
 
 def select_rank(df: pd.DataFrame) -> pd.DataFrame:
@@ -487,19 +702,59 @@ def select_rank(df: pd.DataFrame) -> pd.DataFrame:
     Filters a DataFrame to select cards with a valid "Rank" attribute, including only "Xyz Monster" types.
 
     Args:
-        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link" or "Rank".
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link", "Level/Rank" or "Rank".
     Raises:
-        ValueError: If neither "Level/Rank/Link" nor "Rank" columns are present in the DataFrame.
+        ValueError: If neither "Level/Rank/Link", "Level/Rank" nor "Rank" columns are present in the DataFrame.
     Returns:
         pd.DataFrame: Filtered DataFrame with a "Rank" column, containing only rows
     """
     filter = df["Primary type"] == "Xyz Monster"
     if "Level/Rank/Link" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Rank"})
+        return (
+            df[filter]
+            .dropna(subset=["Level/Rank/Link"])
+            .rename(columns={"Level/Rank/Link": "Rank"})
+            .dropna(how="all", axis=1)
+        )
+    elif "Level/Rank" in df:
+        return df[filter].dropna(subset=["Level/Rank"]).rename(columns={"Level/Rank": "Rank"}).dropna(how="all", axis=1)
     elif "Rank" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"])
+        return df[filter].dropna(subset=["Rank"]).dropna(how="all", axis=1)
     else:
-        raise ValueError("No Rank or Level/Rank/Link columns found")
+        raise ValueError("No Rank, Level/Rank or Level/Rank/Link columns found")
+
+
+def select_stars(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards with a valid "Level" or "Rank" attribute, excluding "Link Monster" type, and renames the column to "Stars".
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with columns such as "Primary type" and either "Level/Rank/Link", "Level/Rank", "Level", "Rank" or "Stars".
+
+    Raises:
+        ValueError: If neither "Level/Rank/Link", "Level/Rank", "Level", "Rank" nor "Stars" columns are present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame with a "Stars" column, containing only rows with non-null level values and excluding "Xyz Monster" and "Link Monster" types.
+    """
+    filter = (df["Primary type"] != "Xyz Monster") & (df["Primary type"] != "Link Monster")
+    if "Level/Rank/Link" in df:
+        return (
+            df[filter]
+            .dropna(subset=["Level/Rank/Link"])
+            .rename(columns={"Level/Rank/Link": "Stars"})
+            .dropna(how="all", axis=1)
+        )
+    elif "Level/Rank" in df:
+        return df[filter].dropna(subset=["Level/Rank"]).rename(columns={"Level/Rank": "Stars"}).dropna(how="all", axis=1)
+    elif "Level" in df:
+        return df[filter].dropna(subset=["Level"]).rename(columns={"Level": "Stars"}).dropna(how="all", axis=1)
+    elif "Rank" in df:
+        return df[filter].dropna(subset=["Rank"]).rename(columns={"Rank": "Stars"}).dropna(how="all", axis=1)
+    elif "Stars" in df:
+        return df[filter].dropna(subset=["Stars"]).dropna(how="all", axis=1)
+    else:
+        raise ValueError("No Level, Rank, Level/Rank, Level/Rank/Link or Stars columns found")
 
 
 def select_link(df: pd.DataFrame) -> pd.DataFrame:
@@ -517,9 +772,14 @@ def select_link(df: pd.DataFrame) -> pd.DataFrame:
     """
     filter = df["Primary type"] == "Link Monster"
     if "Level/Rank/Link" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"]).rename(columns={"Level/Rank/Link": "Link"})
+        return (
+            df[filter]
+            .dropna(subset=["Level/Rank/Link"])
+            .rename(columns={"Level/Rank/Link": "Link"})
+            .dropna(how="all", axis=1)
+        )
     elif "Link" in df:
-        return df[filter].dropna(subset=["Level/Rank/Link"])
+        return df[filter].dropna(subset=["Level/Rank/Link"]).dropna(how="all", axis=1)
     else:
         raise ValueError("No Link or Level/Rank/Link columns found")
 
@@ -538,6 +798,46 @@ def select_pendulum(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Filtered DataFrame with a "Pendulum Scale" column, containing only rows with non-null pendulum scale values and including only "Pendulum Monster" types.
     """
     if "Pendulum Scale" in df:
-        return df.dropna(subset=["Pendulum Scale"])
+        return df.dropna(subset=["Pendulum Scale"]).dropna(how="all", axis=1)
     else:
         raise ValueError("No Pendulum Scale column found")
+
+
+def select_unusable(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards that are marked as "Unusable" in the "Card status" column.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with a "Card status" column.
+
+    Raises:
+        ValueError: If "Card status" column is not present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame containing only rows where "Card status" is "Unusable".
+    """
+    if "Card type" in df:
+        return df[df["Card type"].isin(["Monster Card", "Spell Card", "Trap Card", "Monster Token", "Counter"])].dropna(
+            how="all", axis=1
+        )
+    else:
+        raise ValueError("No Card type column found")
+
+
+def select_token_counter(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters a DataFrame to select cards that are marked as "Token" or "Counter" in the "Card type" column.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing card data with a "Card type" column.
+
+    Raises:
+        ValueError: If "Card type" column is not present in the DataFrame.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame containing only rows where "Card type" is "Monster Token" or "Counter".
+    """
+    if "Card type" in df:
+        return df[df["Card type"].isin(["Monster Token", "Counter"])].dropna(how="all", axis=1)
+    else:
+        raise ValueError("No Card type column found")

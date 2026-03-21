@@ -20,10 +20,10 @@ def test_load_latest_data_returns_none_when_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(core_data.dirs, "WORK", tmp_path)
     (tmp_path / "data").mkdir(exist_ok=True)
 
-    result = core_data.load_latest_data("cards")
+    result = core_data.load_latest("cards")
     assert result is None
 
-    result_with_ts = core_data.load_latest_data("cards", return_ts=True)
+    result_with_ts = core_data.load_latest("cards", return_ts=True)
     assert result_with_ts == (None, None)
 
 
@@ -40,7 +40,7 @@ def test_load_latest_data_uses_latest_file_and_parses(monkeypatch, tmp_path):
     ctimes = {str(old_file): 1, str(new_file): 2}
     monkeypatch.setattr(core_data.os.path, "getctime", lambda p: ctimes[str(p)])
 
-    frame, ts = core_data.load_latest_data("cards", tuple_cols=["Secondary type"], return_ts=True)
+    frame, ts = core_data.load_latest("cards", tuple_cols=["Secondary type"], return_ts=True)
 
     assert frame is not None
     assert frame.loc[0, "Secondary type"] == ("Flip", "Effect")
@@ -58,6 +58,6 @@ def test_load_latest_data_skips_invalid_tuple_literal(monkeypatch, tmp_path):
     _write_cards_file(file_path, "not_a_tuple_literal", "2024-03-10")
     monkeypatch.setattr(core_data.os.path, "getctime", lambda p: 1)
 
-    frame = core_data.load_latest_data("cards", tuple_cols=["Secondary type"])
+    frame = core_data.load_latest("cards", tuple_cols=["Secondary type"])
     assert frame is not None
     assert frame.loc[0, "Secondary type"] == "not_a_tuple_literal"

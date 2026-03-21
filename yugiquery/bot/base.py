@@ -253,32 +253,33 @@ class Bot:
 
         # Get benchmark
         value = ""
-        for key, values in data.items():
-            weighted_sum = 0
-            total_weight = 0
-            for entry in values:
-                weighted_sum += entry["average"] * entry["weight"]
-                total_weight += entry["weight"]
+        for group_key, group_values in data.items():
+            for key, values in group_values.items():
+                weighted_sum = 0
+                total_weight = 0
+                for entry in values:
+                    weighted_sum += entry["average"] * entry["weight"]
+                    total_weight += entry["weight"]
 
-            avg_time = weighted_sum / total_weight
-            latest_time = entry["average"]
+                avg_time = weighted_sum / total_weight
+                latest_time = entry["average"]
 
-            avg_time_str = (
-                arrow.now()
-                .shift(seconds=avg_time)
-                .humanize(granularity=get_ts_granularity(int(avg_time)), only_distance=True)
-            )
-            latest_time_str = (
-                arrow.now()
-                .shift(seconds=latest_time)
-                .humanize(
-                    granularity=get_ts_granularity(int(latest_time)),
-                    only_distance=True,
+                avg_time_str = (
+                    arrow.now()
+                    .shift(seconds=avg_time)
+                    .humanize(granularity=get_ts_granularity(int(avg_time)), only_distance=True)
                 )
-            )
+                latest_time_str = (
+                    arrow.now()
+                    .shift(seconds=latest_time)
+                    .humanize(
+                        granularity=get_ts_granularity(int(latest_time)),
+                        only_distance=True,
+                    )
+                )
 
             value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
-            response[key.capitalize()] = value
+            response[f"{key.capitalize()} {group_key.capitalize()}"] = value  # TODO improve
 
         return response
 

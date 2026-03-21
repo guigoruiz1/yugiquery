@@ -75,35 +75,34 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
 # --- Benchmarking --- #
 
 
-def benchmark(timestamp: arrow.Arrow, report: str | None = None) -> None:
+def benchmark(timestamp: arrow.Arrow, group: str = "report", entry: str | None = None) -> None:
     """
     Record report execution time and persist benchmark history.
 
     Args:
         timestamp (arrow.Arrow): Start timestamp for execution.
-        report (str | None, optional): Report name. If None, infer notebook stem.
+        entry (str | None, optional): Entry name. If None, infer notebook stem.
+        group (str | None, optional): Group name.
     """
-    if report is None:
+    if entry is None:
         path = get_notebook_path()
-        report = path.stem if path else "Unnamed"
+        entry = path.stem if path else "Unnamed"
 
     now = arrow.utcnow()
     timedelta = now - timestamp
     benchmark_file = dirs.DATA / "benchmark.json"
     data = load_json(benchmark_file)
 
-    if report not in data:
-        data[report] = []
-    data[report].append({"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
+    if group not in data:
+        data[group] = {}
+    if entry not in data[group]:
+        data[group][entry] = []
+    data[group][entry].append({"ts": now.isoformat(), "average": timedelta.total_seconds(), "weight": 1})
 
     with open(benchmark_file, "w+") as file:
         json.dump(data, file, indent=4)
 
-    result = git.commit(
-        files=[benchmark_file],
-        message=f"{report.capitalize()} report benchmarked - {now.isoformat()}",
-    )
-    logger.info("%s", result)
+    logger.info("%s", f"{entry.capitalize()} {group.capitalize()} benchmarked")
 
 
 # --- Changelog Condensing --- #
@@ -175,7 +174,7 @@ def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
 # --- Benchmark Condensing --- #
 
 
-def condense_benchmark(benchmark: Dict[str, List[BenchmarkEntry]]) -> Dict[str, List[BenchmarkEntry]]:
+def condense_benchmark(benchmark: Dict[str, Dict[str, List[BenchmarkEntry]]]) -> Dict[str, Dict[str, List[BenchmarkEntry]]]:
     """
     Condense benchmark history by weighted average and total weight for each key.
 
@@ -186,25 +185,21 @@ def condense_benchmark(benchmark: Dict[str, List[BenchmarkEntry]]) -> Dict[str, 
         Dict[str, List[BenchmarkEntry]]: Condensed benchmark dictionary.
     """
     now = arrow.utcnow()
-    for key, _ in benchmark.items():
-        for key, values in benchmark.items():
+    for group_key, group_val in benchmark.items():
+        for entry_key, entry_val in group_val.items():
             weighted_sum = 0.0
             total_weight = 0.0
-            for entry in values:
+            for entry in entry_val:
                 weighted_sum += entry["average"] * entry["weight"]
                 total_weight += entry["weight"]
-            weighted_average = weighted_sum / total_weight
-            benchmark.update(
+            weighted_average = weighted_sum / total_weight if total_weight else 0.0
+            benchmark[group_key][entry_key] = [
                 {
-                    key: [
-                        {
-                            "ts": now.isoformat(),
-                            "average": weighted_average,
-                            "weight": total_weight,
-                        }
-                    ]
+                    "ts": now.isoformat(),
+                    "average": weighted_average,
+                    "weight": total_weight,
                 }
-            )
+            ]
 
     return benchmark
 

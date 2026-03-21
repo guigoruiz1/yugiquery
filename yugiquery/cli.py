@@ -7,7 +7,8 @@ import argparse
 import re
 
 # --- Imports: Local Application --- #
-from .core import run
+from .core import run, update_data
+from .core import update_data
 from .utils import auto_or_bool, git, LoggerConfig
 
 
@@ -168,11 +169,10 @@ class CredAction(argparse.Action):
 # --- CLI Main --- #
 
 
-def main(args):
+def handle_run(args):
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
-    # Assures the script is within a git repository before processing
     _ = git.ensure_repo()
-    # Execute the complete workflow
+
     run(
         reports=args.reports,
         cleanup=args.cleanup,
@@ -180,10 +180,41 @@ def main(args):
         jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
+        operation="all",
     )
 
 
-def set_parser(parser: argparse.ArgumentParser) -> None:
+def handle_fetch(args):
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
+    _ = git.ensure_repo()
+
+    run(
+        reports=args.data,
+        cleanup=args.cleanup,
+        dry_run=args.dryrun,
+        discord=args.discord,
+        telegram=args.telegram,
+        changelog=args.changelog,
+        benchmark=args.benchmark,
+        operation="data",
+    )
+
+
+def handle_report(args):
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
+    _ = git.ensure_repo()
+    # Only run notebooks and git ops, no API/data update
+    run(
+        reports=args.reports,
+        dry_run=args.dryrun,
+        jekyll=args.jekyll,
+        discord=args.discord,
+        telegram=args.telegram,
+        operation="reports",
+    )
+
+
+def set_run_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "reports",
         nargs="*",
@@ -192,11 +223,57 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         type=str,
         help="the report(s) to be generated. Defaults to 'all'",
     )
+    report_group = parser.add_argument_group("Report generation options")
+    data_group = parser.add_argument_group("Data update options")
+    _set_report_args(report_group)
+    _set_data_args(data_group)
+    _set_progress_args(parser)
+    _set_debug_args(parser)
+
+
+def set_fetch_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "data",
+        nargs="*",
+        metavar="DATA",
+        default="all",
+        type=str,
+        help="The data to update (cards, rush, speed, bandai, sets). Defaults to 'all' if omitted.",
+    )
+    _set_data_args(parser)
+    _set_progress_args(parser)
+    _set_debug_args(parser)
+
+
+def set_report_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "reports",
+        nargs="*",
+        metavar="REPORT",
+        default="all",
+        type=str,
+        help="the report(s) to be generated. Defaults to 'all'",
+    )
+    _set_report_args(parser)
+    _set_progress_args(parser)
+    _set_debug_args(parser)
+
+
+def _set_report_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
     parser.add_argument(
         "-j",
         "--jekyll",
         action="store_true",
         help="generate Jekyll markdown pages for HTML reports. Defaults to False",
+    )
+
+
+def _set_data_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
+    parser.add_argument(
+        "--no-benchmark", dest="benchmark", action="store_false", help="disable benchmark saving for data update"
+    )
+    parser.add_argument(
+        "--no-changelog", dest="changelog", action="store_false", help="disable changelog saving for data update"
     )
     parser.add_argument(
         "-c",
@@ -208,34 +285,15 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         action="store",
         help="wether to run the cleanup routine. Options: {True,False,'auto'}. Defaults to auto",
     )
-    pbar_group = parser.add_argument_group("Progress bars")
-    pbar_group.add_argument(
-        "-d",
-        "--discord",
-        nargs="*",
-        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL_ID"),
-        dest="discord",
-        default=False,
-        action=CredAction,
-        help="Discord TOKEN and CHANNEL_ID, respectively, or no arguments to search for values in secrets",
-    )
 
-    pbar_group.add_argument(
-        "-t",
-        "--telegram",
-        nargs="*",
-        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"),
-        dest="telegram",
-        default=False,
-        action=CredAction,
-        help="Telegram TOKEN and CHAT_ID, respectively, or no arguments to search for values in secrets",
-    )
+
+def _set_debug_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
     debug_group = parser.add_argument_group("Debugging")
     debug_group.add_argument(
         "--dryrun",
         action="store_true",
         required=False,
-        help="run in dry run mode",
+        help="Perform a dry run: skip notebook execution and do not commit any changes. Useful for testing the workflow without making modifications",
     )
     debug_group.add_argument(
         "--log-level",
@@ -250,4 +308,28 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         required=False,
         default=None,
         help="write log output to a file in addition to stderr",
+    )
+
+
+def _set_progress_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
+    pbar_group = parser.add_argument_group("Progress bars")
+    pbar_group.add_argument(
+        "-d",
+        "--discord",
+        nargs="*",
+        metavar=("DISCORD_TOKEN", "DISCORD_CHANNEL_ID"),
+        dest="discord",
+        default=False,
+        action=CredAction,
+        help="Discord TOKEN and CHANNEL_ID, respectively, or no arguments to search for values in secrets",
+    )
+    pbar_group.add_argument(
+        "-t",
+        "--telegram",
+        nargs="*",
+        metavar=("TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"),
+        dest="telegram",
+        default=False,
+        action=CredAction,
+        help="Telegram TOKEN and CHAT_ID, respectively, or no arguments to search for values in secrets",
     )
