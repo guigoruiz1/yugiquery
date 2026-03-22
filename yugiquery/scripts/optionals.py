@@ -57,6 +57,7 @@ def install_kernel(venv: bool = False) -> None:
     from yugiquery import __title__
     from IPython.core.profileapp import ProfileCreate
 
+    name = __title__.lower()
     if venv:
         from yugiquery.utils.dirs import dirs
 
@@ -78,7 +79,7 @@ def install_kernel(venv: bool = False) -> None:
 
         # Install YugiQuery inside the virtual environment.
         cache_dir = subprocess.run(
-            args=f"{sys.executable} -m pip freeze | grep {__title__.lower()}",
+            args=f"{sys.executable} -m pip freeze | grep {name}",
             capture_output=True,
             text=True,
             shell=True,
@@ -131,7 +132,7 @@ def install_kernel(venv: bool = False) -> None:
     # Create an IPython profile for YugiQuery.
     try:
         # Step 1: Initialize the profile creation process
-        profile_creator = ProfileCreate(profile="yugiquery")
+        profile_creator = ProfileCreate(profile=name)
 
         # Step 2: Create the profile directory and default config files
         profile_creator.init_config_files()
@@ -162,21 +163,21 @@ def install_kernel(venv: bool = False) -> None:
             "install",
             "--user",
             "--name",
-            __title__.lower(),
+            name,
             "--display-name",
             display_name,
             "--profile",
-            __title__.lower(),
+            name,
         ],
         text=True,
     )
 
     if result.returncode != 0:
-        logger.error("Failed to install Jupyter kernel '%s'!", __title__.lower())
+        logger.error("Failed to install Jupyter kernel '%s'!", name)
         return
     else:
-        cprint(text=f"Jupyter kernel '{__title__.lower()}' installed.", color="green")
-        logger.info("Jupyter kernel '%s' installed.", __title__.lower())
+        cprint(text=f"Jupyter kernel '{name}' installed.", color="green")
+        logger.info("Jupyter kernel '%s' installed.", name)
 
 
 def install_nbconvert() -> None:

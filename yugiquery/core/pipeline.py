@@ -23,6 +23,7 @@ from tqdm.auto import tqdm
 # --- Imports: Local Application --- #
 from .. import api
 from . import cleanup_data, update_index
+from ..metadata import __title__
 from ..utils import ProgressHandler, dirs, git, load_secrets, lock, make_jekyll_page, unlock, LoggerConfig, make_filename
 from .data import load_latest, merge_errata, merge_set_info
 from .maintenance import generate_changelog, benchmark
@@ -744,8 +745,8 @@ def _run_notebooks(
             os.environ["PM_IN_EXECUTION"] = dest_report
             LoggerConfig.propagate_env()
 
-            if "yugiquery" in kernelspec.find_kernel_specs():  # TODO: use package name
-                kernel_name = "yugiquery"
+            if __title__.lower() in kernelspec.find_kernel_specs():  # TODO: use package name
+                kernel_name = __title__.lower()
             else:
                 kernel_name = "python3"
 

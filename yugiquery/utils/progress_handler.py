@@ -75,7 +75,7 @@ class ProgressHandler:
         """
         self.queue.put(kwargs)
 
-    async def await_result(self, process: mp.Process) -> tuple[int | None, list]:  # TODO: Docstrings
+    async def await_result(self, process: mp.Process) -> tuple[int | None, list]:
         """
         Waits asynchronously for a multiprocessing process to finish and retrieves results from a queue.
 

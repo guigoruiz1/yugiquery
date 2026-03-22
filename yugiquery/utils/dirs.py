@@ -18,6 +18,7 @@ import tempfile
 
 # --- Imports: Local Application --- #
 from .logging import LoggerConfig
+from ..metadata import __title__
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -74,20 +75,22 @@ class Dirs:
         self.APP = self.UTILS.parent
         self.WORK = Path.cwd()
 
+        name = __title__.lower()
+
         # Get the temp directory
-        self.temp = Path(tempfile.gettempdir()).joinpath("yugiquery")
+        self.temp = Path(tempfile.gettempdir()).joinpath(name)
         self.temp.mkdir(parents=True, exist_ok=True)
 
         # Determine the ASSETS path
-        self._PKG_ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / "yugiquery"
+        self._PKG_ASSETS = Path(os.getenv("VIRTUAL_ENV", "")) / "share" / name
         if not self._PKG_ASSETS.is_dir():
-            self._PKG_ASSETS = Path.home() / ".local" / "share" / "yugiquery"
+            self._PKG_ASSETS = Path.home() / ".local" / "share" / name
             if not self._PKG_ASSETS.is_dir():
-                self._PKG_ASSETS = Path(sysconfig.get_path("data")) / "share" / "yugiquery"
+                self._PKG_ASSETS = Path(sysconfig.get_path("data")) / "share" / name
                 if not self._PKG_ASSETS.is_dir():
-                    self._PKG_ASSETS = Path(user_data_dir("yugiquery"))
+                    self._PKG_ASSETS = Path(user_data_dir(name))
                     if not self._PKG_ASSETS.is_dir():
-                        self._PKG_ASSETS = Path(site_data_dir("yugiquery"))
+                        self._PKG_ASSETS = Path(site_data_dir(name))
                         if not self._PKG_ASSETS.is_dir():
                             self._PKG_ASSETS = self.APP.parent / "assets"
                             if not self._PKG_ASSETS.is_dir():

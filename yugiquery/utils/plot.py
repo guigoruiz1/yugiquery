@@ -29,10 +29,10 @@ from .dirs import dirs
 
 
 # --- Matplotlib Settings & Overrides --- #
-plt.style.use("default")  # TODO: Make this configurable
 if dirs.is_notebook:
     from matplotlib_inline.backend_inline import set_matplotlib_formats
 
+    plt.style.use("default")  # TODO: Make this configurable
     set_matplotlib_formats("svg")  # Needed for dynanmic theme
 
 
