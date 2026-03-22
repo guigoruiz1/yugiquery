@@ -518,7 +518,6 @@ def _build_set_df(
             if "print" in extras and row in extras["print"].dropna().index:
                 result.at[row, "Print"] = extras.at[row, "print"]
     else:
-        # TODO: Test
         # Use template-level values as fallback
         for row in result.index:
             name_value = result.at[row, "Name"]

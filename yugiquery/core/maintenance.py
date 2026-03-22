@@ -16,7 +16,7 @@ from IPython.display import display
 import pandas as pd
 
 # --- Imports: Local Application --- #
-from ..utils import dirs, get_notebook_path, git, load_json, make_filename, LoggerConfig
+from ..utils import dirs, get_notebook_path, git, load_json, make_filename, LoggerConfig, lock, unlock
 
 # --- Halo Spinner Import --- #
 if dirs.is_notebook:
@@ -222,98 +222,105 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
     Returns:
         str: Git commit output or dry-run advisory message.
     """
-    print("\nUpdating index")
-    logger.info("Updating index")
+    lock("update_index")
+    try:
+        print("\nUpdating index")
+        logger.info("Updating index")
 
-    def extract_permalink(md_file: Path) -> str | None:
-        """Extract permalink from Jekyll frontmatter, returning None if not found."""
-        with open(md_file, "r", encoding="utf-8") as f:
-            in_frontmatter = False
-            for line in f:
-                if line.strip() == "---":
-                    if in_frontmatter:
-                        return None
-                    in_frontmatter = True
-                    continue
-                if in_frontmatter and line.strip().startswith("permalink:"):
-                    permalink = line.split(":", 1)[1].strip()
-                    return permalink.strip('"').strip("'")
-        return None
+        def extract_permalink(md_file: Path) -> str | None:
+            """Extract permalink from Jekyll frontmatter, returning None if not found."""
+            with open(md_file, "r", encoding="utf-8") as f:
+                in_frontmatter = False
+                for line in f:
+                    if line.strip() == "---":
+                        if in_frontmatter:
+                            return None
+                        in_frontmatter = True
+                        continue
+                    if in_frontmatter and line.strip().startswith("permalink:"):
+                        permalink = line.split(":", 1)[1].strip()
+                        return permalink.strip('"').strip("'")
+            return None
 
-    index_path = dirs.WORK / "index.md"
-    readme_path = dirs.WORK / "README.md"
+        index_path = dirs.WORK / "index.md"
+        readme_path = dirs.WORK / "README.md"
 
-    timestamp = arrow.utcnow()
+        timestamp = arrow.utcnow()
 
-    with open(index_path, encoding="utf-8") as f:
-        index = f.read()
-    with open(readme_path, encoding="utf-8") as f:
-        readme = f.read()
+        with open(index_path, encoding="utf-8") as f:
+            index = f.read()
+        with open(readme_path, encoding="utf-8") as f:
+            readme = f.read()
 
-    all_reports = {f.stem: ("html", f) for f in dirs.REPORTS.glob("*.html")}
+        all_reports = {f.stem: ("html", f) for f in dirs.REPORTS.glob("*.html")}
 
-    for f in dirs.REPORTS.glob("*.md"):
-        all_reports[f.stem] = ("md", f)
+        for f in dirs.REPORTS.glob("*.md"):
+            all_reports[f.stem] = ("md", f)
 
-    if page_paths:
-        for path in page_paths:
-            path = Path(path)
-            if path.is_dir():
-                for f in path.glob("*.md"):
-                    all_reports[f.stem] = ("md", f)
-            elif path.is_file() and path.suffix == ".md":
-                all_reports[path.stem] = ("md", path)
+        if page_paths:
+            for path in page_paths:
+                path = Path(path)
+                if path.is_dir():
+                    for f in path.glob("*.md"):
+                        all_reports[f.stem] = ("md", f)
+                elif path.is_file() and path.suffix == ".md":
+                    all_reports[path.stem] = ("md", path)
 
-    rows = []
-    for stem in sorted(all_reports.keys()):
-        file_type, report_file = all_reports[stem]
+        rows = []
+        for stem in sorted(all_reports.keys()):
+            file_type, report_file = all_reports[stem]
 
-        if file_type == "md":
-            permalink = extract_permalink(report_file)
-            if permalink:
-                link_path = permalink.strip("/")
+            if file_type == "md":
+                permalink = extract_permalink(report_file)
+                if permalink:
+                    link_path = permalink.strip("/")
+                else:
+                    link_path = f"reports/{stem}"
             else:
-                link_path = f"reports/{stem}"
-        else:
-            link_path = str(report_file.relative_to(dirs.WORK))
+                link_path = str(report_file.relative_to(dirs.WORK))
 
-        timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
-        rows.append(f"[{stem}]({link_path}) | {timestamp_str}")
+            timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
+            rows.append(f"[{stem}]({link_path}) | {timestamp_str}")
 
-    table = " |\n| ".join(rows)
+        table = " |\n| ".join(rows)
 
-    def replace_table(content: str) -> str:
-        start_marker = "<!-- REPORT_TABLE_START -->"
-        end_marker = "<!-- REPORT_TABLE_END -->"
-        start = content.find(start_marker)
-        end = content.find(end_marker)
-        if start == -1 or end == -1 or end < start:
-            raise ValueError("Table markers not found in file.")
-        before = content[: start + len(start_marker)]
-        after = content[end:]
-        updated = before + "\n" + table + "\n" + after
+        def replace_table(content: str) -> str:
+            start_marker = "<!-- REPORT_TABLE_START -->"
+            end_marker = "<!-- REPORT_TABLE_END -->"
+            start = content.find(start_marker)
+            end = content.find(end_marker)
+            if start == -1 or end == -1 or end < start:
+                raise ValueError("Table markers not found in file.")
+            before = content[: start + len(start_marker)]
+            after = content[end:]
+            updated = before + "\n" + table + "\n" + after
 
-        ts_pattern = r"(last executed at `)([^`]+)(`)"
-        new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
-        updated_new, n_subs = re.subn(ts_pattern, r"\g<1>" + new_ts + r"\g<3>", updated)
-        if n_subs == 0:
-            raise ValueError("Last executed timestamp pattern not found in file.")
-        return updated_new
+            ts_pattern = r"(last executed at `)([^`]+)(`)"
+            new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
+            updated_new, n_subs = re.subn(ts_pattern, r"\g<1>" + new_ts + r"\g<3>", updated)
+            if n_subs == 0:
+                raise ValueError("Last executed timestamp pattern not found in file.")
+            return updated_new
 
-    index = replace_table(index)
-    readme = replace_table(readme)
+        index = replace_table(index)
+        readme = replace_table(readme)
 
-    if dry_run:
-        return "\nDry run - README and index updated"
+        if dry_run:
+            return "\nDry run - README and index updated"
 
-    with open(index_path, "w", encoding="utf-8") as o:
-        o.write(index)
-    with open(readme_path, "w", encoding="utf-8") as o:
-        o.write(readme)
-    return git.commit(
-        files=[index_path, readme_path],
-        message=f"Index and README timestamp update - {timestamp.isoformat()}",
-    )
+        with open(index_path, "w", encoding="utf-8") as o:
+            o.write(index)
+        with open(readme_path, "w", encoding="utf-8") as o:
+            o.write(readme)
+        return git.commit(
+            files=[index_path, readme_path],
+            message=f"Index and README timestamp update - {timestamp.isoformat()}",
+        )
+    finally:
+        try:
+            unlock("update_index")
+        except Exception as e:
+            logger.error("Error unlocking update_index lock. %s", e)
 
 
 # --- Data Cleanup --- #
@@ -331,110 +338,117 @@ def cleanup_data(dry_run: bool = False) -> None:
     Args:
         dry_run (bool, optional): If True, log intended actions without modifying files. Defaults to False.
     """
-    dry_run_str = " (dry run)" if dry_run else ""
-    logger.info("Starting data cleanup%s", dry_run_str)
+    lock("cleanup_data")
+    try:
+        dry_run_str = " (dry run)" if dry_run else ""
+        logger.info("Starting data cleanup%s", dry_run_str)
 
-    with Halo(
-        text="Cleaning up data...",
-        spinner="line",
-        enabled=("PM_IN_EXECUTION" not in os.environ) and LoggerConfig.get_level() > 20,
-    ) as spinner:
-        benchmark_file = dirs.DATA / "benchmark.json"
-        if benchmark_file.is_file():
-            spinner.text = "Condensing benchmark history..."
-            benchmark = load_json(benchmark_file)
-            new_benchmark = condense_benchmark(benchmark)
-            if dry_run:
-                logger.info("Benchmark: %s", new_benchmark)
-            else:
-                logger.info("Condensed benchmark history saved to %s", benchmark_file)
-                with open(benchmark_file, "w+") as f:
-                    json.dump(new_benchmark, f, indent=4)
-
-        file_list = list(dirs.DATA.glob("*.bz2"))
-        if not file_list:
-            return
-
-        df = pd.DataFrame(file_list, columns=["Name"])
-        df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
-        df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
-        df["IsChangelog"] = df["Name"].apply(lambda x: "changelog" in Path(x).name)
-
-        # Split into changelog and data
-        for is_changelog, label in [(True, "changelog"), (False, "data")]:
-            spinner.text = f"Cleaning {label} files..."
-            logger.info("Processing %s files...", label)
-            subdf = df[df["IsChangelog"] == is_changelog].copy()
-            if subdf.empty:
-                continue
-
-            # Last month: process per week, each file only once
-            last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-            last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
-            for (group, week), group_df in last_month.groupby(["Group", "Week"]):
-                files = group_df["Name"].sort_values(ascending=False).tolist()
-                if not files:
-                    continue
-                logger.debug("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
-                if is_changelog and len(files) > 1:
-                    new_changelog, new_filepath = condense_changelogs(files)
-                    logger.info("New changelog file: %s", new_filepath)
-                    if not dry_run:
-                        new_changelog.to_csv(new_filepath)
-                    for file in files:
-                        if file != new_filepath:
-                            logger.info("Delete %s", file)
-                            if not dry_run:
-                                os.remove(file)
+        with Halo(
+            text="Cleaning up data...",
+            spinner="line",
+            enabled=("PM_IN_EXECUTION" not in os.environ) and LoggerConfig.get_level() > 20,
+        ) as spinner:
+            benchmark_file = dirs.DATA / "benchmark.json"
+            if benchmark_file.is_file():
+                spinner.text = "Condensing benchmark history..."
+                benchmark = load_json(benchmark_file)
+                new_benchmark = condense_benchmark(benchmark)
+                if dry_run:
+                    logger.info("Benchmark: %s", new_benchmark)
                 else:
-                    # Keep the most recent file in the group
-                    most_recent = max(files, key=lambda f: os.path.getctime(f))
-                    for file in files:
-                        if file != most_recent:
-                            logger.info("Delete %s", file)
-                            if not dry_run:
-                                os.remove(file)
-                        else:
-                            logger.info("Keep %s", file)
+                    logger.info("Condensed benchmark history saved to %s", benchmark_file)
+                    with open(benchmark_file, "w+") as f:
+                        json.dump(new_benchmark, f, indent=4)
 
-            # Older: process per month, each file only once
-            older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-            older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
-            for (group, month), group_df in older.groupby(["Group", "Month"]):
-                files = group_df["Name"].sort_values(ascending=False).tolist()
-                if not files:
+            file_list = list(dirs.DATA.glob("*.bz2"))
+            if not file_list:
+                return
+
+            df = pd.DataFrame(file_list, columns=["Name"])
+            df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
+            df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
+            df["IsChangelog"] = df["Name"].apply(lambda x: "changelog" in Path(x).name)
+
+            # Split into changelog and data
+            for is_changelog, label in [(True, "changelog"), (False, "data")]:
+                spinner.text = f"Cleaning {label} files..."
+                logger.info("Processing %s files...", label)
+                subdf = df[df["IsChangelog"] == is_changelog].copy()
+                if subdf.empty:
                     continue
-                logger.debug("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
-                if is_changelog and len(files) > 1:
-                    new_changelog, new_filepath = condense_changelogs(files)
-                    logger.info("New changelog file: %s", new_filepath)
-                    if not dry_run:
-                        new_changelog.to_csv(new_filepath)
-                    for file in files:
-                        if file != new_filepath:
-                            logger.info("Delete %s", file)
-                            if not dry_run:
-                                os.remove(file)
-                else:
-                    # Keep the most recent file in the group
-                    most_recent = max(files, key=lambda f: os.path.getctime(f))
-                    for file in files:
-                        if file != most_recent:
-                            logger.info("Delete %s", file)
-                            if not dry_run:
-                                os.remove(file)
-                        else:
-                            logger.info("Keep %s", file)
 
-        spinner.text = "Updating index..."
-        if not dry_run:
-            result = git.commit(
-                files=[
-                    dirs.DATA / "benchmark.json",
-                    dirs.DATA / "*bz2",
-                ],
-                message=f"Data cleanup {arrow.utcnow().isoformat()}",
-            )
-            logger.info("%s", result)
+                # Last month: process per week, each file only once
+                last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
+                last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
+                for (group, week), group_df in last_month.groupby(["Group", "Week"]):
+                    files = group_df["Name"].sort_values(ascending=False).tolist()
+                    if not files:
+                        continue
+                    logger.debug("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
+                    if is_changelog and len(files) > 1:
+                        new_changelog, new_filepath = condense_changelogs(files)
+                        logger.info("New changelog file: %s", new_filepath)
+                        if not dry_run:
+                            new_changelog.to_csv(new_filepath)
+                        for file in files:
+                            if file != new_filepath:
+                                logger.info("Delete %s", file)
+                                if not dry_run:
+                                    os.remove(file)
+                    else:
+                        # Keep the most recent file in the group
+                        most_recent = max(files, key=lambda f: os.path.getctime(f))
+                        for file in files:
+                            if file != most_recent:
+                                logger.info("Delete %s", file)
+                                if not dry_run:
+                                    os.remove(file)
+                            else:
+                                logger.info("Keep %s", file)
 
-        spinner.succeed("Data cleanup completed")
+                # Older: process per month, each file only once
+                older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
+                older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
+                for (group, month), group_df in older.groupby(["Group", "Month"]):
+                    files = group_df["Name"].sort_values(ascending=False).tolist()
+                    if not files:
+                        continue
+                    logger.debug("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
+                    if is_changelog and len(files) > 1:
+                        new_changelog, new_filepath = condense_changelogs(files)
+                        logger.info("New changelog file: %s", new_filepath)
+                        if not dry_run:
+                            new_changelog.to_csv(new_filepath)
+                        for file in files:
+                            if file != new_filepath:
+                                logger.info("Delete %s", file)
+                                if not dry_run:
+                                    os.remove(file)
+                    else:
+                        # Keep the most recent file in the group
+                        most_recent = max(files, key=lambda f: os.path.getctime(f))
+                        for file in files:
+                            if file != most_recent:
+                                logger.info("Delete %s", file)
+                                if not dry_run:
+                                    os.remove(file)
+                            else:
+                                logger.info("Keep %s", file)
+
+            spinner.text = "Updating index..."
+            if not dry_run:
+                result = git.commit(
+                    files=[
+                        dirs.DATA / "benchmark.json",
+                        dirs.DATA / "*bz2",
+                    ],
+                    message=f"Data cleanup {arrow.utcnow().isoformat()}",
+                )
+                logger.info("%s", result)
+
+            spinner.succeed("Data cleanup completed")
+    finally:
+        try:
+            unlock("cleanup_data")
+        except Exception as e:
+            logger.error("Error unlocking cleanup_data lock. %s", e)

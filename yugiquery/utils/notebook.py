@@ -18,6 +18,7 @@ from traitlets.config import Config
 from IPython.display import HTML, Markdown
 
 # --- Imports: Local Application --- #
+from .helpers import lock, unlock
 from .dirs import dirs
 from .logging import LoggerConfig
 
@@ -161,39 +162,47 @@ def make_jekyll_page(
     Returns:
         None
     """
+
     if not title:
         path = get_notebook_path()
         title = path.stem if path else "index"
 
-    template_path = dirs.get_asset("html", "index.md")
-    with open(template_path, encoding="utf-8") as f:
-        content = f.read()
+    lock("make_jekyll_page_{title}")
+    try:
+        template_path = dirs.get_asset("html", "index.md")
+        with open(template_path, encoding="utf-8") as f:
+            content = f.read()
 
-    values = {"title": title}
-    if placeholders:
-        values.update({str(key): str(value) for key, value in placeholders.items()})
+        values = {"title": title}
+        if placeholders:
+            values.update({str(key): str(value) for key, value in placeholders.items()})
 
-    for key, value in values.items():
-        # Replace placeholders such as @title@
-        placeholder = f"@{key}@"
-        content = content.replace(placeholder, value)
+        for key, value in values.items():
+            # Replace placeholders such as @title@
+            placeholder = f"@{key}@"
+            content = content.replace(placeholder, value)
 
-    if output_path:
-        output_path = Path(output_path)
-        # Only add .md if no extension provided
-        if not output_path.suffix:
-            output_path = output_path.with_suffix(".md")
-        if not output_path.is_absolute():
-            output_path = dirs.REPORTS / output_path
-    else:
-        output_path = dirs.REPORTS / f"{title}.md"
+        if output_path:
+            output_path = Path(output_path)
+            # Only add .md if no extension provided
+            if not output_path.suffix:
+                output_path = output_path.with_suffix(".md")
+            if not output_path.is_absolute():
+                output_path = dirs.REPORTS / output_path
+        else:
+            output_path = dirs.REPORTS / f"{title}.md"
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, mode="w", encoding="utf-8") as f:
-        f.write(content)
+        with open(output_path, mode="w", encoding="utf-8") as f:
+            f.write(content)
 
-    logger.info("Report page generated at %s", output_path)
+        logger.info("Report page generated at %s", output_path)
+    finally:
+        try:
+            unlock("make_jekyll_page_{title}")
+        except Exception as e:
+            logger.error("Failed to release lock for make_jekyll_page_{title}. %s", e)
 
 
 # --- HTML Functions --- #
