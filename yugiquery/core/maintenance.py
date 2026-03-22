@@ -347,6 +347,7 @@ def cleanup_data(dry_run: bool = False) -> None:
             if dry_run:
                 logger.info("Benchmark: %s", new_benchmark)
             else:
+                logger.info("Condensed benchmark history saved to %s", benchmark_file)
                 with open(benchmark_file, "w+") as f:
                     json.dump(new_benchmark, f, indent=4)
 
@@ -362,6 +363,7 @@ def cleanup_data(dry_run: bool = False) -> None:
         # Split into changelog and data
         for is_changelog, label in [(True, "changelog"), (False, "data")]:
             spinner.text = f"Cleaning {label} files..."
+            logger.info("Processing %s files...", label)
             subdf = df[df["IsChangelog"] == is_changelog].copy()
             if subdf.empty:
                 continue
@@ -370,10 +372,10 @@ def cleanup_data(dry_run: bool = False) -> None:
             last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
             last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
             for (group, week), group_df in last_month.groupby(["Group", "Week"]):
-                files = group_df["Name"].tolist()
+                files = group_df["Name"].sort_values(ascending=False).tolist()
                 if not files:
                     continue
-                logger.info("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
+                logger.debug("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
                 if is_changelog and len(files) > 1:
                     new_changelog, new_filepath = condense_changelogs(files)
                     logger.info("New changelog file: %s", new_filepath)
@@ -384,8 +386,6 @@ def cleanup_data(dry_run: bool = False) -> None:
                             logger.info("Delete %s", file)
                             if not dry_run:
                                 os.remove(file)
-                        else:
-                            logger.info("Keep %s", file)
                 else:
                     # Keep the most recent file in the group
                     most_recent = max(files, key=lambda f: os.path.getctime(f))
@@ -401,10 +401,10 @@ def cleanup_data(dry_run: bool = False) -> None:
             older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
             older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
             for (group, month), group_df in older.groupby(["Group", "Month"]):
-                files = group_df["Name"].tolist()
+                files = group_df["Name"].sort_values(ascending=False).tolist()
                 if not files:
                     continue
-                logger.info("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
+                logger.debug("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
                 if is_changelog and len(files) > 1:
                     new_changelog, new_filepath = condense_changelogs(files)
                     logger.info("New changelog file: %s", new_filepath)
@@ -415,8 +415,6 @@ def cleanup_data(dry_run: bool = False) -> None:
                             logger.info("Delete %s", file)
                             if not dry_run:
                                 os.remove(file)
-                        else:
-                            logger.info("Keep %s", file)
                 else:
                     # Keep the most recent file in the group
                     most_recent = max(files, key=lambda f: os.path.getctime(f))
