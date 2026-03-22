@@ -96,7 +96,7 @@ class LoggerConfig:
     _logger_name = __title__.lower()
 
     @classmethod
-    def setup(cls, level=None, log_file=None, logger_name=None) -> logging.Logger:
+    def setup(cls, level=None, log_file=None, logger_name=None) -> logging.Logger:  # TODO: make more elegant
         """
         Set up the logger with the specified level, log file, and logger name.
         Removes existing handlers and attaches a new handler (file or tqdm-based).
@@ -109,11 +109,20 @@ class LoggerConfig:
         Returns:
             logging.Logger: The configured logger instance.
         """
-        cls._level = level or os.environ.get("YQ_LOG_LEVEL", "WARNING")
+
         cls._log_file = log_file or os.environ.get("YQ_LOG_FILE", None)
         cls._logger_name = logger_name or cls._logger_name or __title__.lower()
         logger = logging.getLogger(cls._logger_name)
-        logger.setLevel(logging._nameToLevel.get(str(cls._level).upper(), logging.INFO))
+
+        level = level or os.environ.get("YQ_LOG_LEVEL", "WARNING")
+        if isinstance(level, str):
+            cls._level = logging._nameToLevel.get(level.upper(), logging.WARNING)
+        elif isinstance(level, int):
+            cls._level = logging._nameToLevel.get(logging.getLevelName(level), logging.WARNING)
+        else:
+            cls._level = logging.WARNING
+
+        logger.setLevel(cls._level)
         for handler in list(logger.handlers):
             logger.removeHandler(handler)
         if cls._log_file:
@@ -142,9 +151,9 @@ class LoggerConfig:
         Set environment variables to reflect the current logger configuration.
         """
         if cls._level is not None:
-            os.environ["YQ_LOG_LEVEL"] = cls._level
+            os.environ["YQ_LOG_LEVEL"] = str(cls._level)
         if cls._log_file is not None:
-            os.environ["YQ_LOG_FILE"] = cls._log_file
+            os.environ["YQ_LOG_FILE"] = str(cls._log_file)
 
     @classmethod
     def clean_env(cls) -> None:

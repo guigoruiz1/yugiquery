@@ -30,7 +30,7 @@ from termcolor import cprint
 # --- Imports: Local Application --- #
 from .. import utils
 from ..metadata import __title__, __url__, __version__
-from ..utils import md5, LoggerConfig
+from ..utils import md5, LoggerConfig, dirs
 from .parsers import (
     extract_results,
     format_df,
@@ -41,7 +41,7 @@ from .parsers import (
 logger = LoggerConfig.get_logger()
 
 # --- Halo Spinner Import --- #
-if utils.dirs.is_notebook:
+if dirs.is_notebook:
     from halo import HaloNotebook as Halo
 else:
     from halo import Halo
@@ -170,7 +170,7 @@ def check_status() -> bool:
 # --- Category Members --- #
 
 
-def fetch_categorymembers(
+def fetch_categorymembers(  # TODO: log errors
     category: str,
     namespace: int | None = None,
     step: int = 500,
@@ -254,7 +254,7 @@ def fetch_categorymembers(
 # --- Properties --- #
 
 
-def fetch_properties(
+def fetch_properties(  # TODO: log errors
     condition: str,
     query: str,
     step: int = 500,

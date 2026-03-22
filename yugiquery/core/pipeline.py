@@ -278,7 +278,7 @@ def _write_changelog(prev_df, prev_ts, new_df, new_ts, file_name: str, col: str 
     return None
 
 
-def update_data(
+def update_data(  # TODO: propagate exceptions
     flows: List[str] | str = "all", pbars: List[tqdm] = [], changelog=True, benchmark=True, commit=True
 ) -> dict[Any, tuple[pd.DataFrame | None, Path | None, Path | None]]:
     """
@@ -556,7 +556,7 @@ def run(
     logger.info("Execution completed")
 
 
-def _run_data(
+def _run_data(  # TODO: propagate exceptions
     data_flows: list[str],
     dry_run: bool = False,
     benchmark: bool = True,

@@ -6,6 +6,7 @@
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Dict, List, Tuple, TypedDict
 
@@ -16,6 +17,12 @@ import pandas as pd
 
 # --- Imports: Local Application --- #
 from ..utils import dirs, get_notebook_path, git, load_json, make_filename, LoggerConfig
+
+# --- Halo Spinner Import --- #
+if dirs.is_notebook:
+    from halo import HaloNotebook as Halo
+else:
+    from halo import Halo
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -326,96 +333,110 @@ def cleanup_data(dry_run: bool = False) -> None:
     """
     dry_run_str = " (dry run)" if dry_run else ""
     logger.info("Starting data cleanup%s", dry_run_str)
-    print(f"\nStarting data cleanup{dry_run_str}")
 
-    benchmark_file = dirs.DATA / "benchmark.json"
-    if benchmark_file.is_file():
-        benchmark = load_json(benchmark_file)
-        new_benchmark = condense_benchmark(benchmark)
-        if dry_run:
-            logger.info("Benchmark: %s", new_benchmark)
-        else:
-            with open(benchmark_file, "w+") as f:
-                json.dump(new_benchmark, f, indent=4)
+    with Halo(
+        text="Cleaning up data...",
+        spinner="line",
+        enabled=("PM_IN_EXECUTION" not in os.environ) and LoggerConfig.get_level() > 20,
+    ) as spinner:
+        benchmark_file = dirs.DATA / "benchmark.json"
+        if benchmark_file.is_file():
+            spinner.text = "Condensing benchmark history..."
+            benchmark = load_json(benchmark_file)
+            new_benchmark = condense_benchmark(benchmark)
+            if dry_run:
+                logger.info("Benchmark: %s", new_benchmark)
+            else:
+                with open(benchmark_file, "w+") as f:
+                    json.dump(new_benchmark, f, indent=4)
 
-    file_list = list(dirs.DATA.glob("*.bz2"))
-    if not file_list:
-        return
+        file_list = list(dirs.DATA.glob("*.bz2"))
+        if not file_list:
+            return
 
-    df = pd.DataFrame(file_list, columns=["Name"])
-    df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
-    df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
-    df["IsChangelog"] = df["Name"].apply(lambda x: "changelog" in Path(x).name)
+        df = pd.DataFrame(file_list, columns=["Name"])
+        df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
+        df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
+        df["IsChangelog"] = df["Name"].apply(lambda x: "changelog" in Path(x).name)
 
-    # Split into changelog and data
-    for is_changelog, label in [(True, "changelog"), (False, "data")]:
-        subdf = df[df["IsChangelog"] == is_changelog].copy()
-        if subdf.empty:
-            continue
+        # Split into changelog and data
+        for is_changelog, label in [(True, "changelog"), (False, "data")]:
+            spinner.text = f"Cleaning {label} files..."
+            subdf = df[df["IsChangelog"] == is_changelog].copy()
+            if subdf.empty:
+                continue
 
-        # Last month: keep most recent per week
-        last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-        last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
-        keep_last_month = last_month.sort_values("Date").groupby(["Group", "Week"], as_index=False).last()
-        keep_last_month_files = set(keep_last_month["Name"].tolist())
-
-        # Older: keep most recent per month
-        older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-        older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
-        keep_older = older.sort_values("Date").groupby(["Group", "Month"], as_index=False).last()
-        keep_older_files = set(keep_older["Name"].tolist())
-
-        # Files to keep
-        keep_files = keep_last_month_files | keep_older_files
-
-        # For changelogs, condense if multiple in a week/month
-        if is_changelog:
-            # Condense per week (last month)
+            # Last month: process per week, each file only once
+            last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
+            last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
             for (group, week), group_df in last_month.groupby(["Group", "Week"]):
                 files = group_df["Name"].tolist()
-                if len(files) > 1:
+                if not files:
+                    continue
+                logger.info("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
+                if is_changelog and len(files) > 1:
                     new_changelog, new_filepath = condense_changelogs(files)
                     logger.info("New changelog file: %s", new_filepath)
                     if not dry_run:
                         new_changelog.to_csv(new_filepath)
                     for file in files:
-                        if dry_run:
+                        if file != new_filepath:
                             logger.info("Delete %s", file)
+                            if not dry_run:
+                                os.remove(file)
                         else:
-                            os.remove(file)
-                    keep_files.add(str(new_filepath))
-            # Condense per month (older)
+                            logger.info("Keep %s", file)
+                else:
+                    # Keep the most recent file in the group
+                    most_recent = max(files, key=lambda f: os.path.getctime(f))
+                    for file in files:
+                        if file != most_recent:
+                            logger.info("Delete %s", file)
+                            if not dry_run:
+                                os.remove(file)
+                        else:
+                            logger.info("Keep %s", file)
+
+            # Older: process per month, each file only once
+            older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
+            older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
             for (group, month), group_df in older.groupby(["Group", "Month"]):
                 files = group_df["Name"].tolist()
-                if len(files) > 1:
+                if not files:
+                    continue
+                logger.info("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
+                if is_changelog and len(files) > 1:
                     new_changelog, new_filepath = condense_changelogs(files)
                     logger.info("New changelog file: %s", new_filepath)
                     if not dry_run:
                         new_changelog.to_csv(new_filepath)
                     for file in files:
-                        if dry_run:
+                        if file != new_filepath:
                             logger.info("Delete %s", file)
+                            if not dry_run:
+                                os.remove(file)
                         else:
-                            os.remove(file)
-                    keep_files.add(str(new_filepath))
-
-        # Remove files not in keep_files
-        for file in subdf["Name"]:
-            if str(file) not in keep_files:
-                if dry_run:
-                    logger.info("Delete %s", file)
+                            logger.info("Keep %s", file)
                 else:
-                    os.remove(file)
-            else:
-                if dry_run:
-                    logger.info("Keep %s", file)
+                    # Keep the most recent file in the group
+                    most_recent = max(files, key=lambda f: os.path.getctime(f))
+                    for file in files:
+                        if file != most_recent:
+                            logger.info("Delete %s", file)
+                            if not dry_run:
+                                os.remove(file)
+                        else:
+                            logger.info("Keep %s", file)
 
-    if not dry_run:
-        result = git.commit(
-            files=[
-                dirs.DATA / "benchmark.json",
-                dirs.DATA / "*bz2",
-            ],
-            message=f"Data cleanup {arrow.utcnow().isoformat()}",
-        )
-        logger.info("%s", result)
+        spinner.text = "Updating index..."
+        if not dry_run:
+            result = git.commit(
+                files=[
+                    dirs.DATA / "benchmark.json",
+                    dirs.DATA / "*bz2",
+                ],
+                message=f"Data cleanup {arrow.utcnow().isoformat()}",
+            )
+            logger.info("%s", result)
+
+        spinner.succeed("Data cleanup completed")
