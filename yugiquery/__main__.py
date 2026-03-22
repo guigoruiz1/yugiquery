@@ -28,16 +28,27 @@ def main():
     # Subparser for the main yugiquery flow
     run_parser = subparsers.add_parser("run", help="Run the full Yugiquery flow", formatter_class=CustomHelpFormatter)
     cli.set_run_parser(run_parser)
+
     # Subparser for fetching data only
     fetch_parser = subparsers.add_parser(
         "fetch", help="Fetch/update data only (no reports)", formatter_class=CustomHelpFormatter
     )
     cli.set_fetch_parser(fetch_parser)
+
     # Subparser for generating reports only
     report_parser = subparsers.add_parser(
         "report", help="Generate reports only (no data update)", formatter_class=CustomHelpFormatter
     )
     cli.set_report_parser(report_parser)
+
+    # Subparser for the cleanup command
+    cleanup_parser = subparsers.add_parser(
+        "cleanup",
+        help="Clean up redundant data files and compact benchmark/changelog history.",
+        formatter_class=CustomHelpFormatter,
+    )
+    cli.set_cleanup_parser(cleanup_parser)
+
     # Subparser for the bot mode
     bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
     bot.set_parser(bot_parser)
@@ -82,7 +93,8 @@ def main():
         cli.handle_fetch(args)
     elif args.command == "report":
         cli.handle_report(args)
-    # No fallback: all commands are now handled explicitly
+    elif args.command == "cleanup":
+        cli.handle_cleanup(args)
 
 
 if __name__ == "__main__":

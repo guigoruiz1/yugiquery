@@ -7,8 +7,7 @@ import argparse
 import re
 
 # --- Imports: Local Application --- #
-from .core import run, update_data
-from .core import update_data
+from .core import run, cleanup_data
 from .utils import auto_or_bool, git, LoggerConfig
 
 
@@ -216,6 +215,13 @@ def handle_report(args):
     )
 
 
+def handle_cleanup(args):
+    LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
+    _ = git.ensure_repo()
+
+    cleanup_data(dry_run=args.dryrun)
+
+
 def set_run_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "reports",
@@ -230,6 +236,13 @@ def set_run_parser(parser: argparse.ArgumentParser) -> None:
     _set_report_args(report_group)
     _set_data_args(data_group)
     _set_progress_args(parser)
+    _set_debug_args(parser)
+
+
+def set_cleanup_parser(parser: argparse.ArgumentParser) -> None:
+    """
+    Configure the cleanup subparser with debug flags (e.g., --dryrun, --log-level, --log-file).
+    """
     _set_debug_args(parser)
 
 
