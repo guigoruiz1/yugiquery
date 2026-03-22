@@ -7,6 +7,7 @@ import argparse
 import io
 import logging
 import os
+import sys
 import warnings
 from pathlib import Path
 from typing import Any, Callable, List, Literal
@@ -294,6 +295,7 @@ def update_data(
     }
     has_errata = {"cards", "rush", "speed"}
     results = {}
+
     # Always work with lowercase flow names for case-insensitivity
     if isinstance(flows, str):
         flows = [flows]
@@ -477,6 +479,7 @@ def run(
 
     print("\nExecution started")
     logger.info("Execution started")
+    print()  # Empty space for better readability
 
     # Get the current commit hash
     start_commit = git.get_repo().head.commit
@@ -542,9 +545,11 @@ def run(
         print("\nSquashing commits")
         try:
             squash_results = git.squash_commits(start_commit)
-            logger.info("%s", squash_results)
             print(squash_results)
+            logger.info("%s", squash_results)
         except Exception as e:
+            if progress_handler:
+                progress_handler.send(error=str(e))
             logger.warning("Error squashing commits. Ignoring... %s", e)
 
     print("\nExecution completed")
@@ -582,7 +587,7 @@ def _run_data(
         )
         for pbar in pbars:
             pbar.close()
-            if pbar.fp is not None:
+            if pbar.fp is not None and pbar.fp not in (sys.stdout, sys.stderr):
                 pbar.fp.close()
 
         # 3. Cleanup redundant data files
@@ -629,7 +634,7 @@ def _run_reports(
             )
             for pbar in pbars:
                 pbar.close()
-                if pbar.fp is not None:
+                if pbar.fp is not None and pbar.fp not in (sys.stdout, sys.stderr):
                     pbar.fp.close()
         except Exception as e:
             if progress_handler:
@@ -656,8 +661,8 @@ def _run_reports(
         # 5. Update page index
         try:
             index_result = update_index(dry_run=dry_run)
-            logger.info("%s", index_result)
-            print("\n", index_result)
+            print(index_result)
+            logger.info(index_result)
         except Exception as e:
             if progress_handler:
                 progress_handler.send(error=str(e))

@@ -66,9 +66,6 @@ def generate_changelog(previous_df: pd.DataFrame, current_df: pd.DataFrame, col:
         rows_to_keep = true_changes.union(new_entries).unique()
         changelog = changelog.loc[rows_to_keep].sort_values(by=[*col, "Version"])
 
-    if changelog.empty:
-        logger.info("No changes")
-
     return changelog
 
 
@@ -218,6 +215,8 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
     Returns:
         str: Git commit output or dry-run advisory message.
     """
+    print("\nUpdating index")
+    logger.info("Updating index")
 
     def extract_permalink(md_file: Path) -> str | None:
         """Extract permalink from Jekyll frontmatter, returning None if not found."""

@@ -43,7 +43,7 @@ def load_latest(
 ) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]: ...
 
 
-def load_latest(
+def load_latest(  # TODO: better returns and return path
     name_pattern: str,
     type: str = "data",
     tuple_cols: List[str] = [],
@@ -94,14 +94,14 @@ def load_latest(
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
             df[col] = pd.to_datetime(df[col])
 
-        relpath = Path(os.path.relpath(files[0], dirs.WORK)).as_posix()
         logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
         if dirs.is_notebook:
+            relpath = Path(os.path.relpath(files[0], dirs.REPORTS)).as_posix()
             display(Markdown(f"{name_pattern.capitalize()} {type} loaded from [{relpath}]({relpath})"))
         else:
+            relpath = Path(os.path.relpath(files[0], dirs.WORK)).as_posix()
             tqdm.write(f"{name_pattern.capitalize()} {type} loaded from {relpath}")
 
-        logger.info(f"{name_pattern.capitalize()} {type} loaded from {relpath}")
         if return_ts:
             ts = arrow.get(Path(files[0]).stem.split("_")[-1])
             return df, ts
@@ -113,7 +113,7 @@ def load_latest(
     return None
 
 
-def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.DataFrame | None:
+def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.DataFrame | None:  # TODO: return path
     """
     Loads the changelog file associated with a given data file name and timestamp, matching the timestamp
     as the 'to' timestamp in the changelog filename.
@@ -144,11 +144,12 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
         timestamp_str = timestamp
     try:
         df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
-        relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
         logger.info(f"Changelog loaded from {changelog_file} for {name} {timestamp_str}")
         if dirs.is_notebook:
+            relpath = Path(os.path.relpath(changelog_file, dirs.REPORTS)).as_posix()
             display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
         else:
+            relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
             tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
 
         logger.info(f"Changelog loaded from {relpath} for {name.capitalize()} data")

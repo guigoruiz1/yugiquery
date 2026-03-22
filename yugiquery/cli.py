@@ -178,6 +178,8 @@ def handle_run(args):
         cleanup=args.cleanup,
         dry_run=args.dryrun,
         jekyll=args.jekyll,
+        changelog=args.changelog,
+        benchmark=args.benchmark,
         discord=args.discord,
         telegram=args.telegram,
         operation="all",

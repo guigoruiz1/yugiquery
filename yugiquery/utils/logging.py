@@ -64,7 +64,7 @@ class ColorFormatter(logging.Formatter):
             show_source (bool): If True, include module and function name in log output.
         """
         if show_source:
-            fmt = "%(asctime)s | %(levelname)s | %(module)s.%(funcName)s | %(message)s"
+            fmt = "%(asctime)s | %(levelname)s | %(module)s.%(funcName)s | %(lineno)d | %(message)s"
         else:
             fmt = "%(asctime)s | %(levelname)s | %(message)s"
         datefmt = "%Y-%m-%d %H:%M:%S"
