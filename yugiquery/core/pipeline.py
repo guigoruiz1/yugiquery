@@ -93,9 +93,11 @@ def run(
         if any(flow in ["cards", "rush", "speed"] for flow in data_flows):
             total += 1
 
-        data_pbars, data_pbar_kwargs = _setup_pbars(
+        data_pbars, _ = _setup_pbars(
             total=total,
-            external_pbar=progress_handler.pbar if progress_handler else None,
+            extra_pbar=(
+                progress_handler.pbar if progress_handler else None
+            ),  # No need for local progress bar. _run_data is verbose.
             discord=discord,
             telegram=telegram,
         )
@@ -110,20 +112,14 @@ def run(
         )
 
     if operation in ("reports", "both", "all") and len(report_paths) > 0:
-        reports_pbars, reports_pbar_kwargs = _setup_pbars(
+        reports_pbars, _ = _setup_pbars(
             total=len(report_paths),
-            external_pbar=progress_handler.pbar if progress_handler else None,
+            extra_pbar=(
+                progress_handler.pbar if progress_handler else tqdm
+            ),  # Show local progress bar if no progress handler is provided.
             discord=discord,
             telegram=telegram,
         )
-        # Only show local progress bar if no external progress handler is provided. Not needed for data flows
-        if progress_handler is None:
-            reports_pbars.append(
-                tqdm(
-                    position=0,
-                    **reports_pbar_kwargs,
-                )
-            )
 
         _run_reports(
             report_paths=report_paths,
@@ -786,7 +782,7 @@ def run_notebooks(
 
 def _setup_pbars(
     total: int,
-    external_pbar: Callable[..., tqdm | None] | None,
+    extra_pbar: Callable[..., tqdm | None] | None,
     discord: bool | argparse.Namespace,
     telegram: bool | argparse.Namespace,
 ) -> tuple[List[tqdm], dict[str, Any]]:
@@ -795,7 +791,7 @@ def _setup_pbars(
 
     Args:
         total (int): Total number of items to process.
-        external_pbar (Callable[..., tqdm | None] | None): External progress bar callable.
+        extra_pbar (Callable[..., tqdm | None] | None): Extra progress bar callable.
         discord (bool | argparse.Namespace): Discord configuration.
         telegram (bool | argparse.Namespace): Telegram configuration.
 
@@ -876,8 +872,8 @@ def _setup_pbars(
             return None
 
     # Setup primary progress bar
-    if external_pbar is not None:
-        pbars.append(external_pbar(position=0, **pbar_kwargs))
+    if extra_pbar is not None:
+        pbars.append(extra_pbar(position=0, **pbar_kwargs))
 
     # Setup contrib progress bars
     for contrib in contribs:

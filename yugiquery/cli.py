@@ -10,146 +10,22 @@ import re
 from .core import run, cleanup_data
 from .utils import auto_or_bool, git, LoggerConfig
 
-
 # --- Argparse Utilities --- #
 
 
 class CustomHelpFormatter(argparse.HelpFormatter):
+    """Custom help formatter to improve the formatting of command-line arguments in the help message."""
+
     def __init__(self, prog):
         super().__init__(prog, max_help_position=60)
 
-    def _format_action_invocation(self, action):
-        if not action.option_strings or action.nargs == 0:
-            return super()._format_action_invocation(action)
-        elif isinstance(action, CredAction):
-            # Override to show [TOKEN] [CHANNEL] format
-            metavars = action.metavar or (self._get_default_metavar_for_optional(action),)
-            return ", ".join(action.option_strings) + " " + " ".join(f"[{metavar}]" for metavar in metavars)
+    def _format_args(self, action, default_metavar):
+        """Format the argument list for the help message."""
+        if action.nargs == argparse.ZERO_OR_MORE:
+            metavar = "[" + " ".join(self._metavar_formatter(action, default_metavar)(1)) + "]"
+            return metavar
         else:
-            # Override to show -a, --arg [ARG] format
-            default = self._get_default_metavar_for_optional(action)
-            args_string = self._format_args(action, default)
-            return ", ".join(action.option_strings) + " " + args_string
-
-    def _format_actions_usage(self, actions, groups):
-        # Find group indices and identify actions in groups
-        actions = list(actions)
-        group_actions = set()
-        inserts = {}
-        for group in groups:
-            if not group._group_actions:
-                raise ValueError(f"empty group {group}")
-
-            try:
-                start = actions.index(group._group_actions[0])
-            except ValueError:
-                continue
-            else:
-                group_action_count = len(group._group_actions)
-                end = start + group_action_count
-                if actions[start:end] == group._group_actions:
-
-                    suppressed_actions_count = 0
-                    for action in group._group_actions:
-                        group_actions.add(action)
-                        if action.help is argparse.SUPPRESS:
-                            suppressed_actions_count += 1
-
-                    exposed_actions_count = group_action_count - suppressed_actions_count
-                    if not exposed_actions_count:
-                        continue
-
-                    if not group.required:
-                        if start in inserts:
-                            inserts[start] += " ["
-                        else:
-                            inserts[start] = "["
-                        if end in inserts:
-                            inserts[end] += "]"
-                        else:
-                            inserts[end] = "]"
-                    elif exposed_actions_count > 1:
-                        if start in inserts:
-                            inserts[start] += " ("
-                        else:
-                            inserts[start] = "("
-                        if end in inserts:
-                            inserts[end] += ")"
-                        else:
-                            inserts[end] = ")"
-                    for i in range(start + 1, end):
-                        inserts[i] = "|"
-
-        # Collect all actions format strings
-        parts = []
-        for i, action in enumerate(actions):
-
-            # Suppressed arguments are marked with None
-            # Remove | separators for suppressed arguments
-            if action.help is argparse.SUPPRESS:
-                parts.append(None)
-                if inserts.get(i) == "|":
-                    inserts.pop(i)
-                elif inserts.get(i + 1) == "|":
-                    inserts.pop(i + 1)
-
-            # Produce all arg strings
-            elif not action.option_strings:
-                default = self._get_default_metavar_for_positional(action)
-                part = self._format_args(action, default)
-
-                # If it's in a group, strip the outer []
-                if action in group_actions:
-                    if part[0] == "[" and part[-1] == "]":
-                        part = part[1:-1]
-
-                # Add the action string to the list
-                parts.append(part)
-
-            # Produce the first way to invoke the option in brackets
-            else:
-                option_string = action.option_strings[0]
-
-                # Handle CredAction separately
-                if isinstance(action, CredAction):
-                    # Format for CredAction
-                    metavars = action.metavar or (self._get_default_metavar_for_optional(action),)
-                    args_string = " ".join(f"[{metavar}]" for metavar in metavars)
-                    part = "%s %s" % (option_string, args_string)
-                    part = f"[{part}]"
-                else:
-                    # Default format for other actions
-                    if action.nargs == 0:
-                        part = action.format_usage()
-                    else:
-                        default = self._get_default_metavar_for_optional(action)
-                        args_string = self._format_args(action, default)
-                        part = "%s %s" % (option_string, args_string)
-
-                    # Make it look optional if it's not required or in a group
-                    if not action.required and action not in group_actions:
-                        part = "[%s]" % part
-
-                # Add the action string to the list
-                parts.append(part)
-
-        # Insert things at the necessary indices
-        for i in sorted(inserts, reverse=True):
-            parts[i:i] = [inserts[i]]
-
-        # Join all the action items with spaces
-        text = " ".join([item for item in parts if item is not None])
-
-        # Clean up separators for mutually exclusive groups
-        open = r"[\[(]"
-        close = r"[\])]"
-        text = re.sub(r"(%s) " % open, r"\1", text)
-        text = re.sub(r" (%s)" % close, r"\1", text)
-        text = re.sub(r"%s *%s" % (open, close), r"", text)
-        text = text.strip()
-
-        # Return the text
-        return text
+            return super()._format_args(action, default_metavar)
 
 
 class CredAction(argparse.Action):
@@ -169,6 +45,7 @@ class CredAction(argparse.Action):
 
 
 def handle_run(args):
+    """Handle the 'run' subcommand: set up logging, ensure git repo, and execute the main workflow."""
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
 
@@ -186,6 +63,7 @@ def handle_run(args):
 
 
 def handle_fetch(args):
+    """Handle the 'fetch' subcommand: set up logging, ensure git repo, and execute the data update workflow."""
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
 
@@ -202,6 +80,7 @@ def handle_fetch(args):
 
 
 def handle_report(args):
+    """Handle the 'report' subcommand: set up logging, ensure git repo, and execute the report generation workflow."""
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
     # Only run notebooks and git ops, no API/data update
@@ -216,13 +95,24 @@ def handle_report(args):
 
 
 def handle_cleanup(args):
+    """Handle the 'cleanup' subcommand: set up logging, ensure git repo, and execute the cleanup routine."""
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
 
     cleanup_data(dry_run=args.dryrun)
 
 
-def set_run_parser(parser: argparse.ArgumentParser) -> None:
+def set_run_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
+    """Configure the run subparser with arguments for reports, cleanup, progress bars, and debugging. Can be used as a subparser or standalone parser."""
+
+    desc = "Run the full Yugiquery flow"
+    if target is None:
+        parser = argparse.ArgumentParser(description=desc, formatter_class=CustomHelpFormatter)
+    elif isinstance(target, argparse._SubParsersAction):
+        parser = target.add_parser("run", description=desc, help=desc, formatter_class=CustomHelpFormatter)
+    else:
+        parser = target
+
     parser.add_argument(
         "reports",
         nargs="*",
@@ -231,22 +121,26 @@ def set_run_parser(parser: argparse.ArgumentParser) -> None:
         type=str,
         help="the report(s) to be generated. Defaults to 'all'",
     )
-    report_group = parser.add_argument_group("Report generation options")
-    data_group = parser.add_argument_group("Data update options")
+    report_group = parser.add_argument_group("report options")
+    data_group = parser.add_argument_group("data options")
     _set_report_args(report_group)
     _set_data_args(data_group)
     _set_progress_args(parser)
-    _set_debug_args(parser)
+    set_debug_args(parser)
+    return parser
 
 
-def set_cleanup_parser(parser: argparse.ArgumentParser) -> None:
-    """
-    Configure the cleanup subparser with debug flags (e.g., --dryrun, --log-level, --log-file).
-    """
-    _set_debug_args(parser)
+def set_fetch_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
+    """Configure the fetch subparser with arguments for data update options, progress bars, and debugging. Can be used as a subparser or standalone parser."""
 
+    desc = "Fetch/update data only (no reports)"
+    if target is None:
+        parser = argparse.ArgumentParser(description=desc, formatter_class=CustomHelpFormatter)
+    elif isinstance(target, argparse._SubParsersAction):
+        parser = target.add_parser("fetch", description=desc, help=desc, formatter_class=CustomHelpFormatter)
+    else:
+        parser = target
 
-def set_fetch_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "data",
         nargs="*",
@@ -257,10 +151,21 @@ def set_fetch_parser(parser: argparse.ArgumentParser) -> None:
     )
     _set_data_args(parser)
     _set_progress_args(parser)
-    _set_debug_args(parser)
+    set_debug_args(parser)
+    return parser
 
 
-def set_report_parser(parser: argparse.ArgumentParser) -> None:
+def set_report_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
+    """Configure the report subparser with arguments for report generation options, progress bars, and debugging. Can be used as a subparser or standalone parser."""
+
+    desc = "Generate reports only (no data update)"
+    if target is None:
+        parser = argparse.ArgumentParser(description=desc, formatter_class=CustomHelpFormatter)
+    elif isinstance(target, argparse._SubParsersAction):
+        parser = target.add_parser("report", description=desc, help=desc, formatter_class=CustomHelpFormatter)
+    else:
+        parser = target
+
     parser.add_argument(
         "reports",
         nargs="*",
@@ -271,10 +176,29 @@ def set_report_parser(parser: argparse.ArgumentParser) -> None:
     )
     _set_report_args(parser)
     _set_progress_args(parser)
-    _set_debug_args(parser)
+    set_debug_args(parser)
+    return parser
+
+
+def set_cleanup_parser(
+    target: argparse._SubParsersAction | argparse.ArgumentParser | None = None,
+) -> argparse.ArgumentParser:
+    """
+    Configure the cleanup subparser with debug flags (e.g., --dryrun, --log-level, --log-file). Can be used as a subparser or standalone parser.
+    """
+    desc = "Clean up redundant data files and compact benchmark/changelog history."
+    if target is None:
+        parser = argparse.ArgumentParser(description=desc, formatter_class=CustomHelpFormatter)
+    elif isinstance(target, argparse._SubParsersAction):
+        parser = target.add_parser("cleanup", description=desc, help=desc, formatter_class=CustomHelpFormatter)
+    else:
+        parser = target
+    set_debug_args(parser)
+    return parser
 
 
 def _set_report_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
+    """Add report generation related arguments to the given parser or argument group."""
     parser.add_argument(
         "-j",
         "--jekyll",
@@ -284,6 +208,7 @@ def _set_report_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) 
 
 
 def _set_data_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
+    """Add data update related arguments to the given parser or argument group."""
     parser.add_argument(
         "--no-benchmark", dest="benchmark", action="store_false", help="disable benchmark saving for data update"
     )
@@ -302,32 +227,9 @@ def _set_data_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) ->
     )
 
 
-def _set_debug_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
-    debug_group = parser.add_argument_group("Debugging")
-    debug_group.add_argument(
-        "--dryrun",
-        action="store_true",
-        required=False,
-        help="Perform a dry run: skip notebook execution and do not commit any changes. Useful for testing the workflow without making modifications",
-    )
-    debug_group.add_argument(
-        "--log-level",
-        type=str,
-        required=False,
-        default=None,
-        help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-    )
-    debug_group.add_argument(
-        "--log-file",
-        type=str,
-        required=False,
-        default=None,
-        help="write log output to a file in addition to stderr",
-    )
-
-
 def _set_progress_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup) -> None:
-    pbar_group = parser.add_argument_group("Progress bars")
+    """Add progress bar related arguments (Discord and Telegram) to the given parser or argument group."""
+    pbar_group = parser.add_argument_group("progress bars")
     pbar_group.add_argument(
         "-d",
         "--discord",
@@ -347,4 +249,36 @@ def _set_progress_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup
         default=False,
         action=CredAction,
         help="Telegram TOKEN and CHAT_ID, respectively, or no arguments to search for values in secrets",
+    )
+
+
+def set_debug_args(parser: argparse.ArgumentParser | argparse._ArgumentGroup, log_only: bool = False) -> None:
+    """
+    Add debugging related arguments (e.g., --dryrun, --log-level, --log-file) to the given parser or argument group.
+
+    Args:
+        parser (argparse.ArgumentParser | argparse._ArgumentGroup): The parser or argument group to which the debug arguments should be added.
+        log_only (bool): If True, only add logging related arguments and skip the --dryrun argument. Defaults to False.
+    """
+    debug_group = parser.add_argument_group("debugging")
+    if not log_only:
+        debug_group.add_argument(
+            "--dryrun",
+            action="store_true",
+            required=False,
+            help="Perform a dry run: skip notebook execution and do not commit any changes. Useful for testing the workflow without making modifications",
+        )
+    debug_group.add_argument(
+        "--log-level",
+        type=str,
+        required=False,
+        default=None,
+        help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    )
+    debug_group.add_argument(
+        "--log-file",
+        type=str,
+        required=False,
+        default=None,
+        help="write log output to a file in addition to stderr",
     )

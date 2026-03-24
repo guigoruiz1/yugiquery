@@ -17,46 +17,37 @@ from .scripts import optionals
 
 # --- Main Execution --- #
 def main():
+    """Main entry point for the YugiQuery CLI tool. Parses command-line arguments and dispatches to the appropriate handlers."""
     # Create the primary parser
-    parser = argparse.ArgumentParser(description="Yugiquery CLI tool", prog=__title__, formatter_class=CustomHelpFormatter)
-
-    subparsers = parser.add_subparsers(dest="command")
-    parser.add_argument("-a", "--api", action="store_true", help="Print API status and exit")
-    parser.add_argument("-p", "--paths", action="store_true", help="Print YugiQuery paths and exit")
-    parser.add_argument("-v", "--version", action="store_true", help="Print YugiQuery version and exit")
-
-    # Subparser for the main yugiquery flow
-    run_parser = subparsers.add_parser("run", help="Run the full Yugiquery flow", formatter_class=CustomHelpFormatter)
-    cli.set_run_parser(run_parser)
-
-    # Subparser for fetching data only
-    fetch_parser = subparsers.add_parser(
-        "fetch", help="Fetch/update data only (no reports)", formatter_class=CustomHelpFormatter
-    )
-    cli.set_fetch_parser(fetch_parser)
-
-    # Subparser for generating reports only
-    report_parser = subparsers.add_parser(
-        "report", help="Generate reports only (no data update)", formatter_class=CustomHelpFormatter
-    )
-    cli.set_report_parser(report_parser)
-
-    # Subparser for the cleanup command
-    cleanup_parser = subparsers.add_parser(
-        "cleanup",
-        help="Clean up redundant data files and compact benchmark/changelog history.",
+    parser = argparse.ArgumentParser(
+        description="Yugiquery CLI tool",
+        prog=__title__,
         formatter_class=CustomHelpFormatter,
     )
-    cli.set_cleanup_parser(cleanup_parser)
+
+    subparsers = parser.add_subparsers(
+        dest="command",
+        title="commands",
+    )
+    helper_group = parser.add_argument_group(
+        "helpers",
+        description="Used without a command to print helpful information then exit",
+    )
+    helper_group.add_argument("-a", "--api", action="store_true", help="Print API status")
+    helper_group.add_argument("-p", "--paths", action="store_true", help=f"Print {__title__} paths")
+    helper_group.add_argument("-v", "--version", action="store_true", help=f"Print {__title__} version")
+
+    # Subparser for the main yugiquery flow
+    cli.set_run_parser(subparsers)
+    cli.set_fetch_parser(subparsers)
+    cli.set_report_parser(subparsers)
+    cli.set_cleanup_parser(subparsers)
 
     # Subparser for the bot mode
-    bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
-    bot.set_parser(bot_parser)
+    bot.set_parser(subparsers)
+
     # Subparser for the optional installation of additional components
-    optionals_parser = subparsers.add_parser(
-        "install", help="Install various additional components. If no flags are passed, all components will be installed"
-    )
-    optionals.set_parser(optionals_parser)
+    optionals.set_parser(subparsers)
 
     # Parse initial arguments
     args = parser.parse_args()

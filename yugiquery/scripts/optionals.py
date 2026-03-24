@@ -14,7 +14,7 @@ from termcolor import cprint
 
 # --- Imports: Local Application --- #
 from ..utils import LoggerConfig
-
+from ..cli import set_debug_args, CustomHelpFormatter
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -224,7 +224,17 @@ def install_filters() -> None:
         logger.error("Failed to install Git filters! %s", e)
 
 
-def set_parser(parser: argparse.ArgumentParser) -> None:
+def set_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
+    """Configure the argument parser for the optional installation of additional components, including flags for each component and debug arguments."""
+
+    desc = "Install various additional components. If no flags are passed, all components will be installed"
+    if target is None:
+        parser = argparse.ArgumentParser(description=desc, formatter_class=CustomHelpFormatter)
+    elif isinstance(target, argparse._SubParsersAction):
+        parser = target.add_parser("install", description=desc, help=desc, formatter_class=CustomHelpFormatter)
+    else:
+        parser = target
+
     parser.add_argument("--templates", action="store_true", help="install template notebooks")
     parser.add_argument("--nbconvert", action="store_true", help="install nbconvert templates patch")
     parser.add_argument("--filters", action="store_true", help="install git filters")
@@ -234,24 +244,13 @@ def set_parser(parser: argparse.ArgumentParser) -> None:
         action="store_true",
         help="whether to create a virtual environment to install Jupyter Kernel. Has no effect if --kernel is not passed",
     )
-    debug_group = parser.add_argument_group("Debugging")
-    debug_group.add_argument(
-        "--log-level",
-        type=str,
-        required=False,
-        default=None,
-        help="set log verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-    )
-    debug_group.add_argument(
-        "--log-file",
-        type=str,
-        required=False,
-        default=None,
-        help="write log output to a file in addition to stderr",
-    )
+    set_debug_args(parser, log_only=True)
+
+    return parser
 
 
 def main(args):
+    """Main function to handle the installation of optional components based on command-line arguments."""
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     no_flags = not (args.templates or args.kernel or args.nbconvert or args.filters)
     if args.venv and not args.kernel:
@@ -274,9 +273,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Install various optional components. If no flags are passed, all components will be installed"
-    )
-    set_parser(parser)
+    parser = set_parser()
     args = parser.parse_args()
     main(args)
