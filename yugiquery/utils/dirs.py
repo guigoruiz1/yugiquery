@@ -346,7 +346,7 @@ class Dirs:
                     try:
                         results.append(self.get_notebook(notebook_name))
                     except FileNotFoundError:
-                        logger.warning("Notebook %s not found.", notebook_name)
+                        logger.warning("Notebook '%s' not found.", notebook_name)
             return results
 
 

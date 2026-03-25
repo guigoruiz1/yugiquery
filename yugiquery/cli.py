@@ -52,7 +52,7 @@ def handle_run(args):
     run(
         reports=args.reports,
         cleanup=args.cleanup,
-        dry_run=args.dryrun,
+        dryrun=args.dryrun,
         jekyll=args.jekyll,
         changelog=args.changelog,
         benchmark=args.benchmark,
@@ -70,7 +70,7 @@ def handle_fetch(args):
     run(
         reports=args.data,
         cleanup=args.cleanup,
-        dry_run=args.dryrun,
+        dryrun=args.dryrun,
         discord=args.discord,
         telegram=args.telegram,
         changelog=args.changelog,
@@ -86,7 +86,7 @@ def handle_report(args):
     # Only run notebooks and git ops, no API/data update
     run(
         reports=args.reports,
-        dry_run=args.dryrun,
+        dryrun=args.dryrun,
         jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
@@ -99,7 +99,7 @@ def handle_cleanup(args):
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
 
-    cleanup_data(dry_run=args.dryrun)
+    cleanup_data(dryrun=args.dryrun)
 
 
 def set_run_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:

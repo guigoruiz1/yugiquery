@@ -838,7 +838,7 @@ def select_unusable(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Filtered DataFrame containing only rows where "Card status" is "Unusable".
     """
     if "Card type" in df:
-        return df[df["Card type"].isin(["Monster Card", "Spell Card", "Trap Card", "Monster Token", "Counter"])].dropna(
+        return df[~df["Card type"].isin(["Monster Card", "Spell Card", "Trap Card", "Monster Token", "Counter"])].dropna(
             how="all", axis=1
         )
     else:

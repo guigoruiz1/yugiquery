@@ -40,7 +40,7 @@ def run(
     reports: str | List[str] | List[Path] = "all",
     progress_handler: ProgressHandler | None = None,
     cleanup: bool | Literal["auto"] = "auto",
-    dry_run: bool = False,
+    dryrun: bool = False,
     changelog: bool = True,
     benchmark: bool = True,
     squash: bool = True,
@@ -54,10 +54,10 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        reports (str | List[str] | List[Path], optional): The report to generate. Defaults to 'all'.
+        reports (str | List[str] | List[Path], optional): The report to generate and/or data flow to update. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
-        dry_run (bool, optional): dry_run flag to pass to notebook execution and other operations. If True, notebooks will be executed but no changes will be committed to Git, Jekyll pages will not be created, and the index will not be updated. Defaults to False.
+        dryrun (bool, optional): dryrun flag to pass to notebook execution and other operations. If True, changes are not committed to Git and data cleanup will only log intended changes. Defaults to False.
         squash (bool, optional): squash commits after execution. Defaults to True.
         jekyll (bool, optional): whether to generate Jekyll markdown pages for HTML reports. Defaults to False.
         discord (bool | argparse.Namespace, optional): Discord configuration, either as a boolean or argparse.Namespace. Default is False.
@@ -74,25 +74,18 @@ def run(
 
     print("\nExecution started")
     logger.info("Execution started")
-    print()  # Empty space for better readability
 
     # Get the current commit hash
     start_commit = git.get_repo().head.commit
 
     # Setup progress bars
     report_paths = dirs.find_notebooks(reports) if operation in ("reports", "both", "all") else []
-    all_data_flows = ["bandai", "cards", "rush", "speed", "sets"]
-    data_flows = (
-        [flow for flow in all_data_flows if flow in reports or reports == "all"]
-        if operation in ("data", "both", "all")
-        else []
-    )
+    data_flows = _get_flows(reports) if operation in ("data", "both", "all") else []
 
     if operation in ("data", "both", "all") and len(data_flows) > 0:
         total = len(data_flows)
-        # Need to account for errata
         if any(flow in ["cards", "rush", "speed"] for flow in data_flows):
-            total += 1
+            total += 1  # Needed to account for errata
 
         data_pbars, _ = _setup_pbars(
             total=total,
@@ -102,11 +95,12 @@ def run(
             discord=discord,
             telegram=telegram,
         )
+        print()  # Extra space for better readability
         _run_data(
             data_flows=data_flows,
             benchmark=benchmark,
             changelog=changelog,
-            dry_run=dry_run,
+            dryrun=dryrun,
             cleanup=cleanup,
             progress_handler=progress_handler,
             pbars=data_pbars,
@@ -124,17 +118,17 @@ def run(
 
         _run_reports(
             report_paths=report_paths,
-            dry_run=dry_run,
+            dryrun=dryrun,
             jekyll=jekyll,
             progress_handler=progress_handler,
             pbars=reports_pbars,
         )
 
     # 7. Squash commits into one with a message referencing the new index timestamp
-    if squash and not dry_run:
+    if squash and not dryrun:
         _squash_commits(start_commit=start_commit, progress_handler=progress_handler)
 
-    print("Execution completed")
+    print("\nExecution completed")
     logger.info("Execution completed")
 
 
@@ -150,8 +144,8 @@ def _squash_commits(start_commit, progress_handler: ProgressHandler | None = Non
     """
     lock("squash_commits")
     try:
-        logger.info("Squashing commits")
         print("\nSquashing commits")
+        logger.info("Squashing commits")
         squash_results = git.squash_commits(start_commit)
         print(squash_results)
         logger.info("%s", squash_results)
@@ -169,9 +163,28 @@ def _squash_commits(start_commit, progress_handler: ProgressHandler | None = Non
 # --- Data Update --- #
 
 
+def _get_flows(reports: str | List[str] | List[Path]) -> list[str]:
+    if reports == "all":
+        data_flows = list(_data_flows_avail.keys())
+    else:
+        data_flows = []
+        # Ensure reports is always a list of strings
+        if isinstance(reports, (str, Path)):
+            reports_iter = [str(reports).lower()]
+        else:
+            reports_iter = [str(r).lower() for r in reports]
+        for flow in reports_iter:
+            if flow in _data_flows_avail.keys():
+                data_flows.append(flow)
+            else:
+                logger.warning(f"Data flow '{flow}' is not known and will be ignored for data update.")
+
+    return data_flows
+
+
 def _run_data(
     data_flows: list[str],
-    dry_run: bool = False,
+    dryrun: bool = False,
     benchmark: bool = True,
     changelog: bool = True,
     cleanup: bool | Literal["auto"] = "auto",
@@ -183,7 +196,7 @@ def _run_data(
 
     Args:
         data_flows (list[str]): List of data flows to update (e.g., ['cards', 'rush']).
-        dry_run (bool, optional): If True, runs the data update without committing changes. Defaults to False.
+        dryrun (bool, optional): If True, runs the data update without committing changes. Data cleanup only logs intended actions. Defaults to False.
         benchmark (bool, optional): If True, benchmarks the data update process. Defaults to True.
         changelog (bool, optional): If True, generates changelogs for the updated data. Defaults to True.
         cleanup (bool | Literal["auto"], optional): Whether to clean up redundant data files after updating. If 'auto', performs cleanup if there are more than 4 data files for each report. Defaults to 'auto'.
@@ -211,7 +224,7 @@ def _run_data(
             pbars=pbars,
             changelog=changelog,
             benchmark=benchmark,
-            commit=not dry_run,
+            commit=not dryrun,
         )
     except Exception as e:
         if progress_handler:
@@ -227,7 +240,7 @@ def _run_data(
         cleanup = data_files_count / max(reports_count, 1) > 10
     if cleanup:
         try:
-            cleanup_data(dry_run=dry_run)
+            cleanup_data(dryrun=dryrun)
         except Exception as e:
             if progress_handler:
                 progress_handler.send(error=str(e))
@@ -252,13 +265,6 @@ def update_data(
     Returns:
         dict[str, tuple[pd.DataFrame, Path, Path | None]]: A dictionary where keys are flow names and values are tuples containing the updated DataFrame, the path to the saved data file, and the path to the generated changelog file (or None if no changelog was generated).
     """
-    valid_flows = {
-        "cards": _update_cards_data,
-        "rush": _update_rush_data,
-        "speed": _update_speed_data,
-        "bandai": _update_bandai_data,
-        "sets": _update_sets_data,
-    }
     has_errata = {"cards", "rush", "speed"}
     results = {}
     exceptions = []
@@ -270,7 +276,7 @@ def update_data(
         flows = list(flows)
     flows = [f.lower() if isinstance(f, str) else f for f in flows]
     if len(flows) == 1 and flows[0] == "all":
-        flows_to_run = list(valid_flows.keys())
+        flows_to_run = list(_data_flows_avail.keys())
     else:
         flows_to_run = flows
 
@@ -282,7 +288,7 @@ def update_data(
             pbar.update(1)
 
     for flow in flows_to_run:
-        func = valid_flows.get(flow)
+        func = _data_flows_avail.get(flow)
         if func:
             lock(f"update_{flow}")
             try:
@@ -367,7 +373,11 @@ def _update_cards_data(
             benchmark(now, "fetch", "cards")
 
         if commit:
-            git.commit(["*[Cc]ards*", "data/benchmark.json"], message=f"Cards data updated - {now.isoformat()}")
+            commit_result = git.commit(
+                ["*[Cc]ards*", "data/benchmark.json"], message=f"Cards data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Cards data: %s", commit_result)
 
         with logging_redirect_tqdm():
             logger.info(f"New Cards data saved to {cards_path}")
@@ -420,7 +430,11 @@ def _update_rush_data(
             benchmark(now, "fetch", "rush")
 
         if commit:
-            git.commit(["*[Rr]ush*", "data/benchmark.json"], message=f"Rush Duel data updated - {now.isoformat()}")
+            commit_result = git.commit(
+                ["*[Rr]ush*", "data/benchmark.json"], message=f"Rush Duel data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Rush data: %s", commit_result)
 
         with logging_redirect_tqdm():
             logger.info(f"New Rush data saved to {rush_path}")
@@ -476,7 +490,11 @@ def _update_speed_data(
             benchmark(now, "fetch", "speed")
 
         if commit:
-            git.commit(["*[Ss]peed*", "data/benchmark.json"], message=f"Speed Duel data updated - {now.isoformat()}")
+            commit_result = git.commit(
+                ["*[Ss]peed*", "data/benchmark.json"], message=f"Speed Duel data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Speed Duel data: %s", commit_result)
 
         with logging_redirect_tqdm():
             logger.info(f"New Speed Duel data saved to {speed_path}")
@@ -523,7 +541,11 @@ def _update_bandai_data(
             benchmark(now, "fetch", "bandai")
 
         if commit:
-            git.commit(["*[Bb]andai*", "data/benchmark.json"], message=f"Bandai data updated - {now.isoformat()}")
+            commit_result = git.commit(
+                ["*[Bb]andai*", "data/benchmark.json"], message=f"Bandai data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Bandai data: %s", commit_result)
 
         with logging_redirect_tqdm():
             logger.info(f"New Bandai data saved to {bandai_path}")
@@ -573,7 +595,11 @@ def _update_sets_data(
             benchmark(now, "fetch", "sets")
 
         if commit:
-            git.commit(["*[Ss]ets*", "data/benchmark.json"], message=f"Sets data updated - {now.isoformat()}")
+            commit_result = git.commit(
+                ["*[Ss]ets*", "data/benchmark.json"], message=f"Sets data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Sets data: %s", commit_result)
 
         with logging_redirect_tqdm():
             logger.info(f"New Sets data saved to {sets_path}")
@@ -585,6 +611,16 @@ def _update_sets_data(
             unlock("sets_data")
         except Exception as e:
             logger.error("Error unlocking sets_data lock. %s", e)
+
+
+_data_flows_avail = {
+    "cards": _update_cards_data,
+    "rush": _update_rush_data,
+    "speed": _update_speed_data,
+    "bandai": _update_bandai_data,
+    "sets": _update_sets_data,
+}
+"""List of available data flows that can be updated. Each flow corresponds to a specific type of data that can be fetched and processed from the API."""
 
 
 def _write_changelog(prev_df, prev_ts, new_df, new_ts, file_name: str, col: str = "Name") -> Path | None:
@@ -626,7 +662,7 @@ def _write_changelog(prev_df, prev_ts, new_df, new_ts, file_name: str, col: str 
 
 def _run_reports(
     report_paths: List[Path],
-    dry_run: bool = False,
+    dryrun: bool = False,
     jekyll: bool = False,
     progress_handler: ProgressHandler | None = None,
     pbars: list[tqdm] = [],
@@ -636,7 +672,7 @@ def _run_reports(
 
     Args:
         report_paths (List[Path]): List of paths to the report notebooks to execute.
-        dry_run (bool, optional): If True, runs the report generation without committing changes or creating Jekyll pages. Defaults to False.
+        dryrun (bool, optional): If True, runs the report generation without committing changes. Defaults to False.
         jekyll (bool, optional): Whether to generate Jekyll pages for the reports after executing the notebooks. Defaults to False.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report progress. Defaults to None.
         pbars (list[tqdm], optional): A list of tqdm progress bars to update during the process. Defaults to [].
@@ -652,7 +688,7 @@ def _run_reports(
         run_notebooks(
             reports=report_paths,
             pbars=pbars,
-            dry_run=dry_run,
+            commit=not dryrun,
         )
     except Exception as e:
         if progress_handler:
@@ -667,20 +703,16 @@ def _run_reports(
         print("\nGenerating Jekyll pages")
         for report_path in report_paths:
             title = Path(report_path).stem
-            if dry_run:
-                logger.info("Dry run - Would create Jekyll page for: %s", title)
-                print(f"Dry run - Would create Jekyll page for: {title}")
-            else:
-                try:
-                    make_jekyll_page(title=title)
-                except Exception as e:
-                    if progress_handler:
-                        progress_handler.send(error=str(e))
-                    logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
+            try:
+                make_jekyll_page(title=title)
+            except Exception as e:
+                if progress_handler:
+                    progress_handler.send(error=str(e))
+                logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
 
     # 5. Update page index
     try:
-        index_result = update_index(dry_run=dry_run)
+        index_result = update_index(commit=not dryrun)
         print(index_result)
         logger.info(index_result)
     except Exception as e:
@@ -692,7 +724,7 @@ def _run_reports(
 def run_notebooks(
     reports: str | list[str] | List[Path],
     pbars: List[tqdm] = [],
-    dry_run: bool = False,
+    commit: bool = True,
 ) -> None:
     """
     Execute specified Jupyter notebooks using Papermill.
@@ -700,7 +732,7 @@ def run_notebooks(
     Args:
         reports (str | List[str] | List[Path]): List of notebooks to execute.
         pbars (List[tqdm], optional): List of progress bars to update during execution. Default is an empty list.
-        dry_run (bool, optional): Whether to run in dry run mode. Default is False.
+        commit (bool, optional): Whether to commit changes after execution. Default is True.
 
     Returns:
         None
@@ -730,15 +762,10 @@ def run_notebooks(
 
         lock(report_name)
         try:
+            now = arrow.utcnow()
             # Update the postfix
             for pbar in pbars:
                 pbar.set_postfix(report=report_name)
-
-            if dry_run:
-                with logging_redirect_tqdm():
-                    logger.info("Dry run - Generating %s report", report_name)
-                tqdm.write(f"\nDry run - Generating {report_name} report")
-                continue
 
             with open(report) as f:
                 nb = nbformat.read(f, as_version=nbformat.NO_CONVERT)
@@ -775,6 +802,16 @@ def run_notebooks(
                 )
                 with logging_redirect_tqdm():
                     logger.info("Report '%s' generated successfully at %s", report_name, dest_report)
+
+                if commit:
+                    ci_report_name = "".join(f"[{c.lower()}{c.upper()}]" if c.isalpha() else c for c in report_name)
+                    commit_result = git.commit(
+                        [f"*{ci_report_name}*", "data/benchmark.json"],
+                        message=f"{report_name} report updated - {now.isoformat()}",
+                    )
+                    with logging_redirect_tqdm():
+                        logger.info("Git commit result for %s report: %s", report_name, commit_result)
+
             except pm.PapermillExecutionError as e:
                 with logging_redirect_tqdm():
                     logger.error("Report execution failed for '%s'\n: %s", report_name, e)

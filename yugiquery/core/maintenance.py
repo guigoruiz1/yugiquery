@@ -211,12 +211,12 @@ def condense_benchmark(benchmark: Dict[str, Dict[str, List[BenchmarkEntry]]]) ->
 # --- Index Updating --- #
 
 
-def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = None) -> str:
+def update_index(commit: bool = False, page_paths: List[Path | str] | None = None) -> str:
     """
     Update `index.md` and `README.md` report table and last execution timestamp.
 
     Args:
-        dry_run (bool, optional): If True, skip writing and committing changes.
+        commit (bool, optional): If True, commit changes after updating the index.
         page_paths (List[Path | str] | None, optional): Additional .md pages to consider.
 
     Returns:
@@ -305,17 +305,18 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
         index = replace_table(index)
         readme = replace_table(readme)
 
-        if dry_run:
-            return "\nDry run - README and index updated"
-
         with open(index_path, "w", encoding="utf-8") as o:
             o.write(index)
         with open(readme_path, "w", encoding="utf-8") as o:
             o.write(readme)
-        return git.commit(
-            files=[index_path, readme_path],
-            message=f"Index and README timestamp update - {timestamp.isoformat()}",
-        )
+
+        if commit:
+            return git.commit(
+                files=[index_path, readme_path],
+                message=f"Index and README timestamp update - {timestamp.isoformat()}",
+            )
+        else:
+            return "README and index updated - Dry run, not commited."
     finally:
         try:
             unlock("update_index")
@@ -326,7 +327,7 @@ def update_index(dry_run: bool = False, page_paths: List[Path | str] | None = No
 # --- Data Cleanup --- #
 
 
-def cleanup_data(dry_run: bool = False) -> None:
+def cleanup_data(dryrun: bool = False) -> None:
     """
     Clean up redundant data files and compact benchmark/changelog history.
 
@@ -336,12 +337,12 @@ def cleanup_data(dry_run: bool = False) -> None:
        and condensing multiple changelogs within the same month into a single consolidated file.
 
     Args:
-        dry_run (bool, optional): If True, log intended actions without modifying files. Defaults to False.
+        dryrun (bool, optional): If True, log intended actions without modifying files. Defaults to False.
     """
     lock("cleanup_data")
     try:
-        dry_run_str = " (dry run)" if dry_run else ""
-        logger.info("Starting data cleanup%s", dry_run_str)
+        dryrun_str = " (dry run)" if dryrun else ""
+        logger.info("Starting data cleanup%s", dryrun_str)
 
         with Halo(
             text="Cleaning up data...",
@@ -353,7 +354,7 @@ def cleanup_data(dry_run: bool = False) -> None:
                 spinner.text = "Condensing benchmark history..."
                 benchmark = load_json(benchmark_file)
                 new_benchmark = condense_benchmark(benchmark)
-                if dry_run:
+                if dryrun:
                     logger.info("Benchmark: %s", new_benchmark)
                 else:
                     logger.info("Condensed benchmark history saved to %s", benchmark_file)
@@ -388,12 +389,12 @@ def cleanup_data(dry_run: bool = False) -> None:
                     if is_changelog and len(files) > 1:
                         new_changelog, new_filepath = condense_changelogs(files)
                         logger.info("New changelog file: %s", new_filepath)
-                        if not dry_run:
+                        if not dryrun:
                             new_changelog.to_csv(new_filepath)
                         for file in files:
                             if file != new_filepath:
                                 logger.info("Delete %s", file)
-                                if not dry_run:
+                                if not dryrun:
                                     os.remove(file)
                     else:
                         # Keep the most recent file in the group
@@ -401,7 +402,7 @@ def cleanup_data(dry_run: bool = False) -> None:
                         for file in files:
                             if file != most_recent:
                                 logger.info("Delete %s", file)
-                                if not dry_run:
+                                if not dryrun:
                                     os.remove(file)
                             else:
                                 logger.info("Keep %s", file)
@@ -417,12 +418,12 @@ def cleanup_data(dry_run: bool = False) -> None:
                     if is_changelog and len(files) > 1:
                         new_changelog, new_filepath = condense_changelogs(files)
                         logger.info("New changelog file: %s", new_filepath)
-                        if not dry_run:
+                        if not dryrun:
                             new_changelog.to_csv(new_filepath)
                         for file in files:
                             if file != new_filepath:
                                 logger.info("Delete %s", file)
-                                if not dry_run:
+                                if not dryrun:
                                     os.remove(file)
                     else:
                         # Keep the most recent file in the group
@@ -430,13 +431,13 @@ def cleanup_data(dry_run: bool = False) -> None:
                         for file in files:
                             if file != most_recent:
                                 logger.info("Delete %s", file)
-                                if not dry_run:
+                                if not dryrun:
                                     os.remove(file)
                             else:
                                 logger.info("Keep %s", file)
 
             spinner.text = "Updating index..."
-            if not dry_run:
+            if not dryrun:
                 result = git.commit(
                     files=[
                         dirs.DATA / "benchmark.json",

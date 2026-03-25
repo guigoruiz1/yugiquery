@@ -296,9 +296,11 @@ def squash_commits(start_commit: git.Commit, repo: git.Repo | None = None, messa
                 message = "\n\n".join(commit_messages)
             # Reset the branch to the start_commit (soft reset)
             repo.git.reset("--soft", start_commit.hexsha)
-            # Create a new commit with the combined commit message
-            return repo.git.commit(message=message)
-
+            # Only commit if there are staged changes
+            if repo.index.diff("HEAD"):
+                return repo.git.commit(message=message)
+            else:
+                return "No changes to commit after squash/reset."
         except git.GitCommandError as e:
             raise RuntimeError(f"Failed to commit changes: {e}")
         except Exception as e:
