@@ -21,7 +21,6 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 from . import client
 from ..utils import dirs, load_json, LoggerConfig
 
-
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
 
@@ -356,14 +355,16 @@ def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) ->
         bandai_query = card_query(*card_properties["bandai"])
 
     tqdm.write("Downloading bandai cards")
-    logger.info("Downloading bandai cards")
+    with logging_redirect_tqdm():
+        logger.info("Downloading bandai cards")
+
     bandai_df = client.fetch_properties(concept, bandai_query, step=limit, limit=limit, **kwargs)
     if "Monster type" in bandai_df:
         bandai_df["Monster type"] = bandai_df["Monster type"].dropna().apply(lambda x: x.split("(")[0])
-    logger.debug("- Total")
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(bandai_df.index))
     tqdm.write(f"{len(bandai_df.index)} results\n")
-    logger.info("%s results", len(bandai_df.index))
 
     time.sleep(0.5)
 
@@ -395,13 +396,15 @@ def fetch_st(
         st_query = card_query(*card_properties["st"])
 
     tqdm.write(f"Downloading {st}s")
-    logger.info("Downloading %ss", st)
+    with logging_redirect_tqdm():
+        logger.info("Downloading %ss", st)
+
     st_df = client.fetch_properties(concept, st_query, step=step, limit=limit, **kwargs)
 
-    logger.debug("- Total")
-
+    with logging_redirect_tqdm():
+        logger.debug("- Total")
+        logger.info("%s results", len(st_df.index))
     tqdm.write(f"{len(st_df.index)} results\n")
-    logger.info("%s results", len(st_df.index))
 
     return st_df
 
@@ -440,8 +443,10 @@ def fetch_monster(
 
         if valid_cg != "CG":
             concept += f"[[Medium::{valid_cg}]]"
+
         tqdm.write(f'Downloading Monsters with attribute "{att}"')
-        logger.info('Downloading Monsters with attribute "%s"', att)
+        with logging_redirect_tqdm():
+            logger.info('Downloading Monsters with attribute "%s"', att)
 
         temp_df = client.fetch_properties(concept, query_str, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
@@ -449,10 +454,11 @@ def fetch_monster(
     if exclude_token and "Primary type" in monster_df:
         monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
 
-    logger.debug("- Total")
+    with logging_redirect_tqdm():
+        logger.debug("- Total")
+        logger.info("%s results", len(monster_df.index))
 
     tqdm.write(f"{len(monster_df.index)} results\n")
-    logger.info("%s results", len(monster_df.index))
 
     return monster_df
 
@@ -472,11 +478,14 @@ def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kw
         query_str = card_query(*card_properties["monster"])
 
     tqdm.write("Downloading tokens")
-    logger.info("Downloading tokens")
+    with logging_redirect_tqdm():
+        logger.info("Downloading tokens")
+
     token_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(token_df.index))
     tqdm.write(f"{len(token_df.index)} results\n")
-    logger.info("%s results", len(token_df.index))
 
     return token_df
 
@@ -494,11 +503,15 @@ def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **
         query_str = card_query(*card_properties["counter"])
 
     tqdm.write("Downloading counters")
-    logger.info("Downloading counters")
+    with logging_redirect_tqdm():
+        logger.info("Downloading counters")
+
     counter_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(counter_df.index))
+
     tqdm.write(f"{len(counter_df.index)} results\n")
-    logger.info("%s results", len(counter_df.index))
 
     return counter_df
 
@@ -511,7 +524,9 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
         query_str = card_query(*card_properties["speed"])
 
     tqdm.write("Downloading Speed duel cards")
-    logger.info("Downloading Speed duel cards")
+    with logging_redirect_tqdm():
+        logger.info("Downloading Speed duel cards")
+
     speed_df = client.fetch_properties(
         concept,
         query_str,
@@ -522,8 +537,9 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
     logger.debug("- Total")
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(speed_df.index))
     tqdm.write(f"{len(speed_df.index)} results\n")
-    logger.info("%s results", len(speed_df.index))
 
     return speed_df
 
@@ -537,11 +553,14 @@ def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
         query_str = card_query(*card_properties["skill"])
 
     tqdm.write("Downloading skill cards")
-    logger.info("Downloading skill cards")
+    with logging_redirect_tqdm():
+        logger.info("Downloading skill cards")
+
     skill_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(skill_df.index))
     tqdm.write(f"{len(skill_df.index)} results\n")
-    logger.info("%s results", len(skill_df.index))
 
     return skill_df
 
@@ -554,11 +573,14 @@ def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.
         query_str = card_query(*card_properties["rush"])
 
     tqdm.write("Downloading Rush Duel cards")
-    logger.info("Downloading Rush Duel cards")
+    with logging_redirect_tqdm():
+        logger.info("Downloading Rush Duel cards")
+
     rush_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(rush_df.index))
     tqdm.write(f"{len(rush_df.index)} results\n")
-    logger.info("%s results", len(rush_df.index))
 
     return rush_df
 
@@ -588,15 +610,17 @@ def fetch_unusable(
         query_str = card_query(default=True)
 
     tqdm.write("Downloading unusable cards")
-    logger.info("Downloading unusable cards")
+    with logging_redirect_tqdm():
+        logger.info("Downloading unusable cards")
+
     unusable_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
 
     unusable_df.dropna(how="all", axis=1, inplace=True)
 
-    logger.debug("- Total")
-
+    with logging_redirect_tqdm():
+        logger.debug("- Total")
+        logger.info("%s results", len(unusable_df.index))
     tqdm.write(f"{len(unusable_df.index)} results\n")
-    logger.info("%s results", len(unusable_df.index))
 
     return unusable_df
 
@@ -618,7 +642,9 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         categories = list(categories["errata"])
 
     tqdm.write(f"Downloading {errata} errata")
-    logger.info("Downloading %s errata", errata)
+    with logging_redirect_tqdm():
+        logger.info("Downloading %s errata", errata)
+
     errata_df = pd.DataFrame(dtype=bool)
     iterator = tqdm(
         categories,
@@ -640,10 +666,10 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
         errata_series = pd.Series(data=True, index=errata_data, name=desc)
         errata_df = pd.concat([errata_df, errata_series], axis=1).astype("boolean").fillna(False).sort_index()
 
-    logger.debug("- Total")
-
+    with logging_redirect_tqdm():
+        logger.info("%s results", len(errata_df.index))
     tqdm.write(f"{len(errata_df.index)} results\n")
-    logger.info("%s results", len(errata_df.index))
+
     return errata_df
 
 
@@ -668,7 +694,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
     )
     for cat in iterator:
         with logging_redirect_tqdm():
-            logger.debug("- %s", cat)
+            logger.info(cat)
 
         iterator.set_description(cat.split("Category:")[-1])
         temp = client.fetch_categorymembers(cat, namespace=None, step=step, iterator=iterator)
@@ -709,7 +735,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     total_success = 0
     total_error = 0
 
-    tqdm.write(f"Downloading set lists for {len(keys)} sets")
+    tqdm.write(f" Downloading set lists for {len(keys)} sets")
     logger.info("Downloading set lists for %s sets", len(keys))
     for i in trange(np.ceil(len(keys) / step).astype(int), leave=False):
         success = 0
@@ -732,6 +758,9 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
 
     all_set_lists_df = all_set_lists_df.convert_dtypes()
     all_set_lists_df.sort_values(by=["Set", "Region", "Card number"]).reset_index(inplace=True)
+
     logger.info("%s set lists received - %s missing", total_success, total_error)
+    with logging_redirect_tqdm():
+        logger.info("%s set lists received - %s missing\n", total_success, total_error)
 
     return all_set_lists_df

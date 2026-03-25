@@ -151,7 +151,6 @@ class Discord(Bot, commands.Bot):
             error (commands.CommandError): The error received.
         """
         logger.error("%s", error)
-        # TODO: handle errors separatelly
         if isinstance(error, commands.CommandOnCooldown):
             await self.send_long_message(ctx, content=str(error), filename="cooldown.txt", ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):

@@ -10,10 +10,12 @@ from typing import List, Literal, Tuple, overload
 
 # --- Imports: Third-Party --- #
 import arrow
+import re
 import numpy as np
 import pandas as pd
 from IPython.display import Markdown, display
 from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
@@ -25,40 +27,23 @@ logger = LoggerConfig.get_logger()
 # --- Data File Loading and Normalization --- #
 
 
-@overload
 def load_latest(
     name_pattern: str,
     type: str = "data",
     tuple_cols: List[str] = [],
-    return_ts: Literal[False] = False,
-) -> pd.DataFrame | None: ...
-
-
-@overload
-def load_latest(
-    name_pattern: str,
-    type: str = "data",
-    tuple_cols: List[str] = [],
-    return_ts: Literal[True] = True,
-) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]: ...
-
-
-def load_latest(  # TODO: better returns and return path
-    name_pattern: str,
-    type: str = "data",
-    tuple_cols: List[str] = [],
-    return_ts: bool = False,
-) -> pd.DataFrame | None | Tuple[pd.DataFrame | None, arrow.Arrow | None]:
+) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]:
     """
-    Loads the most recent data file matching the specified name pattern and applies corrections.
+    Loads the latest file matching the given name pattern and type, and attempts to parse specified columns as tuples.
+    Returns the loaded DataFrame and the timestamp extracted from the filename. If no matching file is found, returns (None, None).
+    If type is "changelog", the timestamp returned refers to the end of the period covered by the changelog i.e. the "to" date.
 
     Args:
         name_pattern (str): The pattern to match in the filename (e.g., "cards")
         type (str, optional): The type of file to look for, either "data" or "changelog". Defaults to "data".
         tuple_cols (List[str], optional): Additional list of column names to attempt to parse as tuples. Defaults to [].
-        return_ts (bool, optional): Whether to return the timestamp of the loaded file. Defaults to False.
+
     Returns:
-        pd.DataFrame | None: The loaded DataFrame if a file is found, otherwise None. If return_ts is True, returns a tuple of (DataFrame | None, arrow.Arrow | None).
+        Tuple[pd.DataFrame | None, arrow.Arrow | None]: A tuple containing the loaded DataFrame (or None if not found) and the timestamp (or None if not found).
     """
     default_tuple_cols = [
         "Secondary type",
@@ -93,8 +78,8 @@ def load_latest(  # TODO: better returns and return path
 
         for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
             df[col] = pd.to_datetime(df[col])
-
-        logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
+        with logging_redirect_tqdm():
+            logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
         if dirs.is_notebook:
             relpath = Path(os.path.relpath(files[0], dirs.REPORTS)).as_posix()
             display(Markdown(f"{name_pattern.capitalize()} {type} loaded from [{relpath}]({relpath})"))
@@ -102,60 +87,95 @@ def load_latest(  # TODO: better returns and return path
             relpath = Path(os.path.relpath(files[0], dirs.WORK)).as_posix()
             tqdm.write(f"{name_pattern.capitalize()} {type} loaded from {relpath}")
 
-        if return_ts:
-            ts = arrow.get(Path(files[0]).stem.split("_")[-1])
-            return df, ts
-        return df
+        ts = arrow.get(Path(files[0]).stem.split("_")[-1])
+        return df, ts
 
     logger.warning('No file matching pattern "%s" found.', name_pattern)
-    if return_ts:
-        return None, None
-    return None
+    return None, None
 
 
-def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.DataFrame | None:  # TODO: return path
+def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.DataFrame | None:
     """
-    Loads the changelog file associated with a given data file name and timestamp, matching the timestamp
-    as the 'to' timestamp in the changelog filename.
+    Load the changelog covering the given timestamp for the specified name.
+    If timestamp is None, loads the latest changelog available for the given name.
+    Otherwise, finds the changelog file whose period covers the timestamp, or the latest one before it if none covers it.
+    The changelog files are expected to be named in the format "{name}_changelog_{from}_{to}.bz2", where "from" and "to" are timestamps in "YYYYMMDDTHHmmZ" format.
 
     Args:
         name (str): The base name of the data file (e.g., 'bandai', 'cards', etc.)
-        timestamp (str | arrow.Arrow | None): The timestamp string or Arrow object (e.g., '20250301T1551Z')
+        timestamp (str | arrow.Arrow | None): The timestamp string or Arrow object (e.g., '20250301T1551Z').
+            If None, loads the latest changelog available for the given name.
 
     Returns:
-        pd.DataFrame | None: The loaded changelog DataFrame if found, otherwise None.
+        pd.DataFrame | None: The loaded changelog DataFrame (or None if not found).
     """
-    if isinstance(timestamp, arrow.Arrow):
-        timestamp = timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
     if timestamp is None:
-        # Find all changelogs for this name, pick the latest by ctime
-        changelogs = list(dirs.DATA.glob(f"{name}_changelog_*.bz2"))
-        if not changelogs:
-            logger.info(f"No changelog found for {name} (no changelogs present)")
-            return None
-        changelog_file = max(changelogs, key=os.path.getctime)
-        timestamp_str = Path(changelog_file).stem.split("_")[-1]
+        df, _ = load_latest(name, type="changelog")
+        return df
+
+    changelog_files = list(dirs.DATA.glob(f"{name}_changelog_*.bz2"))
+    if not changelog_files:
+        with logging_redirect_tqdm():
+            logger.info("No changelog found for %s", name)
+        return None
+
+    period_re = re.compile(rf"{re.escape(name)}_changelog_(\d{{8}}T\d{{4}}Z)_(\d{{8}}T\d{{4}}Z)\.bz2$")
+    changelog_periods = []
+    for changelog_file in changelog_files:
+        match = period_re.search(changelog_file.name)
+        if not match:
+            continue
+
+        from_str, to_str = match.groups()
+        try:
+            from_ts = arrow.get(from_str)
+            to_ts = arrow.get(to_str)
+        except Exception:
+            continue
+
+        changelog_periods.append((changelog_file, from_ts, to_ts))
+
+    if not changelog_periods:
+        with logging_redirect_tqdm():
+            logger.info("No valid changelog periods found for %s", name)
+        return None
+
+    if isinstance(timestamp, arrow.Arrow):
+        ts = timestamp
     else:
-        changelogs = list(dirs.DATA.glob(f"{name}_changelog_*_{timestamp}.bz2"))
-        if not changelogs:
-            logger.info(f"No changelog found for {name.capitalize()} data associated with timestamp {timestamp}")
+        try:
+            ts = arrow.get(timestamp)
+        except Exception:
+            with logging_redirect_tqdm():
+                logger.warning("Invalid timestamp format: %s", timestamp)
             return None
-        changelog_file = max(changelogs, key=os.path.getctime)
-        timestamp_str = timestamp
+
+    matches = [(f, from_ts, to_ts) for f, from_ts, to_ts in changelog_periods if from_ts <= ts <= to_ts]
+    if matches:
+        changelog_file, _, to_ts = max(matches, key=lambda x: x[2])
+    else:
+        earlier_periods = [(f, from_ts, to_ts) for f, from_ts, to_ts in changelog_periods if to_ts <= ts]
+        if not earlier_periods:
+            with logging_redirect_tqdm():
+                logger.info("No changelog found for %s at or before %s", name, ts)
+            return None
+        changelog_file, _, to_ts = max(earlier_periods, key=lambda x: x[2])
+
+    timestamp_str = to_ts.format("YYYYMMDDTHHmm") + "Z"
     try:
         df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
-        logger.info(f"Changelog loaded from {changelog_file} for {name} {timestamp_str}")
         if dirs.is_notebook:
             relpath = Path(os.path.relpath(changelog_file, dirs.REPORTS)).as_posix()
             display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
         else:
             relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
             tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
-
-        logger.info(f"Changelog loaded from {relpath} for {name.capitalize()} data")
+        with logging_redirect_tqdm():
+            logger.info("Changelog loaded from %s for %s %s", relpath, name.capitalize(), timestamp_str)
         return df
     except Exception as e:
-        logger.warning(f"Error loading changelog {changelog_file}: {e}")
+        with logging_redirect_tqdm():
+            logger.warning("Error loading changelog %s: %s", changelog_file, e)
         return None
 
 
@@ -367,7 +387,7 @@ def _load_card_data(list_df: pd.DataFrame, card_data: bool) -> pd.DataFrame | No
         pd.DataFrame | None: The loaded card data DataFrame if relevant columns are present and card_data is True, otherwise None.
     """
     if card_data or any(col in list_df and not list_df[col].dropna().empty for col in ["Name", "Password"]):
-        card_df = load_latest(name_pattern="cards")
+        card_df, _ = load_latest(name_pattern="cards")
         if card_df is not None:
             card_df.sort_values(by=["Name", "Primary type", "Property"], ignore_index=True, inplace=True)
         return card_df
@@ -385,7 +405,7 @@ def _load_set_data(list_df: pd.DataFrame) -> pd.DataFrame | None:
         pd.DataFrame | None: The loaded set lists DataFrame if "Card number" column is present and not empty, otherwise None.
     """
     if "Card number" in list_df and not list_df["Card number"].dropna().empty:
-        set_lists_df = load_latest(name_pattern="sets")
+        set_lists_df, _ = load_latest(name_pattern="sets")
         if set_lists_df is not None:
             set_lists_df = (
                 set_lists_df.sort_values(by="Release")

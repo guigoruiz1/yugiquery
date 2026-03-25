@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import requests
 import wikitextparser as wtp
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from ..utils import LoggerConfig
@@ -33,6 +34,99 @@ _arrows_dict: Dict[str, str] = {
 Mapping from link arrow names to their corresponding Unicode symbols.
 Keys are the standard link arrow names (e.g., "Middle-Left"), and values are the corresponding Unicode symbols for those arrows.
 """
+
+
+# --- Error Handling --- #
+class APIResponseError(Exception):
+    """Raised when the API returns an error payload or an invalid response body."""
+
+
+# --- API Response Parsing Functions --- #
+
+
+def parse_response(response: requests.Response) -> dict[str, Any]:
+    """
+    Parses the JSON response from the API and checks for errors or warnings.
+
+    Args:
+        response (requests.Response): The response object obtained from making a GET request to the API.
+
+    Returns:
+        dict: The parsed JSON response from the API.
+
+    Raises:
+        APIResponseError: If the response contains an error or if the expected data structure is not found in the response.
+    """
+    try:
+        payload = response.json()
+    except ValueError as err:
+        with logging_redirect_tqdm():
+            logger.error("Unable to parse response JSON from URL: %s", response.url)
+        raise APIResponseError(f"Invalid JSON response from {response.url}") from err
+
+    if "error" in payload:
+        error_info = payload["error"].get("info", payload["error"])
+        with logging_redirect_tqdm():
+            logger.error("API error from %s: %s", response.url, error_info)
+        raise APIResponseError(f"API error from {response.url}: {error_info}")
+
+    if "warnings" in payload:
+        with logging_redirect_tqdm():
+            logger.warning("API warnings from %s: %s", response.url, payload["warnings"])
+
+    if "query" not in payload:
+        with logging_redirect_tqdm():
+            logger.error("Unexpected response structure from %s", response.url)
+        raise APIResponseError(f"Missing query in response from {response.url}")
+
+    return payload
+
+
+def extract_query_field(payload: dict[str, Any], field: str) -> Any:
+    """
+    Extracts a specific field from the 'query' section of the API response payload.
+
+    Args:
+        payload (dict): The parsed JSON response from the API.
+        field (str): The specific field to extract from the 'query' section.
+
+    Returns:
+        The value of the specified field within the 'query' section.
+
+    Raises:
+        APIResponseError: If the specified field is not found in the 'query' section of the payload.
+    """
+    try:
+        return payload["query"][field]
+    except KeyError as err:
+        raise APIResponseError(f"Missing query/{field} in API response") from err
+
+
+def response_to_df(response: requests.Response) -> pd.DataFrame:
+    """
+    Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
+
+    Args:
+        response (requests.Response): The response object obtained from making a GET request to the Yu-Gi-Oh! Wiki API.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the relevant data extracted from the response object.
+
+    Raises:
+        APIResponseError: If the response contains an error or if the expected data structure is not found in the response.
+    """
+    payload = parse_response(response)
+    results = extract_query_field(payload, "results")
+    base_df = pd.DataFrame(results).transpose()
+
+    if "printouts" not in base_df:
+        return base_df
+
+    df = pd.DataFrame(base_df["printouts"].values.tolist(), index=base_df["printouts"].keys())
+    page_url = base_df["fullurl"].rename("Page URL")
+    page_name = base_df["fulltext"].rename("Page name")
+    return pd.concat([df, page_name, page_url], axis=1)
+
 
 # --- Formatting Functions --- #
 
@@ -147,29 +241,6 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     # Include other unspecified columns
     if include_all:
         df = df.join(input_df[input_df.columns.difference(df.columns)].map(_extract_fulltext, multiple=True))
-
-    return df
-
-
-def extract_results(response: requests.Response) -> pd.DataFrame:
-    """
-    Extracts the relevant data from the response object and returns it as a Pandas DataFrame.
-
-    Args:
-        response (requests.Response): The response object obtained from making a GET request to the Yu-Gi-Oh! Wiki API.
-
-    Returns:
-        pd.DataFrame: A DataFrame containing the relevant data extracted from the response object.
-    """
-    json = response.json()
-    df = pd.DataFrame(json["query"]["results"]).transpose()
-    if "printouts" in df:
-        df = pd.DataFrame(df["printouts"].values.tolist(), index=df["printouts"].keys())
-        page_url = pd.DataFrame(json["query"]["results"]).transpose()["fullurl"].rename("Page URL")
-        page_name = (
-            pd.DataFrame(json["query"]["results"]).transpose()["fulltext"].rename("Page name")
-        )  # Not necessarily same as card name (Used to merge errata)
-        df = pd.concat([df, page_name, page_url], axis=1)
 
     return df
 

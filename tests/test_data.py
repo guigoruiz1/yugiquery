@@ -21,10 +21,7 @@ def test_load_latest_data_returns_none_when_missing(tmp_path, monkeypatch):
     (tmp_path / "data").mkdir(exist_ok=True)
 
     result = core_data.load_latest("cards")
-    assert result is None
-
-    result_with_ts = core_data.load_latest("cards", return_ts=True)
-    assert result_with_ts == (None, None)
+    assert result == (None, None)
 
 
 def test_load_latest_data_uses_latest_file_and_parses(monkeypatch, tmp_path):

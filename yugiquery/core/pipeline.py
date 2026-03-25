@@ -19,6 +19,7 @@ import papermill as pm
 import pandas as pd
 from jupyter_client import kernelspec
 from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
@@ -133,7 +134,7 @@ def run(
     if squash and not dry_run:
         _squash_commits(start_commit=start_commit, progress_handler=progress_handler)
 
-    print("\nExecution completed")
+    print("Execution completed")
     logger.info("Execution completed")
 
 
@@ -295,14 +296,17 @@ def update_data(
                     results[flow] = func(save_changelog=changelog, save_benchmark=benchmark, commit=commit)
                 for pbar in pbars:
                     pbar.update(1)
-                logger.info(f"Data update for {flow} succeeded.")
+                with logging_redirect_tqdm():
+                    logger.info(f"Data update for {flow} succeeded.")
             except Exception as e:
-                logger.error("Data update failed for flow '%s'\n: %s", flow, e)
+                with logging_redirect_tqdm():
+                    logger.error("Data update failed for flow '%s'\n: %s", flow, e)
                 exceptions.append(e)
             finally:
                 unlock(f"update_{flow}")
         else:
-            logger.warning(f"Unknown data update flow: {flow} (skipped)")
+            with logging_redirect_tqdm():
+                logger.warning(f"Unknown data update flow: {flow} (skipped)")
 
     if exceptions:
         combined_message = "\n".join(str(e) for e in exceptions)
@@ -352,7 +356,7 @@ def _update_cards_data(
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("cards", return_ts=True)
+            prev_df, prev_ts = load_latest("cards")
             if prev_df is not None:
                 changelog_path = _write_changelog(prev_df, prev_ts, full_cards_df, now, "cards", col="Name")
 
@@ -365,7 +369,9 @@ def _update_cards_data(
         if commit:
             git.commit(["*[Cc]ards*", "data/benchmark.json"], message=f"Cards data updated - {now.isoformat()}")
 
-        logger.info(f"Cards data saved to {cards_path}")
+        with logging_redirect_tqdm():
+            logger.info(f"New Cards data saved to {cards_path}")
+        tqdm.write(f"New Cards data saved to {cards_path}\n")
 
         return full_cards_df, cards_path, changelog_path
     finally:
@@ -403,7 +409,7 @@ def _update_rush_data(
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("rush", return_ts=True)
+            prev_df, prev_ts = load_latest("rush")
             if prev_df is not None:
                 changelog_path = _write_changelog(prev_df, prev_ts, rush_df, now, "rush", col="Name")
 
@@ -416,7 +422,9 @@ def _update_rush_data(
         if commit:
             git.commit(["*[Rr]ush*", "data/benchmark.json"], message=f"Rush Duel data updated - {now.isoformat()}")
 
-        logger.info(f"Rush Duel cards data saved to {rush_path}")
+        with logging_redirect_tqdm():
+            logger.info(f"New Rush data saved to {rush_path}")
+        tqdm.write(f"New Rush data saved to {rush_path}\n")
 
         return rush_df, rush_path, changelog_path
     finally:
@@ -457,7 +465,7 @@ def _update_speed_data(
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("speed", return_ts=True)
+            prev_df, prev_ts = load_latest("speed")
             if prev_df is not None:
                 changelog_path = _write_changelog(prev_df, prev_ts, full_speed_df, now, "speed", col="Name")
 
@@ -470,7 +478,9 @@ def _update_speed_data(
         if commit:
             git.commit(["*[Ss]peed*", "data/benchmark.json"], message=f"Speed Duel data updated - {now.isoformat()}")
 
-        logger.info(f"Speed Duel cards data saved to {speed_path}")
+        with logging_redirect_tqdm():
+            logger.info(f"New Speed Duel data saved to {speed_path}")
+        tqdm.write(f"New Speed Duel data saved to {speed_path}\n")
 
         return full_speed_df, speed_path, changelog_path
     finally:
@@ -502,7 +512,7 @@ def _update_bandai_data(
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("bandai", return_ts=True)
+            prev_df, prev_ts = load_latest("bandai")
             if prev_df is not None:
                 changelog_path = _write_changelog(prev_df, prev_ts, bandai_df, now, "bandai", col="Name")
 
@@ -515,7 +525,9 @@ def _update_bandai_data(
         if commit:
             git.commit(["*[Bb]andai*", "data/benchmark.json"], message=f"Bandai data updated - {now.isoformat()}")
 
-        logger.info(f"Bandai cards data saved to {bandai_path}")
+        with logging_redirect_tqdm():
+            logger.info(f"New Bandai data saved to {bandai_path}")
+        tqdm.write(f"New Bandai data saved to {bandai_path}\n")
 
         return bandai_df, bandai_path, changelog_path
     finally:
@@ -550,7 +562,7 @@ def _update_sets_data(
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("sets", return_ts=True)
+            prev_df, prev_ts = load_latest("sets")
             if prev_df is not None:
                 changelog_path = _write_changelog(prev_df, prev_ts, all_set_lists_df, now, "sets", col="Card number")
 
@@ -563,7 +575,9 @@ def _update_sets_data(
         if commit:
             git.commit(["*[Ss]ets*", "data/benchmark.json"], message=f"Sets data updated - {now.isoformat()}")
 
-        logger.info(f"Sets data saved to {sets_path}")
+        with logging_redirect_tqdm():
+            logger.info(f"New Sets data saved to {sets_path}")
+        tqdm.write(f"New Sets data saved to {sets_path}\n")
 
         return all_set_lists_df, sets_path, changelog_path
     finally:
@@ -594,10 +608,14 @@ def _write_changelog(prev_df, prev_ts, new_df, new_ts, file_name: str, col: str 
         if not changelog_df.empty:
             changelog_path = dirs.DATA / make_filename(report=file_name, timestamp=new_ts, previous_timestamp=prev_ts)
             changelog_df.to_csv(changelog_path, index=True)
-            logger.info(f"{file_name.capitalize()} changelog saved to {changelog_path}")
+            tqdm.write(f"New {file_name.capitalize()} changelog saved to {changelog_path}")
+            with logging_redirect_tqdm():
+                logger.info(f"New {file_name.capitalize()} changelog saved to {changelog_path}")
             return changelog_path
         else:
-            logger.info(f"No changes detected for {file_name}, no changelog generated.")
+            tqdm.write(f"No changes detected for {file_name}, no changelog generated.")
+            with logging_redirect_tqdm():
+                logger.info(f"No changes detected for {file_name}, no changelog generated.")
     except Exception as e:
         logger.error(f"Changelog for {file_name} failed: {e}")
     return None
@@ -717,8 +735,9 @@ def run_notebooks(
                 pbar.set_postfix(report=report_name)
 
             if dry_run:
-                logger.info("Dry run - Generating %s report", report_name)
-                print(f"\nDry run - Generating {report_name} report")
+                with logging_redirect_tqdm():
+                    logger.info("Dry run - Generating %s report", report_name)
+                tqdm.write(f"\nDry run - Generating {report_name} report")
                 continue
 
             with open(report) as f:
@@ -734,7 +753,8 @@ def run_notebooks(
             stream_handler.flush = update_pbar
 
             tqdm.write(f"\nGenerating {report_name} report")
-            logger.info("Generating %s report", report_name)
+            with logging_redirect_tqdm():
+                logger.info("Generating %s report", report_name)
 
             # Set logger environment variables for notebook execution
             os.environ["PM_IN_EXECUTION"] = dest_report
@@ -753,9 +773,11 @@ def run_notebooks(
                     progress_bar={"position": 1, "desc": report_name},  # pyright: ignore[reportArgumentType]
                     kernel_name=kernel_name,
                 )
-                logger.info("Report '%s' generated successfully at %s", report_name, dest_report)
+                with logging_redirect_tqdm():
+                    logger.info("Report '%s' generated successfully at %s", report_name, dest_report)
             except pm.PapermillExecutionError as e:
-                logger.error("Report execution failed for '%s'\n: %s", report_name, e)
+                with logging_redirect_tqdm():
+                    logger.error("Report execution failed for '%s'\n: %s", report_name, e)
                 exceptions.append(e)
             finally:
                 os.environ.pop("PM_IN_EXECUTION", None)

@@ -93,8 +93,12 @@ def unlock(passphrase: str = "") -> subprocess.CompletedProcess:
 
     Returns:
         subprocess.CompletedProcess: The result of the unlock operation.
+
+    Raises:
+        FileNotFoundError: If the git unlock script is not found.
+        OSError: If there is an error starting the git unlock script.
+        subprocess.CalledProcessError: If the git unlock script returns a non-zero exit code.
     """
-    # TODO: Better error handling
     if os.name == "nt":
         script = dirs.get_asset("scripts", "unlock_git.bat")
         args = [script, passphrase]
@@ -102,11 +106,29 @@ def unlock(passphrase: str = "") -> subprocess.CompletedProcess:
         script = dirs.get_asset("scripts", "unlock_git.sh")
         args = ["sh", script, passphrase]
 
-    result = subprocess.run(
-        args=args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    if not Path(script).exists():
+        logger.error("Git unlock script not found: %s", script)
+        raise FileNotFoundError(f"Git unlock script not found: {script}")
+
+    try:
+        result = subprocess.run(
+            args=args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
+    except OSError as err:
+        logger.error("Failed to start git unlock script %s: %s", script, err)
+        raise
+    except subprocess.CalledProcessError as err:
+        logger.error(
+            "Git unlock script failed with exit code %s: %s",
+            err.returncode,
+            err.stderr.strip() if err.stderr else "no stderr output",
+        )
+        raise
+
     return result
 
 

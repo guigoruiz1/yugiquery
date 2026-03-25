@@ -20,6 +20,7 @@ import urllib.parse as up
 
 # --- Imports: Third-Party --- #
 import aiohttp
+from aiohttp import payload
 import numpy as np
 import pandas as pd
 import requests
@@ -31,11 +32,7 @@ from termcolor import cprint
 from .. import utils
 from ..metadata import __title__, __url__, __version__
 from ..utils import md5, LoggerConfig, dirs
-from .parsers import (
-    extract_results,
-    format_df,
-    process_content,
-)
+from .parsers import parse_response, extract_query_field, response_to_df, format_df, process_content, APIResponseError
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -76,7 +73,6 @@ DEFAULT_HTTP_TIMEOUT: Tuple[float, float] = (5, 30)
 DEFAULT_HTTP_BACKOFF = 1.0
 DEFAULT_SOCKET_TIMEOUT = 2
 
-
 # --- Functions --- #
 
 
@@ -89,7 +85,28 @@ def _request_with_retry(
     timeout: Tuple[float, float] = DEFAULT_HTTP_TIMEOUT,
     backoff: float = DEFAULT_HTTP_BACKOFF,
 ) -> requests.Response:
-    """GET wrapper with exponential-backoff retries for transient API failures."""
+    """
+    GET wrapper with exponential-backoff retries for transient API failures.
+    Tries to make a GET request to the specified URL with the provided headers and query parameters.
+    If the request fails due to a transient error (e.g., network issues, server errors), it will retry the request up to a specified number of retries with an exponential backoff strategy.
+
+    Args:
+        url (str): The URL to send the GET request to.
+        headers (Dict[str, str]): A dictionary of HTTP headers to include in the request.
+        params (Dict[str, Any], optional): A dictionary of query parameters to include in the request. Defaults to None.
+        retries (int, optional): The number of retry attempts for transient failures. Defaults to DEFAULT_HTTP_RETRIES.
+        timeout (Tuple[float, float], optional): A tuple specifying the connection and read timeouts for the request. Defaults to DEFAULT_HTTP_TIMEOUT.
+        backoff (float, optional): The base backoff time in seconds for retries. Defaults to DEFAULT_HTTP_BACKOFF.
+
+    Returns:
+        requests.Response: The response object returned by the successful API request.
+
+    Raises:
+        ValueError: If the retries parameter is less than 1.
+        requests.exceptions.RequestException: If an error occurs while making the API request after exhausting all retries.
+        RuntimeError: If the request fails and no exception was captured.
+
+    """
     if retries < 1:
         raise ValueError("retries must be at least 1")
 
@@ -118,13 +135,25 @@ def fetch_ygoprodeck(misc=True) -> List[Dict[str, Any]]:
         (List[Dict[str, Any]]): List of card data.
 
     Raises:
-        requests.exceptions.HTTPError: If an HTTP error occurs while fetching the data.
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     ydk_url = URLS.ygoprodeck
     if misc:
         ydk_url += "?misc=yes"
     response = _request_with_retry(ydk_url, headers=URLS.headers)
-    return response.json()["data"]
+
+    try:
+        payload = response.json()
+    except ValueError as err:
+        logger.error("Unable to parse YGOPRODeck JSON from URL: %s", response.url)
+        raise APIResponseError(f"Invalid JSON response from {response.url}") from err
+
+    try:
+        return payload["data"]
+    except KeyError as err:
+        logger.error("Missing data in YGOPRODeck response from %s", response.url)
+        raise APIResponseError(f"Missing data in response from {response.url}") from err
 
 
 # --- API Status --- #
@@ -170,7 +199,7 @@ def check_status() -> bool:
 # --- Category Members --- #
 
 
-def fetch_categorymembers(  # TODO: log errors
+def fetch_categorymembers(
     category: str,
     namespace: int | None = None,
     step: int = 500,
@@ -187,6 +216,12 @@ def fetch_categorymembers(  # TODO: log errors
 
     Returns:
         pandas.DataFrame: A DataFrame containing the members of the category.
+
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
+        KeyboardInterrupt: If the operation is interrupted by the user.
+        SystemExit: If the operation is interrupted by the system.
     """
     params = {"cmlimit": step, "cmnamespace": namespace}
 
@@ -201,10 +236,10 @@ def fetch_categorymembers(  # TODO: log errors
     ) as spinner:
         try:
             while True:
-                if iterator is None:
-                    spinner.text = f"Fetching category members... Iteration {i+1}"
-                else:
+                if iterator is not None:
                     iterator.set_postfix(it=i + 1)
+
+                spinner.text = f"Fetching category members... Iteration {i+1}"
 
                 params = params.copy()
                 params.update(lastContinue)
@@ -216,21 +251,20 @@ def fetch_categorymembers(  # TODO: log errors
                 with logging_redirect_tqdm():
                     logger.debug("%s", response.url)
 
-                result = response.json()
-                if "error" in result:
-                    spinner.fail(result["error"]["info"])
-                    # raise Exception(result['error']['info'])
-                if "warnings" in result:
-                    spinner.warn(result["warnings"])
-                    # print(result['warnings'])
-                if "query" in result:
-                    all_results += result["query"]["categorymembers"]
-                    with logging_redirect_tqdm():
-                        logger.debug("Iteration %s: %s results", i + 1, len(result["query"]["categorymembers"]))
-                if "continue" not in result:
+                payload = parse_response(response)
+
+                if "warnings" in payload:
+                    spinner.warn(payload["warnings"])
+
+                members = extract_query_field(payload, "categorymembers")
+                all_results += members
+
+                if "continue" not in payload:
                     spinner.succeed(f'{i+1} iteration(s) completed for category "{category}"')
+                    with logging_redirect_tqdm():
+                        logger.debug('%s iterations completed for category "%s"', i + 1, category)
                     break
-                lastContinue = result["continue"]
+                lastContinue = payload["continue"]
                 i += 1
 
             if "PM_IN_EXECUTION" not in os.environ:
@@ -238,11 +272,15 @@ def fetch_categorymembers(  # TODO: log errors
 
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            with logging_redirect_tqdm():
+                logger.warning('Category members fetch interrupted for "%s" on iteration %s', category, i + 1)
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
-        except requests.exceptions.RequestException as err:
+        except (requests.exceptions.RequestException, APIResponseError) as err:
             spinner.fail(f"Request failed: {err}")
+            with logging_redirect_tqdm():
+                logger.error('Category members fetch failed for "%s" on iteration %s: %s', category, i + 1, err)
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
@@ -254,7 +292,7 @@ def fetch_categorymembers(  # TODO: log errors
 # --- Properties --- #
 
 
-def fetch_properties(  # TODO: log errors
+def fetch_properties(
     condition: str,
     query: str,
     step: int = 500,
@@ -275,6 +313,12 @@ def fetch_properties(  # TODO: log errors
 
     Returns:
         pandas.DataFrame: A DataFrame containing the properties matching the query and condition.
+
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
+        KeyboardInterrupt: If the operation is interrupted by the user.
+        SystemExit: If the operation is interrupted by the system.
     """
     df = pd.DataFrame()
     i = 0
@@ -286,11 +330,10 @@ def fetch_properties(  # TODO: log errors
     ) as spinner:
         try:
             while not complete:
-                if iterator is None:
-                    # spinner.clear()
-                    spinner.text = f"Fetching properties... Iteration {i+1}"
-                else:
+                if iterator is not None:
                     iterator.set_postfix(it=i + 1)
+
+                spinner.text = f"Fetching properties... Iteration {i+1}"
 
                 response = _request_with_retry(
                     url=URLS.base
@@ -303,8 +346,8 @@ def fetch_properties(  # TODO: log errors
                 with logging_redirect_tqdm():
                     logger.debug("%s", response.url)
 
-                result = extract_results(response)
-                formatted_df = format_df(input_df=result, include_all=include_all)
+                query_df = response_to_df(response)
+                formatted_df = format_df(input_df=query_df, include_all=include_all)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
                 with logging_redirect_tqdm():
@@ -319,13 +362,34 @@ def fetch_properties(  # TODO: log errors
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
 
+            with logging_redirect_tqdm():
+                logger.debug(
+                    '%s iterations completed for condition "%s": %s total results',
+                    i + 1,
+                    condition,
+                    len(df.index),
+                )
+
         except (KeyboardInterrupt, SystemExit):
             spinner.fail("Execution interrupted.")
+            with logging_redirect_tqdm():
+                logger.warning(
+                    'Properties fetch interrupted for condition "%s" on iteration %s',
+                    condition,
+                    i + 1,
+                )
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
-        except requests.exceptions.RequestException as err:
+        except (requests.exceptions.RequestException, APIResponseError) as err:
             spinner.fail(f"Request failed: {err}")
+            with logging_redirect_tqdm():
+                logger.error(
+                    'Properties fetch failed for condition "%s" on iteration %s: %s',
+                    condition,
+                    i + 1,
+                    err,
+                )
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
@@ -345,6 +409,9 @@ def fetch_redirects(*titles: str) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: A dictionary mapping source titles to their corresponding redirect targets.
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     results = {}
     iterator = trange(np.ceil(len(titles) / 50).astype(int), desc="Redirects", leave=False)
@@ -358,8 +425,9 @@ def fetch_redirects(*titles: str) -> Dict[str, str]:
         )
         with logging_redirect_tqdm():
             logger.debug("%s", response.url)
-        response = response.json()
-        redirects = response["query"]["redirects"]
+
+        payload = parse_response(response)
+        redirects = extract_query_field(payload=payload, field="redirects")
         for redirect in redirects:
             results[redirect.get("from", "")] = redirect.get("to", "")
 
@@ -378,6 +446,10 @@ def fetch_backlinks(*titles: str) -> Dict[str, str]:
 
     Returns:
         Dict[str, str]: A dictionary mapping backlink titles to their corresponding target titles.
+
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     results = {}
     iterator = tqdm(titles, dynamic_ncols=(not utils.dirs.is_notebook), desc="Backlinks", leave=False)
@@ -389,8 +461,9 @@ def fetch_backlinks(*titles: str) -> Dict[str, str]:
         )
         with logging_redirect_tqdm():
             logger.debug("%s", response.url)
-        response = response.json()
-        backlinks = response["query"]["backlinks"]
+
+        payload = parse_response(response)
+        backlinks = extract_query_field(payload=payload, field="backlinks")
         for backlink in backlinks:
             if re.match(pattern=r"^[a-zA-Z]+$", string=backlink["title"]) and backlink["title"] not in target_title.split(
                 " "
@@ -418,6 +491,9 @@ def fetch_redirect_dict(
     Returns:
         Dict[str, str]: A dictionary mapping codes to their corresponding names.
 
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     if isinstance(codes, str):
         codes = [codes]
@@ -449,12 +525,16 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
         pd.DataFrame: A DataFrame containing information for all sets in the list.
 
     Raises:
-        Any exceptions raised by requests.get().
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
+        KeyboardInterrupt: If the operation is interrupted by the user.
+        SystemExit: If the operation is interrupted by the system.
     """
     tqdm.write(
-        f"Downloading information for {len(sets)} sets...",
+        f"Downloading information for {len(sets)} sets",
     )
-    logger.info("Downloading information for %s sets...", len(sets))
+    with logging_redirect_tqdm():
+        logger.info("Downloading information for %s sets", len(sets))
 
     regions_dict = utils.load_json(utils.dirs.get_asset("json", "regions.json"))
     # Info to ask
@@ -466,35 +546,65 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
 
     # Get set info
     set_info_df = pd.DataFrame()
-    for i in trange(np.ceil(len(sets) / step).astype(int), leave=False):
-        first = i * step
-        last = (i + 1) * step
-        titles = up.quote(string="]]OR[[".join(sets[first:last]))
-        response = _request_with_retry(
-            url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
-            headers=URLS.headers,
-        )
-        with logging_redirect_tqdm():
-            logger.debug("Iteration %s:", i)
-            logger.debug("%s", response.url)
-        formatted_response = extract_results(response)
-        formatted_response.drop(
-            "Page name", axis=1, inplace=True
-        )  # Page name not needed - no set errata, set name same as page name
-        formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
-        with logging_redirect_tqdm():
-            logger.debug(
-                "Information for %s sets downloaded - %s errors",
-                len(formatted_df),
-                step - len(formatted_df),
-            )
 
-        set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
+    try:
+        for i in trange(np.ceil(len(sets) / step).astype(int), leave=False):
+            first = i * step
+            last = (i + 1) * step
+            batch_sets = sets[first:last]
+            titles = up.quote(string="]]OR[[".join(batch_sets))
+            response = _request_with_retry(
+                url=URLS.base + URLS.askargs_action + titles + f"&printouts={ask}",
+                headers=URLS.headers,
+            )
+            with logging_redirect_tqdm():
+                logger.debug("Iteration %s:", i + 1)
+                logger.debug("%s", response.url)
+
+            formatted_response = response_to_df(response)
+            formatted_response.drop(
+                "Page name", axis=1, inplace=True
+            )  # Page name not needed - no set errata, set name same as page name
+            formatted_df = format_df(input_df=formatted_response, include_all=(True if extra_info else False))
+            with logging_redirect_tqdm():
+                logger.debug(
+                    "Information for %s sets downloaded - %s missing",
+                    len(formatted_df),
+                    len(batch_sets) - len(formatted_df),
+                )
+
+            set_info_df = pd.concat([set_info_df, formatted_df.dropna(axis=1, how="all")])
+
+    except (KeyboardInterrupt, SystemExit):
+        with logging_redirect_tqdm():
+            logger.warning("Set info fetch interrupted on iteration %s", i + 1)
+        raise
+    except requests.exceptions.RequestException as err:
+        with logging_redirect_tqdm():
+            logger.error(
+                "Set info request failed on iteration %s for sets %s: %s",
+                i + 1,
+                list(batch_sets),
+                err,
+            )
+        raise
+    except APIResponseError as err:
+        with logging_redirect_tqdm():
+            logger.error(
+                "Set info parsing failed on iteration %s for sets %s: %s",
+                i + 1,
+                list(batch_sets),
+                err,
+            )
+        raise
 
     set_info_df = set_info_df.convert_dtypes()
     set_info_df.sort_index(inplace=True)
-
-    logger.info("Information received for %s sets - %s errors", len(set_info_df), len(sets) - len(set_info_df))
+    with logging_redirect_tqdm():
+        logger.info("Information received for %s sets - %s missing", len(set_info_df), len(sets) - len(set_info_df))
+    tqdm.write(
+        f"Information received for {len(set_info_df)} sets - {len(sets) - len(set_info_df)} missing\n",
+    )
 
     return set_info_df
 
@@ -502,7 +612,6 @@ def fetch_set_info(*sets: str, extra_info: List[str] = [], step: int = 15) -> pd
 # --- Set Lists --- #
 
 
-# TODO: Translate region code?
 def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
     """
     Fetches card set lists from a list of page titles.
@@ -512,6 +621,10 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
 
     Returns:
         Tuple[pd.DataFrame, int, int]: A DataFrame containing the parsed card set lists, the number of successful requests, and the number of failed requests.
+
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     logger.debug("%s sets requested", len(titles))
 
@@ -537,13 +650,8 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
         headers=URLS.headers,
     )
     logger.debug("%s", response.url)
-    try:
-        json = response.json()
-    except Exception:
-        logger.error("Unable to parse response JSON from URL: %s", response.url)
-        return
-
-    contents = json["query"]["pages"].values()
+    payload = parse_response(response)
+    contents = extract_query_field(payload=payload, field="pages").values()
 
     for content in contents:
         if "revisions" in content.keys():
@@ -557,7 +665,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
 
         else:
             total_error += 1
-            logger.debug('Error! No content for "%s"', content["title"])
+            logger.warning('No content for "%s"', content.get("title", "Unknown"))
 
     logger.debug("%s set lists received - %s missing", total_success, total_error)
 
@@ -586,6 +694,10 @@ def fetch_page_images(
 
     Returns:
         Dict[str, List[str] | str]: Mapping of page title to image names.
+
+    Raises:
+        requests.exceptions.RequestException: If an error occurs while making the API request.
+        APIResponseError: If the API response contains an error or is invalid.
     """
     results: Dict[str, List[str] | str] = {}
 
@@ -601,9 +713,10 @@ def fetch_page_images(
         response = _request_with_retry(
             url=URLS.base + action + titles_str,
             headers=URLS.headers,
-        ).json()
+        )
 
-        pages = response.get("query", {}).get("pages", {})
+        payload = parse_response(response)
+        pages = extract_query_field(payload=payload, field="pages")
         for page in pages.values():
             if featured:
                 original = page.get("original")
