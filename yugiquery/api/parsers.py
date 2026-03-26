@@ -131,7 +131,7 @@ def response_to_df(response: requests.Response) -> pd.DataFrame:
 # --- Formatting Functions --- #
 
 
-def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame:
+def format_df(input_df: pd.DataFrame, include_all: bool = False, overrides: dict[str, bool] = {}) -> pd.DataFrame:
     """
     Formats a dataframe containing card information.
     Returns a new dataframe with specific columns extracted and processed.
@@ -139,6 +139,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     Args:
         input_df (pd.DataFrame): The input dataframe to format.
         include_all (bool, optional): If True, include all unspecified columns in the output dataframe. Default is False.
+        overrides (dict[str, bool], optional): A dictionary specifying whether certain columns should be treated as having multiple values. Default is an empty dictionary.
 
     Returns:
         pd.DataFrame: The formatted dataframe.
@@ -149,7 +150,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     individual_cols = {
         "Name": False,
         "Password": False,
-        "Card type": False,
+        "Card type": True,
         "Property": False,
         "Card image": False,
         "Archseries": True,
@@ -179,6 +180,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
         "Ability": False,
         "Rule": False,
     }
+    individual_cols.update(overrides)
     for col, multi in individual_cols.items():
         if col in input_df.columns:
             extracted_col = input_df[col].apply(_extract_fulltext, multiple=multi)
@@ -242,7 +244,7 @@ def format_df(input_df: pd.DataFrame, include_all: bool = False) -> pd.DataFrame
     if include_all:
         df = df.join(input_df[input_df.columns.difference(df.columns)].map(_extract_fulltext, multiple=True))
 
-    return df
+    return df.dropna(how="all", axis=1)
 
 
 # --- Helper Functions --- #

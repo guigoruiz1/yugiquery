@@ -298,7 +298,8 @@ def fetch_properties(
     step: int = 500,
     limit: int = 5000,
     iterator: tqdm | None = None,
-    include_all: bool = False,
+    unwrap_tuples: bool = True,
+    **format_kwargs,
 ) -> pd.DataFrame:
     """
     Fetches properties from the API by making iterative requests with a specified step size until a specified limit is reached.
@@ -309,7 +310,8 @@ def fetch_properties(
         step (int, optional): The number of properties to retrieve in each request. Defaults to 500.
         limit (int, optional): The maximum number of properties to retrieve. Defaults to 5000.
         iterator (tqdm.std.tqdm | None, optional): A tqdm iterator to display progress updates. Defaults to None.
-        include_all (bool, optional): If True, includes all properties in the DataFrame. If False, includes only properties that have values. Defaults to False.
+        unwrap_tuples (bool, optional): Whether to unwrap single-value tuple columns in the resulting DataFrame. Defaults to True.
+        **format_kwargs: Keyword arguments to pass to the format_df function for formatting the retrieved properties. Defaults to None.
 
     Returns:
         pandas.DataFrame: A DataFrame containing the properties matching the query and condition.
@@ -347,7 +349,7 @@ def fetch_properties(
                     logger.debug("%s", response.url)
 
                 query_df = response_to_df(response)
-                formatted_df = format_df(input_df=query_df, include_all=include_all)
+                formatted_df = format_df(input_df=query_df, **format_kwargs)
                 df = pd.concat([df, formatted_df], ignore_index=True, axis=0)
 
                 with logging_redirect_tqdm():
@@ -393,6 +395,12 @@ def fetch_properties(
             if "PM_IN_EXECUTION" not in os.environ:
                 time.sleep(0.5)
             raise
+
+    # Unwrap single-value tuple columns
+    if unwrap_tuples:
+        for col in df.columns:
+            if df[col].apply(lambda x: len(x) if isinstance(x, tuple) else 1).max() == 1:
+                df[col] = df[col].apply(lambda x: x[0] if isinstance(x, tuple) else x)
 
     return df
 

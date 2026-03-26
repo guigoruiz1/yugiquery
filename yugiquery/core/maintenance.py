@@ -253,6 +253,7 @@ def cleanup_data(dryrun: bool = False) -> None:
     lock("cleanup_data")
     try:
         dryrun_str = " (dry run)" if dryrun else ""
+        print(f"\nStarting data cleanup{dryrun_str}")
         logger.info("Starting data cleanup%s", dryrun_str)
 
         with Halo(text="Cleaning up data...", spinner="line", enabled=("PM_IN_EXECUTION" not in os.environ)) as spinner:
@@ -262,7 +263,7 @@ def cleanup_data(dryrun: bool = False) -> None:
                 benchmark = load_json(benchmark_file)
                 new_benchmark = condense_benchmark(benchmark)
                 if dryrun:
-                    logger.info("Benchmark: %s", new_benchmark)
+                    logger.info("Condensed Benchmark: %s", new_benchmark)
                 else:
                     logger.info("Condensed benchmark history saved to %s", benchmark_file)
                     with open(benchmark_file, "w+") as f:
@@ -277,6 +278,10 @@ def cleanup_data(dryrun: bool = False) -> None:
             for is_changelog, label in [(True, "changelog"), (False, "data")]:
                 spinner.text = f"Cleaning {label} files..."
                 logger.info("Processing %s files...", label)
+                if dryrun:
+                    print(
+                        "Processing {label} files...",
+                    )
 
                 subdf = df[df["IsChangelog"] == is_changelog].copy()
                 if subdf.empty:
@@ -465,6 +470,8 @@ def _process_group(group_df, is_changelog, dryrun):
         deleted_count += 1
         if not dryrun:
             os.remove(file)
+        else:
+            print(f"Dry run: would delete old file {file}")
 
     files = group_df.sort_values("MaxTS_pd", ascending=False)["Name"].tolist()
     if not files:
@@ -484,9 +491,10 @@ def _process_group(group_df, is_changelog, dryrun):
         new_filename = make_filename(report=group, timestamp=max_ts, previous_timestamp=min_ts)
         new_filepath = dirs.DATA / new_filename
         logger.info("New changelog file: %s", new_filepath)
-
         if not dryrun:
             new_changelog.to_csv(new_filepath, index=False)
+        else:
+            print(f"Dry run: would save new changelog to {new_filepath}")
 
         for file in files:
             if Path(file) != new_filepath:
@@ -494,8 +502,12 @@ def _process_group(group_df, is_changelog, dryrun):
                 deleted_count += 1
                 if not dryrun:
                     os.remove(file)
+                else:
+                    print(f"Dry run: would delete file {file}")
             else:
                 logger.info("Keep %s", file)
+                if dryrun:
+                    print(f"Dry run: would keep file {file}")
                 kept_count += 1
     else:
         most_recent = group_df.loc[group_df["MaxTS_pd"].idxmax(), "Name"]
@@ -505,17 +517,18 @@ def _process_group(group_df, is_changelog, dryrun):
                 deleted_count += 1
                 if not dryrun:
                     os.remove(file)
+                else:
+                    print(f"Dry run: would delete file {file}")
             else:
                 logger.info("Keep %s", file)
+                if dryrun:
+                    print(f"Dry run: would keep file {file}")
                 kept_count += 1
 
-    logger.info(
-        "Summary for group %s (%s): %d deleted, %d kept",
-        group,
-        "changelog" if is_changelog else "data",
-        deleted_count,
-        kept_count,
-    )
+    message = f"Summary for group {group} ({'changelog' if is_changelog else 'data'}): {deleted_count} would be deleted, {kept_count} would be kept"
+    logger.info(message)
+    if dryrun:
+        print(f"Dry run: {message}")
 
 
 def _extract_group(path):

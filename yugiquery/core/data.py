@@ -10,6 +10,7 @@ from typing import List, Literal, Tuple, overload
 
 # --- Imports: Third-Party --- #
 import arrow
+import re
 import numpy as np
 import pandas as pd
 from IPython.display import Markdown, display
@@ -29,7 +30,6 @@ logger = LoggerConfig.get_logger()
 def load_latest(
     name_pattern: str,
     type: str = "data",
-    tuple_cols: List[str] = [],
 ) -> Tuple[pd.DataFrame | None, arrow.Arrow | None]:
     """
     Loads the latest file matching the given name pattern and type, and attempts to parse specified columns as tuples.
@@ -44,21 +44,6 @@ def load_latest(
     Returns:
         Tuple[pd.DataFrame | None, arrow.Arrow | None]: A tuple containing the loaded DataFrame (or None if not found) and the timestamp (or None if not found).
     """
-    default_tuple_cols = [
-        "Secondary type",
-        "Effect type",
-        "Link Arrows",
-        "Archseries",
-        "Artwork",
-        "Errata",
-        "Rarity",
-        "Cover card",
-        "Legend",
-        "Maximum mode",
-        "Rarity",
-        "Cover card",
-    ]
-    tuple_cols += default_tuple_cols
     name_pattern = name_pattern.lower()
     files = sorted(
         list(dirs.DATA.glob(f"{name_pattern}_{type}_*.bz2")),
@@ -68,8 +53,10 @@ def load_latest(
 
     if files:
         df = pd.read_csv(files[0], dtype=object, keep_default_na=False, na_values="")
-        for col in tuple_cols:
-            if col in df:
+        tuple_pattern = re.compile(r"^\(.*['\"].*\)$")
+        for col in df.columns:
+            first_val = df[col].dropna().astype(str).iloc[0] if not df[col].dropna().empty else None
+            if first_val and tuple_pattern.match(first_val):
                 try:
                     df[col] = df[col].dropna().apply(literal_eval)
                 except (ValueError, SyntaxError):
@@ -813,9 +800,11 @@ def select_unusable(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Filtered DataFrame containing only rows where "Card status" is "Unusable".
     """
     if "Card type" in df:
-        return df[~df["Card type"].isin(["Monster Card", "Spell Card", "Trap Card", "Monster Token", "Counter"])].dropna(
-            how="all", axis=1
-        )
+        return df[
+            ~df["Card type"].apply(
+                lambda x: any(i in x for i in ["Monster Card", "Spell Card", "Trap Card", "Monster Token", "Counter"])
+            )
+        ].dropna(how="all", axis=1)
     else:
         raise ValueError("No Card type column found")
 
@@ -834,6 +823,8 @@ def select_token_counter(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Filtered DataFrame containing only rows where "Card type" is "Monster Token" or "Counter".
     """
     if "Card type" in df:
-        return df[df["Card type"].isin(["Monster Token", "Counter"])].dropna(how="all", axis=1)
+        return df[df["Card type"].apply(lambda x: any(i in x for i in ["Monster Token", "Counter"]))].dropna(
+            how="all", axis=1
+        )
     else:
         raise ValueError("No Card type column found")

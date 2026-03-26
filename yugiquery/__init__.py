@@ -7,7 +7,6 @@ from . import api
 from . import core
 
 # --- Imports: All Symbols --- #
-from .api import *
 from .core import *
 from .metadata import *
 from .utils import *

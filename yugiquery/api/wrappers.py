@@ -11,7 +11,6 @@ from enum import Enum
 from typing import Dict
 
 # --- Imports: Third-Party --- #
-import aiohttp
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm, trange
@@ -46,7 +45,7 @@ class CG(Enum):
 
 
 #: A dictionary mapping card types to their corresponding properties to query.
-card_properties = {
+_card_properties = {
     "monster": [
         "password",
         "card_type",
@@ -83,8 +82,13 @@ card_properties = {
         "ocg_debut",
         "modified_date",
     ],
-    "counter": [
-        "password",
+    "tc": [
+        "atk",
+        "def",
+        "attribute",
+        "level_rank_link",
+        "monster_type",
+        "primary",
         "card_type",
         "effect_type",
         "archseries",
@@ -350,9 +354,20 @@ def card_query(*args, **kwargs) -> str:
 
 # --- Card Fetching Functions --- #
 def fetch_bandai(bandai_query: str | None = None, limit: int = 200, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Bandai cards from the API.
+
+    Args:
+        bandai_query (str | None, optional): Custom query string for Bandai cards.
+        limit (int, optional): Maximum number of cards to fetch.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Bandai card data.
+    """
     concept = "[[Medium::Bandai]]"
     if bandai_query is None:
-        bandai_query = card_query(*card_properties["bandai"])
+        bandai_query = card_query(*_card_properties["bandai"])
 
     tqdm.write("Downloading bandai cards")
     with logging_redirect_tqdm():
@@ -379,6 +394,20 @@ def fetch_st(
     limit: int = 5000,
     **kwargs,
 ) -> pd.DataFrame:
+    """
+    Fetch Spell and Trap cards from the API.
+
+    Args:
+        st_query (str | None, optional): Custom query string for Spell and Trap cards.
+        st (str, optional): The type of card to fetch. Default is "both".
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Spell and Trap card data.
+    """
     st = st.capitalize()
     valid_st = {"Spell", "Trap", "Both", "All"}
     valid_cg = cg.value
@@ -393,7 +422,7 @@ def fetch_st(
         concept += f"[[Medium::{valid_cg}]]"
 
     if st_query is None:
-        st_query = card_query(*card_properties["st"])
+        st_query = card_query(*_card_properties["st"])
 
     tqdm.write(f"Downloading {st}s")
     with logging_redirect_tqdm():
@@ -409,20 +438,66 @@ def fetch_st(
     return st_df
 
 
+def fetch_spell(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Spell cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Spell cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Spell card data.
+    """
+    return fetch_st(*query, st="Spell", cg=cg, step=step, limit=limit, **kwargs)
+
+
+def fetch_trap(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Trap cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Trap cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Trap card data.
+    """
+    return fetch_st(*query, st="Trap", cg=cg, step=step, limit=limit, **kwargs)
+
+
 def fetch_monster(
     *query: str,
     cg: CG = CG.ALL,
     step: int = 500,
     limit: int = 5000,
-    exclude_token=True,
     **kwargs,
 ) -> pd.DataFrame:
+    """
+    Fetch Monster cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Monster cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Monster card data.
+    """
     valid_cg = cg.value
     attributes = ["DIVINE", "LIGHT", "DARK", "WATER", "EARTH", "FIRE", "WIND", "?", "???"]
     if query:
         query_str = "|?".join(query)
     else:
-        query_str = card_query(*card_properties["monster"])
+        query_str = card_query(*_card_properties["monster"])
 
     logger.info("Downloading Monsters")
     monster_df = pd.DataFrame()
@@ -451,9 +526,6 @@ def fetch_monster(
         temp_df = client.fetch_properties(concept, query_str, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
 
-    if exclude_token and "Primary type" in monster_df:
-        monster_df = monster_df[monster_df["Primary type"] != "Monster Token"]
-
     with logging_redirect_tqdm():
         logger.debug("- Total")
         logger.info("%s results", len(monster_df.index))
@@ -463,65 +535,115 @@ def fetch_monster(
     return monster_df
 
 
-def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
-    valid_cg = cg.value
+def fetch_tc(
+    tc_query: str | None = None,
+    tc: str = "both",
+    cg: CG = CG.ALL,
+    step: int = 500,
+    limit: int = 5000,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    Fetch Token and Counter cards from the API.
 
-    concept = f"[[Category:Tokens]]"
+    Args:
+        tc_query (str | None, optional): Custom query string for Token and Counter cards.
+        tc (str, optional): The type of card to fetch. Default is "both".
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Token and Counter card data.
+    """
+    tc = tc.capitalize()
+    valid_tc = {"Token", "Counter", "Both", "All"}
+    valid_cg = cg.value
+    concept = f"[[Page type::Card page]]"
+    if tc not in valid_tc:
+        raise ValueError("results: tc must be one of %r." % valid_tc)
+    elif tc == "Both" or tc == "All":
+        tc = "Tokens and Counters"
+        concept += "[[Category:Tokens||Counters]]"
+    else:
+        concept += f"[[Category:{tc}s]]"
+
     if valid_cg != "CG":
-        concept += f"[[Category:{valid_cg} cards]]"
+        concept += f"[[Medium::{tc}]]"
     else:
         concept += "[[Category:TCG cards||OCG cards]]"
 
-    if query:
-        query_str = "|?".join(query)
-    else:
-        query_str = card_query(*card_properties["monster"])
+    if tc_query is None:
+        tc_query = card_query(*_card_properties["tc"])
 
-    tqdm.write("Downloading tokens")
+    tqdm.write(f"Downloading {tc}s")
     with logging_redirect_tqdm():
-        logger.info("Downloading tokens")
+        logger.info("Downloading %ss", tc)
 
-    token_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
+    tc_df = client.fetch_properties(concept, tc_query, step=step, limit=limit, **kwargs)
 
     with logging_redirect_tqdm():
-        logger.info("%s results", len(token_df.index))
-    tqdm.write(f"{len(token_df.index)} results\n")
+        logger.debug("- Total")
+        logger.info("%s results", len(tc_df.index))
+    tqdm.write(f"{len(tc_df.index)} results\n")
 
-    return token_df
+    return tc_df
+
+
+def fetch_token(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Token cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Token cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Token card data.
+    """
+    return fetch_tc(*query, tc="Token", cg=cg, step=step, limit=limit, **kwargs)
 
 
 def fetch_counter(*query: str, cg=CG.ALL, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
-    valid_cg = cg.value
+    """
+    Fetch Counter cards from the API.
 
-    concept = f"[[Category:Counters]][[Page type::Card page]]"
-    if valid_cg != "CG":
-        concept += f"[[Medium::{valid_cg}]]"
+    Args:
+        *query (str): Variable length argument list of query strings for Counter cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
 
-    if query:
-        query_str = "|?".join(query)
-    else:
-        query_str = card_query(*card_properties["counter"])
-
-    tqdm.write("Downloading counters")
-    with logging_redirect_tqdm():
-        logger.info("Downloading counters")
-
-    counter_df = client.fetch_properties(concept, query_str, step=step, limit=limit, **kwargs)
-
-    with logging_redirect_tqdm():
-        logger.info("%s results", len(counter_df.index))
-
-    tqdm.write(f"{len(counter_df.index)} results\n")
-
-    return counter_df
+    Returns:
+        pd.DataFrame: DataFrame containing Counter card data.
+    """
+    return fetch_tc(*query, tc="Counter", cg=cg, step=step, limit=limit, **kwargs)
 
 
 def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Speed Duel cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Speed Duel cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Speed Duel card data.
+    """
     concept = "[[Category:TCG Speed Duel cards]]"
     if query:
         query_str = "|?".join(query)
     else:
-        query_str = card_query(*card_properties["speed"])
+        query_str = card_query(*_card_properties["speed"])
 
     tqdm.write("Downloading Speed duel cards")
     with logging_redirect_tqdm():
@@ -546,11 +668,24 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
 # TODO: Add Rush
 def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Skill cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Skill cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Skill card data.
+    """
     concept = "[[Category:Skill Cards]][[Card type::Skill Card]]"
     if query:
         query_str = "|?".join(query)
     else:
-        query_str = card_query(*card_properties["skill"])
+        query_str = card_query(*_card_properties["skill"])
 
     tqdm.write("Downloading skill cards")
     with logging_redirect_tqdm():
@@ -566,11 +701,24 @@ def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
 
 
 def fetch_rush(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch Rush Duel cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Rush Duel cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Rush Duel card data.
+    """
     concept = f"[[Category:Rush Duel cards]][[Medium::Rush Duel]]"
     if query:
         query_str = "|?".join(query)
     else:
-        query_str = card_query(*card_properties["rush"])
+        query_str = card_query(*_card_properties["rush"])
 
     tqdm.write("Downloading Rush Duel cards")
     with logging_redirect_tqdm():
@@ -593,6 +741,20 @@ def fetch_unusable(
     limit: int = 5000,
     **kwargs,
 ) -> pd.DataFrame:
+    """
+    Fetch Unusable cards from the API.
+
+    Args:
+        *query (str): Variable length argument list of query strings for Unusable cards.
+        cg (CG, optional): The card game to fetch cards from. Default is CG.ALL.
+        filter (bool, optional): Whether to filter for only Character, Non-game, and Ticket cards. Default is True.
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of cards to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing Unusable card data.
+    """
     concept = "[[Category:Unusable cards]]"
 
     if filter:
@@ -626,6 +788,17 @@ def fetch_unusable(
 
 
 def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame:
+    """
+    Fetch cards with errata from the API.
+
+    Args:
+        errata (str, optional): The type of errata to fetch. Default is "all". Valid options are "name", "type", and "all".
+        step (int, optional): The number of cards to fetch in each request. Default is 500.
+        **kwargs: Additional keyword arguments. Not implemented.
+
+    Returns:
+        pd.DataFrame: DataFrame containing card errata information.
+    """
     errata = errata.lower()
     valid = {"name", "type", "all"}
     categories = {
@@ -675,6 +848,18 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
 
 # --- Set List Fetching Functions --- #
 def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs) -> pd.DataFrame:
+    """
+    Fetch the list of 'Set Card Lists' pages from the API.
+
+    Args:
+        cg (CG, optional): The card game to fetch set lists for. Default is CG.ALL.
+        step (int, optional): The number of pages to fetch in each request. Default is 500.
+        limit (int, optional): The maximum number of pages to fetch. Default is 5000.
+        **kwargs: Additional keyword arguments to pass to fetch_properties.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the list of 'Set Card Lists' pages.
+    """
     valid_cg = cg.value
     if valid_cg == "CG":
         category = ["TCG Set Card Lists", "OCG Set Card Lists"]
@@ -728,6 +913,17 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
 
 
 def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFrame:
+    """
+    Fetch all set lists from the API.
+
+    Args:
+        cg (CG, optional): The card game to fetch set lists for. Default is CG.ALL.
+        step (int, optional): The number of set lists to fetch in each request. Default is 40.
+        **kwargs: Additional keyword arguments to pass to fetch_set_list_pages and fetch_set_lists.
+
+    Returns:
+        pd.DataFrame: DataFrame containing all set list data.
+    """
     sets = fetch_set_list_pages(cg, **kwargs)
     keys = sets["Page name"]
 

@@ -265,7 +265,7 @@ def update_data(
     Returns:
         dict[str, tuple[pd.DataFrame, Path, Path | None]]: A dictionary where keys are flow names and values are tuples containing the updated DataFrame, the path to the saved data file, and the path to the generated changelog file (or None if no changelog was generated).
     """
-    has_errata = {"cards", "rush", "speed"}
+    has_errata = {"cards", "rush", "speed", "other"}
     results = {}
     exceptions = []
 
@@ -349,25 +349,20 @@ def _update_cards_data(
 
         monster_df = api.fetch_monster()
         st_df = api.fetch_st()
-        token_df = api.fetch_token()
-        counter_df = api.fetch_counter()
-        unusable_df = api.fetch_unusable()
 
-        full_cards_df = pd.concat(
-            [monster_df, st_df, token_df, counter_df, unusable_df], ignore_index=True, axis=0
-        ).sort_values("Name", ignore_index=True)
+        cards_df = pd.concat([monster_df, st_df], ignore_index=True, axis=0).sort_values("Name", ignore_index=True)
 
         if errata_df is not None:
-            full_cards_df = merge_errata(full_cards_df, errata_df)
+            cards_df = merge_errata(cards_df, errata_df)
 
         changelog_path = None
         if save_changelog:
             prev_df, prev_ts = load_latest("cards")
             if prev_df is not None:
-                changelog_path = _write_changelog(prev_df, prev_ts, full_cards_df, now, "cards", col="Name")
+                changelog_path = _write_changelog(prev_df, prev_ts, cards_df, now, "cards", col="Name")
 
         cards_path = dirs.DATA / make_filename(report="cards", timestamp=now)
-        full_cards_df.to_csv(cards_path, index=False)
+        cards_df.to_csv(cards_path, index=False)
 
         if save_benchmark:
             benchmark(now, "fetch", "cards")
@@ -383,7 +378,7 @@ def _update_cards_data(
             logger.info(f"New Cards data saved to {cards_path}")
         tqdm.write(f"New Cards data saved to {cards_path}\n")
 
-        return full_cards_df, cards_path, changelog_path
+        return cards_df, cards_path, changelog_path
     finally:
         try:
             unlock("cards_data")
@@ -559,6 +554,65 @@ def _update_bandai_data(
             logger.error("Error unlocking bandai_data lock. %s", e)
 
 
+# TODO: better name
+def _update_other_data(
+    errata_df=None, save_changelog=True, save_benchmark=True, commit=True
+) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
+    """
+    Placeholder for other data update flows that may be added in the future. This function currently does nothing but can be implemented to handle additional data types as needed.
+
+    Args:
+        errata_df (pd.DataFrame, optional): DataFrame containing errata information, if relevant for the data being updated. Defaults to None.
+        save_changelog (bool, optional): Whether to generate and save a changelog comparing the new data with the previous version. Defaults to True.
+        save_benchmark (bool, optional): Whether to benchmark the data update process and save the results. Defaults to True.
+        commit (bool, optional): Whether to commit the updated data and benchmark results to Git. Defaults to True.
+
+    returns:
+        tuple[pd.DataFrame | None, Path | None, Path | None]: A tuple containing None values as this is a placeholder function.
+    """
+    try:
+        now = arrow.utcnow()
+        token_df = api.fetch_token()
+        counter_df = api.fetch_counter()
+        unusable_df = api.fetch_unusable()
+
+        other_df = pd.concat([token_df, counter_df, unusable_df], ignore_index=True, axis=0).sort_values(
+            "Name", ignore_index=True
+        )
+        if errata_df is not None:
+            other_df = merge_errata(other_df, errata_df)
+
+        changelog_path = None
+        if save_changelog:
+            prev_df, prev_ts = load_latest("other")
+            if prev_df is not None:
+                changelog_path = _write_changelog(prev_df, prev_ts, other_df, now, "other", col="Name")
+
+        other_path = dirs.DATA / make_filename(report="other", timestamp=now)
+        other_df.to_csv(other_path, index=False)
+
+        if save_benchmark:
+            benchmark(now, "fetch", "other")
+
+        if commit:
+            commit_result = git.commit(
+                ["*[Oo]ther*", "data/benchmark.json"], message=f"Other data updated - {now.isoformat()}"
+            )
+            with logging_redirect_tqdm():
+                logger.info("Git commit result for Other data: %s", commit_result)
+
+        with logging_redirect_tqdm():
+            logger.info(f"New Other data saved to {other_path}")
+        tqdm.write(f"New Other data saved to {other_path}\n")
+
+        return other_df, other_path, changelog_path
+    finally:
+        try:
+            unlock("other_data")
+        except Exception as e:
+            logger.error("Error unlocking other_data lock. %s", e)
+
+
 def _update_sets_data(
     save_changelog=True, save_benchmark=True, commit=True
 ) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
@@ -619,6 +673,7 @@ _data_flows_avail = {
     "speed": _update_speed_data,
     "bandai": _update_bandai_data,
     "sets": _update_sets_data,
+    "other": _update_other_data,
 }
 """List of available data flows that can be updated. Each flow corresponds to a specific type of data that can be fetched and processed from the API."""
 

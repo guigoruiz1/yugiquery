@@ -22,7 +22,7 @@ from .client import (
 # --- Imports: Wrappers Submodule --- #
 from .wrappers import (
     CG,
-    card_properties,
+    _card_properties,
     card_query,
     fetch_all_set_lists,
     fetch_bandai,
@@ -35,6 +35,7 @@ from .wrappers import (
     fetch_speed,
     fetch_st,
     fetch_token,
+    fetch_tc,
     get_ygoprodeck,
     fetch_unusable,
     update_rarities,
