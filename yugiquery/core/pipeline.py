@@ -265,7 +265,7 @@ def update_data(
     Returns:
         dict[str, tuple[pd.DataFrame, Path, Path | None]]: A dictionary where keys are flow names and values are tuples containing the updated DataFrame, the path to the saved data file, and the path to the generated changelog file (or None if no changelog was generated).
     """
-    has_errata = {"cards", "rush", "speed", "other"}
+    has_errata = {"cards", "rush", "speed", "misc"}
     results = {}
     exceptions = []
 
@@ -554,12 +554,11 @@ def _update_bandai_data(
             logger.error("Error unlocking bandai_data lock. %s", e)
 
 
-# TODO: better name
-def _update_other_data(
+def _update_misc_data(
     errata_df=None, save_changelog=True, save_benchmark=True, commit=True
 ) -> tuple[pd.DataFrame | None, Path | None, Path | None]:
     """
-    Placeholder for other data update flows that may be added in the future. This function currently does nothing but can be implemented to handle additional data types as needed.
+    Retrieve, process, and save miscellaneous data (e.g., tokens, counters, unusable cards). Optionally generate a changelog.
 
     Args:
         errata_df (pd.DataFrame, optional): DataFrame containing errata information, if relevant for the data being updated. Defaults to None.
@@ -568,49 +567,50 @@ def _update_other_data(
         commit (bool, optional): Whether to commit the updated data and benchmark results to Git. Defaults to True.
 
     returns:
-        tuple[pd.DataFrame | None, Path | None, Path | None]: A tuple containing None values as this is a placeholder function.
+        tuple[pd.DataFrame | None, Path | None, Path | None]: A tuple containing the updated miscellaneous data DataFrame, the path to the saved data file, and the path to the generated changelog file (or None if no changelog was generated).
     """
+    lock("misc_data")
     try:
         now = arrow.utcnow()
         token_df = api.fetch_token()
         counter_df = api.fetch_counter()
         unusable_df = api.fetch_unusable()
 
-        other_df = pd.concat([token_df, counter_df, unusable_df], ignore_index=True, axis=0).sort_values(
+        misc_df = pd.concat([token_df, counter_df, unusable_df], ignore_index=True, axis=0).sort_values(
             "Name", ignore_index=True
         )
         if errata_df is not None:
-            other_df = merge_errata(other_df, errata_df)
+            misc_df = merge_errata(misc_df, errata_df)
 
         changelog_path = None
         if save_changelog:
-            prev_df, prev_ts = load_latest("other")
+            prev_df, prev_ts = load_latest("misc")
             if prev_df is not None:
-                changelog_path = _write_changelog(prev_df, prev_ts, other_df, now, "other", col="Name")
+                changelog_path = _write_changelog(prev_df, prev_ts, misc_df, now, "misc", col="Name")
 
-        other_path = dirs.DATA / make_filename(report="other", timestamp=now)
-        other_df.to_csv(other_path, index=False)
+        misc_path = dirs.DATA / make_filename(report="misc", timestamp=now)
+        misc_df.to_csv(misc_path, index=False)
 
         if save_benchmark:
-            benchmark(now, "fetch", "other")
+            benchmark(now, "fetch", "misc")
 
         if commit:
             commit_result = git.commit(
-                ["*[Oo]ther*", "data/benchmark.json"], message=f"Other data updated - {now.isoformat()}"
+                ["*[Mm]isc*", "data/benchmark.json"], message=f"Misc data updated - {now.isoformat()}"
             )
             with logging_redirect_tqdm():
-                logger.info("Git commit result for Other data: %s", commit_result)
+                logger.info("Git commit result for Misc data: %s", commit_result)
 
         with logging_redirect_tqdm():
-            logger.info(f"New Other data saved to {other_path}")
-        tqdm.write(f"New Other data saved to {other_path}\n")
+            logger.info(f"New Misc data saved to {misc_path}")
+        tqdm.write(f"New Misc data saved to {misc_path}\n")
 
-        return other_df, other_path, changelog_path
+        return misc_df, misc_path, changelog_path
     finally:
         try:
-            unlock("other_data")
+            unlock("misc_data")
         except Exception as e:
-            logger.error("Error unlocking other_data lock. %s", e)
+            logger.error("Error unlocking misc_data lock. %s", e)
 
 
 def _update_sets_data(
@@ -673,7 +673,7 @@ _data_flows_avail = {
     "speed": _update_speed_data,
     "bandai": _update_bandai_data,
     "sets": _update_sets_data,
-    "other": _update_other_data,
+    "misc": _update_misc_data,
 }
 """List of available data flows that can be updated. Each flow corresponds to a specific type of data that can be fetched and processed from the API."""
 

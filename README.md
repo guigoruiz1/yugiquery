@@ -36,7 +36,7 @@ Below are listed all the available reports and their execution timestamps.
 | [Timeline](reports/Timeline.html) | 12/03/2026 00:44 UTC
 <!-- REPORT_TABLE_END -->
 
-The full YugiQuery flow was last executed at `25/03/2026 20:38 UTC`.
+YugiQuery flow was last executed at `26/03/2026 23:40 UTC`.
 
 # Usage
 

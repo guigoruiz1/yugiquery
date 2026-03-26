@@ -19,7 +19,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
-from ..utils import dirs, load_json, LoggerConfig, filename_ts_fmt
+from ..utils import dirs, load_json, LoggerConfig, filename_ts_fmt, get_notebook_path
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -67,7 +67,9 @@ def load_latest(
         with logging_redirect_tqdm():
             logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
         if dirs.is_notebook:
-            relpath = Path(os.path.relpath(files[0], dirs.REPORTS)).as_posix()
+            nbpath = get_notebook_path()
+            nbpath = nbpath.parent if nbpath else dirs.WORK
+            relpath = Path(os.path.relpath(files[0], nbpath)).as_posix()
             display(Markdown(f"{name_pattern.capitalize()} {type} loaded from [{relpath}]({relpath})"))
         else:
             relpath = Path(os.path.relpath(files[0], dirs.WORK)).as_posix()
@@ -132,10 +134,13 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
         return None
 
     df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
-    relpath = Path(os.path.relpath(changelog_file, dirs.REPORTS if dirs.is_notebook else dirs.WORK)).as_posix()
     if dirs.is_notebook:
+        nbpath = get_notebook_path()
+        nbpath = nbpath.parent if nbpath else dirs.WORK
+        relpath = Path(os.path.relpath(changelog_file, nbpath)).as_posix()
         display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
     else:
+        relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
         tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
     logger.info("Changelog loaded from %s for %s %s", relpath, name.capitalize(), filename_ts_fmt(to_ts))
     return df

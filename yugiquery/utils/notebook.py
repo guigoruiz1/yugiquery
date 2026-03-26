@@ -37,16 +37,14 @@ def get_notebook_path() -> Path | None:
         None
 
     Returns:
-        Path: The path of the current notebook.
+        Path | None: The path of the current notebook. Returns None if the path cannot be obtained.
     """
-
     file_path = (
         getattr(get_ipython(), "user_ns", {}).get("__vsc_ipynb_file__")
         or os.environ.get("JPY_SESSION_NAME")
         or os.environ.get("PM_IN_EXECUTION")
         or JupyterFrontEnd().sessions.current_session.get("name")
     )
-
     return Path(file_path) if file_path else None
 
 
@@ -130,7 +128,7 @@ def export_notebook(
     ipkernel_logger = logging.getLogger("IPKernelApp")
     ipkernel_logger.setLevel(logging.ERROR)
 
-    (body, resources) = html_exporter.from_notebook_node(notebook_content)
+    body, resources = html_exporter.from_notebook_node(notebook_content)
     # Write the output to the specified directory
     writer = FilesWriter()
     writer.write(output=body, resources=resources, notebook_name=output_path)
