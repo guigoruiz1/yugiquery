@@ -10,7 +10,6 @@ from typing import List, Literal, Tuple, overload
 
 # --- Imports: Third-Party --- #
 import arrow
-import re
 import numpy as np
 import pandas as pd
 from IPython.display import Markdown, display
@@ -19,7 +18,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from .. import api
-from ..utils import dirs, load_json, LoggerConfig
+from ..utils import dirs, load_json, LoggerConfig, filename_ts_fmt
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -113,70 +112,46 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
         df, _ = load_latest(name, type="changelog")
         return df
 
+    ts = timestamp if isinstance(timestamp, arrow.Arrow) else arrow.get(timestamp)
+
+    # Find all changelog files for this dataset
     changelog_files = list(dirs.DATA.glob(f"{name}_changelog_*.bz2"))
     if not changelog_files:
-        with logging_redirect_tqdm():
-            logger.info("No changelog found for %s", name)
+        logger.info("No changelog found for %s", name)
         return None
 
-    period_re = re.compile(rf"{re.escape(name)}_changelog_(\d{{8}}T\d{{4}}Z)_(\d{{8}}T\d{{4}}Z)\.bz2$")
     changelog_periods = []
-    for changelog_file in changelog_files:
-        match = period_re.search(changelog_file.name)
-        if not match:
+    for file in changelog_files:
+        parts = Path(file).stem.split("_")
+        if len(parts) < 4 or parts[0] != name or parts[1] != "changelog":
             continue
-
-        from_str, to_str = match.groups()
-        try:
-            from_ts = arrow.get(from_str)
-            to_ts = arrow.get(to_str)
-        except Exception:
-            continue
-
-        changelog_periods.append((changelog_file, from_ts, to_ts))
+        from_ts, to_ts = arrow.get(parts[-2]), arrow.get(parts[-1])
+        changelog_periods.append((file, from_ts, to_ts))
 
     if not changelog_periods:
-        with logging_redirect_tqdm():
-            logger.info("No valid changelog periods found for %s", name)
+        logger.info("No valid changelog periods found for %s", name)
         return None
 
-    if isinstance(timestamp, arrow.Arrow):
-        ts = timestamp
-    else:
-        try:
-            ts = arrow.get(timestamp)
-        except Exception:
-            with logging_redirect_tqdm():
-                logger.warning("Invalid timestamp format: %s", timestamp)
-            return None
+    # Sort by to_ts descending to prioritize most recent coverage
+    changelog_periods.sort(key=lambda x: x[2], reverse=True)
 
-    matches = [(f, from_ts, to_ts) for f, from_ts, to_ts in changelog_periods if from_ts <= ts <= to_ts]
-    if matches:
-        changelog_file, _, to_ts = max(matches, key=lambda x: x[2])
+    # Pick the changelog whose range includes ts, or the latest one before ts
+    for file, from_ts, to_ts in changelog_periods:
+        if from_ts <= ts <= to_ts or to_ts <= ts:
+            changelog_file = file
+            break
     else:
-        earlier_periods = [(f, from_ts, to_ts) for f, from_ts, to_ts in changelog_periods if to_ts <= ts]
-        if not earlier_periods:
-            with logging_redirect_tqdm():
-                logger.info("No changelog found for %s at or before %s", name, ts)
-            return None
-        changelog_file, _, to_ts = max(earlier_periods, key=lambda x: x[2])
-
-    timestamp_str = to_ts.format("YYYYMMDDTHHmm") + "Z"
-    try:
-        df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
-        if dirs.is_notebook:
-            relpath = Path(os.path.relpath(changelog_file, dirs.REPORTS)).as_posix()
-            display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
-        else:
-            relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
-            tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
-        with logging_redirect_tqdm():
-            logger.info("Changelog loaded from %s for %s %s", relpath, name.capitalize(), timestamp_str)
-        return df
-    except Exception as e:
-        with logging_redirect_tqdm():
-            logger.warning("Error loading changelog %s: %s", changelog_file, e)
+        logger.info("No changelog found for %s at or before %s", name, ts)
         return None
+
+    df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
+    relpath = Path(os.path.relpath(changelog_file, dirs.REPORTS if dirs.is_notebook else dirs.WORK)).as_posix()
+    if dirs.is_notebook:
+        display(Markdown(f"Changelog loaded from [{relpath}]({relpath}) for {name.capitalize()} data"))
+    else:
+        tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
+    logger.info("Changelog loaded from %s for %s %s", relpath, name.capitalize(), filename_ts_fmt(to_ts))
+    return df
 
 
 # --- Set and Card Dataset Merges --- #

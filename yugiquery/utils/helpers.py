@@ -183,6 +183,25 @@ def get_ts_granularity(seconds: int) -> List[arrow.arrow._GRANULARITY]:
     return selected_granularity
 
 
+def parse_data_ts(path):
+    try:
+        return arrow.get(Path(path).stem.split("_")[-1])
+    except Exception:
+        return None
+
+
+def parse_changelog_ts(path):
+    parts = Path(path).stem.split("_")
+    try:
+        return arrow.get(parts[-2]), arrow.get(parts[-1])
+    except Exception:
+        return None, None
+
+
+def filename_ts_fmt(ts: arrow.Arrow) -> str:
+    return ts.to("UTC").format("YYYYMMDDTHHmm") + "Z"
+
+
 def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:
     """
     Generates a standardized filename based on the provided parameters.
@@ -196,11 +215,11 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
         str: The generated filename.
     """
     report = report.lower()
-    formated_ts = timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
+    formated_ts = filename_ts_fmt(timestamp)
     if previous_timestamp is None:
         return f"{report}_data_{formated_ts}.bz2"
     else:
-        formated_previous_ts = previous_timestamp.to("UTC").format("YYYYMMDDTHHmm") + "Z"
+        formated_previous_ts = filename_ts_fmt(previous_timestamp)
         return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
 
 

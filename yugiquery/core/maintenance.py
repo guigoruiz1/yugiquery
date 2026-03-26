@@ -6,17 +6,27 @@
 import json
 import os
 import re
-import time
 from pathlib import Path
-from typing import Dict, List, Tuple, TypedDict
+from typing import Dict, List, TypedDict
 
 # --- Imports: Third-Party --- #
 import arrow
-from IPython.display import display
 import pandas as pd
 
 # --- Imports: Local Application --- #
-from ..utils import dirs, get_notebook_path, git, load_json, make_filename, LoggerConfig, lock, unlock
+from ..utils import (
+    dirs,
+    get_notebook_path,
+    git,
+    load_json,
+    make_filename,
+    LoggerConfig,
+    lock,
+    unlock,
+    parse_data_ts,
+    parse_changelog_ts,
+    filename_ts_fmt,
+)
 
 # --- Halo Spinner Import --- #
 if dirs.is_notebook:
@@ -107,105 +117,6 @@ def benchmark(timestamp: arrow.Arrow, group: str = "report", entry: str | None =
         json.dump(data, file, indent=4)
 
     logger.info("%s", f"{entry.capitalize()} {group.capitalize()} benchmarked")
-
-
-# --- Changelog Condensing --- #
-
-
-def condense_changelogs(files: List[Path | str]) -> Tuple[pd.DataFrame, Path]:
-    """
-    Condense multiple changelog files into a consolidated dataframe and generate a new filename.
-
-    Args:
-        files (List[Path | str]): A list of changelog file paths.
-
-    Returns:
-        Tuple[pd.DataFrame, Path]: The consolidated changelog dataframe and new file path.
-    """
-    new_changelog = pd.DataFrame()
-    changelog_name = None
-    first_date = None
-    last_date = None
-    last_file_path = None
-
-    for file in files:
-        file_path = Path(str(file))
-        match = re.search(
-            r"(\w+)_\w+_(\d{8}T\d{4})Z_(\d{8}T\d{4})Z.bz2",
-            file_path.name,
-        )
-        if match is None:
-            continue
-        last_file_path = file_path
-        name = match.group(1)
-        from_date = match.group(2)
-        to_date = match.group(3)
-        if changelog_name is not None and changelog_name != name:
-            logger.warning("Names mismatch!")
-        changelog_name = name
-        if first_date is None or first_date > from_date:
-            first_date = from_date
-        if last_date is None or last_date < to_date:
-            last_date = to_date
-        df = pd.read_csv(file_path, dtype=object)
-        df["Version"] = df["Version"].map({"Old": from_date, "New": to_date})
-        new_changelog = pd.concat([new_changelog, df], axis=0, ignore_index=True)
-
-    new_changelog.sort_values(
-        by=[new_changelog.columns[0], "Version"],
-        ascending=[True, True],
-        axis=0,
-        inplace=True,
-    )
-    new_changelog = new_changelog.drop_duplicates(keep="last").dropna(how="all", axis=0)
-    index = new_changelog.drop(["Modification date", "Version"], axis=1).drop_duplicates(keep="last").index
-
-    assert last_file_path is not None, "No valid changelog files found"
-    assert changelog_name is not None, "Unable to determine changelog name"
-    assert last_date is not None, "Unable to determine last date"
-    assert first_date is not None, "Unable to determine first date"
-
-    new_filename = last_file_path.parent.joinpath(
-        make_filename(
-            report=changelog_name,
-            timestamp=arrow.get(last_date),
-            previous_timestamp=arrow.get(first_date),
-        ),
-    )
-    return new_changelog.loc[index], new_filename
-
-
-# --- Benchmark Condensing --- #
-
-
-def condense_benchmark(benchmark: Dict[str, Dict[str, List[BenchmarkEntry]]]) -> Dict[str, Dict[str, List[BenchmarkEntry]]]:
-    """
-    Condense benchmark history by weighted average and total weight for each key.
-
-    Args:
-        benchmark (Dict[str, List[BenchmarkEntry]]): Benchmark data dictionary.
-
-    Returns:
-        Dict[str, List[BenchmarkEntry]]: Condensed benchmark dictionary.
-    """
-    now = arrow.utcnow()
-    for group_key, group_val in benchmark.items():
-        for entry_key, entry_val in group_val.items():
-            weighted_sum = 0.0
-            total_weight = 0.0
-            for entry in entry_val:
-                weighted_sum += entry["average"] * entry["weight"]
-                total_weight += entry["weight"]
-            weighted_average = weighted_sum / total_weight if total_weight else 0.0
-            benchmark[group_key][entry_key] = [
-                {
-                    "ts": now.isoformat(),
-                    "average": weighted_average,
-                    "weight": total_weight,
-                }
-            ]
-
-    return benchmark
 
 
 # --- Index Updating --- #
@@ -344,11 +255,7 @@ def cleanup_data(dryrun: bool = False) -> None:
         dryrun_str = " (dry run)" if dryrun else ""
         logger.info("Starting data cleanup%s", dryrun_str)
 
-        with Halo(
-            text="Cleaning up data...",
-            spinner="line",
-            enabled=("PM_IN_EXECUTION" not in os.environ) and LoggerConfig.get_level() > 20,
-        ) as spinner:
+        with Halo(text="Cleaning up data...", spinner="line", enabled=("PM_IN_EXECUTION" not in os.environ)) as spinner:
             benchmark_file = dirs.DATA / "benchmark.json"
             if benchmark_file.is_file():
                 spinner.text = "Condensing benchmark history..."
@@ -365,76 +272,41 @@ def cleanup_data(dryrun: bool = False) -> None:
             if not file_list:
                 return
 
-            df = pd.DataFrame(file_list, columns=["Name"])
-            df["Date"] = pd.to_datetime(df["Name"].apply(os.path.getctime), unit="s")
-            df["Group"] = df["Name"].apply(lambda x: "_".join(Path(x).name.split("_", 2)[:2]))
-            df["IsChangelog"] = df["Name"].apply(lambda x: "changelog" in Path(x).name)
+            df = _build_file_index(file_list)
 
-            # Split into changelog and data
             for is_changelog, label in [(True, "changelog"), (False, "data")]:
                 spinner.text = f"Cleaning {label} files..."
                 logger.info("Processing %s files...", label)
+
                 subdf = df[df["IsChangelog"] == is_changelog].copy()
                 if subdf.empty:
                     continue
 
-                # Last month: process per week, each file only once
-                last_month = subdf[subdf["Date"] >= subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-                last_month.loc[:, "Week"] = last_month["Date"].dt.to_period("W").apply(lambda p: p.start_time)
-                for (group, week), group_df in last_month.groupby(["Group", "Week"]):
-                    files = group_df["Name"].sort_values(ascending=False).tolist()
-                    if not files:
-                        continue
-                    logger.debug("Processing %s files for group %s week of %s", label, group, week.strftime("%Y-%m-%d"))
-                    if is_changelog and len(files) > 1:
-                        new_changelog, new_filepath = condense_changelogs(files)
-                        logger.info("New changelog file: %s", new_filepath)
-                        if not dryrun:
-                            new_changelog.to_csv(new_filepath)
-                        for file in files:
-                            if file != new_filepath:
-                                logger.info("Delete %s", file)
-                                if not dryrun:
-                                    os.remove(file)
-                    else:
-                        # Keep the most recent file in the group
-                        most_recent = max(files, key=lambda f: os.path.getctime(f))
-                        for file in files:
-                            if file != most_recent:
-                                logger.info("Delete %s", file)
-                                if not dryrun:
-                                    os.remove(file)
-                            else:
-                                logger.info("Keep %s", file)
+                cutoff = subdf["MaxTS_pd"].max() - pd.Timedelta(days=30)
 
-                # Older: process per month, each file only once
-                older = subdf[subdf["Date"] < subdf["Date"].max() - pd.DateOffset(months=1)].copy()
-                older.loc[:, "Month"] = older["Date"].dt.to_period("M").apply(lambda p: p.start_time)
-                for (group, month), group_df in older.groupby(["Group", "Month"]):
-                    files = group_df["Name"].sort_values(ascending=False).tolist()
-                    if not files:
-                        continue
-                    logger.debug("Processing %s files for group %s month of %s", label, group, month.strftime("%Y-%m"))
-                    if is_changelog and len(files) > 1:
-                        new_changelog, new_filepath = condense_changelogs(files)
-                        logger.info("New changelog file: %s", new_filepath)
-                        if not dryrun:
-                            new_changelog.to_csv(new_filepath)
-                        for file in files:
-                            if file != new_filepath:
-                                logger.info("Delete %s", file)
-                                if not dryrun:
-                                    os.remove(file)
-                    else:
-                        # Keep the most recent file in the group
-                        most_recent = max(files, key=lambda f: os.path.getctime(f))
-                        for file in files:
-                            if file != most_recent:
-                                logger.info("Delete %s", file)
-                                if not dryrun:
-                                    os.remove(file)
-                            else:
-                                logger.info("Keep %s", file)
+                # Recent → weekly buckets
+                recent = subdf[subdf["MaxTS_pd"] >= cutoff].copy()
+                recent["Bucket"] = recent["MaxTS_pd"].dt.tz_localize(None).dt.to_period("W").dt.to_timestamp()
+
+                # Older → monthly buckets
+                older = subdf[subdf["MaxTS_pd"] < cutoff].copy()
+                older["Bucket"] = older["MaxTS_pd"].dt.tz_localize(None).dt.to_period("M").dt.to_timestamp()
+
+                combined = pd.concat([recent, older])
+
+                for (group, bucket), group_df in combined.groupby(["Group", "Bucket"]):
+                    logger.debug(
+                        "Processing %s files for group %s bucket %s",
+                        label,
+                        group,
+                        bucket.strftime("%Y-%m-%d"),
+                    )
+
+                    _process_group(
+                        group_df=group_df,
+                        is_changelog=is_changelog,
+                        dryrun=dryrun,
+                    )
 
             spinner.text = "Updating index..."
             if not dryrun:
@@ -448,8 +320,210 @@ def cleanup_data(dryrun: bool = False) -> None:
                 logger.info("%s", result)
 
             spinner.succeed("Data cleanup completed")
+
     finally:
         try:
             unlock("cleanup_data")
         except Exception as e:
             logger.error("Error unlocking cleanup_data lock. %s", e)
+
+
+# Benchmark Condensing
+def condense_benchmark(benchmark: Dict[str, Dict[str, List[BenchmarkEntry]]]) -> Dict[str, Dict[str, List[BenchmarkEntry]]]:
+    """
+    Condense benchmark history by weighted average and total weight for each key.
+
+    Args:
+        benchmark (Dict[str, List[BenchmarkEntry]]): Benchmark data dictionary.
+
+    Returns:
+        Dict[str, List[BenchmarkEntry]]: Condensed benchmark dictionary.
+    """
+    now = arrow.utcnow()
+    for group_key, group_val in benchmark.items():
+        for entry_key, entry_val in group_val.items():
+            weighted_sum = 0.0
+            total_weight = 0.0
+            for entry in entry_val:
+                weighted_sum += entry["average"] * entry["weight"]
+                total_weight += entry["weight"]
+            weighted_average = weighted_sum / total_weight if total_weight else 0.0
+            benchmark[group_key][entry_key] = [
+                {
+                    "ts": now.isoformat(),
+                    "average": weighted_average,
+                    "weight": total_weight,
+                }
+            ]
+
+    return benchmark
+
+
+# Changelog Condensing
+def condense_changelogs(files: List[Path | str]) -> pd.DataFrame:
+    """
+    Condense multiple changelog files into a consolidated dataframe.
+
+    Args:
+        files (List[Path | str]): A list of changelog file paths.
+
+    Returns:
+        pd.DataFrame: The consolidated changelog dataframe.
+    """
+    dfs = []
+
+    for file in files:
+        file_path = Path(file)
+
+        from_ts, to_ts = parse_changelog_ts(file_path)
+        if from_ts is None or to_ts is None:
+            continue
+
+        df = pd.read_csv(file_path, dtype=object)
+
+        # Map version to actual timestamps
+        df["Version"] = df["Version"].map(
+            {
+                "Old": filename_ts_fmt(from_ts),
+                "New": filename_ts_fmt(to_ts),
+            }
+        )
+
+        dfs.append(df)
+
+    if not dfs:
+        return pd.DataFrame()
+
+    new_changelog = pd.concat(dfs, ignore_index=True)
+
+    # Sort deterministically
+    new_changelog = new_changelog.sort_values(
+        by=[new_changelog.columns[0], "Version"],
+        ascending=[True, True],
+    )
+
+    # Remove duplicates (keep latest state)
+    new_changelog = new_changelog.drop_duplicates(keep="last")
+
+    # Remove empty rows
+    new_changelog = new_changelog.dropna(how="all")
+
+    # Keep only latest version per row identity
+    index = new_changelog.drop(["Modification date", "Version"], axis=1, errors="ignore").drop_duplicates(keep="last").index
+
+    return new_changelog.loc[index]
+
+
+# Build file index (single source of truth)
+def _build_file_index(file_list):
+    rows = []
+
+    for f in file_list:
+        path = Path(f)
+        name = path.name
+        is_changelog = "changelog" in name
+
+        if is_changelog:
+            min_ts, max_ts = parse_changelog_ts(path)
+        else:
+            max_ts = parse_data_ts(path)
+            min_ts = max_ts
+
+        # skip files where timestamp parsing failed
+        if min_ts is None or max_ts is None:
+            logger.warning(f"Skipping file with invalid timestamp: {path}")
+            continue
+
+        group = _extract_group(path)
+        if group is None:
+            logger.warning(f"Skipping file with unrecognized group: {path}")
+            continue
+
+        rows.append({"Name": path, "IsChangelog": is_changelog, "MinTS": min_ts, "MaxTS": max_ts, "Group": group})
+
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+
+    # convert to pandas datetime for grouping
+    df["MaxTS_pd"] = pd.to_datetime(df["MaxTS"].apply(lambda x: x.datetime))
+    df["MinTS_pd"] = pd.to_datetime(df["MinTS"].apply(lambda x: x.datetime))
+
+    return df
+
+
+# Process a single group bucket
+def _process_group(group_df, is_changelog, dryrun):
+    deleted_count = 0
+    kept_count = 0
+
+    # Delete files older than 12 months using arrow
+    cutoff = arrow.utcnow().shift(months=-12)
+    old_files = group_df[group_df["MaxTS_pd"].apply(lambda x: arrow.get(x) < cutoff)]["Name"].tolist()
+    for file in old_files:
+        logger.info("Delete old file %s", file)
+        deleted_count += 1
+        if not dryrun:
+            os.remove(file)
+
+    files = group_df.sort_values("MaxTS_pd", ascending=False)["Name"].tolist()
+    if not files:
+        logger.info("No files to process for group %s", group_df["Group"].iloc[0])
+        return
+
+    group = group_df["Group"].iloc[0]
+
+    if is_changelog and len(files) > 1:
+        new_changelog = condense_changelogs(files)
+        if new_changelog.empty:
+            logger.warning("Skipping empty changelog merge for group %s", group)
+            return
+
+        min_ts = arrow.get(new_changelog["timestamp"].min())
+        max_ts = arrow.get(new_changelog["timestamp"].max())
+        new_filename = make_filename(report=group, timestamp=max_ts, previous_timestamp=min_ts)
+        new_filepath = dirs.DATA / new_filename
+        logger.info("New changelog file: %s", new_filepath)
+
+        if not dryrun:
+            new_changelog.to_csv(new_filepath, index=False)
+
+        for file in files:
+            if Path(file) != new_filepath:
+                logger.info("Delete %s", file)
+                deleted_count += 1
+                if not dryrun:
+                    os.remove(file)
+            else:
+                logger.info("Keep %s", file)
+                kept_count += 1
+    else:
+        most_recent = group_df.loc[group_df["MaxTS_pd"].idxmax(), "Name"]
+        for file in files:
+            if file != most_recent:
+                logger.info("Delete %s", file)
+                deleted_count += 1
+                if not dryrun:
+                    os.remove(file)
+            else:
+                logger.info("Keep %s", file)
+                kept_count += 1
+
+    logger.info(
+        "Summary for group %s (%s): %d deleted, %d kept",
+        group,
+        "changelog" if is_changelog else "data",
+        deleted_count,
+        kept_count,
+    )
+
+
+def _extract_group(path):
+    name = Path(path).stem
+
+    if "_data_" in name:
+        return name.split("_data_")[0]
+    if "_changelog_" in name:
+        return name.split("_changelog_")[0]
+
+    return None
