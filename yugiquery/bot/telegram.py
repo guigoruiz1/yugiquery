@@ -83,6 +83,33 @@ class Telegram(Bot):
         cprint(text="Telegram bot initialized successfully.", color="green")
         logger.info("Telegram bot initialized successfully.")
 
+    async def _check_cooldown(self, update, context, cooldown_key="last_run"):
+        """
+        Checks if the user is on cooldown for a specific command. If so, sends a cooldown message and returns True. Otherwise, returns False.
+        """
+        user_data = context.user_data or {}
+        last = user_data.get(cooldown_key, arrow.get(0.0))
+        if (arrow.utcnow() - last).total_seconds() < self.cooldown_limit:
+            if update.effective_message is None:
+                return True
+            granularity = get_ts_granularity((last.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds())
+            next_available = last.shift(seconds=self.cooldown_limit).humanize(arrow.utcnow(), granularity=granularity)
+            await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
+            return True
+        return False
+
+    async def _handle_query_response(self, response, context, update, cooldown_key="last_run"):
+        """
+        Handles the response from a query, updating cooldown and sending the appropriate message.
+        """
+        user_data = context.user_data or {}
+        if "error" in response.keys():
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
+        else:
+            user_data[cooldown_key] = arrow.utcnow()
+            context.user_data = user_data
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
+
     def run(self) -> None:
         """
         Start running the Telegram bot.
@@ -336,10 +363,7 @@ class Telegram(Bot):
             await original_message.edit_text(response)
 
         @self.command_handler("run", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
-        async def run_query(
-            update: Update,
-            context: CallbackContext,
-        ) -> None:
+        async def run_query(update: Update, context: CallbackContext) -> None:
             """
             Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
             The progress is reported back to the Telegram chat where the command was issued.
@@ -348,20 +372,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            user_data = context.user_data or {}
-            last_run = user_data.get("last_run", arrow.get(0.0))
-            if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
-                if update.effective_message is None:
-                    return
-                granularity = get_ts_granularity(
-                    (last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds()
-                )
-                next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
-                    arrow.utcnow(), granularity=granularity
-                )
-                await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
+            cooldown_key = "last_run"
+            if await self._check_cooldown(update, context, cooldown_key):
                 return
-
             if update.effective_chat is None:
                 return
 
@@ -370,25 +383,90 @@ class Telegram(Bot):
                 if context.args and context.args[0].capitalize() in self.Reports.__members__
                 else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
             )
-
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)
 
-            response = await self.run_query(
+            response = await self.query_run(
                 callback=callback,
                 report=report,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
             )
-            if "error" in response.keys():
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
-            else:
-                user_data["last_run"] = arrow.utcnow()
-                context.user_data = user_data
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
+            await self._handle_query_response(response, context, update, cooldown_key)
+
+        @self.command_handler("fetch", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
+        async def run_fetch(update: Update, context: CallbackContext) -> None:
+            """
+            Runs the YugiQuery data fetch operation by launching a separate thread and monitoring its progress.
+            The progress is reported back to the Telegram chat where the command was issued.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
+            """
+            cooldown_key = "last_fetch"
+            if await self._check_cooldown(update, context, cooldown_key):
+                return
+            if update.effective_chat is None:
+                return
+
+            report = (
+                self.Reports[context.args[0].capitalize()]
+                if context.args and context.args[0].capitalize() in self.Reports.__members__
+                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
+            )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+
+            async def callback(content: str) -> None:
+                await original_response.edit_text(content)
+
+            response = await self.query_fetch(
+                callback=callback,
+                report=report,
+                progress_bar=self.telegram_pbar,
+                chat_id=update.effective_chat.id,
+                token=self.token,
+            )
+
+            await self._handle_query_response(response, context, update, cooldown_key)
+
+        @self.command_handler("report", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
+        async def run_report(update: Update, context: CallbackContext) -> None:
+            """
+            Runs the YugiQuery report generation operation by launching a separate thread and monitoring its progress.
+            The progress is reported back to the Telegram chat where the command was issued.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
+            """
+            cooldown_key = "last_report"
+            if await self._check_cooldown(update, context, cooldown_key):
+                return
+            if update.effective_chat is None:
+                return
+
+            report = (
+                self.Reports[context.args[0].capitalize()]
+                if context.args and context.args[0].capitalize() in self.Reports.__members__
+                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
+            )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+
+            async def callback(content: str) -> None:
+                await original_response.edit_text(content)
+
+            response = await self.query_report(
+                callback=callback,
+                report=report,
+                progress_bar=self.telegram_pbar,
+                chat_id=update.effective_chat.id,
+                token=self.token,
+            )
+            await self._handle_query_response(response, context, update, cooldown_key)
 
         @self.command_handler("status")
         async def status(update: Update, context: CallbackContext) -> None:

@@ -3,25 +3,22 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import multiprocessing as mp
 import os
+import json
 import random
+import multiprocessing as mp
 from enum import Enum, StrEnum
 from types import SimpleNamespace
-from typing import (
-    Awaitable,
-    Callable,
-    Dict,
-    Type,
-)
+from typing import Awaitable, Callable, Dict, Type, Literal
 
 # --- Imports: Third-Party --- #
+import arrow
 import pandas as pd
 from tqdm.auto import tqdm
 
 # --- Imports: Local Application --- #
-from ..utils import *
-from ..core import run
+from ..utils import LoggerConfig, dirs, git, get_ts_granularity, ProgressHandler
+from ..core import run, load_latest
 
 # --- Logger Config --- #
 logger = LoggerConfig.get_logger()
@@ -244,7 +241,7 @@ class Bot:
 
         response = {
             "title": "Benchmark",
-            "description": "The average time each report takes to complete",
+            "description": "The average time each operation takes to complete",
         }
 
         # Get benchmark
@@ -275,7 +272,7 @@ class Bot:
                 )
 
             value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
-            response[f"{key.capitalize()} {group_key.capitalize()}"] = value  # TODO improve
+            response[f"{key.capitalize()} {group_key.capitalize()}"] = value
 
         return response
 
@@ -418,20 +415,22 @@ class Bot:
 
         return response
 
-    async def run_query(
+    async def query_run(
         self,
         callback: Callable[[str], Awaitable[None]],
         report: Enum = Reports.All,
         progress_bar: Type[tqdm] | None = None,
+        operation: Literal["data", "report", "both", "all"] = "all",
         **pbar_kwargs,
     ) -> Dict[str, str]:
         """
-        Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
+        Runs YugiQuery by launching a separate thread and monitoring its progress.
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
             report (Reports, optional): The report to run. Defaults to All.
             progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+            operation (Literal["data", "report", "both", "all"], optional): The operation to perform. Defaults to "all".
             **pbar_kwargs: Additional Keyword arguments to customize the progress bar..
 
         Returns:
@@ -447,7 +446,7 @@ class Bot:
         try:
             self.process = mp.Process(
                 target=run,
-                args=[report.value, progress_handler],
+                kwargs=dict(report=report.value, progress_handler=progress_handler, operation=operation),
             )
             self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
@@ -475,6 +474,54 @@ class Bot:
                 return {"error": "Query execution aborted!"}
             else:
                 return {"error": f"Query execution exited with exit code: {exitcode}\n{error_message}"}
+
+    async def query_fetch(
+        self,
+        callback: Callable[[str], Awaitable[None]],
+        report: Enum = Reports.All,
+        progress_bar: Type[tqdm] | None = None,
+        **pbar_kwargs,
+    ) -> Dict[str, str]:
+        """
+        Shortcut function to run the fetch operation on YugiQuery.
+
+        Args:
+            callback (Callable[[str], None]): A callback function which receives a string argument.
+            report (Reports, optional): The report to fetch. Defaults to All.
+        Returns:
+            dict: A dictionary containing the result of the report fetching.
+        """
+        return await self.query_run(
+            callback=callback,
+            report=report,
+            progress_bar=progress_bar,
+            operation="data",
+            **pbar_kwargs,
+        )
+
+    async def query_report(
+        self,
+        callback: Callable[[str], Awaitable[None]],
+        report: Enum = Reports.All,
+        progress_bar: Type[tqdm] | None = None,
+        **pbar_kwargs,
+    ) -> Dict[str, str]:
+        """
+        Shortcut function to run the report operation on YugiQuery.
+
+        Args:
+            callback (Callable[[str], None]): A callback function which receives a string argument.
+            report (Reports, optional): The report to fetch. Defaults to All.
+        Returns:
+            dict: A dictionary containing the result of the report fetching.
+        """
+        return await self.query_run(
+            callback=callback,
+            report=report,
+            progress_bar=progress_bar,
+            operation="report",
+            **pbar_kwargs,
+        )
 
     def uptime(self):
         """

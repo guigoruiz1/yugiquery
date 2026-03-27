@@ -13,10 +13,12 @@ from .utils import *
 # --- Notebook-Specific Imports --- #
 
 if dirs.is_notebook:
+    import arrow
     import numpy as np
     import pandas as pd
     from pathlib import Path
     from itables import init_notebook_mode
+    from termcolor import cprint
 
     LoggerConfig.setup()
 

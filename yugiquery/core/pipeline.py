@@ -45,7 +45,7 @@ def run(
     benchmark: bool = True,
     squash: bool = True,
     jekyll: bool = False,
-    operation: Literal["data", "reports", "both", "all"] = "all",
+    operation: Literal["data", "report", "both", "all"] = "all",
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
 ) -> None:
@@ -69,8 +69,8 @@ def run(
     Returns:
         None: This function does not return a value.
     """
-    if operation not in ("data", "reports", "all"):
-        raise ValueError("Invalid operation. Must be 'data', 'reports', 'both', or 'all'.")
+    if operation not in ("data", "report", "all"):
+        raise ValueError("Invalid operation. Must be 'data', 'report', 'both', or 'all'.")
 
     print("\nExecution started")
     logger.info("Execution started")
@@ -79,7 +79,7 @@ def run(
     start_commit = git.get_repo().head.commit
 
     # Setup progress bars
-    report_paths = dirs.find_notebooks(reports) if operation in ("reports", "both", "all") else []
+    report_paths = dirs.find_notebooks(reports) if operation in ("report", "both", "all") else []
     data_flows = _get_flows(reports) if operation in ("data", "both", "all") else []
 
     if operation in ("data", "both", "all") and len(data_flows) > 0:
@@ -106,7 +106,7 @@ def run(
             pbars=data_pbars,
         )
 
-    if operation in ("reports", "both", "all") and len(report_paths) > 0:
+    if operation in ("report", "both", "all") and len(report_paths) > 0:
         reports_pbars, _ = _setup_pbars(
             total=len(report_paths),
             extra_pbar=(

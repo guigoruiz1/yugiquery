@@ -205,6 +205,7 @@ def read_ydk(file_path: Path | str) -> pd.DataFrame:
     return df
 
 
+# TODO: improve to use cached data if needed
 def convert_ydk(ydk_df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert a DataFrame with YDK card codes to a DataFrame with card names.
@@ -308,3 +309,40 @@ def get_ydk(*files: Path | str) -> pd.DataFrame:
     if not ydk_df.empty:
         ydk_df = convert_ydk(ydk_df)
     return ydk_df
+
+
+# --- Collection Loading --- #
+
+
+# TODO: ensure this is the best placement
+def get_collection(file_name: str = "collection") -> None | pd.DataFrame:
+    """
+    Load a user collection from CSV or Excel.
+    The function looks for a file with the specified name in the data directory, first checking for an Excel file and then a CSV file. If an Excel file is found, it loads all sheets and concatenates them into a single DataFrame with an additional "Collection" column indicating the sheet name. If a CSV file is found, it loads it directly into a DataFrame. If no file is found, it logs a warning and returns None.
+
+    Args:
+        file_name (str, optional): The base name of the collection file (without extension). Defaults to "collection".
+    Returns:
+        pd.DataFrame | None: The loaded collection DataFrame if a file is found, otherwise None.
+    """
+    collection_file = dirs.DATA.joinpath(file_name)
+    if collection_file.with_suffix(".xlsx").is_file():
+        collection_file = collection_file.with_suffix(".xlsx")
+        collections = pd.read_excel(collection_file, sheet_name=None)
+        collection_df = pd.concat(
+            [df.assign(Collection=key) for key, df in collections.items() if key != "Instructions"], ignore_index=True
+        )
+        if collection_df["Collection"].nunique() == 1:
+            collection_df.drop(["Collection"], axis=1)
+    elif collection_file.with_suffix(".csv").is_file():
+        collection_file = collection_file.with_suffix(".csv")
+        collection_df = pd.read_csv(collection_file)
+    else:
+        logger.warning("No %s file found.", file_name)
+        return None
+
+    collection_df = collection_df.convert_dtypes(convert_string=False)
+
+    logger.info("Loaded %s.", collection_file.name)
+    print(f"Loaded {collection_file.name}.")
+    return collection_df

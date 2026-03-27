@@ -395,13 +395,13 @@ class Discord(Bot, commands.Bot):
                 delete_after=60,
             )
 
-        @self.hybrid_command(name="run", description="Run full YugiQuery flow.", with_app_command=True)
+        @self.hybrid_command(name="run", description="Run the full YugiQuery flow.", with_app_command=True)
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
         async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:  # type: ignore
             """
-            Runs a YugiQuery flow by launching a separate process and monitoring its progress.
+            Runs YugiQuery by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
             The command has a cooldown period of 12 hours per user.
 
@@ -417,7 +417,81 @@ class Discord(Bot, commands.Bot):
             async def callback(content: str) -> None:
                 await original_response.edit(content=content)
 
-            response = await self.run_query(
+            response = await self.query_run(
+                callback=callback,
+                report=report,
+                progress_bar=self.discord_pbar,
+                channel_id=ctx.channel.id,
+                token=self.token,
+            )
+            if "error" in response.keys():
+                await self.send_long_message(ctx.channel, filename="query_error.txt", content=response["error"])
+                # Reset cooldown in case query did not complete
+                ctx.command.reset_cooldown(ctx)
+            else:
+                await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
+
+        @self.hybrid_command(name="fetch", description="Run the YugiQuery data fetch operation.", with_app_command=True)
+        @commands.is_owner()
+        @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
+        # Typehinting for report needs to be this way to handle dynamic loading of reports
+        async def run_fetch(ctx, report: self.Reports = self.Reports.All) -> None:  # TODO: use data flows
+            """
+            Runs the YugiQuery data fetch operation by launching a separate process and monitoring its progress.
+            The progress is reported back to the Discord channel where the command was issued.
+            The command has a cooldown period of 12 hours per user.
+
+            Args:
+                ctx (commands.Context): The context of the command.
+                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+
+            Raises:
+                discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
+            """
+            original_response = await ctx.send(content="Initializing...", ephemeral=True, delete_after=60)
+
+            async def callback(content: str) -> None:
+                await original_response.edit(content=content)
+
+            response = await self.query_fetch(
+                callback=callback,
+                report=report,
+                progress_bar=self.discord_pbar,
+                channel_id=ctx.channel.id,
+                token=self.token,
+            )
+            if "error" in response.keys():
+                await self.send_long_message(ctx.channel, filename="query_error.txt", content=response["error"])
+                # Reset cooldown in case query did not complete
+                ctx.command.reset_cooldown(ctx)
+            else:
+                await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
+
+        @self.hybrid_command(
+            name="report", description="Run the YugiQuery report generation operation.", with_app_command=True
+        )
+        @commands.is_owner()
+        @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
+        # Typehinting for report needs to be this way to handle dynamic loading of reports
+        async def run_report(ctx, report: self.Reports = self.Reports.All) -> None:  # type: ignore
+            """
+            Runs the YugiQuery report generation operation by launching a separate process and monitoring its progress.
+            The progress is reported back to the Discord channel where the command was issued.
+            The command has a cooldown period of 12 hours per user.
+
+            Args:
+                ctx (commands.Context): The context of the command.
+                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+
+            Raises:
+                discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
+            """
+            original_response = await ctx.send(content="Initializing...", ephemeral=True, delete_after=60)
+
+            async def callback(content: str) -> None:
+                await original_response.edit(content=content)
+
+            response = await self.query_report(
                 callback=callback,
                 report=report,
                 progress_bar=self.discord_pbar,
