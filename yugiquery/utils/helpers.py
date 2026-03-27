@@ -3,7 +3,6 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import calendar  # Used in notebooks
 import hashlib
 import json
 import os
@@ -183,22 +182,15 @@ def get_ts_granularity(seconds: int) -> List[arrow.arrow._GRANULARITY]:
     return selected_granularity
 
 
-def parse_data_ts(path):
-    try:
-        return arrow.get(Path(path).stem.split("_")[-1])
-    except Exception:
-        return None
-
-
-def parse_changelog_ts(path):
-    parts = Path(path).stem.split("_")
-    try:
-        return arrow.get(parts[-2]), arrow.get(parts[-1])
-    except Exception:
-        return None, None
-
-
 def filename_ts_fmt(ts: arrow.Arrow) -> str:
+    """
+    Formats a timestamp for use in filenames, converting it to UTC and using the format YYYYMMDDTHHmmZ.
+    Args:
+        ts (arrow.Arrow): The timestamp to format.
+
+    Returns:
+        str: The formatted timestamp string.
+    """
     return ts.to("UTC").format("YYYYMMDDTHHmm") + "Z"
 
 

@@ -23,8 +23,6 @@ from ..utils import (
     LoggerConfig,
     lock,
     unlock,
-    parse_data_ts,
-    parse_changelog_ts,
     filename_ts_fmt,
 )
 
@@ -380,7 +378,7 @@ def condense_changelogs(files: List[Path | str]) -> pd.DataFrame:
     for file in files:
         file_path = Path(file)
 
-        from_ts, to_ts = parse_changelog_ts(file_path)
+        from_ts, to_ts = _parse_changelog_ts(file_path)
         if from_ts is None or to_ts is None:
             continue
 
@@ -420,18 +418,26 @@ def condense_changelogs(files: List[Path | str]) -> pd.DataFrame:
 
 
 # Build file index (single source of truth)
-def _build_file_index(file_list):
+def _build_file_index(file_list: List[Path]) -> pd.DataFrame:
+    """
+    Build a DataFrame index of data and changelog files organising them by group and timestamp.
+
+    Args:
+        file_list (List[Path]): A list of file paths to index.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the indexed file information.
+    """
     rows = []
 
-    for f in file_list:
-        path = Path(f)
+    for path in file_list:
         name = path.name
         is_changelog = "changelog" in name
 
         if is_changelog:
-            min_ts, max_ts = parse_changelog_ts(path)
+            min_ts, max_ts = _parse_changelog_ts(path)
         else:
-            max_ts = parse_data_ts(path)
+            max_ts = _parse_data_ts(path)
             min_ts = max_ts
 
         # skip files where timestamp parsing failed
@@ -457,8 +463,50 @@ def _build_file_index(file_list):
     return df
 
 
+def _parse_data_ts(path: Path | str) -> arrow.Arrow | None:
+    """
+    Parse timestamp from data filename, returning None if parsing fails.
+
+    Args:
+        path (str | Path): The file path to parse.
+
+    Returns:
+        arrow.Arrow | None: The parsed timestamp as an Arrow object, or None if parsing fails.
+    """
+    try:
+        return arrow.get(Path(path).stem.split("_")[-1])
+    except Exception:
+        return None
+
+
+def _parse_changelog_ts(path: Path | str) -> tuple[arrow.Arrow | None, arrow.Arrow | None]:
+    """
+    Parse from/to timestamps from changelog filename, returning (None, None) if parsing fails.
+    Args:
+        path (str | Path): The file path to parse.
+
+    Returns:
+        tuple[arrow.Arrow | None, arrow.Arrow | None]: A tuple containing the parsed from and to timestamps as Arrow objects, or (None, None) if parsing fails.
+    """
+    parts = Path(path).stem.split("_")
+    try:
+        return arrow.get(parts[-2]), arrow.get(parts[-1])
+    except Exception:
+        return None, None
+
+
 # Process a single group bucket
-def _process_group(group_df, is_changelog, dryrun):
+def _process_group(group_df: pd.DataFrame, is_changelog: bool, dryrun: bool) -> None:
+    """
+    Process a single group bucket of files, deleting redundant files and condensing changelogs if necessary.
+
+    Args:
+        group_df (pd.DataFrame): DataFrame containing files for a specific group and bucket.
+        is_changelog (bool): Whether the files are changelogs or data files.
+        dryrun (bool): If True, log intended actions without modifying files.
+    Returns:
+        None
+    """
     deleted_count = 0
     kept_count = 0
 
@@ -531,7 +579,16 @@ def _process_group(group_df, is_changelog, dryrun):
         print(f"Dry run: {message}")
 
 
-def _extract_group(path):
+def _extract_group(path: Path | str) -> str | None:
+    """
+    Extract the group name from a filename, returning None if it cannot be determined.
+
+    Args:
+        path (str | Path): The file path to extract the group from.
+
+    Returns:
+        str | None: The extracted group name or None if it cannot be determined.
+    """
     name = Path(path).stem
 
     if "_data_" in name:

@@ -4,7 +4,6 @@
 
 # --- Imports: Submodules --- #
 from . import api
-from . import core
 
 # --- Imports: All Symbols --- #
 from .core import *
@@ -12,7 +11,6 @@ from .metadata import *
 from .utils import *
 
 # --- Notebook-Specific Imports --- #
-from .utils import LoggerConfig
 
 if dirs.is_notebook:
     import numpy as np

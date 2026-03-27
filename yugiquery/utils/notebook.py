@@ -15,7 +15,7 @@ import nbformat
 from nbconvert import HTMLExporter
 from nbconvert.writers.files import FilesWriter
 from traitlets.config import Config
-from IPython.display import HTML, Markdown
+from IPython.display import HTML
 
 # --- Imports: Local Application --- #
 from .helpers import lock, unlock
