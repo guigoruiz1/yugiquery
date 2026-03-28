@@ -18,7 +18,7 @@ from tqdm.auto import tqdm
 
 # --- Imports: Local Application --- #
 from ..utils import LoggerConfig, dirs, git, get_ts_granularity, ProgressHandler
-from ..core import run, load_latest
+from ..core.pipeline import run, _data_flows_avail
 
 # --- Logger Config --- #
 logger = LoggerConfig.get_logger()
@@ -38,6 +38,11 @@ class GitCommands(StrEnum):
 
 # --- Bot Superclass --- #
 class Bot:
+    # --- Class-level Enum Placeholders --- #
+    DataFlows = Enum("DataFlows", {"All": "all"})
+    Reports = Enum("Reports", {"All": "all", "User": "user"})
+    Flows = Enum("Flows", {"All": "all", "User": "user"})
+
     """
     Bot superclass.
 
@@ -60,7 +65,10 @@ class Bot:
             **kwargs: Additional keyword arguments.
         """
         self.start_time = arrow.utcnow()
-        self.init_reports_enum()
+
+        # Initiate Instance-level enums.
+        self.init_selection_enums()
+
         try:
             # Open the repository
             self.repo = git.ensure_repo()
@@ -70,8 +78,6 @@ class Bot:
     # --- Bot Superclass Variables --- #
     process: mp.Process | None = None
     cooldown_limit: int = 12 * 3600  # 12 hours
-    # Placeholder for the Enum object
-    Reports: type[Enum] = Enum("Reports", {"All": "all", "User": "user"})
 
     @property
     def URLS(self) -> SimpleNamespace:
@@ -115,23 +121,28 @@ class Bot:
 
     # --- Bot Superclass Methods --- #
 
-    def init_reports_enum(self) -> None:
+    def init_selection_enums(self) -> None:
         """
-        Initializes and returns an Enum object containing the available reports.
-        The reports are read from the NOTEBOOKS directories, where they are expected to be Jupyter notebooks.
-        The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
-
-        Returns:
-            None
+        Initializes and returns Enum objects containing the available reports and data flows.
+        The Enums are created using the reports' file names and available data flows.
         """
-        reports_dict = {"All": "all", "User": "user"}
-        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
-            dirs.NOTEBOOKS.user.glob("*.ipynb")
-        )  # First user, then package
+        reports_dict = {k: v.value for k, v in self.Reports.__members__.items()}
+        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
         for report in reports:
-            reports_dict[report.stem.capitalize()] = report  # Will replace package by user
+            reports_dict[report.stem.capitalize()] = report
+
+        data_dict = {k: v.value for k, v in self.DataFlows.__members__.items()}
+        for flow in _data_flows_avail.keys():
+            data_dict[flow.capitalize()] = flow
 
         self.Reports = Enum("Reports", reports_dict)
+        self.DataFlows = Enum("DataFlows", data_dict)
+
+        # reports_dict takes precedence in case of name clashes, which is fine since they would be the same report/data flow but reports need a Path.
+        self.Flows = Enum(
+            "Flows",
+            data_dict | reports_dict,
+        )
 
     def abort(self) -> str:
         """
@@ -418,7 +429,7 @@ class Bot:
     async def query_run(
         self,
         callback: Callable[[str], Awaitable[None]],
-        report: Enum = Reports.All,
+        flow: Enum = Flows.All,
         progress_bar: Type[tqdm] | None = None,
         operation: Literal["data", "report", "both", "all"] = "all",
         **pbar_kwargs,
@@ -428,7 +439,7 @@ class Bot:
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            report (Reports, optional): The report to run. Defaults to All.
+            flow (ReportsOrData, optional): The flow to run. Defaults to All.
             progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
             operation (Literal["data", "report", "both", "all"], optional): The operation to perform. Defaults to "all".
             **pbar_kwargs: Additional Keyword arguments to customize the progress bar..
@@ -437,7 +448,7 @@ class Bot:
             dict: A dictionary containing the result of the query execution.
         """
         if self.process is not None:
-            return {"error": "Query already running. Try again after it has finished."}
+            return {"error": "YugiQuery already running. Try again after it has finished."}
 
         progress_handler = ProgressHandler(
             progress_bar=progress_bar,
@@ -446,13 +457,12 @@ class Bot:
         try:
             self.process = mp.Process(
                 target=run,
-                kwargs=dict(report=report.value, progress_handler=progress_handler, operation=operation),
+                kwargs=dict(flow=flow.value, progress_handler=progress_handler, operation=operation),
             )
             self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
             logger.error("Failed to start query process: %s", e)
-            # await callback(f"Initialization failed!\n{e}")
             return {"error": f"Initialization failed!\n{e}"}
 
         # Wait for the process to finish and get the result
@@ -478,7 +488,7 @@ class Bot:
     async def query_fetch(
         self,
         callback: Callable[[str], Awaitable[None]],
-        report: Enum = Reports.All,
+        flow: Enum = DataFlows.All,
         progress_bar: Type[tqdm] | None = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
@@ -493,7 +503,7 @@ class Bot:
         """
         return await self.query_run(
             callback=callback,
-            report=report,
+            flow=flow,
             progress_bar=progress_bar,
             operation="data",
             **pbar_kwargs,
@@ -511,13 +521,13 @@ class Bot:
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            report (Reports, optional): The report to fetch. Defaults to All.
+            report (Reports, optional): The report to generate. Defaults to All.
         Returns:
             dict: A dictionary containing the result of the report fetching.
         """
         return await self.query_run(
             callback=callback,
-            report=report,
+            flow=report,
             progress_bar=progress_bar,
             operation="report",
             **pbar_kwargs,

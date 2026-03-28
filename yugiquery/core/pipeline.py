@@ -37,7 +37,7 @@ logger = LoggerConfig.get_logger()
 
 
 def run(
-    reports: str | List[str] | List[Path] = "all",
+    flow: str | List[str] | List[Path] = "all",
     progress_handler: ProgressHandler | None = None,
     cleanup: bool | Literal["auto"] = "auto",
     dryrun: bool = False,
@@ -54,7 +54,7 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        reports (str | List[str] | List[Path], optional): The report to generate and/or data flow to update. Defaults to 'all'.
+        flow (str | List[str] | List[Path], optional): The report to generate and/or data flow to update. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dryrun (bool, optional): dryrun flag to pass to notebook execution and other operations. If True, changes are not committed to Git and data cleanup will only log intended changes. Defaults to False.
@@ -69,7 +69,7 @@ def run(
     Returns:
         None: This function does not return a value.
     """
-    if operation not in ("data", "report", "all"):
+    if operation not in ("data", "report", "both", "all"):
         raise ValueError("Invalid operation. Must be 'data', 'report', 'both', or 'all'.")
 
     print("\nExecution started")
@@ -79,10 +79,10 @@ def run(
     start_commit = git.get_repo().head.commit
 
     # Setup progress bars
-    report_paths = dirs.find_notebooks(reports) if operation in ("report", "both", "all") else []
-    data_flows = _get_flows(reports) if operation in ("data", "both", "all") else []
+    report_paths = dirs.find_notebooks(flow) if not operation == "data" else []
+    data_flows = _get_flows(flow) if not operation == "report" else []
 
-    if operation in ("data", "both", "all") and len(data_flows) > 0:
+    if not operation == "report" and len(data_flows) > 0:
         total = len(data_flows)
         if any(flow in ["cards", "rush", "speed"] for flow in data_flows):
             total += 1  # Needed to account for errata
@@ -106,7 +106,7 @@ def run(
             pbars=data_pbars,
         )
 
-    if operation in ("report", "both", "all") and len(report_paths) > 0:
+    if not operation == "data" and len(report_paths) > 0:
         reports_pbars, _ = _setup_pbars(
             total=len(report_paths),
             extra_pbar=(
@@ -164,20 +164,29 @@ def _squash_commits(start_commit, progress_handler: ProgressHandler | None = Non
 
 
 def _get_flows(reports: str | List[str] | List[Path]) -> list[str]:
+    """
+    Helper function to determine which data flows to run based on the specified report(s). If 'all', returns all available data flows. If a specific report or list of reports is provided, returns the corresponding data flows, ignoring unknown reports.
+    Args:
+
+        reports (str | List[str] | List[Path]): The report(s) for which to determine the data flows. Can be 'all', a string, a Path, or a list of strings/Paths.
+    Returns:
+        list[str]: A list of data flows to run.
+    """
     if reports == "all":
-        data_flows = list(_data_flows_avail.keys())
+        return list(_data_flows_avail.keys())
+
+    if isinstance(reports, (str, Path)):
+        reports_iter = [reports]
     else:
-        data_flows = []
-        # Ensure reports is always a list of strings
-        if isinstance(reports, (str, Path)):
-            reports_iter = [str(reports).lower()]
+        reports_iter = reports
+
+    data_flows = []
+    for r in reports_iter:
+        stem = Path(r).stem.lower()
+        if stem in _data_flows_avail.keys():
+            data_flows.append(stem)
         else:
-            reports_iter = [str(r).lower() for r in reports]
-        for flow in reports_iter:
-            if flow in _data_flows_avail.keys():
-                data_flows.append(flow)
-            else:
-                logger.warning(f"Data flow '{flow}' is not known and will be ignored for data update.")
+            logger.warning(f"Data flow '{stem}' is not known and will be ignored for data update.")
 
     return data_flows
 

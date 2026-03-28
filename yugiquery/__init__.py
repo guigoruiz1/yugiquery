@@ -9,6 +9,7 @@ from . import api
 from .core import *
 from .metadata import *
 from .utils import *
+from .bot import *
 
 # --- Notebook-Specific Imports --- #
 

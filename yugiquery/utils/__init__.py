@@ -6,6 +6,7 @@ from . import plot
 from . import git
 from .plot import plt, sns
 from .helpers import (
+    auto_or_bool,
     load_secrets,
     load_json,
     md5,

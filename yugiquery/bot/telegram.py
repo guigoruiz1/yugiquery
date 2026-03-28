@@ -378,10 +378,11 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
-            report = (
-                self.Reports[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.Reports.__members__
-                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
+            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
+            flow = (
+                self.Flows[context.args[0].capitalize()]
+                if context.args and context.args[0].capitalize() in self.Flows.__members__
+                else self.Flows.All  # pyright: ignore[reportAttributeAccessIssue]
             )
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
 
@@ -390,7 +391,7 @@ class Telegram(Bot):
 
             response = await self.query_run(
                 callback=callback,
-                report=report,
+                flow=flow,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
@@ -413,10 +414,11 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
-            report = (
-                self.Reports[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.Reports.__members__
-                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
+            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
+            flow = (
+                self.DataFlows[context.args[0].capitalize()]
+                if context.args and context.args[0].capitalize() in self.DataFlows.__members__
+                else self.DataFlows.All  # pyright: ignore[reportAttributeAccessIssue]
             )
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
 
@@ -425,7 +427,7 @@ class Telegram(Bot):
 
             response = await self.query_fetch(
                 callback=callback,
-                report=report,
+                flow=flow,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
@@ -449,6 +451,7 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
+            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
             report = (
                 self.Reports[context.args[0].capitalize()]
                 if context.args and context.args[0].capitalize() in self.Reports.__members__

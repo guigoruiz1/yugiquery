@@ -3,8 +3,7 @@
 # -*- coding: utf-8 -*-
 
 # --- Imports: Standard Library --- #
-import colorsys
-from typing import List, Tuple, Callable, Any
+from typing import List, Tuple, Callable, Any, Iterable
 
 # --- Imports: Third-Party --- #
 import numpy as np
@@ -27,12 +26,11 @@ import seaborn as sns
 from .helpers import *
 from .dirs import dirs
 
-
 # --- Matplotlib Settings & Overrides --- #
 if dirs.is_notebook:
     from matplotlib_inline.backend_inline import set_matplotlib_formats
 
-    plt.style.use("default")  # TODO: Make this configurable
+    # plt.style.use("default")
     set_matplotlib_formats("svg")  # Needed for dynanmic theme
 
 
@@ -115,6 +113,24 @@ class MulticolorPatchHandler:
 
 
 # --- Helper Functions --- #
+
+
+def get_color(name: str | Iterable[str]) -> str | list[str]:
+    """
+    Retrieve the color hex code for a given name or a list of names from the colors_dict.
+
+    Args:
+        name (str | Iterable[str]): The name(s) of the color(s) to retrieve.
+    Returns:
+        str | list[str]: The hex code(s) of the color(s) associated with the given name(s).
+    """
+    default = "C0C0C0"  # Default color if name not found
+    if isinstance(name, str):
+        return colors_dict.get(name, default)
+    elif isinstance(name, Iterable):
+        return [colors_dict.get(n, default) for n in name]
+    else:
+        raise TypeError("Input must be a string or an iterable of strings.")
 
 
 def _is_light_color(color: str | tuple, threshold: float = 0.6) -> bool:

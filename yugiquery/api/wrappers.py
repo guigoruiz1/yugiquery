@@ -666,10 +666,10 @@ def fetch_speed(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd
     return speed_df
 
 
-# TODO: Add Rush
 def fetch_skill(*query: str, step: int = 500, limit: int = 5000, **kwargs) -> pd.DataFrame:
     """
-    Fetch Skill cards from the API.
+    Fetch Skill cards for Speed Duel from the API.
+    For Rush Duel Skill cards, use fetch_rush.
 
     Args:
         *query (str): Variable length argument list of query strings for Skill cards.

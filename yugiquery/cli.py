@@ -8,7 +8,7 @@ import re
 
 # --- Imports: Local Application --- #
 from .core import run, cleanup_data
-from .utils import auto_or_bool, git, LoggerConfig
+from .utils import git, LoggerConfig, auto_or_bool
 
 # --- Argparse Utilities --- #
 
@@ -50,7 +50,7 @@ def handle_run(args):
     _ = git.ensure_repo()
 
     run(
-        reports=args.reports,
+        flow=args.reports,
         cleanup=args.cleanup,
         dryrun=args.dryrun,
         jekyll=args.jekyll,
@@ -68,7 +68,7 @@ def handle_fetch(args):
     _ = git.ensure_repo()
 
     run(
-        reports=args.data,
+        flow=args.data,
         cleanup=args.cleanup,
         dryrun=args.dryrun,
         discord=args.discord,
@@ -85,12 +85,12 @@ def handle_report(args):
     _ = git.ensure_repo()
     # Only run notebooks and git ops, no API/data update
     run(
-        reports=args.reports,
+        flow=args.reports,
         dryrun=args.dryrun,
         jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
-        operation="reports",
+        operation="report",
     )
 
 

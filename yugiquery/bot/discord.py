@@ -399,7 +399,7 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:  # type: ignore
+        async def run_query(ctx, flow: self.ReportsOrData = self.ReportOrData.All) -> None:  # type: ignore
             """
             Runs YugiQuery by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -407,7 +407,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+                flow (Bot.ReportsOrData): An Enum value indicating which YugiQuery data update and/or report generation flow to run.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -419,7 +419,7 @@ class Discord(Bot, commands.Bot):
 
             response = await self.query_run(
                 callback=callback,
-                report=report,
+                flow=flow,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,
@@ -435,7 +435,7 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_fetch(ctx, report: self.Reports = self.Reports.All) -> None:  # TODO: use data flows
+        async def run_fetch(ctx, flow: self.DataFlows = self.DataFlows.All) -> None:  # pyright: ignore
             """
             Runs the YugiQuery data fetch operation by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -443,7 +443,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+                flow (Bot.DataFlows): An Enum value indicating which YugiQuery data update flow to run.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -455,7 +455,7 @@ class Discord(Bot, commands.Bot):
 
             response = await self.query_fetch(
                 callback=callback,
-                report=report,
+                flow=flow,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,
@@ -473,7 +473,7 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_report(ctx, report: self.Reports = self.Reports.All) -> None:  # type: ignore
+        async def run_report(ctx, report: self.Reports = self.Report.All) -> None:  # type: ignore
             """
             Runs the YugiQuery report generation operation by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -481,7 +481,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+                flow (Bot.Reports): An Enum value indicating which YugiQuery report to generate.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
