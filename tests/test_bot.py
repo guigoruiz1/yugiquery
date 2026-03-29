@@ -1,14 +1,14 @@
 import pytest
 
-from yugiquery.bot.base import Bot
+from yugiquery.bot.base import Base
 from yugiquery.utils.dirs import dirs
 
 
 def test_abort_branches(monkeypatch):
     # avoid filesystem scanning in init
-    monkeypatch.setattr(Bot, "init_reports_enum", lambda self: None)
+    monkeypatch.setattr(Base, "init_reports_enum", lambda self: None)
 
-    b = Bot()
+    b = Base()
 
     # no process -> abort failed
     b.process = None
@@ -32,12 +32,12 @@ def test_abort_branches(monkeypatch):
 
 def test_battle_no_cards(monkeypatch, tmp_path):
     # avoid filesystem scanning in init
-    monkeypatch.setattr(Bot, "init_reports_enum", lambda self: None)
+    monkeypatch.setattr(Base, "init_reports_enum", lambda self: None)
     # point WORK so DATA resolves to an empty folder
     d = dirs
     monkeypatch.setattr(d, "WORK", tmp_path)
 
-    b = Bot()
+    b = Base()
 
     async def cb(_):
         return None

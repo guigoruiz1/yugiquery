@@ -5,10 +5,12 @@
 # --- Imports: Standard Library --- #
 import io
 import platform
+from enum import Enum
+from pathlib import Path
 
 # --- Imports: Local Application --- #
 from ..metadata import __version__
-from .base import Bot, GitCommands
+from .base import Base, GitCommands
 from ..utils import LoggerConfig
 
 # Discord
@@ -29,7 +31,7 @@ logger = LoggerConfig.get_logger()
 
 
 # --- Discord Bot Class Definition --- #
-class Discord(Bot, commands.Bot):
+class Discord(Base, commands.Bot):
     """
     Discord bot subclass. Inherits from Bot class and discord.ext.commands.Bot.
 
@@ -55,7 +57,8 @@ class Discord(Bot, commands.Bot):
         from tqdm.contrib.discord import tqdm as discord_tqdm
 
         self.discord_pbar = discord_tqdm
-        Bot.__init__(self)
+        Base.__init__(self)
+
         self.token = token
         self.channel_id = int(channel_id)
         # Initialize the Discord bot
@@ -76,6 +79,30 @@ class Discord(Bot, commands.Bot):
             help_command=help_command,
         )
         self.register_commands()
+
+    # Dynamic Enums and combined dictionary as properties on Discord
+    @property
+    def ReportsOrData(self) -> dict[str, dict[str, str | Path | None]]:
+        """
+        Combines the current Reports and DataFlows dictionaries into a single mapping.
+        """
+        keys = set(list(self.Reports.keys()) + list(self.DataFlows.keys()))
+        combined_dict = {}
+        for key in keys:
+            combined_dict[key] = {"data": self.DataFlows.get(key, None), "report": self.Reports.get(key, None)}
+        return combined_dict
+
+    @property
+    def DataFlowsEnum(self):
+        return Enum("DataFlows", self.DataFlows)
+
+    @property
+    def ReportsEnum(self):
+        return Enum("Reports", self.Reports)
+
+    @property
+    def ReportsOrDataEnum(self):
+        return Enum("ReportsOrData", self.ReportsOrData)
 
     def run(self) -> None:
         """
@@ -399,7 +426,10 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_query(ctx, flow: self.ReportsOrData = self.ReportOrData.All) -> None:  # type: ignore
+        async def run_query(
+            ctx,
+            flow: self.ReportsOrDataEnum = self.ReportsOrDataEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
             """
             Runs YugiQuery by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -407,7 +437,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                flow (Bot.ReportsOrData): An Enum value indicating which YugiQuery data update and/or report generation flow to run.
+                flow (ReportsOrDataEnum): An Enum value indicating which YugiQuery data update and/or report generation flow to run.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -419,7 +449,8 @@ class Discord(Bot, commands.Bot):
 
             response = await self.query_run(
                 callback=callback,
-                flow=flow,
+                data=flow.value.data.value,
+                report=flow.value.report.value,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,
@@ -435,7 +466,10 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_fetch(ctx, flow: self.DataFlows = self.DataFlows.All) -> None:  # pyright: ignore
+        async def run_fetch(
+            ctx,
+            data: self.DataFlowsEnum = self.DataFlowsEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
             """
             Runs the YugiQuery data fetch operation by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -443,7 +477,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                flow (Bot.DataFlows): An Enum value indicating which YugiQuery data update flow to run.
+                data (DataFlowsEnum): An Enum value indicating which YugiQuery data update flow to run.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -455,7 +489,7 @@ class Discord(Bot, commands.Bot):
 
             response = await self.query_fetch(
                 callback=callback,
-                flow=flow,
+                data=data.value,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,
@@ -473,7 +507,10 @@ class Discord(Bot, commands.Bot):
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_report(ctx, report: self.Reports = self.Report.All) -> None:  # type: ignore
+        async def run_report(
+            ctx,
+            report: self.ReportsEnum = self.ReportsEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
             """
             Runs the YugiQuery report generation operation by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
@@ -481,7 +518,7 @@ class Discord(Bot, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                flow (Bot.Reports): An Enum value indicating which YugiQuery report to generate.
+                report (ReportsEnum): An Enum value indicating which YugiQuery report to generate.
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -493,7 +530,7 @@ class Discord(Bot, commands.Bot):
 
             response = await self.query_report(
                 callback=callback,
-                report=report,
+                report=report.value,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,

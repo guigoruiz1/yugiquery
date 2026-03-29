@@ -317,37 +317,40 @@ class Dirs:
         Args:
             notebooks (str | List[str] | List[Path], optional): A list of notebook names or paths. If "all", finds all notebooks in the `NOTEBOOKS` directory. If "user", finds all notebooks in the user directory. Defaults to "all".
         """
-        if notebooks == "all":
-            # Get all reports
+        # Normalize input to list of str/Path
+        if isinstance(notebooks, str):
+            notebooks = [notebooks]
+
+        # If 'all' is present, return all notebooks (ignore others)
+        if any(str(nb).lower() == "all" for nb in notebooks):
             notebooks_dict = {}
             notebooks_list = sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
-
             if self.NOTEBOOKS.pkg:
                 notebooks_list = sorted(self.NOTEBOOKS.pkg.glob("*.ipynb")) + notebooks_list
-
             for notebook in notebooks_list:
-                notebooks_dict[Path(notebook).stem.capitalize()] = notebook  # Will replace package by user if same name
-
+                notebooks_dict[Path(notebook).stem.capitalize()] = notebook
             return list(notebooks_dict.values())
-        elif notebooks == "user":
-            # Get user reports
-            return sorted(self.NOTEBOOKS.user.glob("*.ipynb"))
-        else:
-            if not isinstance(notebooks, list):
-                notebooks = [notebooks]
 
-            results: List[Path] = []
-            for notebook in notebooks:
-                notebook_path = Path(notebook)
-                if notebook_path.is_file():
-                    results.append(notebook_path)
-                else:
-                    notebook_name = notebook_path.name
-                    try:
-                        results.append(self.get_notebook(notebook_name))
-                    except FileNotFoundError:
-                        logger.warning("Notebook '%s' not found.", notebook_name)
-            return results
+        # If 'user' is present, collect all user notebooks, then add any others (avoid duplicates)
+        notebooks_dict = {}
+        if any(str(nb).lower() == "user" for nb in notebooks):
+            for nb in sorted(self.NOTEBOOKS.user.glob("*.ipynb")):
+                notebooks_dict[nb.resolve()] = nb
+        # Add any additional notebooks (not 'user'), avoid duplicates
+        for notebook in notebooks:
+            if str(notebook).lower() == "user":
+                continue
+            notebook_path = Path(notebook)
+            if notebook_path.is_file():
+                notebooks_dict[notebook_path.resolve()] = notebook_path
+            else:
+                notebook_name = notebook_path.name
+                try:
+                    nb_path = self.get_notebook(notebook_name)
+                    notebooks_dict[nb_path.resolve()] = nb_path
+                except FileNotFoundError:
+                    logger.warning("Notebook '%s' not found.", notebook_name)
+        return list(notebooks_dict.values())
 
 
 # Global instance of Dirs

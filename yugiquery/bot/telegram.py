@@ -12,7 +12,7 @@ from termcolor import cprint
 # --- Imports: Local Application --- #
 from ..metadata import __version__
 from ..utils import get_ts_granularity, escape_chars, LoggerConfig
-from .base import Bot, GitCommands
+from .base import Base, GitCommands
 
 # Telegram
 try:
@@ -36,8 +36,85 @@ except ImportError:
 logger = LoggerConfig.get_logger()
 
 
+# --- Helper Functions --- #
+def _split_run_args(args) -> tuple[list[str], list[str]]:
+    """
+    Splits arguments for the run command into those for data and report flows.
+    Positional args go to both, --data/--report assign specifically.
+
+    Args:
+        args (list[str]): The list of arguments to split.
+
+    Returns:
+        tuple[list[str], list[str]]: (data_args, report_args) where each is a list of arguments for that
+
+    """
+    args = args or []
+    data_args = []
+    report_args = []
+    both_args = []
+    mode = None
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--data":
+            mode = "data"
+        elif arg == "--report":
+            mode = "report"
+        elif arg.startswith("--"):
+            mode = None  # ignore unknown flags
+        else:
+            if mode == "data":
+                data_args.append(arg)
+            elif mode == "report":
+                report_args.append(arg)
+            else:
+                both_args.append(arg)
+        i += 1
+    data_all_args = both_args + data_args
+    report_all_args = both_args + report_args
+    return data_all_args, report_all_args
+
+
+def _parse_args(args, dict_obj) -> tuple[list[str], list[str]]:
+    """
+    Given a list of arguments and a dictionary, return a tuple:
+    (list of valid enum values, list of missing args)
+    Tries both key (name) and value (case-insensitive string match).
+
+    Args:
+        args (list[str]): The list of arguments to parse.
+        dict_obj (dict): The dictionary to match against.
+
+    Returns:
+        tuple[list[str], list[str]]: A tuple containing a list of valid enum values and a list of missing arguments that were not recognized.
+    """
+    if not args:
+        return ["all"], []
+    found = []
+    missing = []
+    # If 'all' is present in args (case-insensitive), return only All
+    if any(str(arg).lower() == "all" for arg in args):
+        return ["all"], []
+    for arg in args:
+        arg_lc = str(arg).lower()
+        # Try to match by enum member name (case-insensitive)
+        member = next((m for n, m in dict_obj.items() if n.lower() == arg_lc), None)
+        if member is not None:
+            found.append(member)
+            continue
+        # Try to match by value (case-insensitive string match)
+        value_match = next((v for v in dict_obj.values() if str(v).lower() == arg_lc), None)
+        if value_match is not None:
+            found.append(value_match)
+        else:
+            missing.append(arg)
+
+    return found, missing
+
+
 # --- Telegram Bot Class Definition --- #
-class Telegram(Bot):
+class Telegram(Base):
     """
     Telegram bot subclass. Inherits from Bot class.
 
@@ -61,7 +138,7 @@ class Telegram(Bot):
         from tqdm.contrib.telegram import tqdm as telegram_pbar
 
         self.telegram_pbar = telegram_pbar
-        Bot.__init__(self)
+        Base.__init__(self)
         self.token = token
         self.chat_id = int(chat_id)
         # Initialize the Telegram bot
@@ -378,20 +455,31 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
-            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
-            flow = (
-                self.Flows[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.Flows.__members__
-                else self.Flows.All  # pyright: ignore[reportAttributeAccessIssue]
-            )
-            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+            # Use helper to split args for run
+            data_all_args, report_all_args = _split_run_args(context.args)
+            data_flows, missing_data = _parse_args(data_all_args, self.DataFlows)
+            report_flows, missing_report = _parse_args(report_all_args, self.Reports)
+
+            missing = []
+            if missing_data:
+                missing.append(f"Data: {', '.join(missing_data)}")
+            if missing_report:
+                missing.append(f"Report: {', '.join(missing_report)}")
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following arguments were not recognized and will be ignored: {'; '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)
 
             response = await self.query_run(
                 callback=callback,
-                flow=flow,
+                data=data_flows,
+                report=report_flows,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
@@ -414,20 +502,21 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
-            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
-            flow = (
-                self.DataFlows[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.DataFlows.__members__
-                else self.DataFlows.All  # pyright: ignore[reportAttributeAccessIssue]
-            )
-            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+            flows, missing = _parse_args(context.args, self.DataFlows)
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following data flows were not recognized and will be ignored: {', '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)
 
             response = await self.query_fetch(
                 callback=callback,
-                flow=flow,
+                data=flows,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
@@ -451,13 +540,14 @@ class Telegram(Bot):
             if update.effective_chat is None:
                 return
 
-            # Assumes no arguments means running all flows, otherwise the first argument should specify the flow to run.
-            report = (
-                self.Reports[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.Reports.__members__
-                else self.Reports.All  # pyright: ignore[reportAttributeAccessIssue]
-            )
-            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+            report, missing = _parse_args(context.args, self.DataFlows)
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following reports were not recognized and will be ignored: {', '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)

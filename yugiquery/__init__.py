@@ -4,12 +4,12 @@
 
 # --- Imports: Submodules --- #
 from . import api
+from . import bot
 
 # --- Imports: All Symbols --- #
 from .core import *
 from .metadata import *
 from .utils import *
-from .bot import *
 
 # --- Notebook-Specific Imports --- #
 

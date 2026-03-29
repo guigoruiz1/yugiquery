@@ -7,9 +7,10 @@ import os
 import json
 import random
 import multiprocessing as mp
-from enum import Enum, StrEnum
+from pathlib import Path
+from enum import StrEnum
 from types import SimpleNamespace
-from typing import Awaitable, Callable, Dict, Type, Literal
+from typing import Awaitable, Callable, Dict, Type
 
 # --- Imports: Third-Party --- #
 import arrow
@@ -37,12 +38,7 @@ class GitCommands(StrEnum):
 
 
 # --- Bot Superclass --- #
-class Bot:
-    # --- Class-level Enum Placeholders --- #
-    DataFlows = Enum("DataFlows", {"All": "all"})
-    Reports = Enum("Reports", {"All": "all", "User": "user"})
-    Flows = Enum("Flows", {"All": "all", "User": "user"})
-
+class Base:
     """
     Bot superclass.
 
@@ -66,9 +62,6 @@ class Bot:
         """
         self.start_time = arrow.utcnow()
 
-        # Initiate Instance-level enums.
-        self.init_selection_enums()
-
         try:
             # Open the repository
             self.repo = git.ensure_repo()
@@ -78,6 +71,31 @@ class Bot:
     # --- Bot Superclass Variables --- #
     process: mp.Process | None = None
     cooldown_limit: int = 12 * 3600  # 12 hours
+
+    @property
+    def Reports(self) -> dict[str, Path | str]:
+        """
+        Dynamically returns the current available reports as a dictionary.
+        """
+        reports_dict: dict[str, Path | str] = {"All": "all", "User": "user"}
+        reports = []
+        if hasattr(dirs.NOTEBOOKS, "pkg") and dirs.NOTEBOOKS.pkg is not None:
+            reports += sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb"))
+        if hasattr(dirs.NOTEBOOKS, "user") and dirs.NOTEBOOKS.user is not None:
+            reports += sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
+        for report in reports:
+            reports_dict[report.stem.capitalize()] = report
+        return reports_dict
+
+    @property
+    def DataFlows(self) -> dict[str, str]:
+        """
+        Dynamically returns the current available data flows as a dictionary.
+        """
+        dataflows_dict: dict[str, str] = {"All": "all"}
+        for flow in _data_flows_avail.keys():
+            dataflows_dict[flow.capitalize()] = flow
+        return dataflows_dict
 
     @property
     def URLS(self) -> SimpleNamespace:
@@ -120,29 +138,6 @@ class Bot:
         )
 
     # --- Bot Superclass Methods --- #
-
-    def init_selection_enums(self) -> None:
-        """
-        Initializes and returns Enum objects containing the available reports and data flows.
-        The Enums are created using the reports' file names and available data flows.
-        """
-        reports_dict = {k: v.value for k, v in self.Reports.__members__.items()}
-        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
-        for report in reports:
-            reports_dict[report.stem.capitalize()] = report
-
-        data_dict = {k: v.value for k, v in self.DataFlows.__members__.items()}
-        for flow in _data_flows_avail.keys():
-            data_dict[flow.capitalize()] = flow
-
-        self.Reports = Enum("Reports", reports_dict)
-        self.DataFlows = Enum("DataFlows", data_dict)
-
-        # reports_dict takes precedence in case of name clashes, which is fine since they would be the same report/data flow but reports need a Path.
-        self.Flows = Enum(
-            "Flows",
-            data_dict | reports_dict,
-        )
 
     def abort(self) -> str:
         """
@@ -429,9 +424,9 @@ class Bot:
     async def query_run(
         self,
         callback: Callable[[str], Awaitable[None]],
-        flow: Enum = Flows.All,
+        data: str | list[str] = [],
+        report: str | list[str] | list[Path] = [],
         progress_bar: Type[tqdm] | None = None,
-        operation: Literal["data", "report", "both", "all"] = "all",
         **pbar_kwargs,
     ) -> Dict[str, str]:
         """
@@ -439,9 +434,9 @@ class Bot:
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            flow (ReportsOrData, optional): The flow to run. Defaults to All.
+            data (str | list[str], optional): The data flow to run. Defaults to DataFlows.All.
+            report (str | list[str] | list[Path], optional): The report to run. Defaults to Reports.All.
             progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
-            operation (Literal["data", "report", "both", "all"], optional): The operation to perform. Defaults to "all".
             **pbar_kwargs: Additional Keyword arguments to customize the progress bar..
 
         Returns:
@@ -454,10 +449,11 @@ class Bot:
             progress_bar=progress_bar,
             pbar_kwargs=pbar_kwargs,
         )
+
         try:
             self.process = mp.Process(
                 target=run,
-                kwargs=dict(flow=flow.value, progress_handler=progress_handler, operation=operation),
+                kwargs=dict(data=data or [], report=report or [], progress_handler=progress_handler),
             )
             self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
@@ -488,7 +484,7 @@ class Bot:
     async def query_fetch(
         self,
         callback: Callable[[str], Awaitable[None]],
-        flow: Enum = DataFlows.All,
+        data: str | list[str] = [],
         progress_bar: Type[tqdm] | None = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
@@ -497,22 +493,24 @@ class Bot:
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            report (Reports, optional): The report to fetch. Defaults to All.
+            data (str | list[str], optional): The data to fetch. Defaults to DataFlows.All.
+            progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+
         Returns:
-            dict: A dictionary containing the result of the report fetching.
+            dict: A dictionary containing the result of the data fetching.
         """
         return await self.query_run(
             callback=callback,
-            flow=flow,
+            data=data,
+            report=[],
             progress_bar=progress_bar,
-            operation="data",
             **pbar_kwargs,
         )
 
     async def query_report(
         self,
         callback: Callable[[str], Awaitable[None]],
-        report: Enum = Reports.All,
+        report: str | list[str] | list[Path] = [],
         progress_bar: Type[tqdm] | None = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
@@ -521,15 +519,17 @@ class Bot:
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            report (Reports, optional): The report to generate. Defaults to All.
+            report (Reports | None, optional): The report to generate. Defaults to Reports.All.
+            progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+
         Returns:
             dict: A dictionary containing the result of the report fetching.
         """
         return await self.query_run(
             callback=callback,
-            flow=report,
+            report=report,
+            data=[],
             progress_bar=progress_bar,
-            operation="report",
             **pbar_kwargs,
         )
 

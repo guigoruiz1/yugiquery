@@ -4,7 +4,6 @@
 
 # --- Imports: Standard Library --- #
 import argparse
-import re
 
 # --- Imports: Local Application --- #
 from .core import run, cleanup_data
@@ -49,8 +48,30 @@ def handle_run(args):
     LoggerConfig.setup(level=args.log_level, log_file=args.log_file)
     _ = git.ensure_repo()
 
+    # Always treat flows as a list for logic
+    flows = args.flows if isinstance(args.flows, list) else [args.flows]
+    data_args = args.data or []
+    report_args = args.report or []
+
+    # 'all' takes precedence for both
+    if "all" in flows:
+        data = report = "all"
+    else:
+        # Data precedence
+        if "all" in data_args:
+            data = "all"
+        else:
+            data = data_args + flows
+
+        # Report precedence: 'all' > list (let find_notebooks handle 'user')
+        if "all" in report_args:
+            report = "all"
+        else:
+            report = report_args + flows
+
     run(
-        flow=args.reports,
+        data=data,
+        report=report,
         cleanup=args.cleanup,
         dryrun=args.dryrun,
         jekyll=args.jekyll,
@@ -58,7 +79,6 @@ def handle_run(args):
         benchmark=args.benchmark,
         discord=args.discord,
         telegram=args.telegram,
-        operation="all",
     )
 
 
@@ -68,14 +88,13 @@ def handle_fetch(args):
     _ = git.ensure_repo()
 
     run(
-        flow=args.data,
+        data=args.data,
         cleanup=args.cleanup,
         dryrun=args.dryrun,
         discord=args.discord,
         telegram=args.telegram,
         changelog=args.changelog,
         benchmark=args.benchmark,
-        operation="data",
     )
 
 
@@ -85,12 +104,11 @@ def handle_report(args):
     _ = git.ensure_repo()
     # Only run notebooks and git ops, no API/data update
     run(
-        flow=args.reports,
+        report=args.reports,
         dryrun=args.dryrun,
         jekyll=args.jekyll,
         discord=args.discord,
         telegram=args.telegram,
-        operation="report",
     )
 
 
@@ -103,7 +121,7 @@ def handle_cleanup(args):
 
 
 def set_run_parser(target: argparse._SubParsersAction | argparse.ArgumentParser | None = None) -> argparse.ArgumentParser:
-    """Configure the run subparser with arguments for reports, cleanup, progress bars, and debugging. Can be used as a subparser or standalone parser."""
+    """Configure the run subparser with arguments for flows, cleanup, progress bars, and debugging. Can be used as a subparser or standalone parser."""
 
     desc = "Run the full Yugiquery flow"
     if target is None:
@@ -114,13 +132,33 @@ def set_run_parser(target: argparse._SubParsersAction | argparse.ArgumentParser 
         parser = target
 
     parser.add_argument(
-        "reports",
+        "flows",
         nargs="*",
-        metavar="REPORT",
+        metavar="FLOWS",
         default="all",
         type=str,
-        help="the report(s) to be generated. Defaults to 'all'",
+        help="the flow(s) to be executed. Defaults to 'all'",
     )
+
+    parser.add_argument(
+        "--data",
+        dest="data",
+        nargs="+",
+        metavar="DATA",
+        default=None,
+        type=str,
+        help="Data update only flows.",
+    )
+    parser.add_argument(
+        "--report",
+        dest="report",
+        nargs="+",
+        metavar="REPORT",
+        default=None,
+        type=str,
+        help="Report generation only flows.",
+    )
+
     report_group = parser.add_argument_group("report options")
     data_group = parser.add_argument_group("data options")
     _set_report_args(report_group)

@@ -7,7 +7,7 @@ import importlib
 
 # --- Imports: Local Application --- #
 from .cli import set_parser, main
-from .base import Bot
+from .base import Base
 
 
 # --- Lazy Loading of Bot Subclasses --- #

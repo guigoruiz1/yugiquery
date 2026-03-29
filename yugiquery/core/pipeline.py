@@ -37,7 +37,8 @@ logger = LoggerConfig.get_logger()
 
 
 def run(
-    flow: str | List[str] | List[Path] = "all",
+    data: str | List[str] = "all",
+    report: str | List[str] | List[Path] = "all",
     progress_handler: ProgressHandler | None = None,
     cleanup: bool | Literal["auto"] = "auto",
     dryrun: bool = False,
@@ -45,7 +46,6 @@ def run(
     benchmark: bool = True,
     squash: bool = True,
     jekyll: bool = False,
-    operation: Literal["data", "report", "both", "all"] = "all",
     discord: bool | argparse.Namespace = False,
     telegram: bool | argparse.Namespace = False,
 ) -> None:
@@ -54,7 +54,8 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        flow (str | List[str] | List[Path], optional): The report to generate and/or data flow to update. Defaults to 'all'.
+        data (str | List[str], optional): The data update flow(s) to run. Defaults to 'all'.
+        report (str | List[str] | List[Path], optional): The report(s) to generate. Can be a string, a Path, or a list of strings/Paths. Defaults to 'all'.
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dryrun (bool, optional): dryrun flag to pass to notebook execution and other operations. If True, changes are not committed to Git and data cleanup will only log intended changes. Defaults to False.
@@ -69,9 +70,6 @@ def run(
     Returns:
         None: This function does not return a value.
     """
-    if operation not in ("data", "report", "both", "all"):
-        raise ValueError("Invalid operation. Must be 'data', 'report', 'both', or 'all'.")
-
     print("\nExecution started")
     logger.info("Execution started")
 
@@ -79,10 +77,10 @@ def run(
     start_commit = git.get_repo().head.commit
 
     # Setup progress bars
-    report_paths = dirs.find_notebooks(flow) if not operation == "data" else []
-    data_flows = _get_flows(flow) if not operation == "report" else []
+    report_paths = dirs.find_notebooks(report)
+    data_flows = _get_flows(data)
 
-    if not operation == "report" and len(data_flows) > 0:
+    if len(data_flows) > 0:
         total = len(data_flows)
         if any(flow in ["cards", "rush", "speed"] for flow in data_flows):
             total += 1  # Needed to account for errata
@@ -106,7 +104,7 @@ def run(
             pbars=data_pbars,
         )
 
-    if not operation == "data" and len(report_paths) > 0:
+    if len(report_paths) > 0:
         reports_pbars, _ = _setup_pbars(
             total=len(report_paths),
             extra_pbar=(
@@ -172,16 +170,14 @@ def _get_flows(reports: str | List[str] | List[Path]) -> list[str]:
     Returns:
         list[str]: A list of data flows to run.
     """
-    if reports == "all":
+    if isinstance(reports, Path):
+        reports = [reports]
+
+    if "all" in reports:
         return list(_data_flows_avail.keys())
 
-    if isinstance(reports, (str, Path)):
-        reports_iter = [reports]
-    else:
-        reports_iter = reports
-
     data_flows = []
-    for r in reports_iter:
+    for r in reports:
         stem = Path(r).stem.lower()
         if stem in _data_flows_avail.keys():
             data_flows.append(stem)
