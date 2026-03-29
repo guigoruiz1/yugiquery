@@ -18,7 +18,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 # --- Imports: Local Application --- #
 from . import client
-from ..utils import dirs, load_json, LoggerConfig
+from ..utils import dirs, load_json, LoggerConfig, ensure_tuple_columns
 
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
@@ -526,11 +526,14 @@ def fetch_monster(
         temp_df = client.fetch_properties(concept, query_str, step=step, limit=limit, iterator=iterator, **kwargs)
         monster_df = pd.concat([monster_df, temp_df.dropna(how="all", axis=1)], ignore_index=True, axis=0)
 
+    monster_df = ensure_tuple_columns(monster_df)
     with logging_redirect_tqdm():
         logger.debug("- Total")
         logger.info("%s results", len(monster_df.index))
 
-    tqdm.write(f"{len(monster_df.index)} results\n")
+    tqdm.write(
+        f"\r{len(monster_df.index)} results\n"
+    )  # Extra space added to prevent tqdm from overwriting the line when it finishes, which can cause display issues in some environments.
 
     return monster_df
 
@@ -909,6 +912,7 @@ def fetch_set_list_pages(cg: CG = CG.ALL, step: int = 500, limit=5000, **kwargs)
             )
             set_list_pages = pd.concat([set_list_pages, pd.DataFrame(temp)])
 
+    set_list_pages = ensure_tuple_columns(set_list_pages)
     return set_list_pages
 
 
@@ -955,7 +959,7 @@ def fetch_all_set_lists(cg: CG = CG.ALL, step: int = 40, **kwargs) -> pd.DataFra
     all_set_lists_df = all_set_lists_df.convert_dtypes()
     all_set_lists_df.sort_values(by=["Set", "Region", "Card number"]).reset_index(inplace=True)
 
-    logger.info("%s set lists received - %s missing", total_success, total_error)
+    tqdm.write(f"{total_success} set lists received - {total_error} missing")
     with logging_redirect_tqdm():
         logger.info("%s set lists received - %s missing\n", total_success, total_error)
 

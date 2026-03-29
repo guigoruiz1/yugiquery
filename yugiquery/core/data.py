@@ -53,17 +53,8 @@ def load_latest(
 
     if files:
         df = pd.read_csv(files[0], dtype=object, keep_default_na=False, na_values="")
-        tuple_pattern = re.compile(r"^\(.*['\"].*\)$")
-        for col in df.columns:
-            first_val = df[col].dropna().astype(str).iloc[0] if not df[col].dropna().empty else None
-            if first_val and tuple_pattern.match(first_val):
-                try:
-                    df[col] = df[col].dropna().apply(literal_eval)
-                except (ValueError, SyntaxError):
-                    pass
+        df = _parse_columns(df)
 
-        for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
-            df[col] = pd.to_datetime(df[col])
         with logging_redirect_tqdm():
             logger.info("%s file loaded from %s.", name_pattern.capitalize(), files[0])
         if dirs.is_notebook:
@@ -97,8 +88,11 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
     Returns:
         pd.DataFrame | None: The loaded changelog DataFrame (or None if not found).
     """
+
     if timestamp is None:
         df, _ = load_latest(name, type="changelog")
+        if df is not None:
+            df = _parse_columns(df)
         return df
 
     ts = timestamp if isinstance(timestamp, arrow.Arrow) else arrow.get(timestamp)
@@ -134,6 +128,7 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
         return None
 
     df = pd.read_csv(changelog_file, dtype=object, keep_default_na=False, na_values="")
+    df = _parse_columns(df)
     if dirs.is_notebook:
         nbpath = get_notebook_path()
         nbpath = nbpath.parent if nbpath else dirs.WORK
@@ -143,6 +138,31 @@ def load_changelog_for(name: str, timestamp: str | arrow.Arrow | None) -> pd.Dat
         relpath = Path(os.path.relpath(changelog_file, dirs.WORK)).as_posix()
         tqdm.write(f"Changelog loaded from {relpath} for {name.capitalize()} data")
     logger.info("Changelog loaded from %s for %s %s", relpath, name.capitalize(), filename_ts_fmt(to_ts))
+    return df
+
+
+def _parse_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Parses columns in the DataFrame that look like tuples, booleans, or datetimes.
+    Applies literal_eval to tuple/bool-like columns, and pd.to_datetime to columns with date/time-like names.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame to parse.
+
+    Returns:
+        pd.DataFrame: The DataFrame with parsed columns.
+    """
+    tuple_pattern = re.compile(r"^\(.*['\"].*\)$")
+    bool_pattern = re.compile(r"^(True|False)$", re.IGNORECASE)
+    for col in df.columns:
+        first_val = df[col].dropna().astype(str).iloc[0] if not df[col].dropna().empty else None
+        if first_val and (tuple_pattern.match(first_val) or bool_pattern.match(first_val)):
+            try:
+                df[col] = df[col].dropna().apply(literal_eval)
+            except (ValueError, SyntaxError):
+                pass
+    for col in df.filter(regex="(?i)(date|time|release|debut)").columns:
+        df[col] = pd.to_datetime(df[col], errors="coerce")
     return df
 
 

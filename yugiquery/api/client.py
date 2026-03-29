@@ -396,6 +396,7 @@ def fetch_properties(
                 time.sleep(0.5)
             raise
 
+    # TODO: Move out
     # Unwrap single-value tuple columns
     if unwrap_tuples:
         for col in df.columns:

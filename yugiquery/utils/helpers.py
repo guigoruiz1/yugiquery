@@ -13,6 +13,7 @@ from typing import Literal, List, Dict
 # --- Imports: Third-Party --- #
 import arrow
 from dotenv import dotenv_values
+import pandas as pd
 
 # --- Imports: Local Application --- #
 from .dirs import dirs
@@ -91,6 +92,7 @@ def load_json(json_file: str | Path) -> dict:
         return {}
 
 
+# --- Data Converters --- #
 def auto_or_bool(value: str) -> bool | Literal["auto"]:
     """
     Convert a string to a boolean (True or False) or "auto".
@@ -104,6 +106,23 @@ def auto_or_bool(value: str) -> bool | Literal["auto"]:
     if val == "false":
         return False
     return bool(value)
+
+
+def ensure_tuple_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ensures that if any value in a column is a tuple, all values in that column are tuples,
+    but leaves NaN values as NaN.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to process.
+
+    Returns:
+        pd.DataFrame: The processed DataFrame with consistent tuple columns.
+    """
+    for col in df.columns:
+        if df[col].apply(lambda x: isinstance(x, tuple)).any():
+            df[col] = df[col].apply(lambda x: x if isinstance(x, tuple) or (isinstance(x, float) and pd.isna(x)) else (x,))
+    return df
 
 
 # --- Validators --- #

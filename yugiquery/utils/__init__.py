@@ -7,6 +7,7 @@ from . import git
 from .plot import plt, sns
 from .helpers import (
     auto_or_bool,
+    ensure_tuple_columns,
     load_secrets,
     load_json,
     md5,
