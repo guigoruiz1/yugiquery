@@ -531,9 +531,7 @@ def fetch_monster(
         logger.debug("- Total")
         logger.info("%s results", len(monster_df.index))
 
-    tqdm.write(
-        f"\r{len(monster_df.index)} results\n"
-    )  # Extra space added to prevent tqdm from overwriting the line when it finishes, which can cause display issues in some environments.
+    tqdm.write(f"\r{len(monster_df.index)} results\n")
 
     return monster_df
 
@@ -844,7 +842,8 @@ def fetch_errata(errata: str = "all", step: int = 500, **kwargs) -> pd.DataFrame
 
     with logging_redirect_tqdm():
         logger.info("%s results", len(errata_df.index))
-    tqdm.write(f"{len(errata_df.index)} results\n")
+
+    tqdm.write(f"\r{len(errata_df.index)} results\n")
 
     return errata_df
 
