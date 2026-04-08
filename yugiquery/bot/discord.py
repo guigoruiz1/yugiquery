@@ -88,7 +88,7 @@ class Discord(Base, commands.Bot):
         """
         keys = set(list(self.Reports.keys()) + list(self.DataFlows.keys()))
         combined_dict = {}
-        for key in keys:
+        for key in sorted(keys):
             combined_dict[key] = {"data": self.DataFlows.get(key, None), "report": self.Reports.get(key, None)}
         return combined_dict
 
@@ -449,8 +449,8 @@ class Discord(Base, commands.Bot):
 
             response = await self.query_run(
                 callback=callback,
-                data=flow.value.data.value,
-                report=flow.value.report.value,
+                data=flow.value["data"],
+                report=flow.value["report"],
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,

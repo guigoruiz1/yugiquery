@@ -46,12 +46,11 @@ class ProgressHandler:
         self.progress_bar = progress_bar
         self.pbar_kwargs = pbar_kwargs or {}
 
-    def pbar(self, iterable: Iterable, **kwargs) -> tqdm | None:
+    def pbar(self, **kwargs) -> tqdm | None:
         """
         Creates and returns a progress bar instance with merged kwargs.
 
         Args:
-            iterable: The iterable to track progress.
             **kwargs: Additional keyword arguments for the progress bar (merged with stored pbar_kwargs).
 
         Returns:
@@ -61,7 +60,7 @@ class ProgressHandler:
             return None
         # Merge stored pbar_kwargs with runtime kwargs (runtime takes precedence)
         merged_kwargs = {**self.pbar_kwargs, **kwargs}
-        return self.progress_bar(iterable, **merged_kwargs)
+        return self.progress_bar(**merged_kwargs)
 
     def send(self, **kwargs) -> None:
         """

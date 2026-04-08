@@ -673,7 +673,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
             total_error += error
 
         else:
-            total_error += 1
+            total_error += 1 # TODO: Improve
             logger.warning('No content for "%s"', content.get("title", "Unknown"))
 
     logger.debug("%s set lists received - %s missing", total_success, total_error)
