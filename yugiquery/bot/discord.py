@@ -86,9 +86,9 @@ class Discord(Base, commands.Bot):
         """
         Combines the current Reports and DataFlows dictionaries into a single mapping.
         """
-        keys = set(list(self.Reports.keys()) + list(self.DataFlows.keys()))
+        keys = list(self.Reports.keys()) + sorted(key for key in self.DataFlows.keys() if key not in self.Reports)
         combined_dict = {}
-        for key in sorted(keys):
+        for key in keys:
             combined_dict[key] = {"data": self.DataFlows.get(key, None), "report": self.Reports.get(key, None)}
         return combined_dict
 
@@ -437,7 +437,7 @@ class Discord(Base, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                flow (ReportsOrDataEnum): An Enum value indicating which YugiQuery data update and/or report generation flow to run.
+                flow (ReportsOrDataEnum): Which YugiQuery data update and/or report generation flow to run. Defaults to "All".
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -477,7 +477,7 @@ class Discord(Base, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                data (DataFlowsEnum): An Enum value indicating which YugiQuery data update flow to run.
+                data (DataFlowsEnum): Which YugiQuery data update flow to run. Defaults to "All".
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -518,7 +518,7 @@ class Discord(Base, commands.Bot):
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (ReportsEnum): An Enum value indicating which YugiQuery report to generate.
+                report (ReportsEnum): Which YugiQuery report to generate. Defaults to "All".
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.

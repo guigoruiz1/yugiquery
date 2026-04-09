@@ -287,7 +287,7 @@ def update_data(
 
     if any(flow in has_errata for flow in flows_to_run):
         for pbar in pbars:
-            pbar.set_postfix(report=f"Errata data update")
+            pbar.set_postfix(data="errata")
         errata_df = api.fetch_errata()
         for pbar in pbars:
             pbar.update(1)
@@ -922,7 +922,7 @@ def _setup_pbars(
 
     pbar_kwargs: dict[str, Any] = dict(
         total=total,
-        unit="report",
+        unit="flow",
         unit_scale=True,
         dynamic_ncols=(not dirs.is_notebook),
         delay=2,

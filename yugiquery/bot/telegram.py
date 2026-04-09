@@ -164,8 +164,7 @@ class Telegram(Base):
         """
         Checks if the user is on cooldown for a specific command. If so, sends a cooldown message and returns True. Otherwise, returns False.
         """
-        user_data = context.user_data or {}
-        last = user_data.get(cooldown_key, arrow.get(0.0))
+        last = context.user_data.get(cooldown_key, arrow.get(0.0))
         if (arrow.utcnow() - last).total_seconds() < self.cooldown_limit:
             if update.effective_message is None:
                 return True
@@ -179,12 +178,10 @@ class Telegram(Base):
         """
         Handles the response from a query, updating cooldown and sending the appropriate message.
         """
-        user_data = context.user_data or {}
         if "error" in response.keys():
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
         else:
-            user_data[cooldown_key] = arrow.utcnow()
-            context.user_data = user_data
+            context.user_data[cooldown_key] = arrow.utcnow()
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
 
     def run(self) -> None:

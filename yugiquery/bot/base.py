@@ -93,7 +93,7 @@ class Base:
         Dynamically returns the current available data flows as a dictionary.
         """
         dataflows_dict: dict[str, str] = {"All": "all"}
-        for flow in _data_flows_avail.keys():
+        for flow in sorted(_data_flows_avail.keys()):
             dataflows_dict[flow.capitalize()] = flow
         return dataflows_dict
 
