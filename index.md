@@ -19,14 +19,16 @@ YugiQuery is a Python package to query and display Yu-Gi-Oh! data extracted from
 Below are listed all the available reports and their execution timestamps. 
 
 <!-- REPORT_TABLE_START -->
-[Bandai](reports/Bandai.html) | 11/04/2026 13:25 UTC |
-| [Cards](reports/Cards.html) | 11/04/2026 13:30 UTC |
-| [Rush](reports/Rush.html) | 11/04/2026 13:33 UTC |
-| [Sets](reports/Sets.html) | 11/04/2026 13:37 UTC |
-| [Speed](reports/Speed.html) | 11/04/2026 13:40 UTC |
-| [Timeline](reports/Timeline.html) | 11/04/2026 13:59 UTC
+|                    Report | Last execution       |
+| -------------------------:|:-------------------- |
+| [Bandai](reports/Bandai.html) | 11/04/2026 14:20 UTC |
+| [Cards](reports/Cards.html) | 11/04/2026 14:20 UTC |
+| [Rush](reports/Rush.html) | 11/04/2026 14:20 UTC |
+| [Sets](reports/Sets.html) | 11/04/2026 14:20 UTC |
+| [Speed](reports/Speed.html) | 11/04/2026 14:20 UTC |
+| [Timeline](reports/Timeline.html) | 11/04/2026 14:20 UTC |
 <!-- REPORT_TABLE_END -->
 
-YugiQuery was last executed at `11/04/2026 13:59 UTC`.
+YugiQuery was last executed at `11/04/2026 14:21 UTC`.
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`.

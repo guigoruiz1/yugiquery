@@ -189,9 +189,15 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                 link_path = str(report_file.relative_to(dirs.WORK))
 
             timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
-            rows.append(f"[{stem}]({link_path}) | {timestamp_str}")
+            rows.append(f"| [{stem}]({link_path}) | {timestamp_str} |")
 
-        table = " |\n| ".join(rows)
+        table = "\n".join(
+            [
+                "|                    Report | Last execution       |",
+                "| -------------------------:|:-------------------- |",
+                *rows,
+            ]
+        )
 
         def replace_table(content: str) -> str:
             start_marker = "<!-- REPORT_TABLE_START -->"
