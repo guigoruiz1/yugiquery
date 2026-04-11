@@ -208,7 +208,8 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                 raise ValueError("Table markers not found in file.")
             before = content[: start + len(start_marker)]
             after = content[end:]
-            updated = before + "\n" + table + "\n" + after
+            # Keep blank lines around the markdown table so Jekyll/kramdown parses it reliably.
+            updated = before + "\n\n" + table + "\n\n" + after
 
             ts_pattern = r"(last executed at `)([^`]+)(`)"
             new_ts = timestamp.strftime("%d/%m/%Y %H:%M %Z")
