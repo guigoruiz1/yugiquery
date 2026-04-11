@@ -146,7 +146,7 @@ def make_jekyll_page(
     title: str | None = None,
     placeholders: dict[str, str] | None = None,
     output_path: str | Path | None = None,
-) -> None:
+) -> Path:
     """
     Generate a Jekyll markdown page from the ``assets/html/index.md`` template.
 
@@ -158,7 +158,7 @@ def make_jekyll_page(
         output_path (str | Path | None, optional): Output path. If None, defaults to
             ``reports/<title>.md``. Relative paths are resolved relative to the reports directory.
     Returns:
-        None
+        Path: The path to the generated Jekyll page.
     """
 
     if not title:
@@ -201,6 +201,8 @@ def make_jekyll_page(
             unlock("make_jekyll_page_{title}")
         except Exception as e:
             logger.error("Failed to release lock for make_jekyll_page_{title}. %s", e)
+
+    return output_path
 
 
 # --- HTML Functions --- #

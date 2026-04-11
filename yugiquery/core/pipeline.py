@@ -764,15 +764,32 @@ def _run_reports(
     # 6. Generate Jekyll pages for reports
     if jekyll:
         logger.info("Generating Jekyll pages")
-        print("\nGenerating Jekyll pages")
+        # print("\nGenerating Jekyll pages")
+        pages = []
         for report_path in report_paths:
             title = Path(report_path).stem
             try:
-                make_jekyll_page(title=title)
+                page_path = make_jekyll_page(title=title)
+                pages.append(page_path)
+                with logging_redirect_tqdm():
+                    logger.info("Jekyll page generated for %s at %s", title, page_path)
             except Exception as e:
                 if progress_handler:
                     progress_handler.send(error=str(e))
                 logger.warning("Error creating Jekyll page for %s. Ignoring... %s", title, e)
+
+        if not dryrun and pages:
+            try:
+                commit_result = git.commit(
+                    pages,
+                    message=f"Jekyll pages generated for reports {', '.join(p.stem for p in pages)} - {arrow.utcnow().isoformat()}",
+                )
+                with logging_redirect_tqdm():
+                    logger.info("Git commit result for Jekyll pages: %s", commit_result)
+            except Exception as e:
+                if progress_handler:
+                    progress_handler.send(error=str(e))
+                logger.warning("Error committing Jekyll pages. Ignoring... %s", e)
 
     # 5. Update page index
     try:
