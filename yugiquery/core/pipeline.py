@@ -32,13 +32,17 @@ from .maintenance import generate_changelog, benchmark
 # --- Logger Setup --- #
 logger = LoggerConfig.get_logger()
 
+# --- Constants --- #
+PAPERMILL_TIMEOUT = int(os.getenv("PAPERMILL_TIMEOUT", 300))
+"""Timeout in seconds for papermill notebook execution. Can be set via the PAPERMILL_TIMEOUT environment variable. Defaults to 300 seconds (5 minutes)."""
+
 
 # --- Main Pipeline Function --- #
 
 
 def run(
-    data: str | List[str] = "all",
-    report: str | List[str] | List[Path] = "all",
+    data: str | List[str] = [],
+    report: str | List[str] | List[Path] = [],
     progress_handler: ProgressHandler | None = None,
     cleanup: bool | Literal["auto"] = "auto",
     dryrun: bool = False,
@@ -54,8 +58,8 @@ def run(
     to reflect the last execution timestamp, and clean up redundant data files.
 
     Args:
-        data (str | List[str], optional): The data update flow(s) to run. Defaults to 'all'.
-        report (str | List[str] | List[Path], optional): The report(s) to generate. Can be a string, a Path, or a list of strings/Paths. Defaults to 'all'.
+        data (str | List[str], optional): The data update flow(s) to run. Defaults to [].
+        report (str | List[str] | List[Path], optional): The report(s) to generate. Can be a string, a Path, or a list of strings/Paths. Defaults to [].
         progress_handler (ProgressHandler | None, optional): An optional ProgressHandler instance to report execution progress. Defaults to None.
         cleanup (bool | Literal["auto"], optional): whether to cleanup data files after execution. If True, perform cleanup, if False, doesn't perform cleanup. If 'auto', performs cleanup if there are more than 4 data files for each report (assuming one per week). Defaults to 'auto'.
         dryrun (bool, optional): dryrun flag to pass to notebook execution and other operations. If True, changes are not committed to Git and data cleanup will only log intended changes. Defaults to False.
@@ -859,6 +863,7 @@ def run_notebooks(
                     log_output=True,
                     progress_bar={"position": 1, "desc": report_name},  # pyright: ignore[reportArgumentType]
                     kernel_name=kernel_name,
+                    start_timeout=PAPERMILL_TIMEOUT,
                 )
                 with logging_redirect_tqdm():
                     logger.info("Report '%s' generated successfully at %s", report_name, dest_report)

@@ -89,6 +89,7 @@ def handle_fetch(args):
 
     run(
         data=args.data,
+        report=[],
         cleanup=args.cleanup,
         dryrun=args.dryrun,
         discord=args.discord,
@@ -104,6 +105,7 @@ def handle_report(args):
     _ = git.ensure_repo()
     # Only run notebooks and git ops, no API/data update
     run(
+        data=[],
         report=args.reports,
         dryrun=args.dryrun,
         jekyll=args.jekyll,
