@@ -41,7 +41,6 @@ permalink: /reports/Bandai/
 	.dropdown-menu,
     .site-nav,
 	.menu {
-		position: relative;
 		z-index: 10;
 	}
 
@@ -76,6 +75,20 @@ permalink: /reports/Bandai/
 				const doc = frame.contentDocument;
 				if (!doc) return;
 
+				const bodyStyle = window.getComputedStyle(document.body);
+				const htmlStyle = window.getComputedStyle(document.documentElement);
+				const bodyBgColor = bodyStyle.backgroundColor;
+				const htmlBgColor = htmlStyle.backgroundColor;
+
+				const parentBackground =
+					bodyStyle.backgroundImage !== "none"
+						? bodyStyle.background
+						: bodyBgColor && bodyBgColor !== "rgba(0, 0, 0, 0)"
+							? bodyBgColor
+							: htmlBgColor && htmlBgColor !== "rgba(0, 0, 0, 0)"
+								? htmlBgColor
+								: "#ffffff";
+
 				// Create and inject centering styles into iframe
 				const style = doc.createElement("style");
 				style.textContent = `
@@ -85,11 +98,13 @@ permalink: /reports/Bandai/
 						align-items: center !important;
 					}
 
-					/* Remove notebook panel background tint from exported pages */
+					/* Match exported notebook background with the parent page */
+					html,
+					body,
 					.jp-Notebook,
 					.jp-notebook,
 					.jp-NotebookPanel-notebook {
-						background: transparent !important;
+						background: ${parentBackground} !important;
 					}
 				`;
 				doc.head.appendChild(style);
