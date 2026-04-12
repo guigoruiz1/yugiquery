@@ -31,16 +31,16 @@ Below are listed all the available reports and their execution timestamps.
 
 |                    Report | Last execution       |
 | -------------------------:|:-------------------- |
-| [Bandai](reports/Bandai/) | 12/04/2026 17:40 UTC |
-| [Cards](reports/Cards/) | 12/04/2026 17:40 UTC |
-| [Rush](reports/Rush/) | 12/04/2026 17:40 UTC |
-| [Sets](reports/Sets/) | 12/04/2026 17:40 UTC |
-| [Speed](reports/Speed/) | 12/04/2026 17:40 UTC |
-| [Timeline](reports/Timeline/) | 12/04/2026 17:40 UTC |
+| [Bandai](reports/Bandai/) | 12/04/2026 18:06 UTC |
+| [Cards](reports/Cards/) | 12/04/2026 18:06 UTC |
+| [Rush](reports/Rush/) | 12/04/2026 18:06 UTC |
+| [Sets](reports/Sets/) | 12/04/2026 18:06 UTC |
+| [Speed](reports/Speed/) | 12/04/2026 18:06 UTC |
+| [Timeline](reports/Timeline/) | 12/04/2026 18:06 UTC |
 
 <!-- REPORT_TABLE_END -->
 
-YugiQuery flow was last executed at `12/04/2026 17:40 UTC`.
+YugiQuery flow was last executed at `12/04/2026 18:06 UTC`.
 
 # Usage
 

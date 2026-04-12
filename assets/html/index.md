@@ -39,6 +39,14 @@ permalink: /reports/@title@/
 			width: 92vw;
 		}
 	}
+
+	/* Center Jupyter notebook output elements */
+	.jp-RenderedSVG,
+	.jp-OutputArea-output {
+		display: flex !important;
+		justify-content: center !important;
+		align-items: center !important;
+	}
 </style>
 
 <div class="report-frame-shell">
