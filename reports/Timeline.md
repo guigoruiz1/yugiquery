@@ -13,6 +13,7 @@ permalink: /reports/Timeline/
 	.report-frame-shell {
 		/* Break out of narrow content columns in page layouts */
 		position: relative;
+		z-index: 0;
 		margin-left: calc(50% - 50vw);
 		margin-right: calc(50% - 50vw);
 		width: 100vw;
@@ -24,12 +25,25 @@ permalink: /reports/Timeline/
 
 	.report-frame {
 		/* Keep it roomy on desktop but still responsive on smaller screens */
+		position: relative;
+		z-index: 0;
 		width: min(96vw, 1600px);
 		min-width: 50vw;
 		height: 100vh;
 		border: 0;
 		overflow: hidden;
 		display: block;
+	}
+
+	/* Keep common nav overlays above embedded reports */
+	header,
+	.site-header,
+	.navbar,
+	.navbar-menu,
+	.dropdown-menu,
+	.menu {
+		position: relative;
+		z-index: 10000;
 	}
 
 	@media (max-width: 900px) {
@@ -70,6 +84,13 @@ permalink: /reports/Timeline/
 						display: flex !important;
 						justify-content: center !important;
 						align-items: center !important;
+					}
+
+					/* Remove notebook panel background tint from exported pages */
+					.jp-Notebook,
+					.jp-notebook,
+					.jp-NotebookPanel-notebook {
+						background: transparent !important;
 					}
 				`;
 				doc.head.appendChild(style);
