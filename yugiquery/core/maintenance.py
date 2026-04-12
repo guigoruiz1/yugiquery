@@ -136,6 +136,16 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
         print("\nUpdating index")
         logger.info("Updating index")
 
+        index_path = dirs.WORK / "index.md"
+        readme_path = dirs.WORK / "README.md"
+
+        timestamp = arrow.utcnow()
+
+        with open(index_path, encoding="utf-8") as f:
+            index = f.read()
+        with open(readme_path, encoding="utf-8") as f:
+            readme = f.read()
+
         def extract_permalink(md_file: Path) -> str | None:
             """Extract permalink from Jekyll frontmatter, returning None if not found."""
             with open(md_file, "r", encoding="utf-8") as f:
@@ -151,42 +161,38 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                         return permalink.strip('"').strip("'")
             return None
 
-        index_path = dirs.WORK / "index.md"
-        readme_path = dirs.WORK / "README.md"
-
-        timestamp = arrow.utcnow()
-
-        with open(index_path, encoding="utf-8") as f:
-            index = f.read()
-        with open(readme_path, encoding="utf-8") as f:
-            readme = f.read()
-
-        all_reports = {f.stem: ("html", f) for f in dirs.REPORTS.glob("*.html")}
+        all_reports = {f.stem: f for f in dirs.REPORTS.glob("*.html")}
 
         for f in dirs.REPORTS.glob("*.md"):
-            all_reports[f.stem] = ("md", f)
+            all_reports[f.stem] = f
 
         if page_paths:
             for path in page_paths:
                 path = Path(path)
                 if path.is_dir():
                     for f in path.glob("*.md"):
-                        all_reports[f.stem] = ("md", f)
+                        all_reports[f.stem] = f
                 elif path.is_file() and path.suffix == ".md":
-                    all_reports[path.stem] = ("md", path)
+                    all_reports[path.stem] = path
 
         rows = []
         for stem in sorted(all_reports.keys()):
-            file_type, report_file = all_reports[stem]
+            report_file = all_reports[stem]
+            try:
+                relative_path = report_file.relative_to(dirs.WORK)
+            except ValueError:
+                relative_path = report_file
 
-            if file_type == "md":
+            if relative_path.suffix == ".md":
                 permalink = extract_permalink(report_file)
                 if permalink:
-                    link_path = permalink.strip("/")
+                    link_path = permalink.strip("/") + "/"
                 else:
-                    link_path = f"reports/{stem}"
+                    link_path = str(relative_path.with_suffix("")) + "/"
+            elif relative_path.suffix == ".html":
+                link_path = str(relative_path.with_suffix(""))
             else:
-                link_path = str(report_file.relative_to(dirs.WORK))
+                link_path = str(relative_path)
 
             timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
             rows.append(f"| [{stem}]({link_path}) | {timestamp_str} |")
@@ -232,7 +238,7 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                 message=f"Index and README timestamp update - {timestamp.isoformat()}",
             )
         else:
-            return "README and index updated - Dry run, not commited."
+            return "README and index updated - Dry run, not committed."
     finally:
         try:
             unlock("update_index")
