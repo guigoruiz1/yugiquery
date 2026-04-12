@@ -66,8 +66,7 @@ permalink: /reports/@title@/
 				// Create and inject centering styles into iframe
 				const style = doc.createElement("style");
 				style.textContent = `
-					.jp-RenderedSVG,
-					.jp-OutputArea-output {
+					.jp-RenderedSVG {
 						display: flex !important;
 						justify-content: center !important;
 						align-items: center !important;

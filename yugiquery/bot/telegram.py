@@ -222,12 +222,14 @@ class Telegram(Base):
             battle - Simulate a battle of all monster cards.
             benchmark - Show average time each report takes to complete.
             data - Send latest data files.
+            fetch - Run the YugiQuery data fetch operation.
             git - Run a Git command.
             latest - Show latest time each report was generated.
             links - Show YugiQuery links.
             ping - Test the bot connection latency.
             run - Run full YugiQuery flow.
-            status - Display bot status and system information.
+            report - Run the YugiQuery report generation operation.
+            info - Display bot and system information.
             shutdown - Shutdown bot.
 
         """
@@ -558,8 +560,8 @@ class Telegram(Base):
             )
             await self._handle_query_response(response, context, update, cooldown_key)
 
-        @self.command_handler("status")
-        async def status(update: Update, context: CallbackContext) -> None:
+        @self.command_handler("info")
+        async def info(update: Update, context: CallbackContext) -> None:
             """
             Displays information about the bot, including uptime, versions, and system details.
 

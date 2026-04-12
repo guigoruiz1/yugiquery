@@ -69,7 +69,7 @@ class Discord(Base, commands.Bot):
         )
         help_command = commands.DefaultHelpCommand(no_category="Commands")
         description = "Bot to manage YugiQuery data and execution."
-        activity = discord.Activity(type=discord.ActivityType.watching, name="for /status")
+        activity = discord.Activity(type=discord.ActivityType.watching, name="for /info")
         commands.Bot.__init__(
             self,
             command_prefix="/",
@@ -202,12 +202,14 @@ class Discord(Base, commands.Bot):
             battle - Simulate a battle of all monster cards.
             benchmark - Show average time each report takes to complete.
             data - Send latest data files.
+            fetch - Run the YugiQuery data fetch operation.
             git - Run a Git command.
             latest - Show latest time each report was generated.
             links - Show YugiQuery links.
             ping - Test the bot connection latency.
+            report - Run the YugiQuery report generation operation.
             run - Run full YugiQuery flow.
-            status - Display bot status and system information.
+            info - Display bot and system information.
             shutdown - Shutdown bot.
         """
 
@@ -543,11 +545,11 @@ class Discord(Base, commands.Bot):
                 await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
 
         @self.hybrid_command(
-            name="status",
-            description="Displays bot status and system information.",
+            name="info",
+            description="Displays bot and system information.",
             with_app_command=True,
         )
-        async def status(ctx) -> None:
+        async def info(ctx) -> None:
             """
             Displays information about the bot, including uptime, guilds, users, channels, available commands,
             bot version, discord.py version, python version, and operating system.
