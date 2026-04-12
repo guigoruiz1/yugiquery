@@ -13,7 +13,6 @@ permalink: /reports/Timeline/
 	.report-frame-shell {
 		/* Break out of narrow content columns in page layouts */
 		position: relative;
-		z-index: 0;
 		margin-left: calc(50% - 50vw);
 		margin-right: calc(50% - 50vw);
 		width: 100vw;
@@ -26,7 +25,6 @@ permalink: /reports/Timeline/
 	.report-frame {
 		/* Keep it roomy on desktop but still responsive on smaller screens */
 		position: relative;
-		z-index: 0;
 		width: min(96vw, 1600px);
 		min-width: 50vw;
 		height: 100vh;
@@ -41,9 +39,10 @@ permalink: /reports/Timeline/
 	.navbar,
 	.navbar-menu,
 	.dropdown-menu,
+    .site-nav,
 	.menu {
 		position: relative;
-		z-index: 10000;
+		z-index: 10;
 	}
 
 	@media (max-width: 900px) {
