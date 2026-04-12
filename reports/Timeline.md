@@ -40,13 +40,6 @@ permalink: /reports/Timeline/
 		}
 	}
 
-	/* Center Jupyter notebook output elements */
-	.jp-RenderedSVG,
-	.jp-OutputArea-output {
-		display: flex !important;
-		justify-content: center !important;
-		align-items: center !important;
-	}
 </style>
 
 <div class="report-frame-shell">
@@ -64,6 +57,26 @@ permalink: /reports/Timeline/
 	(function () {
 		const frame = document.getElementById("report-frame");
 		if (!frame) return;
+
+		const injectCenteringCSS = () => {
+			try {
+				const doc = frame.contentDocument;
+				if (!doc) return;
+
+				// Create and inject centering styles into iframe
+				const style = doc.createElement("style");
+				style.textContent = `
+					.jp-RenderedSVG {
+						display: flex !important;
+						justify-content: center !important;
+						align-items: center !important;
+					}
+				`;
+				doc.head.appendChild(style);
+			} catch (_) {
+				// Ignore if injection fails.
+			}
+		};
 
 		const setFrameHeight = () => {
 			try {
@@ -88,6 +101,7 @@ permalink: /reports/Timeline/
 		};
 
 		frame.addEventListener("load", () => {
+			injectCenteringCSS();
 			setFrameHeight();
 			setTimeout(setFrameHeight, 200);
 			setTimeout(setFrameHeight, 1000);
