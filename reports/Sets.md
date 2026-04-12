@@ -5,16 +5,21 @@ permalink: /reports/Sets/
 ---
 
 <style>
+	html,
+	body {
+		overflow-x: clip;
+	}
+
 	.report-frame-shell {
 		/* Break out of narrow content columns in page layouts */
 		position: relative;
-		left: 50%;
-		right: 50%;
-		margin-left: -50vw;
-		margin-right: -50vw;
+		margin-left: calc(50% - 50vw);
+		margin-right: calc(50% - 50vw);
 		width: 100vw;
+		max-width: 100vw;
 		display: flex;
 		justify-content: center;
+		overflow-x: clip;
 	}
 
 	.report-frame {
