@@ -40,7 +40,7 @@ Below are listed all the available reports and their execution timestamps.
 
 <!-- REPORT_TABLE_END -->
 
-YugiQuery flow was last executed at `18/04/2026 06:56 UTC`.
+YugiQuery flow was last executed at `25/04/2026 16:01 UTC`.
 
 # Usage
 
