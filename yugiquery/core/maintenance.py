@@ -547,8 +547,8 @@ def _process_group(group_df: pd.DataFrame, is_changelog: bool, dryrun: bool) -> 
             logger.warning("Skipping empty changelog merge for group %s", group)
             return
 
-        min_ts = arrow.get(new_changelog["timestamp"].min())
-        max_ts = arrow.get(new_changelog["timestamp"].max())
+        min_ts = arrow.get(new_changelog["Version"].min())
+        max_ts = arrow.get(new_changelog["Version"].max())
         new_filename = make_filename(report=group, timestamp=max_ts, previous_timestamp=min_ts)
         new_filepath = dirs.DATA / new_filename
         logger.info("New changelog file: %s", new_filepath)

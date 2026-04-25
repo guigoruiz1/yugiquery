@@ -231,7 +231,6 @@ class Telegram(Base):
             report - Run the YugiQuery report generation operation.
             info - Display bot and system information.
             shutdown - Shutdown bot.
-
         """
 
         @self.command_handler("abort", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))

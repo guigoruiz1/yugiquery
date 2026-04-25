@@ -253,7 +253,7 @@ def _run_data(
         except Exception as e:
             if progress_handler:
                 progress_handler.send(error=str(e))
-        raise
+            raise
 
 
 def update_data(
