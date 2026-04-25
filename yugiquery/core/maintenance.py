@@ -126,7 +126,7 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
 
     Args:
         commit (bool, optional): If True, commit changes after updating the index.
-        page_paths (List[Path | str] | None, optional): Additional .md pages to consider.
+        page_paths (List[Path | str] | None, optional): Additional .html pages to consider.
 
     Returns:
         str: Git commit output or dry-run advisory message.
@@ -146,8 +146,13 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
         with open(readme_path, encoding="utf-8") as f:
             readme = f.read()
 
+        all_reports = {f.stem: f for f in dirs.REPORTS.glob("*.html")}
+
         def extract_permalink(md_file: Path) -> str | None:
             """Extract permalink from Jekyll frontmatter, returning None if not found."""
+            if not md_file.is_file():
+                return None
+
             with open(md_file, "r", encoding="utf-8") as f:
                 in_frontmatter = False
                 for line in f:
@@ -161,18 +166,13 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                         return permalink.strip('"').strip("'")
             return None
 
-        all_reports = {f.stem: f for f in dirs.REPORTS.glob("*.html")}
-
-        for f in dirs.REPORTS.glob("*.md"):
-            all_reports[f.stem] = f
-
         if page_paths:
             for path in page_paths:
                 path = Path(path)
                 if path.is_dir():
-                    for f in path.glob("*.md"):
+                    for f in path.glob("*.html"):
                         all_reports[f.stem] = f
-                elif path.is_file() and path.suffix == ".md":
+                elif path.is_file() and path.suffix == ".html":
                     all_reports[path.stem] = path
 
         rows = []
@@ -183,12 +183,9 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
             except ValueError:
                 relative_path = report_file
 
-            if relative_path.suffix == ".md":
-                permalink = extract_permalink(report_file)
-                if permalink:
-                    link_path = permalink.strip("/") + "/"
-                else:
-                    link_path = str(relative_path.with_suffix("")) + "/"
+            permalink = extract_permalink(report_file.with_suffix(".md"))
+            if permalink:
+                link_path = permalink.strip("/") + "/"
             elif relative_path.suffix == ".html":
                 link_path = str(relative_path.with_suffix(""))
             else:
