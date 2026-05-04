@@ -2,83 +2,90 @@
 
 # -*- coding: utf-8 -*-
 
-# Standard library imports
+# --- Imports: Standard Library --- #
 import argparse
-import importlib
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .metadata import __title__, __version__
-from .utils import dirs, api, CustomHelpFormatter
-from . import yugiquery as yq
+from .cli import CustomHelpFormatter
+from .utils import dirs, LoggerConfig
+from . import api
+from . import cli
 from . import bot
+from .scripts import optionals
 
 
+# --- Main Execution --- #
 def main():
+    """Main entry point for the YugiQuery CLI tool. Parses command-line arguments and dispatches to the appropriate handlers."""
     # Create the primary parser
-    parser = argparse.ArgumentParser(description="Yugiquery CLI tool", prog=__title__, formatter_class=CustomHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="Yugiquery CLI tool",
+        prog=__title__,
+        formatter_class=CustomHelpFormatter,
+    )
 
-    subparsers = parser.add_subparsers(dest="command")
-    parser.add_argument("-a", "--api", action="store_true", help="print API status and exit")
-    parser.add_argument("-p", "--paths", action="store_true", help="print YugiQuery paths and exit")
-    parser.add_argument("-v", "--version", action="store_true", help="print YugiQuery version and exit")
+    subparsers = parser.add_subparsers(
+        dest="command",
+        title="commands",
+    )
+    helper_group = parser.add_argument_group(
+        "helpers",
+        description="Used without a command to print helpful information then exit",
+    )
+    helper_group.add_argument("-a", "--api", action="store_true", help="Print API status")
+    helper_group.add_argument("-p", "--paths", action="store_true", help=f"Print {__title__} paths")
+    helper_group.add_argument("-v", "--version", action="store_true", help=f"Print {__title__} version")
 
     # Subparser for the main yugiquery flow
-    yugiquery_parser = subparsers.add_parser("run", help="Run the main Yugiquery flow", formatter_class=CustomHelpFormatter)
-    yq.set_parser(yugiquery_parser)
+    cli.set_run_parser(subparsers)
+    cli.set_fetch_parser(subparsers)
+    cli.set_report_parser(subparsers)
+    cli.set_cleanup_parser(subparsers)
+
     # Subparser for the bot mode
-    bot_parser = subparsers.add_parser("bot", help="Run yugiquery bot", formatter_class=CustomHelpFormatter)
-    bot.set_parser(bot_parser)
+    bot.set_parser(subparsers)
 
-    # Subparser for the kernel installation
-    try:
-        spec = importlib.util.spec_from_file_location(
-            name="post_install",
-            location=dirs.get_asset("scripts", "post_install.py"),
-        )
-        post_install = importlib.util.module_from_spec(spec=spec)
-        spec.loader.exec_module(post_install)
-
-        post_install_parser = subparsers.add_parser(
-            "install",
-            help="Run post-install script to install various additional components. If no flags are passed, all components will be installed.",
-        )
-        post_install.set_parser(post_install_parser)
-    except Exception as e:
-        print(e)
-        pass
+    # Subparser for the optional installation of additional components
+    optionals.set_parser(subparsers)
 
     # Parse initial arguments
     args = parser.parse_args()
     if args.command is None:
-        if args.version:
-            print(f"{__title__} {__version__}")
-        if args.api:
-            api.check_status()
-        if args.paths:
-            dirs.print()
-
+        if not (args.version or args.api or args.paths):
+            parser.print_help()
+        else:
+            if args.version:
+                print(f"{__title__} {__version__}")
+            if args.api:
+                LoggerConfig.setup()
+                api.check_status()
+            if args.paths:
+                dirs.print()
         exit()
 
-    else:
-        print(
-            "\n"
-            " ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ \n"
-            "  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  \n"
-            "   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   \n"
-            "    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    \n"
-            "    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    \n"
-            "                                   ▀▀                                     \n"
-        )
+    print(
+        "\n"
+        " ██    ██ ██    ██  ██████  ██  ██████  ██    ██ ███████ ██████  ██    ██ \n"
+        "  ██  ██  ██    ██ ██       ██ ██    ██ ██    ██ ██      ██   ██  ██  ██  \n"
+        "   ████   ██    ██ ██   ███ ██ ██    ██ ██    ██ █████   ██████    ████   \n"
+        "    ██    ██    ██ ██    ██ ██ ██ ▄▄ ██ ██    ██ ██      ██   ██    ██    \n"
+        "    ██     ██████   ██████  ██  ██████   ██████  ███████ ██   ██    ██    \n"
+        "                                   ▀▀                                     \n"
+    )
 
-        if args.command == "install":
-            post_install.main(args)
-
-        elif args.command == "bot":
-            # Call the bot main function with parsed arguments
-            bot.main(args)
-        else:
-            # Main Yugiquery flow
-            yq.main(args)
+    if args.command == "install":
+        optionals.main(args)
+    elif args.command == "bot":
+        bot.main(args)
+    elif args.command == "run":
+        cli.handle_run(args)
+    elif args.command == "fetch":
+        cli.handle_fetch(args)
+    elif args.command == "report":
+        cli.handle_report(args)
+    elif args.command == "cleanup":
+        cli.handle_cleanup(args)
 
 
 if __name__ == "__main__":

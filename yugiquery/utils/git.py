@@ -2,31 +2,25 @@
 
 # -*- coding: utf-8 -*-
 
-# ===================== #
-# Git Management module #
-# ===================== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
+# --- Imports: Standard Library --- #
+import os
 import subprocess
 from pathlib import Path
 from typing import List
 
-
-# Third-party imports
+# --- Imports: Third-Party --- #
+import arrow
 import git
 from termcolor import cprint
 
-# Local application imports
-from .helpers import *
+# --- Imports: Local Application --- #
 from .dirs import dirs
+from .logging import LoggerConfig
 
-# ========= #
-# Functions #
-# ========= #
+# --- Logger Setup --- #
+logger = LoggerConfig.get_logger()
+
+# --- Functions --- #
 
 
 def ensure_repo() -> git.Repo:
@@ -56,7 +50,8 @@ def ensure_repo() -> git.Repo:
         else:
             repo_root = dirs.WORK
         repo = git.Repo.init(repo_root)
-        cprint(text=f"\nGit repository initialized in {dirs.WORK}\n", color="yellow")
+        cprint(f"Git repository initialized in {dirs.WORK}", color="yellow")
+        logger.info("Git repository initialized in %s", dirs.WORK)
 
     except Exception as e:
         # Handle any exceptions (e.g., invalid path)
@@ -89,7 +84,7 @@ def get_repo() -> git.Repo:
         raise RuntimeError(f"An unexpected error occurred: {e}")
 
 
-def unlock(passphrase: str = "") -> str:
+def unlock(passphrase: str = "") -> subprocess.CompletedProcess:
     """
     Unlock the git credential store.
 
@@ -97,9 +92,13 @@ def unlock(passphrase: str = "") -> str:
         passphrase (str, optional): The passphrase to unlock your Git credential store. Defaults to empty.
 
     Returns:
-        str: The result of the unlock operation.
+        subprocess.CompletedProcess: The result of the unlock operation.
+
+    Raises:
+        FileNotFoundError: If the git unlock script is not found.
+        OSError: If there is an error starting the git unlock script.
+        subprocess.CalledProcessError: If the git unlock script returns a non-zero exit code.
     """
-    # TODO: Better error handling
     if os.name == "nt":
         script = dirs.get_asset("scripts", "unlock_git.bat")
         args = [script, passphrase]
@@ -107,20 +106,38 @@ def unlock(passphrase: str = "") -> str:
         script = dirs.get_asset("scripts", "unlock_git.sh")
         args = ["sh", script, passphrase]
 
-    result = subprocess.run(
-        args=args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
+    if not Path(script).exists():
+        logger.error("Git unlock script not found: %s", script)
+        raise FileNotFoundError(f"Git unlock script not found: {script}")
+
+    try:
+        result = subprocess.run(
+            args=args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
+    except OSError as err:
+        logger.error("Failed to start git unlock script %s: %s", script, err)
+        raise
+    except subprocess.CalledProcessError as err:
+        logger.error(
+            "Git unlock script failed with exit code %s: %s",
+            err.returncode,
+            err.stderr.strip() if err.stderr else "no stderr output",
+        )
+        raise
+
     return result
 
 
-def commit(files: str | List[str], message: str = "", repo: git.Repo | None = None) -> str:
+def commit(files: str | List[str | Path], message: str = "", repo: git.Repo | None = None) -> str:
     """
     Commits the specified files to the git repository after staging them.
 
     Args:
-        files (str | List[str]): A list of file paths to be committed.
+        files (str | List[str | Path]): A list of file paths to be committed.
         message (str, optional): The commit message. If not provided, a default message will be used.
         repo (git.Repo | None, optional): The git repository object. If none provided, the current repository will be used.
 
@@ -203,8 +220,10 @@ def pull(passphrase: str = "", repo: git.Repo | None = None) -> str:
             if result.returncode != 0:
                 return result.stdout.decode("utf-8")
         except Exception as e:
+            logger.warning("Failed to unlock Git credential store. %s", e)
             cprint(text="Failed to unlock Git credential store.", color="yellow")
             print(e)
+
         try:
             return repo.git.pull()
         except git.GitCommandError as e:
@@ -236,6 +255,7 @@ def push(passphrase: str = "", repo: git.Repo | None = None) -> str:
             if result.returncode != 0:
                 return result.stdout.decode("utf-8")
         except Exception as e:
+            logger.warning("Failed to unlock Git credential store. %s", e)
             cprint(text="Failed to unlock Git credential store.", color="yellow")
             print(e)
 
@@ -264,14 +284,23 @@ def squash_commits(start_commit: git.Commit, repo: git.Repo | None = None, messa
             commits = list(repo.iter_commits(f"{start_commit.hexsha}..HEAD"))
             if not message:
                 # Collect commit messages from the range
-                commit_messages = [commit.message.strip() for commit in commits]
+                commit_messages = [
+                    (
+                        commit.message.decode("utf-8", errors="replace")
+                        if isinstance(commit.message, bytes)
+                        else str(commit.message)
+                    ).strip()
+                    for commit in commits
+                ]
                 # Form a single commit message by joining the individual messages
                 message = "\n\n".join(commit_messages)
             # Reset the branch to the start_commit (soft reset)
             repo.git.reset("--soft", start_commit.hexsha)
-            # Create a new commit with the combined commit message
-            return repo.git.commit(message=message)
-
+            # Only commit if there are staged changes
+            if repo.index.diff("HEAD"):
+                return repo.git.commit(message=message)
+            else:
+                return "No changes to commit after squash/reset."
         except git.GitCommandError as e:
             raise RuntimeError(f"Failed to commit changes: {e}")
         except Exception as e:

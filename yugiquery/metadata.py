@@ -2,10 +2,6 @@
 
 # -*- coding: utf-8 -*-
 
-# =============== #
-# Metadata module #
-# =============== #
-
 __all__ = [
     "__title__",
     "__description__",
@@ -35,4 +31,4 @@ try:
     __all__.append("__version_tuple__")
 except ImportError:
     # Fallback values if _version.py is not present
-    __version__ = "2.0.7"
+    __version__ = "2.1.0"

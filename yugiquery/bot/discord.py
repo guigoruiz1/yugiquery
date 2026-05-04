@@ -1,20 +1,17 @@
-#!/usr/bin/env python3
-
 # yugiquery/bot/discord.py
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
-import platform
+# --- Imports: Standard Library --- #
 import io
+import platform
+from enum import Enum
+from pathlib import Path
 
-# Local application imports
+# --- Imports: Local Application --- #
 from ..metadata import __version__
-from .base import Bot, GitCommands
+from .base import Base, GitCommands
+from ..utils import LoggerConfig
 
 # Discord
 try:
@@ -29,12 +26,12 @@ except ImportError:
 # Silence discord.py pynacl optional dependency warning.
 discord.VoiceClient.warn_nacl = False
 
-# ==================== #
-# Discord Bot Subclass #
-# ==================== #
+# --- Logger Setup --- #
+logger = LoggerConfig.get_logger()
 
 
-class Discord(Bot, commands.Bot):
+# --- Discord Bot Class Definition --- #
+class Discord(Base, commands.Bot):
     """
     Discord bot subclass. Inherits from Bot class and discord.ext.commands.Bot.
 
@@ -60,7 +57,8 @@ class Discord(Bot, commands.Bot):
         from tqdm.contrib.discord import tqdm as discord_tqdm
 
         self.discord_pbar = discord_tqdm
-        Bot.__init__(self)
+        Base.__init__(self)
+
         self.token = token
         self.channel_id = int(channel_id)
         # Initialize the Discord bot
@@ -71,7 +69,7 @@ class Discord(Bot, commands.Bot):
         )
         help_command = commands.DefaultHelpCommand(no_category="Commands")
         description = "Bot to manage YugiQuery data and execution."
-        activity = discord.Activity(type=discord.ActivityType.watching, name="for /status")
+        activity = discord.Activity(type=discord.ActivityType.watching, name="for /info")
         commands.Bot.__init__(
             self,
             command_prefix="/",
@@ -82,11 +80,37 @@ class Discord(Bot, commands.Bot):
         )
         self.register_commands()
 
+    # Dynamic Enums and combined dictionary as properties on Discord
+    @property
+    def ReportsOrData(self) -> dict[str, dict[str, str | Path | None]]:
+        """
+        Combines the current Reports and DataFlows dictionaries into a single mapping.
+        """
+        keys = list(self.Reports.keys()) + sorted(key for key in self.DataFlows.keys() if key not in self.Reports)
+        combined_dict = {}
+        for key in keys:
+            combined_dict[key] = {"data": self.DataFlows.get(key, None), "report": self.Reports.get(key, None)}
+        return combined_dict
+
+    @property
+    def DataFlowsEnum(self):
+        return Enum("DataFlows", self.DataFlows)
+
+    @property
+    def ReportsEnum(self):
+        return Enum("Reports", self.Reports)
+
+    @property
+    def ReportsOrDataEnum(self):
+        return Enum("ReportsOrData", self.ReportsOrData)
+
     def run(self) -> None:
         """
         Starts running the discord Bot.
         """
-        commands.Bot.run(self, token=self.token)
+        commands.Bot.run(
+            self, token=self.token, log_level=LoggerConfig.get_level()
+        )  # Use the logging level from the CLI configuration
 
     async def send_long_message(self, ctx, content: str, filename: str = "message.txt", **kwargs):
         """
@@ -102,26 +126,28 @@ class Discord(Bot, commands.Bot):
         if len(content) <= self.DISCORD_MESSAGE_LIMIT:
             await ctx.send(content=content, **kwargs)
         else:
-            file = discord.File(io.StringIO(content), filename=filename)
+            file = discord.File(io.BytesIO(content.encode("utf-8")), filename=filename)
             await ctx.send(content="Response too long, sending as an attachment:", file=file, **kwargs)
 
-    # ====== #
-    # Events #
-    # ====== #
+    # --- Events --- #
 
     async def on_ready(self) -> None:
         """
         Event callback that runs when the bot is ready to start receiving events and commands.
         Prints out the bot's username and the guilds it's connected to.
         """
-        print("You are logged as {}".format(self.user))
+        print(f"You are logged as {self.user}")
+        logger.info("You are logged as %s", self.user)
         await self.tree.sync()
 
         print(f"{self.user} is connected to the following guilds:")
+        logger.info("%s is connected to the following guilds:", self.user)
         for guild in self.guilds:
             print(f"{guild.name}(id: {guild.id})")
+            logger.info("%s(id: %s)", guild.name, guild.id)
             members = "\n - ".join([member.name for member in guild.members])
             print(f"Guild Members:\n - {members}")
+            logger.info("Guild Members:\n - %s", members)
 
         info = await self.application_info()
         await info.owner.send(f"Hello {info.owner.global_name}!\n{info.name} bot is online.")
@@ -151,8 +177,7 @@ class Discord(Bot, commands.Bot):
             ctx (commands.Context): The context of the error.
             error (commands.CommandError): The error received.
         """
-        print(error)
-        # TODO: handle errors separatelly
+        logger.error("%s", error)
         if isinstance(error, commands.CommandOnCooldown):
             await self.send_long_message(ctx, content=str(error), filename="cooldown.txt", ephemeral=True, delete_after=60)
         elif isinstance(error, commands.NotOwner):
@@ -166,9 +191,7 @@ class Discord(Bot, commands.Bot):
                 ctx, content=str(error), filename="unknown_error.txt", ephemeral=True, delete_after=60
             )
 
-    # ======== #
-    # Commands #
-    # ======== #
+    # --- Commands --- #
 
     def register_commands(self) -> None:
         """
@@ -179,12 +202,14 @@ class Discord(Bot, commands.Bot):
             battle - Simulate a battle of all monster cards.
             benchmark - Show average time each report takes to complete.
             data - Send latest data files.
+            fetch - Run the YugiQuery data fetch operation.
             git - Run a Git command.
             latest - Show latest time each report was generated.
             links - Show YugiQuery links.
             ping - Test the bot connection latency.
+            report - Run the YugiQuery report generation operation.
             run - Run full YugiQuery flow.
-            status - Display bot status and system information.
+            info - Display bot and system information.
             shutdown - Shutdown bot.
         """
 
@@ -227,9 +252,9 @@ class Discord(Bot, commands.Bot):
                 color=discord.Colour.purple(),
             )
 
-            original_response = None
+            original_response: discord.Message | None = None
 
-            async def callback(first) -> None:
+            async def callback(first: str) -> None:
                 embed.add_field(name="First contestant", value=first, inline=False)
                 embed.set_footer(text="Still battling... ⏳")
                 nonlocal original_response
@@ -264,7 +289,10 @@ class Discord(Bot, commands.Bot):
                 inline=True,
             )
             embed.remove_footer()
-            await original_response.edit(embed=embed)
+            if original_response is not None:
+                await original_response.edit(embed=embed)
+            else:
+                await ctx.send(embed=embed)
 
         @self.hybrid_command(
             name="benchmark",
@@ -315,8 +343,9 @@ class Discord(Bot, commands.Bot):
                     description=response["description"],
                     color=discord.Colour.magenta(),
                 )
-                for field, content in response["fields"].items():
-                    embed.add_field(name=field, value=content, inline=False)
+                if isinstance(response["fields"], dict):
+                    for field, content in response["fields"].items():
+                        embed.add_field(name=field, value=content, inline=False)
 
                 await ctx.send(embed=embed)
 
@@ -395,19 +424,22 @@ class Discord(Bot, commands.Bot):
                 delete_after=60,
             )
 
-        @self.hybrid_command(name="run", description="Run full YugiQuery flow.", with_app_command=True)
+        @self.hybrid_command(name="run", description="Run the full YugiQuery flow.", with_app_command=True)
         @commands.is_owner()
         @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
         # Typehinting for report needs to be this way to handle dynamic loading of reports
-        async def run_query(ctx, report: self.Reports = self.Reports.All) -> None:
+        async def run_query(
+            ctx,
+            flow: self.ReportsOrDataEnum = self.ReportsOrDataEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
             """
-            Runs a YugiQuery flow by launching a separate process and monitoring its progress.
+            Runs YugiQuery by launching a separate process and monitoring its progress.
             The progress is reported back to the Discord channel where the command was issued.
             The command has a cooldown period of 12 hours per user.
 
             Args:
                 ctx (commands.Context): The context of the command.
-                report (Bot.Reports): An Enum value indicating which YugiQuery report to run.
+                flow (ReportsOrDataEnum): Which YugiQuery data update and/or report generation flow to run. Defaults to "All".
 
             Raises:
                 discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
@@ -417,9 +449,49 @@ class Discord(Bot, commands.Bot):
             async def callback(content: str) -> None:
                 await original_response.edit(content=content)
 
-            response = await self.run_query(
+            response = await self.query_run(
                 callback=callback,
-                report=report,
+                data=flow.value["data"],
+                report=flow.value["report"],
+                progress_bar=self.discord_pbar,
+                channel_id=ctx.channel.id,
+                token=self.token,
+            )
+            if "error" in response.keys():
+                await self.send_long_message(ctx.channel, filename="query_error.txt", content=response["error"])
+                # Reset cooldown in case query did not complete
+                ctx.command.reset_cooldown(ctx)
+            else:
+                await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
+
+        @self.hybrid_command(name="fetch", description="Run the YugiQuery data fetch operation.", with_app_command=True)
+        @commands.is_owner()
+        @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
+        # Typehinting for report needs to be this way to handle dynamic loading of reports
+        async def run_fetch(
+            ctx,
+            data: self.DataFlowsEnum = self.DataFlowsEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
+            """
+            Runs the YugiQuery data fetch operation by launching a separate process and monitoring its progress.
+            The progress is reported back to the Discord channel where the command was issued.
+            The command has a cooldown period of 12 hours per user.
+
+            Args:
+                ctx (commands.Context): The context of the command.
+                data (DataFlowsEnum): Which YugiQuery data update flow to run. Defaults to "All".
+
+            Raises:
+                discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
+            """
+            original_response = await ctx.send(content="Initializing...", ephemeral=True, delete_after=60)
+
+            async def callback(content: str) -> None:
+                await original_response.edit(content=content)
+
+            response = await self.query_fetch(
+                callback=callback,
+                data=data.value,
                 progress_bar=self.discord_pbar,
                 channel_id=ctx.channel.id,
                 token=self.token,
@@ -432,11 +504,52 @@ class Discord(Bot, commands.Bot):
                 await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
 
         @self.hybrid_command(
-            name="status",
-            description="Displays bot status and system information.",
+            name="report", description="Run the YugiQuery report generation operation.", with_app_command=True
+        )
+        @commands.is_owner()
+        @commands.cooldown(rate=1, per=self.cooldown_limit, type=commands.BucketType.user)
+        # Typehinting for report needs to be this way to handle dynamic loading of reports
+        async def run_report(
+            ctx,
+            report: self.ReportsEnum = self.ReportsEnum.All,  # pyright: ignore[reportAttributeAccessIssue, reportInvalidTypeForm]
+        ) -> None:
+            """
+            Runs the YugiQuery report generation operation by launching a separate process and monitoring its progress.
+            The progress is reported back to the Discord channel where the command was issued.
+            The command has a cooldown period of 12 hours per user.
+
+            Args:
+                ctx (commands.Context): The context of the command.
+                report (ReportsEnum): Which YugiQuery report to generate. Defaults to "All".
+
+            Raises:
+                discord.ext.commands.CommandOnCooldown: If the command is on cooldown for the user.
+            """
+            original_response = await ctx.send(content="Initializing...", ephemeral=True, delete_after=60)
+
+            async def callback(content: str) -> None:
+                await original_response.edit(content=content)
+
+            response = await self.query_report(
+                callback=callback,
+                report=report.value,
+                progress_bar=self.discord_pbar,
+                channel_id=ctx.channel.id,
+                token=self.token,
+            )
+            if "error" in response.keys():
+                await self.send_long_message(ctx.channel, filename="query_error.txt", content=response["error"])
+                # Reset cooldown in case query did not complete
+                ctx.command.reset_cooldown(ctx)
+            else:
+                await self.send_long_message(ctx.channel, filename="query_result.txt", content=response["content"])
+
+        @self.hybrid_command(
+            name="info",
+            description="Displays bot and system information.",
             with_app_command=True,
         )
-        async def status(ctx) -> None:
+        async def info(ctx) -> None:
             """
             Displays information about the bot, including uptime, guilds, users, channels, available commands,
             bot version, discord.py version, python version, and operating system.

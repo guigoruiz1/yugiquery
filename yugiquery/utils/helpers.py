@@ -2,63 +2,32 @@
 
 # -*- coding: utf-8 -*-
 
-# ============== #
-# Helpers module #
-# ============== #
-
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library imports
-import argparse
-import calendar  # Used in notebooks
+# --- Imports: Standard Library --- #
 import hashlib
-import importlib.util
 import json
 import os
-import re
 import platform
-from ast import literal_eval
 from pathlib import Path
 from typing import Literal, List, Dict
 
-# Third-party imports
+# --- Imports: Third-Party --- #
 import arrow
 from dotenv import dotenv_values
-from termcolor import cprint
+import pandas as pd
 
-# Local application imports
+# --- Imports: Local Application --- #
 from .dirs import dirs
+from .logging import LoggerConfig
 
+# --- Logger Setup --- #
+logger = LoggerConfig.get_logger()
 
-# ============ #
-# Global Debug #
-# ============ #
-
-
-# TODO: find more elegant way to handle debuging
-def check_debug(local_debug: bool = False) -> bool:
-    """
-    Check if the debug mode is enabled.
-
-    Args:
-        local_debug (bool, optional): A boolean indicating whether the debug mode is enabled locally. Defaults to False.
-
-    Returns:
-        bool: A boolean indicating whether the debug mode is enabled.
-    """
-    return literal_eval(os.environ.get("YQ_DEBUG", "False")) or local_debug
-
-
-# ============ #
-# Data loaders #
-# ============ #
+# --- Data Loaders --- #
 
 
 def load_secrets(
-    requested_secrets: List[str] = [], secrets_file: str | None = None, required: bool = False
-) -> Dict[str, str]:
+    requested_secrets: List[str] = [], secrets_file: str | Path | None = None, required: bool = False
+) -> Dict[str, str | None]:
     """
     Load secrets from environment variables and/or a .env file.
 
@@ -70,17 +39,17 @@ def load_secrets(
 
     Args:
         requested_secrets (List[str], optional): A list of names of the secrets to retrieve. If empty or not specified, all available secrets will be returned. Defaults to [].
-        secrets_file (str | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
+        secrets_file (str | Path | None, optional): The path to a .env file containing additional secrets to load. Defaults to None.
         required (bool or List[bool], optional): A boolean or list of booleans indicating whether each requested secret is required to be present. If True, a KeyError will be raised if the secret is not found. If False or not specified, missing secrets will be skipped. Defaults to False.
 
     Returns:
-        Dict[str, str]: A dictionary containing the requested secrets as key-value pairs.
+        Dict[str, str | None]: A dictionary containing the requested secrets as key-value pairs.
 
     Raises:
         KeyError: If a required secret is not found in the environment variables or .env file.
 
     """
-    secrets = {
+    secrets: Dict[str, str | None] = {
         key: value
         for key in requested_secrets
         if (value := os.environ.get(key, os.environ.get(f"TQDM_{key}")))  # Using walrus operator to assign and check value
@@ -101,12 +70,12 @@ def load_secrets(
     return secrets
 
 
-def load_json(json_file: str) -> dict:
+def load_json(json_file: str | Path) -> dict:
     """
     Load data from a JSON file.
 
     Args:
-        json_file (str): The file path to the JSON file.
+        json_file (str | Path): The file path to the JSON file.
 
     Returns:
         dict: A dictionary containing the data from the JSON file. If the file does not exist, an empty dictionary is returned.
@@ -115,159 +84,15 @@ def load_json(json_file: str) -> dict:
         with open(json_file, "r") as file:
             data = json.load(file)
             return data
-    except:
-        cprint(text=f"Error loading {json_file}! Returning empty dictionary. This may break some features.", color="yellow")
+    except Exception:
+        logger.warning(
+            "Error loading %s. Returning empty dictionary. This may break some features.",
+            json_file,
+        )
         return {}
 
 
-# ======== #
-# Argparse #
-# ======== #
-class CustomHelpFormatter(argparse.HelpFormatter):
-    def __init__(self, prog):
-        super().__init__(prog, max_help_position=60)
-
-    def _format_action_invocation(self, action):
-        if not action.option_strings or action.nargs == 0:
-            return super()._format_action_invocation(action)
-        elif isinstance(action, CredAction):
-            # Override to show [TOKEN] [CHANNEL] format
-            return ", ".join(action.option_strings) + " " + " ".join(f"[{metavar}]" for metavar in action.metavar)
-        else:
-            # Override to show -a, --arg [ARG] format
-            default = self._get_default_metavar_for_optional(action)
-            args_string = self._format_args(action, default)
-            return ", ".join(action.option_strings) + " " + args_string
-
-    def _format_actions_usage(self, actions, groups):
-        # Find group indices and identify actions in groups
-        group_actions = set()
-        inserts = {}
-        for group in groups:
-            if not group._group_actions:
-                raise ValueError(f"empty group {group}")
-
-            try:
-                start = actions.index(group._group_actions[0])
-            except ValueError:
-                continue
-            else:
-                group_action_count = len(group._group_actions)
-                end = start + group_action_count
-                if actions[start:end] == group._group_actions:
-
-                    suppressed_actions_count = 0
-                    for action in group._group_actions:
-                        group_actions.add(action)
-                        if action.help is argparse.SUPPRESS:
-                            suppressed_actions_count += 1
-
-                    exposed_actions_count = group_action_count - suppressed_actions_count
-                    if not exposed_actions_count:
-                        continue
-
-                    if not group.required:
-                        if start in inserts:
-                            inserts[start] += " ["
-                        else:
-                            inserts[start] = "["
-                        if end in inserts:
-                            inserts[end] += "]"
-                        else:
-                            inserts[end] = "]"
-                    elif exposed_actions_count > 1:
-                        if start in inserts:
-                            inserts[start] += " ("
-                        else:
-                            inserts[start] = "("
-                        if end in inserts:
-                            inserts[end] += ")"
-                        else:
-                            inserts[end] = ")"
-                    for i in range(start + 1, end):
-                        inserts[i] = "|"
-
-        # Collect all actions format strings
-        parts = []
-        for i, action in enumerate(actions):
-
-            # Suppressed arguments are marked with None
-            # Remove | separators for suppressed arguments
-            if action.help is argparse.SUPPRESS:
-                parts.append(None)
-                if inserts.get(i) == "|":
-                    inserts.pop(i)
-                elif inserts.get(i + 1) == "|":
-                    inserts.pop(i + 1)
-
-            # Produce all arg strings
-            elif not action.option_strings:
-                default = self._get_default_metavar_for_positional(action)
-                part = self._format_args(action, default)
-
-                # If it's in a group, strip the outer []
-                if action in group_actions:
-                    if part[0] == "[" and part[-1] == "]":
-                        part = part[1:-1]
-
-                # Add the action string to the list
-                parts.append(part)
-
-            # Produce the first way to invoke the option in brackets
-            else:
-                option_string = action.option_strings[0]
-
-                # Handle CredAction separately
-                if isinstance(action, CredAction):
-                    # Format for CredAction
-                    args_string = " ".join(f"[{metavar}]" for metavar in action.metavar)
-                    part = "%s %s" % (option_string, args_string)
-                    part = f"[{part}]"
-                else:
-                    # Default format for other actions
-                    if action.nargs == 0:
-                        part = action.format_usage()
-                    else:
-                        default = self._get_default_metavar_for_optional(action)
-                        args_string = self._format_args(action, default)
-                        part = "%s %s" % (option_string, args_string)
-
-                    # Make it look optional if it's not required or in a group
-                    if not action.required and action not in group_actions:
-                        part = "[%s]" % part
-
-                # Add the action string to the list
-                parts.append(part)
-
-        # Insert things at the necessary indices
-        for i in sorted(inserts, reverse=True):
-            parts[i:i] = [inserts[i]]
-
-        # Join all the action items with spaces
-        text = " ".join([item for item in parts if item is not None])
-
-        # Clean up separators for mutually exclusive groups
-        open = r"[\[(]"
-        close = r"[\])]"
-        text = re.sub(r"(%s) " % open, r"\1", text)
-        text = re.sub(r" (%s)" % close, r"\1", text)
-        text = re.sub(r"%s *%s" % (open, close), r"", text)
-        text = text.strip()
-
-        # Return the text
-        return text
-
-
-class CredAction(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if len(values) == 0:
-            setattr(namespace, self.dest, True)
-        elif len(values) == 2:
-            setattr(namespace, self.dest, argparse.Namespace(tkn=values[0], ch=values[1]))
-        else:
-            raise argparse.ArgumentError(self, "must provide either zero or exactly two arguments")
-
-
+# --- Data Converters --- #
 def auto_or_bool(value: str) -> bool | Literal["auto"]:
     """
     Convert a string to a boolean (True or False) or "auto".
@@ -275,15 +100,32 @@ def auto_or_bool(value: str) -> bool | Literal["auto"]:
 
     if value is None:
         return True
-    elif value.lower() == "auto":
+    val = value.lower()
+    if val == "auto":
         return "auto"
-    else:
-        return bool(value)
+    if val == "false":
+        return False
+    return bool(value)
 
 
-# ========== #
-# Validators #
-# ========== #
+def ensure_tuple_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ensures that if any value in a column is a tuple, all values in that column are tuples,
+    but leaves NaN values as NaN.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to process.
+
+    Returns:
+        pd.DataFrame: The processed DataFrame with consistent tuple columns.
+    """
+    for col in df.columns:
+        if df[col].apply(lambda x: isinstance(x, tuple)).any():
+            df[col] = df[col].apply(lambda x: x if isinstance(x, tuple) or (isinstance(x, float) and pd.isna(x)) else (x,))
+    return df
+
+
+# --- Validators --- #
 
 
 def md5(name: str) -> str:
@@ -301,9 +143,7 @@ def md5(name: str) -> str:
     return hash_md5.hexdigest()
 
 
-# =================== #
-# String Manipulators #
-# =================== #
+# --- String Manipulators --- #
 
 
 def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", "="]) -> str:
@@ -322,12 +162,10 @@ def escape_chars(string: str, chars: List[str] = ["_", ".", "-", "+", "#", "@", 
     return string
 
 
-# ====================== #
-# Timestamp Manipulators #
-# ====================== #
+# --- Timestamp Manipulators --- #
 
 
-def get_ts_granularity(seconds: int) -> list[str]:
+def get_ts_granularity(seconds: int) -> List[arrow.arrow._GRANULARITY]:
     """
     Humanizes a time interval given in seconds.
 
@@ -335,7 +173,7 @@ def get_ts_granularity(seconds: int) -> list[str]:
         seconds (int): The time interval in seconds.
 
     Returns:
-        list: A list of human-readable granularities for the time interval.
+        List[arrow.arrow._GRANULARITY]: A list of human-readable granularities for the time interval.
     """
     granularities = [
         ("year", 31536000),  # seconds in a year
@@ -363,6 +201,18 @@ def get_ts_granularity(seconds: int) -> list[str]:
     return selected_granularity
 
 
+def filename_ts_fmt(ts: arrow.Arrow) -> str:
+    """
+    Formats a timestamp for use in filenames, converting it to UTC and using the format YYYYMMDDTHHmmZ.
+    Args:
+        ts (arrow.Arrow): The timestamp to format.
+
+    Returns:
+        str: The formatted timestamp string.
+    """
+    return ts.to("UTC").format("YYYYMMDDTHHmm") + "Z"
+
+
 def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow.Arrow | None = None) -> str:
     """
     Generates a standardized filename based on the provided parameters.
@@ -376,19 +226,15 @@ def make_filename(report: str, timestamp: arrow.Arrow, previous_timestamp: arrow
         str: The generated filename.
     """
     report = report.lower()
-    formated_ts = timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "").replace("-", "")
+    formated_ts = filename_ts_fmt(timestamp)
     if previous_timestamp is None:
         return f"{report}_data_{formated_ts}.bz2"
     else:
-        formated_previous_ts = (
-            previous_timestamp.isoformat(timespec="minutes").replace("+00:00", "Z").replace(":", "-").replace("-", "")
-        )
+        formated_previous_ts = filename_ts_fmt(previous_timestamp)
         return f"{report}_changelog_{formated_previous_ts}_{formated_ts}.bz2"
 
 
-# ============== #
-# Lock Mechanism #
-# ============== #
+# --- Lock Mechanism --- #
 
 
 def lock(file_name: str) -> None:
@@ -410,7 +256,7 @@ def lock(file_name: str) -> None:
             if platform.system() == "Windows":
                 import msvcrt
 
-                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)  # type: ignore[attr-defined]
             else:
                 import fcntl
 
@@ -420,7 +266,7 @@ def lock(file_name: str) -> None:
             existing_pid = lock_file.read().strip()
 
             if existing_pid:
-                print(f"Stale lock file held by process {existing_pid}. Replacing with current PID.")
+                logger.warning("Stale lock file held by process %s. Replacing with current PID.", existing_pid)
 
             # Write the current process PID into the file
             lock_file.seek(0)  # Go back to the beginning of the file
@@ -441,14 +287,14 @@ def unlock(file_name: str) -> None:
     lock_file_path = dirs.temp.joinpath(file_name).with_suffix(".lock")
 
     if not lock_file_path.exists():
-        print("Lock file does not exist. Ignoring unlock request.")
+        logger.debug("Lock file does not exist. Ignoring unlock request.")
 
     lock_file = open(lock_file_path, "w")
     try:
         if platform.system() == "Windows":
             import msvcrt
 
-            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
         else:
             import fcntl
 

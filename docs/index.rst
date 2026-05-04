@@ -12,14 +12,18 @@ Under active development.
    :maxdepth: 2
    :caption: Main:
 
-   yugiquery
+   cli
+   metadata
 
 .. toctree::
    :maxdepth: 3
    :caption: Subpackages:
 
+   api
+   core
    bot
    utils
+   scripts
 
 Indices and tables
 ===================

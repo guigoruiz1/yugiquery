@@ -1,41 +1,31 @@
-#!/usr/bin/env python3
-
-# yugiquery/bot.py
+# yugiquery/bot/base.py
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
-import argparse
-import multiprocessing as mp
+# --- Imports: Standard Library --- #
 import os
+import json
 import random
-from enum import Enum, StrEnum
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Tuple,
-)
+import multiprocessing as mp
+from pathlib import Path
+from enum import StrEnum
+from types import SimpleNamespace
+from typing import Awaitable, Callable, Dict, Type
 
-# Third-party imports
+# --- Imports: Third-Party --- #
+import arrow
 import pandas as pd
-from termcolor import cprint
 from tqdm.auto import tqdm
 
-# Local application imports
-from ..utils import *
-from ..yugiquery import run
+# --- Imports: Local Application --- #
+from ..utils import LoggerConfig, dirs, git, get_ts_granularity, ProgressHandler
+from ..core.pipeline import run, _data_flows_avail
+
+# --- Logger Config --- #
+logger = LoggerConfig.get_logger()
 
 
-# ============ #
-# Enum Classes #
-# ============ #
-
-
+# --- Enum Classes --- #
 class GitCommands(StrEnum):
     """
     Enum class to represent the available git commands.
@@ -47,12 +37,8 @@ class GitCommands(StrEnum):
     push = "push"
 
 
-# ============== #
-# Bot Superclass #
-# ============== #
-
-
-class Bot:
+# --- Bot Superclass --- #
+class Base:
     """
     Bot superclass.
 
@@ -75,76 +61,83 @@ class Bot:
             **kwargs: Additional keyword arguments.
         """
         self.start_time = arrow.utcnow()
-        self.init_reports_enum()
+
         try:
             # Open the repository
             self.repo = git.ensure_repo()
         except:
             self.repo = None
 
-    # ======================== #
-    # Bot Superclass Variables #
-    # ======================== #
+    # --- Bot Superclass Variables --- #
     process: mp.Process | None = None
     cooldown_limit: int = 12 * 3600  # 12 hours
-    # Placeholder for the Enum object
-    Reports: type[Enum] = Enum("Reports", {"All": "all", "User": "user"})
 
     @property
-    def URLS(self) -> type[StrEnum]:
+    def Reports(self) -> dict[str, Path | str]:
+        """
+        Dynamically returns the current available reports as a dictionary.
+        """
+        reports_dict: dict[str, Path | str] = {"All": "all", "User": "user"}
+        reports = []
+        if hasattr(dirs.NOTEBOOKS, "pkg") and dirs.NOTEBOOKS.pkg is not None:
+            reports += sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb"))
+        if hasattr(dirs.NOTEBOOKS, "user") and dirs.NOTEBOOKS.user is not None:
+            reports += sorted(dirs.NOTEBOOKS.user.glob("*.ipynb"))
+        for report in reports:
+            reports_dict[report.stem.capitalize()] = report
+        return reports_dict
+
+    @property
+    def DataFlows(self) -> dict[str, str]:
+        """
+        Dynamically returns the current available data flows as a dictionary.
+        """
+        dataflows_dict: dict[str, str] = {"All": "all"}
+        for flow in sorted(_data_flows_avail.keys()):
+            dataflows_dict[flow.capitalize()] = flow
+        return dataflows_dict
+
+    @property
+    def URLS(self) -> SimpleNamespace:
         """
         Property to get the URLs of the remote repository and webpage.
+        Cached after first access.
+
+        Returns:
+            SimpleNamespace: Object with api, repo, and webpage attributes (empty strings if no repo).
         """
         repository_api_url = ""
         repository_url = ""
         webpage_url = ""
-        try:
-            # Get the remote repository
-            remote = self.repo.remote()
-            remote_url = remote.url
 
-            # Extract the GitHub page URL from the remote URL
-            # by removing the ".git" suffix and splitting the URL
-            # by the "/" character
-            remote_url_parts = remote_url[:-4].split("/")
+        if self.repo is not None:
+            try:
+                remote = self.repo.remote()
+                remote_url = remote.url
 
-            # Repository
-            (author, repo) = remote_url_parts[-2:]
-            # URLs
-            repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
-            repository_url = remote_url.split(".git")[0]
-            webpage_url = f"https://{author}.github.io/{repo}"
-        finally:
-            return StrEnum(
-                "URLS",
-                {
-                    "api": repository_api_url,
-                    "repo": repository_url,
-                    "webpage": webpage_url,
-                },
-            )
+                # Extract the GitHub page URL from the remote URL
+                # by removing the ".git" suffix and splitting the URL
+                # by the "/" character
+                remote_url_parts = remote_url.rstrip(".git").split("/")
 
-    # ====================== #
-    # Bot Superclass Methods #
-    # ====================== #
+                # Repository
+                author, repo = remote_url_parts[-2:]
 
-    def init_reports_enum(self) -> None:
-        """
-        Initializes and returns an Enum object containing the available reports.
-        The reports are read from the NOTEBOOKS directories, where they are expected to be Jupyter notebooks.
-        The Enum object is created using the reports' file names, with the .ipynb extension removed and the first letter capitalized.
+                # URLs
+                repository_api_url = f"https://api.github.com/repos/{author}/{repo}"
+                repository_url = remote_url.split(".git")[0]
+                webpage_url = f"https://{author}.github.io/{repo}"
+            except (AttributeError, ValueError, IndexError) as e:
+                # Silently handle repo access errors
+                pass
 
-        Returns:
-            None
-        """
-        reports_dict = {"All": "all", "User": "user"}
-        reports = sorted(dirs.NOTEBOOKS.pkg.glob("*.ipynb")) + sorted(
-            dirs.NOTEBOOKS.user.glob("*.ipynb")
-        )  # First user, then package
-        for report in reports:
-            reports_dict[report.stem.capitalize()] = report  # Will replace package by user
+        return SimpleNamespace(
+            api=repository_api_url or None,
+            repo=repository_url or None,
+            webpage=webpage_url or None,
+        )
 
-        self.Reports = Enum("Reports", reports_dict)
+    # --- Bot Superclass Methods --- #
 
     def abort(self) -> str:
         """
@@ -153,26 +146,38 @@ class Bot:
         Returns:
             str: The result message indicating whether the abortion was successful.
         """
+        if self.process is None:
+            return "No query is currently running."
+
+        result_messages = []
+
+        # Terminate the process
         try:
             self.process.terminate()
-            result = "Aborted."
-            if self.repo is not None:
-                try:
-                    git.restore(files=list(dirs.NOTEBOOKS.user.glob("*.ipynb")), repo=self.repo)
-                except Exception as e:
-                    print(e)
-                    result += "\nRestoring files failed."
+            result_messages.append("Query aborted.")
         except Exception as e:
-            print(f"Abort failed:\n{e}")
-            result = "Abort failed."
-        return result
+            logger.error("Failed to terminate process: %s", e)
+            return f"Abort failed: {e}"
 
-    async def battle(self, callback: Callable[[str], None], atk_weight: int = 4, def_weight: int = 1) -> dict:
+        # Restore modified notebook files
+        if self.repo is not None:
+            try:
+                notebook_files = list(dirs.NOTEBOOKS.user.glob("*.ipynb"))
+                if notebook_files:
+                    git.restore(files=notebook_files, repo=self.repo)
+                    result_messages.append("Files restored.")
+            except Exception as e:
+                logger.error("Failed to restore files: %s", e)
+                result_messages.append("Warning: File restoration failed.")
+
+        return " ".join(result_messages)
+
+    async def battle(self, callback: Callable[[str], Awaitable[None]], atk_weight: int = 4, def_weight: int = 1) -> dict:
         """
         This function loads the list of all Monster Cards and simulates a battle between them. Each card is represented by its name, attack (ATK), and defense (DEF) stats. At the beginning of the battle, a random card is chosen as the initial contestant. Then, for each subsequent card, a random stat (ATK or DEF) is chosen to compare with the corresponding stat of the current winner. If the challenger's stat is higher, the challenger becomes the new winner. If the challenger's stat is lower, the current winner retains its position. If the stats are tied, the comparison is repeated with the other stat. The battle continues until there is only one card left standing.
 
         Args:
-            callback (Callable[[str], None]): A callback function which receives a string argument.
+            callback (Callable[[str], Awaitable[None]]): A callback function which receives a string argument.
             atk_weight (int, optional): The weight to use for the ATK stat when randomly choosing the monster's stat to compare. This affects the probability that ATK will be chosen over DEF. The default value is 4.
             def_weight (int, optional): The weight to use for the DEF stat when randomly choosing the monster's stat to compare. This affects the probability that DEF will be chosen over ATK. The default value is 1.
 
@@ -242,35 +247,38 @@ class Bot:
 
         response = {
             "title": "Benchmark",
-            "description": "The average time each report takes to complete",
+            "description": "The average time each operation takes to complete",
         }
 
         # Get benchmark
         value = ""
-        for key, values in data.items():
-            weighted_sum = 0
-            total_weight = 0
-            for entry in values:
-                weighted_sum += entry["average"] * entry["weight"]
-                total_weight += entry["weight"]
+        for group_key, group_values in data.items():
+            for key, values in group_values.items():
+                weighted_sum = 0
+                total_weight = 0
+                for entry in values:
+                    weighted_sum += entry["average"] * entry["weight"]
+                    total_weight += entry["weight"]
 
-            avg_time = weighted_sum / total_weight
-            latest_time = entry["average"]
+                avg_time = weighted_sum / total_weight
+                latest_time = entry["average"]
 
-            avg_time_str = (
-                arrow.now().shift(seconds=avg_time).humanize(granularity=get_ts_granularity(avg_time), only_distance=True)
-            )
-            latest_time_str = (
-                arrow.now()
-                .shift(seconds=latest_time)
-                .humanize(
-                    granularity=get_ts_granularity(latest_time),
-                    only_distance=True,
+                avg_time_str = (
+                    arrow.now()
+                    .shift(seconds=avg_time)
+                    .humanize(granularity=get_ts_granularity(int(avg_time)), only_distance=True)
                 )
-            )
+                latest_time_str = (
+                    arrow.now()
+                    .shift(seconds=latest_time)
+                    .humanize(
+                        granularity=get_ts_granularity(int(latest_time)),
+                        only_distance=True,
+                    )
+                )
 
             value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
-            response[key.capitalize()] = value
+            response[f"{key.capitalize()} {group_key.capitalize()}"] = value
 
         return response
 
@@ -338,6 +346,9 @@ class Bot:
             except Exception as e:
                 return str(e)
 
+        if self.repo is None:
+            return "No repository."
+
         match command:
             case GitCommands.status:
                 return self.repo.git.status()
@@ -382,7 +393,7 @@ class Bot:
                     if self.repo is not None:
                         query += f"&sha={self.repo.active_branch.name}"
                     result = pd.read_json(query)
-                    timestamp = pd.DataFrame(result.loc[0, "commit"]).loc["date", "author"]
+                    timestamp = result.iloc[0]["commit"]["author"]["date"]
                     live_value += f'• {report.stem}: {pd.to_datetime(timestamp, utc=True).strftime("%d/%m/%Y %H:%M %Z")}\n'
 
                 response["live"] = live_value
@@ -410,19 +421,21 @@ class Bot:
 
         return response
 
-    async def run_query(
+    async def query_run(
         self,
-        callback: Callable[[str], None],
-        report: Enum = Reports.All,
-        progress_bar: tqdm = None,
+        callback: Callable[[str], Awaitable[None]],
+        data: str | list[str] = [],
+        report: str | list[str] | list[Path] = [],
+        progress_bar: Type[tqdm] | None = None,
         **pbar_kwargs,
     ) -> Dict[str, str]:
         """
-        Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
+        Runs YugiQuery by launching a separate thread and monitoring its progress.
 
         Args:
             callback (Callable[[str], None]): A callback function which receives a string argument.
-            report (Reports, optional): The report to run. Defaults to All.
+            data (str | list[str], optional): The data flow to run. Defaults to DataFlows.All.
+            report (str | list[str] | list[Path], optional): The report to run. Defaults to Reports.All.
             progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
             **pbar_kwargs: Additional Keyword arguments to customize the progress bar..
 
@@ -430,22 +443,23 @@ class Bot:
             dict: A dictionary containing the result of the query execution.
         """
         if self.process is not None:
-            return {"error": "Query already running. Try again after it has finished."}
+            return {"error": "YugiQuery already running. Try again after it has finished."}
 
         progress_handler = ProgressHandler(
             progress_bar=progress_bar,
             pbar_kwargs=pbar_kwargs,
         )
+
         try:
             self.process = mp.Process(
                 target=run,
-                args=[report.value, progress_handler],
+                kwargs=dict(data=data or [], report=report or [], progress_handler=progress_handler),
             )
             self.process.start()  # Close the write end in the parent process to ensure it only reads
             await callback("Running...")
         except Exception as e:
-            print(e)
-            await callback(f"Initialization failed!\n{e}")
+            logger.error("Failed to start query process: %s", e)
+            return {"error": f"Initialization failed!\n{e}"}
 
         # Wait for the process to finish and get the result
         API_status, errors = await progress_handler.await_result(self.process)
@@ -467,118 +481,63 @@ class Bot:
             else:
                 return {"error": f"Query execution exited with exit code: {exitcode}\n{error_message}"}
 
+    async def query_fetch(
+        self,
+        callback: Callable[[str], Awaitable[None]],
+        data: str | list[str] = [],
+        progress_bar: Type[tqdm] | None = None,
+        **pbar_kwargs,
+    ) -> Dict[str, str]:
+        """
+        Shortcut function to run the fetch operation on YugiQuery.
+
+        Args:
+            callback (Callable[[str], None]): A callback function which receives a string argument.
+            data (str | list[str], optional): The data to fetch. Defaults to DataFlows.All.
+            progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+
+        Returns:
+            dict: A dictionary containing the result of the data fetching.
+        """
+        return await self.query_run(
+            callback=callback,
+            data=data,
+            report=[],
+            progress_bar=progress_bar,
+            **pbar_kwargs,
+        )
+
+    async def query_report(
+        self,
+        callback: Callable[[str], Awaitable[None]],
+        report: str | list[str] | list[Path] = [],
+        progress_bar: Type[tqdm] | None = None,
+        **pbar_kwargs,
+    ) -> Dict[str, str]:
+        """
+        Shortcut function to run the report operation on YugiQuery.
+
+        Args:
+            callback (Callable[[str], None]): A callback function which receives a string argument.
+            report (Reports | None, optional): The report to generate. Defaults to Reports.All.
+            progress_bar (tqdm, optional): A tqdm progress bar. Defaults to None.
+
+        Returns:
+            dict: A dictionary containing the result of the report fetching.
+        """
+        return await self.query_run(
+            callback=callback,
+            report=report,
+            data=[],
+            progress_bar=progress_bar,
+            **pbar_kwargs,
+        )
+
     def uptime(self):
         """
         Returns humanized bot uptime.
         """
         time_difference = (arrow.utcnow() - self.start_time).total_seconds()
-        granularity = get_ts_granularity(time_difference)
+        granularity = get_ts_granularity(int(time_difference))
         humanized = self.start_time.humanize(arrow.utcnow(), only_distance=True, granularity=granularity)
         return humanized
-
-
-# ========= #
-# Execution #
-# ========= #
-
-
-# Helper function
-def load_secrets_with_args(args: Any) -> Tuple[str, int | str]:
-    """
-    Load secrets from command-line arguments, and update them with values from
-    environment variables or a .env file, placed in the `Assets` directory, if necessary.
-    If the required secrets are not found, the function will exit the program.
-
-    Args:
-        args (Any): The parsed command-line arguments.
-
-    Returns:
-        (str, int): The token and channel ID.
-    """
-    subclass_upper = args.subclass.upper()
-    if subclass_upper == "DISCORD":
-        ch_key = "CHANNEL_ID"
-    elif subclass_upper == "TELEGRAM":
-        ch_key = "CHAT_ID"
-
-    secrets_args = {
-        f"{subclass_upper}_TOKEN": args.token,
-    }
-    secrets_args[f"{subclass_upper}_{ch_key}"] = args.ch
-
-    secrets = {key: value for key, value in secrets_args.items() if value}
-    missing = [key for key, value in secrets_args.items() if not value]
-
-    if missing:
-        loaded_secrets = load_secrets(
-            requested_secrets=missing,
-            secrets_file=dirs.secrets_file,
-            required=True,
-        )
-        secrets.update(loaded_secrets)
-
-    tkn = secrets[f"{subclass_upper}_TOKEN"]
-    ch = secrets[f"{subclass_upper}_{ch_key}"]
-
-    return tkn, ch
-
-
-def set_parser(parser: argparse.ArgumentParser) -> None:
-    """
-    Set the parser arguments for the bot mode.
-
-    Args:
-        parser (argparse.ArgumentParser): The parser object to set the arguments on.
-        subclass (bool, optional): Whether to include the subclass argument. Defaults to False.
-    """
-    parser.add_argument(
-        "subclass",
-        choices=["discord", "telegram"],
-        help="select between a Discord or a Telegram bot",
-    )
-    parser.add_argument("-t", "--token", type=str, help="bot API token")
-    parser.add_argument(
-        "-c",
-        "--channel",
-        "--chat",
-        dest="ch",
-        type=int,
-        help="bot responses Channel/Chat ID",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        required=False,
-        help="run in debug mode (not implemented)",
-    )
-
-
-def main(args) -> None:
-    # Set multiprocessing start method
-    mp.set_start_method("spawn")
-
-    # Make sure the data and reports directories exist
-    dirs.make()
-
-    # Load secrets
-    try:
-        tkn, ch = load_secrets_with_args(args)
-    except KeyError as e:
-        cprint(text=f"{e}. Aborting...", color="red")
-        return
-
-    # Handle bots based on subclass
-    if args.subclass == "discord":
-        # Initialize and run the Discord bot
-        from .discord import Discord as Subclass
-
-        bot = Subclass(token=tkn, channel_id=ch)
-
-    elif args.subclass == "telegram":
-        # Initialize and run the Telegram bot
-        from .telegram import Telegram as Subclass
-
-        bot = Subclass(token=tkn, chat_id=ch)
-
-    # Run the bot subclass
-    bot.run()

@@ -1,26 +1,18 @@
-#!/usr/bin/env python3
-
 # yugiquery/bot/telegram.py
 
 # -*- coding: utf-8 -*-
 
-# ======= #
-# Imports #
-# ======= #
-
-# Standard library packages
+# --- Imports: Standard Library --- #
 import platform
 
-import telegram.ext
-
-# Third-party imports
+# --- Imports: Third-Party --- #
 import arrow
 from termcolor import cprint
 
-# Local application imports
+# --- Imports: Local Application --- #
 from ..metadata import __version__
-from ..utils import get_ts_granularity, escape_chars
-from .base import Bot, GitCommands
+from ..utils import get_ts_granularity, escape_chars, LoggerConfig
+from .base import Base, GitCommands
 
 # Telegram
 try:
@@ -39,12 +31,90 @@ except ImportError:
         'Missing bot Telegram bot package. Please install the required packages with "pip install yugiquery[telegram]".'
     )
 
-# ===================== #
-# Telegram Bot Subclass #
-# ===================== #
+
+# --- Logger Setup --- #
+logger = LoggerConfig.get_logger()
 
 
-class Telegram(Bot):
+# --- Helper Functions --- #
+def _split_run_args(args) -> tuple[list[str], list[str]]:
+    """
+    Splits arguments for the run command into those for data and report flows.
+    Positional args go to both, --data/--report assign specifically.
+
+    Args:
+        args (list[str]): The list of arguments to split.
+
+    Returns:
+        tuple[list[str], list[str]]: (data_args, report_args) where each is a list of arguments for that
+
+    """
+    args = args or []
+    data_args = []
+    report_args = []
+    both_args = []
+    mode = None
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--data":
+            mode = "data"
+        elif arg == "--report":
+            mode = "report"
+        elif arg.startswith("--"):
+            mode = None  # ignore unknown flags
+        else:
+            if mode == "data":
+                data_args.append(arg)
+            elif mode == "report":
+                report_args.append(arg)
+            else:
+                both_args.append(arg)
+        i += 1
+    data_all_args = both_args + data_args
+    report_all_args = both_args + report_args
+    return data_all_args, report_all_args
+
+
+def _parse_args(args, dict_obj) -> tuple[list[str], list[str]]:
+    """
+    Given a list of arguments and a dictionary, return a tuple:
+    (list of valid enum values, list of missing args)
+    Tries both key (name) and value (case-insensitive string match).
+
+    Args:
+        args (list[str]): The list of arguments to parse.
+        dict_obj (dict): The dictionary to match against.
+
+    Returns:
+        tuple[list[str], list[str]]: A tuple containing a list of valid enum values and a list of missing arguments that were not recognized.
+    """
+    if not args:
+        return ["all"], []
+    found = []
+    missing = []
+    # If 'all' is present in args (case-insensitive), return only All
+    if any(str(arg).lower() == "all" for arg in args):
+        return ["all"], []
+    for arg in args:
+        arg_lc = str(arg).lower()
+        # Try to match by enum member name (case-insensitive)
+        member = next((m for n, m in dict_obj.items() if n.lower() == arg_lc), None)
+        if member is not None:
+            found.append(member)
+            continue
+        # Try to match by value (case-insensitive string match)
+        value_match = next((v for v in dict_obj.values() if str(v).lower() == arg_lc), None)
+        if value_match is not None:
+            found.append(value_match)
+        else:
+            missing.append(arg)
+
+    return found, missing
+
+
+# --- Telegram Bot Class Definition --- #
+class Telegram(Base):
     """
     Telegram bot subclass. Inherits from Bot class.
 
@@ -68,7 +138,7 @@ class Telegram(Bot):
         from tqdm.contrib.telegram import tqdm as telegram_pbar
 
         self.telegram_pbar = telegram_pbar
-        Bot.__init__(self)
+        Base.__init__(self)
         self.token = token
         self.chat_id = int(chat_id)
         # Initialize the Telegram bot
@@ -88,12 +158,38 @@ class Telegram(Bot):
         username = f"{chat.first_name} {chat.last_name}" if chat.first_name and chat.last_name else chat.username
         await application.bot.send_message(chat_id=self.chat_id, text=f"Hello {username}!\n{me.first_name} bot is online.")
         cprint(text="Telegram bot initialized successfully.", color="green")
+        logger.info("Telegram bot initialized successfully.")
+
+    async def _check_cooldown(self, update, context, cooldown_key="last_run"):
+        """
+        Checks if the user is on cooldown for a specific command. If so, sends a cooldown message and returns True. Otherwise, returns False.
+        """
+        last = context.user_data.get(cooldown_key, arrow.get(0.0))
+        if (arrow.utcnow() - last).total_seconds() < self.cooldown_limit:
+            if update.effective_message is None:
+                return True
+            granularity = get_ts_granularity((last.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds())
+            next_available = last.shift(seconds=self.cooldown_limit).humanize(arrow.utcnow(), granularity=granularity)
+            await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
+            return True
+        return False
+
+    async def _handle_query_response(self, response, context, update, cooldown_key="last_run"):
+        """
+        Handles the response from a query, updating cooldown and sending the appropriate message.
+        """
+        if "error" in response.keys():
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
+        else:
+            context.user_data[cooldown_key] = arrow.utcnow()
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
 
     def run(self) -> None:
         """
         Start running the Telegram bot.
         """
         cprint(text="Running Telegram bot...", color="green")
+        logger.info("Running Telegram bot...")
         self.application.run_polling(stop_signals=None)
 
     def command_handler(self, command, **kwargs):
@@ -115,9 +211,7 @@ class Telegram(Bot):
 
         return decorator
 
-    # ======== #
-    # Commands #
-    # ======== #
+    # --- Commands --- #
 
     def register_commands(self) -> None:
         """
@@ -128,14 +222,15 @@ class Telegram(Bot):
             battle - Simulate a battle of all monster cards.
             benchmark - Show average time each report takes to complete.
             data - Send latest data files.
+            fetch - Run the YugiQuery data fetch operation.
             git - Run a Git command.
             latest - Show latest time each report was generated.
             links - Show YugiQuery links.
             ping - Test the bot connection latency.
             run - Run full YugiQuery flow.
-            status - Display bot status and system information.
+            report - Run the YugiQuery report generation operation.
+            info - Display bot and system information.
             shutdown - Shutdown bot.
-
         """
 
         @self.command_handler("abort", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
@@ -147,6 +242,8 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
             original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Aborting...")
             response = self.abort()
             await original_response.edit_text(response)
@@ -163,6 +260,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             # Create a dictionary with the provided arguments if they exist
             provided_arguments = {}
             if context.args and len(context.args) > 1:
@@ -214,6 +314,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.benchmark()
             if "error" in response.keys():
                 await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
@@ -235,25 +338,43 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
 
             response = self.data()
             if "error" in response.keys():
                 message = response["error"]
             else:
                 message = f"*{response['title']}*\n{response['description']}\n\n"
-                for field, content in response["fields"].items():
-                    message += f"*{field}*:\n{content}\n"
+
+                fields = response["fields"]
+                if isinstance(fields, dict):
+                    for field, content in fields.items():
+                        message += f"*{field}*:\n{content}\n"
 
             message = escape_chars(message)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode="MarkdownV2")
 
         @self.command_handler("git", has_args=True, filters=filters.Chat(chat_id=int(self.chat_id)))
         async def git_cmd(update: Update, context: CallbackContext) -> None:
+            """
+            Handles git-related commands sent via Telegram.
+
+            This asynchronous handler function processes incoming Telegram messages that invoke git commands.
+            It validates the command, extracts arguments, executes the corresponding git operation, and sends the result back to the user.
+
+            Args:
+                update (telegram.Update): The incoming Telegram update containing the message and chat information.
+                context (telegram.ext.CallbackContext): The context object containing arguments and bot instance.
+            """
+            if update.effective_chat is None:
+                return
+
             if not context.args or context.args[0] not in GitCommands.__members__:
                 await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid command")
                 return
 
-            command = context.args[0]
+            command = GitCommands[context.args[0]]
             passphrase = context.args[1] if len(context.args) > 1 else ""
             response = self.git_cmd(command=command, passphrase=passphrase)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
@@ -267,6 +388,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.latest()
             message = f"*{response['title']}*\n{response['description']}\n\n*Local:*\n{response['local']}"
             if "live" in message:
@@ -284,6 +408,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             response = self.links()
             message = f"*{response['title']}*\n{response['description']}"
             message = escape_chars(message)
@@ -298,6 +425,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             start_time = arrow.utcnow()
             original_message = await context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Calculating latency..."
@@ -308,10 +438,7 @@ class Telegram(Bot):
             await original_message.edit_text(response)
 
         @self.command_handler("run", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
-        async def run_query(
-            update: Update,
-            context: CallbackContext,
-        ) -> None:
+        async def run_query(update: Update, context: CallbackContext) -> None:
             """
             Runs a YugiQuery flow by launching a separate thread and monitoring its progress.
             The progress is reported back to the Telegram chat where the command was issued.
@@ -320,43 +447,120 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
-            last_run = context.user_data.get("last_run", arrow.get(0.0))
-            if (arrow.utcnow() - last_run).total_seconds() < self.cooldown_limit:
-                granularity = get_ts_granularity(
-                    (last_run.shift(seconds=self.cooldown_limit) - arrow.utcnow()).total_seconds()
-                )
-                next_available = last_run.shift(seconds=self.cooldown_limit).humanize(
-                    arrow.utcnow(), granularity=granularity
-                )
-                await update.effective_message.reply_text(f"You are on cooldown. Try again {next_available}")
+            cooldown_key = "last_run"
+            if await self._check_cooldown(update, context, cooldown_key):
+                return
+            if update.effective_chat is None:
                 return
 
-            report = (
-                self.Reports[context.args[0].capitalize()]
-                if context.args and context.args[0].capitalize() in self.Reports.__members__
-                else self.Reports.All
-            )
+            # Use helper to split args for run
+            data_all_args, report_all_args = _split_run_args(context.args)
+            data_flows, missing_data = _parse_args(data_all_args, self.DataFlows)
+            report_flows, missing_report = _parse_args(report_all_args, self.Reports)
 
-            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text="Initializing...")
+            missing = []
+            if missing_data:
+                missing.append(f"Data: {', '.join(missing_data)}")
+            if missing_report:
+                missing.append(f"Report: {', '.join(missing_report)}")
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following arguments were not recognized and will be ignored: {'; '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
 
             async def callback(content: str) -> None:
                 await original_response.edit_text(content)
 
-            response = await self.run_query(
+            response = await self.query_run(
+                callback=callback,
+                data=data_flows,
+                report=report_flows,
+                progress_bar=self.telegram_pbar,
+                chat_id=update.effective_chat.id,
+                token=self.token,
+            )
+            await self._handle_query_response(response, context, update, cooldown_key)
+
+        @self.command_handler("fetch", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
+        async def run_fetch(update: Update, context: CallbackContext) -> None:
+            """
+            Runs the YugiQuery data fetch operation by launching a separate thread and monitoring its progress.
+            The progress is reported back to the Telegram chat where the command was issued.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
+            """
+            cooldown_key = "last_fetch"
+            if await self._check_cooldown(update, context, cooldown_key):
+                return
+            if update.effective_chat is None:
+                return
+
+            flows, missing = _parse_args(context.args, self.DataFlows)
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following data flows were not recognized and will be ignored: {', '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
+
+            async def callback(content: str) -> None:
+                await original_response.edit_text(content)
+
+            response = await self.query_fetch(
+                callback=callback,
+                data=flows,
+                progress_bar=self.telegram_pbar,
+                chat_id=update.effective_chat.id,
+                token=self.token,
+            )
+
+            await self._handle_query_response(response, context, update, cooldown_key)
+
+        @self.command_handler("report", block=False, filters=filters.Chat(chat_id=int(self.chat_id)))
+        async def run_report(update: Update, context: CallbackContext) -> None:
+            """
+            Runs the YugiQuery report generation operation by launching a separate thread and monitoring its progress.
+            The progress is reported back to the Telegram chat where the command was issued.
+
+            Args:
+                update (telegram.Update): The update object.
+                context (telegram.ext.CallbackContext): The callback context.
+            """
+            cooldown_key = "last_report"
+            if await self._check_cooldown(update, context, cooldown_key):
+                return
+            if update.effective_chat is None:
+                return
+
+            report, missing = _parse_args(context.args, self.DataFlows)
+
+            initial_message = "Initializing..."
+            if missing:
+                initial_message += (
+                    f"\n\nNote: The following reports were not recognized and will be ignored: {', '.join(missing)}"
+                )
+            original_response = await context.bot.send_message(chat_id=update.effective_chat.id, text=initial_message)
+
+            async def callback(content: str) -> None:
+                await original_response.edit_text(content)
+
+            response = await self.query_report(
                 callback=callback,
                 report=report,
                 progress_bar=self.telegram_pbar,
                 chat_id=update.effective_chat.id,
                 token=self.token,
             )
-            if "error" in response.keys():
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["error"])
-            else:
-                context.user_data["last_run"] = arrow.utcnow()
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=response["content"])
+            await self._handle_query_response(response, context, update, cooldown_key)
 
-        @self.command_handler("status")
-        async def status(update: Update, context: CallbackContext) -> None:
+        @self.command_handler("info")
+        async def info(update: Update, context: CallbackContext) -> None:
             """
             Displays information about the bot, including uptime, versions, and system details.
 
@@ -364,6 +568,9 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             app_info = await context.bot.get_me()
             bot_name = app_info.username
 
@@ -393,30 +600,32 @@ class Telegram(Bot):
                 update (telegram.Update): The update object.
                 context (telegram.ext.CallbackContext): The callback context.
             """
+            if update.effective_chat is None:
+                return
+
             await context.bot.send_message(chat_id=update.effective_chat.id, text="Shutting down...")
             self.application.stop_running()
 
-    # ====== #
-    # Events #
-    # ====== #
+    # --- Events --- #
 
     def register_events(self) -> None:
         """
         Register event handlers for the Telegram bot.
         """
 
-        async def on_command_error(update: Update, context: CallbackContext) -> None:
+        async def on_command_error(update: object, context: CallbackContext) -> None:
             """
             Event that runs whenever a command invoked by the user results in an error.
             Sends a message to the chat indicating the type of error that occurred.
 
             Args:
-                update (telegram.Update): The update object.
+                update (object): An object representing the update that caused the error.
                 context (telegram.ext.CallbackContext): The callback context.
             """
             error = str(context.error)
+            logger.error("%s", error)
             print(error)
-            if update is not None:
+            if isinstance(update, Update) and update.message is not None:
                 await update.message.reply_text(error)
             else:
                 await context.bot.send_message(chat_id=self.chat_id, text=error)
