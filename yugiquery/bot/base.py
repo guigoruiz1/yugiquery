@@ -277,8 +277,8 @@ class Base:
                     )
                 )
 
-            value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
-            response[f"{key.capitalize()} {group_key.capitalize()}"] = value
+                value = f"• Entries: {total_weight}\n• Average: {avg_time_str}\n• Latest: {latest_time_str}"
+                response[f"{key.capitalize()} {group_key.capitalize()}"] = value
 
         return response
 
