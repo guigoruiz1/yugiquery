@@ -31,6 +31,6 @@ Below are listed all the available reports and their execution timestamps.
 
 <!-- REPORT_TABLE_END -->
 
-YugiQuery was last executed at `18/07/2026 06:41 UTC`.
+YugiQuery was last executed at `25/07/2026 06:48 UTC`.
 
 This page was generated at `{{ site.time | date: "%d/%m/%Y %H:%M:%S %Z" }}`.
