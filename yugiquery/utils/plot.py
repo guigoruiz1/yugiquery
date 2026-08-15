@@ -462,11 +462,8 @@ def rate(
 
     # Initialize colors if not provided
     if colors is None:
-        colors = (
-            list(plt.cm.get_cmap("tab20").colors)  # pyright: ignore[reportAttributeAccessIssue]
-            if subplots
-            else list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
-        )
+        get_cmap = getattr(plt, "get_cmap", None) or plt.cm.get_cmap
+        colors = list(get_cmap("tab20").colors) if subplots else list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
     # Create subplots and apply shading, vertical lines
     axes = []

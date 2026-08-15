@@ -673,7 +673,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
             total_error += error
 
         else:
-            total_error += 1 # TODO: Improve
+            total_error += 1  # TODO: Improve
             logger.warning('No content for "%s"', content.get("title", "Unknown"))
 
     logger.debug("%s set lists received - %s missing", total_success, total_error)
@@ -691,18 +691,20 @@ def fetch_page_images(
     imlimit: int = 500,
 ) -> Dict[str, List[str] | str]:
     """
-    Fetch images from the MediaWiki API for the provided page titles.
+    Fetch image references from the MediaWiki API for the provided page titles.
 
     Args:
-        titles (str): Page titles to fetch images for.
-        featured (bool, optional): If True, fetch only the featured image of each page.
-            If False, fetch the page image list. Defaults to False.
+        titles (str): Page titles to fetch image data for.
+        featured (bool, optional): If True, fetch only the featured image of each page and
+            return its full image URL. If False, fetch the full list of page images and
+            return their file names. Defaults to False.
         batch_size (int, optional): Number of titles per API request. Defaults to 50.
-        imlimit (int, optional): Maximum number of images per page when featured=False.
+        imlimit (int, optional): Maximum number of images to include per page when featured=False.
             Defaults to 500.
 
     Returns:
-        Dict[str, List[str] | str]: Mapping of page title to image names.
+        Dict[str, List[str] | str]: Mapping of page title to either a single featured image URL
+            (when featured=True) or a list of image file names (when featured=False).
 
     Raises:
         requests.exceptions.RequestException: If an error occurs while making the API request.
@@ -710,7 +712,7 @@ def fetch_page_images(
     """
     results: Dict[str, List[str] | str] = {}
 
-    for i in range(0, len(titles), batch_size):
+    for i in trange(0, len(titles), batch_size, unit="batch"):  # TODO: make tqdm
         batch = titles[i : i + batch_size]
         titles_str = up.quote("|".join(batch))
 
@@ -730,7 +732,7 @@ def fetch_page_images(
             if featured:
                 original = page.get("original")
                 if original and "source" in original:
-                    results[page["title"]] = original["source"].split("/")[-1]
+                    results[page["title"]] = original["source"]
             else:
                 images = page.get("images", [])
                 results[page["title"]] = [img["title"].removeprefix("File:") for img in images]
@@ -744,31 +746,40 @@ async def download_media(
     max_tasks: int = 10,
 ) -> List[Dict[str, str | bool]]:
     """
-    Download media files from yugipedia media storage.
+    Download media files from Yugipedia media storage.
 
     Args:
-        file_names (str): Media file names to download.
+        file_names (str): Media file names or full URLs to download.
+            Plain file names are converted to the Yugipedia storage path using their md5 hash.
         output_path (str | Path, optional): Destination directory. Defaults to "media".
         max_tasks (int, optional): Maximum concurrent downloads. Defaults to 10.
 
     Returns:
         List[Dict[str, str | bool]]: Download status entries per file.
     """
-    file_names_series = pd.Series(file_names)
-    file_names_md5 = file_names_series.apply(md5)
-    urls = file_names_md5.apply(lambda x: f"/{x[0]}/{x[0]}{x[1]}/") + file_names_series
+
+    def build_media_url(item: str) -> str:
+        parsed = up.urlparse(item)
+        if parsed.scheme and parsed.netloc:
+            return item
+
+        hash_value = md5(item)
+        return f"{URLS.media}/{hash_value[0]}/{hash_value[0]}{hash_value[1]}/{item}"
+
+    urls = [build_media_url(item) for item in file_names]
     download_results = []
 
-    async def download_file(session, url, save_folder, semaphore, pbar):
+    async def download_file(session, url, save_folder, semaphore):
         async with semaphore:
-            save_name = url.split("/")[-1]
+            parsed = up.urlparse(url)
+            save_name = Path(parsed.path).name or Path(url).name
             save_file = Path(save_folder).joinpath(save_name)
             try:
                 async with session.get(url) as response:
                     if response.status != 200:
                         raise ValueError(f"URL {url} returned status code {response.status}")
                     total_size = int(response.headers.get("Content-Length", 0))
-                    progress = tqdm(
+                    file_progress = tqdm(
                         unit="B",
                         total=total_size,
                         unit_scale=True,
@@ -776,7 +787,7 @@ async def download_media(
                         desc=save_name,
                         leave=False,
                         dynamic_ncols=(not utils.dirs.is_notebook),
-                        disable=("PM_IN_EXECUTION" in os.environ),
+                        disable=(utils.dirs.is_notebook or "PM_IN_EXECUTION" in os.environ),
                     )
 
                     if save_file.is_file():
@@ -788,17 +799,15 @@ async def download_media(
                             if not chunk:
                                 break
                             f.write(chunk)
-                            progress.update(len(chunk))
-                    progress.close()
-                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": True})
+                            file_progress.update(len(chunk))
+                    file_progress.close()
+                download_results.append({"file_name": save_name, "url": url, "success": True})
             except Exception as e:
                 if save_file.is_file():
                     save_file.unlink()
-                download_results.append({"file_name": save_name, "url": URLS.media + url, "success": False})
+                download_results.append({"file_name": save_name, "url": url, "success": False})
                 with logging_redirect_tqdm():
                     logger.warning("Failed to download %s: %s", save_name, e)
-            finally:
-                pbar.update()
 
     semaphore = asyncio.Semaphore(max_tasks)
     async with aiohttp.ClientSession(base_url=URLS.media, headers=URLS.headers) as session:
@@ -810,17 +819,26 @@ async def download_media(
             unit="file",
             dynamic_ncols=(not utils.dirs.is_notebook),
             disable=("PM_IN_EXECUTION" in os.environ),
+            mininterval=0,
+            miniters=1,
+            smoothing=0,
         ) as pbar:
             tasks = [
-                download_file(
-                    session=session,
-                    url=url,
-                    save_folder=output_path,
-                    semaphore=semaphore,
-                    pbar=pbar,
+                asyncio.create_task(
+                    download_file(
+                        session=session,
+                        url=url,
+                        save_folder=output_path,
+                        semaphore=semaphore,
+                    )
                 )
                 for url in urls
             ]
-            await asyncio.gather(*tasks, return_exceptions=True)
+
+            for task in asyncio.as_completed(tasks):
+                await task
+                pbar.update(1)
+
+            pbar.refresh()
 
     return download_results

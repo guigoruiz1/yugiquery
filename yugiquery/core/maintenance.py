@@ -161,23 +161,32 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
                         return permalink.strip('"').strip("'")
             return None
 
-        all_reports = {f.stem: f for f in dirs.REPORTS.glob("*.html")}
+        all_reports: Dict[str, Dict[str, Path]] = {}
+
+        for f in dirs.REPORTS.glob("*.html"):
+            all_reports.setdefault(f.stem, {})["html"] = f
 
         for f in dirs.REPORTS.glob("*.md"):
-            all_reports[f.stem] = f
+            all_reports.setdefault(f.stem, {})["md"] = f
 
         if page_paths:
             for path in page_paths:
                 path = Path(path)
                 if path.is_dir():
                     for f in path.glob("*.md"):
-                        all_reports[f.stem] = f
+                        all_reports.setdefault(f.stem, {})["md"] = f
                 elif path.is_file() and path.suffix == ".md":
-                    all_reports[path.stem] = path
+                    all_reports.setdefault(path.stem, {})["md"] = path
 
         rows = []
         for stem in sorted(all_reports.keys()):
-            report_file = all_reports[stem]
+            report_entry = all_reports[stem]
+            report_file = report_entry.get("md") or report_entry.get("html")
+            if report_file is None:
+                continue
+
+            # Prefer HTML file modification time since reports are generated as HTML.
+            timestamp_file = report_entry.get("html") or report_file
             try:
                 relative_path = report_file.relative_to(dirs.WORK)
             except ValueError:
@@ -194,7 +203,7 @@ def update_index(commit: bool = False, page_paths: List[Path | str] | None = Non
             else:
                 link_path = str(relative_path)
 
-            timestamp_str = pd.to_datetime(report_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
+            timestamp_str = pd.to_datetime(timestamp_file.stat().st_mtime, unit="s", utc=True).strftime("%d/%m/%Y %H:%M %Z")
             rows.append(f"| [{stem}]({link_path}) | {timestamp_str} |")
 
         table = "\n".join(
