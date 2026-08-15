@@ -429,7 +429,7 @@ def rate(
     if not pd.api.types.is_datetime64_any_dtype(df.index):
         raise ValueError("DataFrame index must be datetime-like.")
     if isinstance(df, pd.Series):
-        df = df.to_frame()
+        df = pd.DataFrame(df)
 
     # Order columns by the first date where they have a value > 0 (ascending).
     mask = df.gt(0)
@@ -462,7 +462,11 @@ def rate(
 
     # Initialize colors if not provided
     if colors is None:
-        get_cmap = getattr(plt, "get_cmap", None) or plt.cm.get_cmap
+        get_cmap = getattr(plt, "get_cmap", None)
+        if get_cmap is None:
+            get_cmap = getattr(plt.cm, "get_cmap", None)
+        if get_cmap is None:
+            raise RuntimeError("No compatible get_cmap function found in matplotlib. Please update your matplotlib version.")
         colors = list(get_cmap("tab20").colors) if subplots else list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
     # Create subplots and apply shading, vertical lines
