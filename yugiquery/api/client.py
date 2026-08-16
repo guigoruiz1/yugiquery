@@ -640,17 +640,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
     titles_str = up.quote(string="|".join(titles))
     rarities = utils.load_json(utils.dirs.get_asset("json", "rarities.json"))
 
-    columns = [
-        "Set",
-        "Card number",
-        "Name",
-        "Rarity",
-        "Print",
-        "Quantity",
-        "Region",
-        "Page name",
-    ]
-    result = pd.DataFrame(columns=columns)
+    result = pd.DataFrame()
     total_success = 0
     total_error = 0
 
@@ -664,7 +654,7 @@ def fetch_set_lists(*titles: str) -> None | Tuple[pd.DataFrame, int, int]:
 
     for content in contents:
         if "revisions" in content.keys():
-            page_df, success, error = process_content(content, rarities, columns)
+            page_df, success, error = process_content(content, rarities)
 
             if page_df is not None:
                 result = pd.concat([result, page_df], ignore_index=True).infer_objects().fillna(np.nan)

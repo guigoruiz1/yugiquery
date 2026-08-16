@@ -413,11 +413,26 @@ def _process_list_extras(df: pd.DataFrame) -> pd.DataFrame | None:
     extra_lines = pd.DataFrame()
     for extra_idx, extra_value in extra.items():
         if isinstance(extra_value, str) and "::" in extra_value:
-            col, val = extra_value.split("::")
+            col, val = extra_value.split("::", 1)
             # Strip and process col and val to extract desired values
             col = col.strip().strip("@").lower()
-            val = val.strip().strip("(").strip(")").split("]]")[0].split("[[")[-1]
-            extra_lines.loc[extra_idx, col] = val
+
+            # Remove MediaWiki italic markup
+            val = val.replace("''", "")
+
+            # Replace MediaWiki links with their display text
+            val = re.sub(
+                r"\[\[([^|\]]+)(?:\|([^\]]+))?\]\]",
+                lambda m: m.group(2) or m.group(1),
+                val,
+            )
+
+            # Remove parentheses
+            val = val.replace("(", "").replace(")", "").strip()
+
+            # Keep only the columns we want to extract (print and description)
+            if col in ("print", "description"):
+                extra_lines.loc[extra_idx, col] = val
 
     extra_lines = extra_lines.dropna(how="all")
     return extra_lines if not extra_lines.empty else None
@@ -456,14 +471,14 @@ def _parse_set_list_args(
 
     Returns:
         Tuple of:
-        - meta dict with keys: region, rarity, card_print, qty, desc, opt
+        - meta dict with keys: region, rarity, print, qty, desc, opt
         - df (DataFrame of parsed set data, or None if not found)
         - extras (DataFrame of extra parameters, or None if not found)
     """
     meta: Dict[str, Any | None] = {
         "region": None,
         "rarity": None,
-        "card_print": None,
+        "print": None,
         "qty": None,
         "desc": None,
         "opt": None,
@@ -490,7 +505,7 @@ def _parse_set_list_args(
             )
 
         elif "print=" in argument:
-            meta["card_print"] = argument.value
+            meta["print"] = argument.value
 
         elif "qty=" in argument:
             meta["qty"] = argument.value
@@ -517,94 +532,101 @@ def _parse_set_list_args(
     return meta, df, extras
 
 
-def _build_set_df(
+def _build_set_df(  # TODO: simplify
     df: pd.DataFrame,
     extras: pd.DataFrame | None,
     meta: Dict[str, Any | None],
     rarities: Dict[str, str],
-    columns: List[str],
 ) -> pd.DataFrame:
     """Build the final set DataFrame from parsed template data.
 
-    Constructs columns: Name, Card number, Rarity, Print, Quantity, then merges with extras.
+    Values are populated in priority order:
+    1. Parsed data from ``df``
+    2. Values extracted in ``extras``
+    3. Template-level fallback values from ``meta``
 
     Args:
         df: Cleaned DataFrame with raw set data.
         extras: DataFrame with extracted extra parameters, or None.
-        meta: Dict with keys: opt, card_print, qty, rarity, desc.
+        meta: Dict with keys: opt, print, qty, rarity, desc.
         rarities: Mapping of rarity codes to full names.
-        columns: Column names for the output DataFrame.
 
     Returns:
         DataFrame with all columns populated according to template logic.
     """
-    result = pd.DataFrame(columns=columns)
-    opt = meta["opt"]
-    card_print = meta["card_print"]
-    qty = meta["qty"]
-    template_rarity = meta["rarity"]
-    desc = meta["desc"]
 
-    noabbr = opt == "noabbr"
-    result["Name"] = df[1 - noabbr].apply(lambda x: (x.strip("\u200e").split(" (")[0] if isinstance(x, str) else x))
+    noabbr = meta["opt"] == "noabbr"
+    name_col = 1 - noabbr
+    rarity_col = 2 - noabbr
+    print_col = 3 - noabbr
 
+    result = pd.DataFrame(index=df.index)
+
+    # 1. Build from parsed data
+
+    ## Card name: strip invisible characters and remove any trailing "()"
+    result["Name"] = df[name_col].apply(lambda x: x.strip("\u200e").split(" (")[0] if isinstance(x, str) else x)
+
+    ## Card number: only include if not noabbr and more than one column
     if not noabbr and len(df.columns) > 1:
         result["Card number"] = df[0]
 
-    if len(df.columns) > (2 - noabbr):  # and rare in str
-        result["Rarity"] = df[2 - noabbr].apply(
+    ## Card rarity: map rarity codes to full names, fallback to template rarity for missing values
+    if len(df.columns) > rarity_col:
+        result["Rarity"] = df[rarity_col].apply(
             lambda x: (
-                tuple([rarities.get(y.strip(), y.strip()) for y in x.split(",")])
-                if isinstance(x, str) and "description::" not in x
-                else template_rarity
+                tuple(rarities.get(y.strip(), y.strip()) for y in x.split(","))
+                if isinstance(x, str) and x.strip()
+                else meta["rarity"]
             )
         )
     else:
-        result["Rarity"] = pd.Series([template_rarity] * len(result.index), index=result.index)
+        result["Rarity"] = pd.Series(
+            [meta["rarity"]] * len(result),
+            index=result.index,
+        )
 
-    if len(df.columns) > (3 - noabbr):
-        if card_print is not None:  # and new/reprint in str
-            result["Print"] = df[3 - noabbr].apply(lambda x: (card_print if (card_print and x is None) else x))
+    # Card print and quantity:
+    # If print is in use, the next columns are Print and Quantity.
+    # Otherwise, the next column is Quantity if qty is in use.
+    if len(df.columns) > print_col:
+        if meta["print"] is not None:
+            result["Print"] = df[print_col]
 
-            if len(df.columns) > (4 - noabbr) and qty:
-                result["Quantity"] = df[4 - noabbr].apply(lambda x: x if x is not None else qty)
+            if meta["print"]:
+                result["Print"] = result["Print"].fillna(meta["print"])
 
-        elif qty:
-            result["Quantity"] = df[3 - noabbr].apply(lambda x: x if x is not None else qty)
+            qty_col = print_col + 1
+            if meta["qty"] is not None and len(df.columns) > qty_col:
+                result["Quantity"] = df[qty_col]
 
-    # Handle token name and print in description
+                if meta["qty"]:
+                    result["Quantity"] = result["Quantity"].fillna(meta["qty"])
+
+        elif meta["qty"] is not None:
+            qty_col = print_col
+            result["Quantity"] = df[qty_col]
+
+            if meta["qty"]:
+                result["Quantity"] = result["Quantity"].fillna(meta["qty"])
+
+    # 2. Overlay extra values if present
     if extras is not None:
-        for row in result.index:
-            # Handle token name in description
-            if "description" in extras and row in extras["description"].dropna().index:
-                name_value = result.at[row, "Name"]
-                desc_value = extras.at[row, "description"]
-                if (
-                    isinstance(name_value, str)
-                    and isinstance(desc_value, str)
-                    and "Token" in name_value
-                    and "Token" in desc_value
-                ):
-                    result.at[row, "Name"] = desc_value
+        for column in ("print", "description"):
+            if column in extras:
+                column_name = column.title()
+                result[column.title()] = (
+                    extras[column]
+                    .reindex(result.index)
+                    .combine_first(result.get(column_name, pd.Series(index=result.index, dtype=object)))
+                )
 
-            # Handle print in description
-            if "print" in extras and row in extras["print"].dropna().index:
-                result.at[row, "Print"] = extras.at[row, "print"]
-    else:
-        # Use template-level values as fallback
-        for row in result.index:
-            name_value = result.at[row, "Name"]
-            print_value = result.at[row, "Print"]
-
-            # Handle token name from template description
-            if isinstance(name_value, str) and isinstance(desc, str):
-                if "Token" in name_value and "Token" in desc:
-                    result.at[row, "Name"] = desc
-
-            # Handle print from template card_print or description
-            if pd.isna(print_value):
-                if isinstance(desc, str) and "print" in desc.lower():
-                    result.at[row, "Print"] = desc
+    # 3. Overlay template-level fallback values if present
+    if isinstance(meta["desc"], str):
+        result["Description"] = result.get(
+            "Description",
+            pd.Series(index=result.index, dtype=object),
+        ).fillna(meta["desc"])
 
     return result
 
@@ -637,7 +659,7 @@ def _extract_set_title(parsed_templates, page_name: str) -> str:
     return title
 
 
-def process_content(content: Dict, rarities: Dict[str, str], columns: List[str]) -> Tuple[pd.DataFrame | None, int, int]:
+def process_content(content: Dict, rarities: Dict[str, str]) -> Tuple[pd.DataFrame | None, int, int]:
     """Process a single page content for set lists.
 
     Searches for 'set list' templates and builds DataFrames.
@@ -645,7 +667,7 @@ def process_content(content: Dict, rarities: Dict[str, str], columns: List[str])
     Args:
         content: Page content dict with 'revisions' key.
         rarities: Mapping of rarity codes to full names.
-        columns: Column names for output DataFrame.
+
     Returns:
         Tuple of (combined_df or None, success_count, error_count).
     """
@@ -670,7 +692,7 @@ def process_content(content: Dict, rarities: Dict[str, str], columns: List[str])
                 logger.debug('Error! Unable to parse template for "%s"', page_name)
                 continue
 
-            result = _build_set_df(df, extras, meta, rarities, columns)
+            result = _build_set_df(df, extras, meta, rarities)
 
             result["Set"] = re.sub(pattern=r"\(\w{3}-\w{2}\)\s*$", repl="", string=title).strip()
             result["Region"] = meta["region"].upper() if meta["region"] else None
