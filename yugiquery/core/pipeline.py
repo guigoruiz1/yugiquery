@@ -174,7 +174,7 @@ def _get_flows(reports: str | List[str] | List[Path]) -> list[str]:
     Returns:
         list[str]: A list of data flows to run.
     """
-    if isinstance(reports, Path):
+    if isinstance(reports, Path) or isinstance(reports, str):
         reports = [reports]
 
     if "all" in reports:
