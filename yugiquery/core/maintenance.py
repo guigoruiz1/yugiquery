@@ -6,6 +6,7 @@
 import json
 import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Dict, List, TypedDict
 
@@ -262,78 +263,132 @@ def cleanup_data(dryrun: bool = False) -> None:
     """
     Clean up redundant data files and compact benchmark/changelog history.
 
-    Performs two main operations:
-    1. Condenses benchmark history using weighted averages.
-    2. Removes redundant changelog and data files, keeping only the most recent from each month
-       and condensing multiple changelogs within the same month into a single consolidated file.
+    Changelogs are consolidated when they belong to the same retention
+    bucket or have overlapping/touching timestamp intervals.
 
-    Args:
-        dryrun (bool, optional): If True, log intended actions without modifying files. Defaults to False.
+    Data snapshots retain the existing weekly/monthly bucket policy.
     """
     lock("cleanup_data")
+
     try:
         dryrun_str = " (dry run)" if dryrun else ""
         print(f"\nStarting data cleanup{dryrun_str}")
         logger.info("Starting data cleanup%s", dryrun_str)
 
-        with Halo(text="Cleaning up data...", spinner="line", enabled=("PM_IN_EXECUTION" not in os.environ)) as spinner:
+        with Halo(
+            text="Cleaning up data...",
+            spinner="line",
+            enabled=("PM_IN_EXECUTION" not in os.environ),
+        ) as spinner:
+
+            # Condense benchmark history
             benchmark_file = dirs.DATA / "benchmark.json"
+
             if benchmark_file.is_file():
                 spinner.text = "Condensing benchmark history..."
+
                 benchmark = load_json(benchmark_file)
                 new_benchmark = condense_benchmark(benchmark)
+
                 if dryrun:
                     logger.info("Condensed Benchmark: %s", new_benchmark)
                 else:
-                    logger.info("Condensed benchmark history saved to %s", benchmark_file)
+                    logger.info(
+                        "Condensed benchmark history saved to %s",
+                        benchmark_file,
+                    )
+
                     with open(benchmark_file, "w+") as f:
                         json.dump(new_benchmark, f, indent=4)
 
             file_list = list(dirs.DATA.glob("*.bz2"))
+
             if not file_list:
+                spinner.succeed("Data cleanup completed")
                 return
 
             df = _build_file_index(file_list)
+            if df.empty:
+                logger.warning("No valid data or changelog files found.")
+                spinner.succeed("Data cleanup completed")
+                return
 
-            for is_changelog, label in [(True, "changelog"), (False, "data")]:
-                spinner.text = f"Cleaning {label} files..."
-                logger.info("Processing %s files...", label)
-                if dryrun:
-                    print(
-                        "Processing {label} files...",
-                    )
+            # Process all changelogs together to detect connections
+            # across weekly and monthly bucket boundaries
+            spinner.text = "Cleaning changelog files..."
+            logger.info("Processing changelog files...")
 
-                subdf = df[df["IsChangelog"] == is_changelog].copy()
-                if subdf.empty:
-                    continue
+            if dryrun:
+                print("Processing changelog files...")
 
-                cutoff = subdf["MaxTS_pd"].max() - pd.Timedelta(days=30)
+            changelogs = df[df["IsChangelog"]].copy()
+
+            for group, group_df in changelogs.groupby("Group"):
+                _process_group(
+                    group_df=group_df,
+                    is_changelog=True,
+                    dryrun=dryrun,
+                )
+
+            # Process data snapshots using the existing bucket policy
+            spinner.text = "Cleaning data files..."
+            logger.info("Processing data files...")
+
+            if dryrun:
+                print("Processing data files...")
+
+            data_files = df[~df["IsChangelog"]].copy()
+
+            if not data_files.empty:
+                cutoff = (
+                    data_files["MaxTS_pd"].max()
+                    - pd.Timedelta(days=30)
+                )
 
                 # Recent → weekly buckets
-                recent = subdf[subdf["MaxTS_pd"] >= cutoff].copy()
-                recent["Bucket"] = recent["MaxTS_pd"].dt.tz_localize(None).dt.to_period("W").dt.to_timestamp()
+                recent = data_files[
+                    data_files["MaxTS_pd"] >= cutoff
+                ].copy()
+
+                recent["Bucket"] = (
+                    recent["MaxTS_pd"]
+                    .dt.tz_localize(None)
+                    .dt.to_period("W")
+                    .dt.to_timestamp()
+                )
 
                 # Older → monthly buckets
-                older = subdf[subdf["MaxTS_pd"] < cutoff].copy()
-                older["Bucket"] = older["MaxTS_pd"].dt.tz_localize(None).dt.to_period("M").dt.to_timestamp()
+                older = data_files[
+                    data_files["MaxTS_pd"] < cutoff
+                ].copy()
+
+                older["Bucket"] = (
+                    older["MaxTS_pd"]
+                    .dt.tz_localize(None)
+                    .dt.to_period("M")
+                    .dt.to_timestamp()
+                )
 
                 combined = pd.concat([recent, older])
 
-                for (group, bucket), group_df in combined.groupby(["Group", "Bucket"]):
+                for (group, bucket), group_df in combined.groupby(
+                    ["Group", "Bucket"]
+                ):
                     logger.debug(
-                        "Processing %s files for group %s bucket %s",
-                        label,
+                        "Processing data files for group %s bucket %s",
                         group,
                         bucket.strftime("%Y-%m-%d"),
                     )
 
                     _process_group(
                         group_df=group_df,
-                        is_changelog=is_changelog,
+                        is_changelog=False,
                         dryrun=dryrun,
                     )
 
+            # Commit cleanup changes
             spinner.text = "Updating index..."
+
             if not dryrun:
                 result = git.commit(
                     files=[
@@ -342,6 +397,7 @@ def cleanup_data(dryrun: bool = False) -> None:
                     ],
                     message=f"Data cleanup {arrow.utcnow().isoformat()}",
                 )
+
                 logger.info("%s", result)
 
             spinner.succeed("Data cleanup completed")
@@ -350,7 +406,10 @@ def cleanup_data(dryrun: bool = False) -> None:
         try:
             unlock("cleanup_data")
         except Exception as e:
-            logger.error("Error unlocking cleanup_data lock. %s", e)
+            logger.error(
+                "Error unlocking cleanup_data lock. %s",
+                e,
+            )
 
 
 # Benchmark Condensing
@@ -385,34 +444,95 @@ def condense_benchmark(benchmark: Dict[str, Dict[str, List[BenchmarkEntry]]]) ->
 
 
 # Changelog Condensing
+
 def condense_changelogs(files: List[Path | str]) -> pd.DataFrame:
     """
-    Condense multiple changelog files into a consolidated dataframe.
+    Consolidate changelogs while preserving timestamp-based history.
 
-    Args:
-        files (List[Path | str]): A list of changelog file paths.
+    Fresh Old/New versions are converted using their respective filename
+    boundaries. Existing timestamps are preserved.
 
-    Returns:
-        pd.DataFrame: The consolidated changelog dataframe.
+    Rows with missing Version values are discarded because their historical
+    timestamps cannot be reliably recovered.
+
+    Invalid or out-of-interval timestamps raise an error.
+
+    Identical states are deduplicated, ignoring Modification date and
+    Version, keeping the latest occurrence.
     """
     dfs = []
+    timestamp_pattern = re.compile(r"^\d{8}T\d{4}Z$")
+
+    # Process source files in chronological order for deterministic results
+    file_intervals = []
 
     for file in files:
         file_path = Path(file)
-
         from_ts, to_ts = _parse_changelog_ts(file_path)
+
         if from_ts is None or to_ts is None:
-            continue
+            raise ValueError(f"Invalid changelog filename: {file_path}")
 
-        df = pd.read_csv(file_path, dtype=object)
+        if from_ts >= to_ts:
+            raise ValueError(f"Invalid changelog interval: {file_path}")
 
-        # Map version to actual timestamps
-        df["Version"] = df["Version"].map(
-            {
-                "Old": filename_ts_fmt(from_ts),
-                "New": filename_ts_fmt(to_ts),
-            }
+        file_intervals.append((from_ts, to_ts, file_path))
+
+    file_intervals.sort(
+        key=lambda item: (item[0], item[1], item[2].name)
+    )
+
+    for from_ts, to_ts, file_path in file_intervals:
+        start_ts = filename_ts_fmt(from_ts)
+        end_ts = filename_ts_fmt(to_ts)
+
+        df = pd.read_csv(
+            file_path,
+            dtype=object,
+            keep_default_na=False,
+            na_values="",
         )
+
+        if "Version" not in df.columns:
+            raise ValueError(f"Missing Version column in {file_path}")
+
+        # Convert fresh versions while preserving existing timestamps
+        df["Version"] = df["Version"].replace({
+            "Old": start_ts,
+            "New": end_ts,
+        })
+
+        # Discard rows whose historical version cannot be established
+        missing_versions = (
+            df["Version"].isna()
+            | df["Version"].astype(str).str.strip().eq("")
+        )
+
+        missing_count = int(missing_versions.sum())
+
+        if missing_count:
+            logger.warning(
+                "Discarding %d rows with missing Version in %s",
+                missing_count,
+                file_path,
+            )
+
+        df = df.loc[~missing_versions].copy()
+
+        # Validate every remaining version against this source file's interval
+        valid_versions = df["Version"].map(
+            lambda value: (
+                bool(timestamp_pattern.fullmatch(str(value)))
+                and start_ts <= str(value) <= end_ts
+            )
+        )
+
+        if not valid_versions.all():
+            invalid = df.loc[~valid_versions, "Version"].unique().tolist()
+            raise ValueError(
+                f"Invalid or out-of-interval Version values in "
+                f"{file_path}: {invalid}"
+            )
 
         dfs.append(df)
 
@@ -421,22 +541,40 @@ def condense_changelogs(files: List[Path | str]) -> pd.DataFrame:
 
     new_changelog = pd.concat(dfs, ignore_index=True)
 
-    # Sort deterministically
-    new_changelog = new_changelog.sort_values(
-        by=[new_changelog.columns[0], "Version"],
-        ascending=[True, True],
-    )
-
-    # Remove duplicates (keep latest state)
-    new_changelog = new_changelog.drop_duplicates(keep="last")
-
-    # Remove empty rows
+    # Remove completely empty rows
     new_changelog = new_changelog.dropna(how="all")
 
-    # Keep only latest version per row identity
-    index = new_changelog.drop(["Modification date", "Version"], axis=1, errors="ignore").drop_duplicates(keep="last").index
+    # Deduplicate identical states, ignoring Modification date and Version
+    identity_columns = [
+        column for column in new_changelog.columns
+        if column not in ["Modification date", "Version"]
+    ]
 
-    return new_changelog.loc[index]
+    if identity_columns:
+        # Keep the latest occurrence of each identical state
+        new_changelog = new_changelog.sort_values(
+            "Version",
+            kind="stable",
+        )
+
+        new_changelog = new_changelog.drop_duplicates(
+            subset=identity_columns,
+            keep="last",
+        )
+
+    # Sort the result deterministically
+    sort_columns = [
+        column for column in ["Name", "Version"]
+        if column in new_changelog.columns
+    ]
+
+    if sort_columns:
+        new_changelog = new_changelog.sort_values(
+            sort_columns,
+            kind="stable",
+        )
+
+    return new_changelog.reset_index(drop=True)
 
 
 # Build file index (single source of truth)
@@ -518,87 +656,300 @@ def _parse_changelog_ts(path: Path | str) -> tuple[arrow.Arrow | None, arrow.Arr
 
 
 # Process a single group bucket
-def _process_group(group_df: pd.DataFrame, is_changelog: bool, dryrun: bool) -> None:
-    """
-    Process a single group bucket of files, deleting redundant files and condensing changelogs if necessary.
-
-    Args:
-        group_df (pd.DataFrame): DataFrame containing files for a specific group and bucket.
-        is_changelog (bool): Whether the files are changelogs or data files.
-        dryrun (bool): If True, log intended actions without modifying files.
-    Returns:
-        None
-    """
-    deleted_count = 0
-    kept_count = 0
-
-    # Delete files older than 12 months using arrow
-    cutoff = arrow.utcnow().shift(months=-12)
-    old_files = group_df[group_df["MaxTS_pd"].apply(lambda x: arrow.get(x) < cutoff)]["Name"].tolist()
-    for file in old_files:
-        logger.info("Delete old file %s", file)
-        deleted_count += 1
-        if not dryrun:
-            os.remove(file)
-        else:
-            print(f"Dry run: would delete old file {file}")
-
-    files = group_df.sort_values("MaxTS_pd", ascending=False)["Name"].tolist()
-    if not files:
-        logger.info("No files to process for group %s", group_df["Group"].iloc[0])
-        return
-
+def _process_data(group_df: pd.DataFrame, dryrun: bool) -> None:
+    """Keep the newest data snapshot in a retention bucket."""
     group = group_df["Group"].iloc[0]
 
-    if is_changelog and len(files) > 1:
-        new_changelog = condense_changelogs(files)
-        if new_changelog.empty:
-            logger.warning("Skipping empty changelog merge for group %s", group)
-            return
+    most_recent = group_df.loc[
+        group_df["MaxTS_pd"].idxmax(), "Name"
+    ]
 
-        min_ts = arrow.get(new_changelog["Version"].min())
-        max_ts = arrow.get(new_changelog["Version"].max())
-        new_filename = make_filename(report=group, timestamp=max_ts, previous_timestamp=min_ts)
-        new_filepath = dirs.DATA / new_filename
-        logger.info("New changelog file: %s", new_filepath)
-        if not dryrun:
-            new_changelog.to_csv(new_filepath, index=False)
+    deleted_count = 0
+
+    for file in group_df["Name"]:
+        if file == most_recent:
+            logger.info("Keep %s", file)
+
+            if dryrun:
+                print(f"Dry run: would keep file {file}")
+
+            continue
+
+        logger.info("Delete %s", file)
+        deleted_count += 1
+
+        if dryrun:
+            print(f"Dry run: would delete file {file}")
         else:
-            print(f"Dry run: would save new changelog to {new_filepath}")
+            os.remove(file)
 
-        for file in files:
-            if Path(file) != new_filepath:
-                logger.info("Delete %s", file)
-                deleted_count += 1
-                if not dryrun:
-                    os.remove(file)
-                else:
-                    print(f"Dry run: would delete file {file}")
-            else:
-                logger.info("Keep %s", file)
-                if dryrun:
-                    print(f"Dry run: would keep file {file}")
-                kept_count += 1
-    else:
-        most_recent = group_df.loc[group_df["MaxTS_pd"].idxmax(), "Name"]
-        for file in files:
-            if file != most_recent:
-                logger.info("Delete %s", file)
-                deleted_count += 1
-                if not dryrun:
-                    os.remove(file)
-                else:
-                    print(f"Dry run: would delete file {file}")
-            else:
-                logger.info("Keep %s", file)
-                if dryrun:
-                    print(f"Dry run: would keep file {file}")
-                kept_count += 1
+    message = (
+        f"Summary for group {group} (data): "
+        f"{deleted_count} would be deleted, 1 would be kept"
+    )
 
-    message = f"Summary for group {group} ({'changelog' if is_changelog else 'data'}): {deleted_count} would be deleted, {kept_count} would be kept"
     logger.info(message)
+
     if dryrun:
         print(f"Dry run: {message}")
+
+
+def _process_changelogs(subdf: pd.DataFrame, dryrun: bool) -> None:
+    """
+    Consolidate changelogs belonging to the same retention bucket or
+    having overlapping/touching timestamp intervals.
+    """
+    if subdf.empty:
+        return
+
+    # Preserve existing weekly/monthly retention buckets
+    cutoff = subdf["MaxTS_pd"].max() - pd.Timedelta(days=30)
+
+    recent = subdf[subdf["MaxTS_pd"] >= cutoff].copy()
+    recent["Bucket"] = (
+        recent["MaxTS_pd"]
+        .dt.tz_localize(None)
+        .dt.to_period("W")
+        .dt.to_timestamp()
+    )
+
+    older = subdf[subdf["MaxTS_pd"] < cutoff].copy()
+    older["Bucket"] = (
+        older["MaxTS_pd"]
+        .dt.tz_localize(None)
+        .dt.to_period("M")
+        .dt.to_timestamp()
+    )
+
+    combined = pd.concat([recent, older]).reset_index(drop=True)
+
+    if combined.empty:
+        return
+
+    # Build connected components
+    parent = list(range(len(combined)))
+
+    def find(index):
+        if parent[index] != index:
+            parent[index] = find(parent[index])
+        return parent[index]
+
+    def union(first, second):
+        first_root = find(first)
+        second_root = find(second)
+
+        if first_root != second_root:
+            parent[second_root] = first_root
+
+    # Files in the same group and retention bucket are connected
+    for _, indices in combined.groupby(["Group", "Bucket"]).groups.items():
+        indices = list(indices)
+
+        for index in indices[1:]:
+            union(indices[0], index)
+
+    # Overlapping or touching intervals are connected across buckets
+    for group, group_df in combined.groupby("Group"):
+        intervals = []
+
+        for index, row in group_df.iterrows():
+            start, end = _parse_changelog_ts(row["Name"])
+
+            if start is None or end is None or start >= end:
+                raise ValueError(
+                    f"Invalid changelog interval for group {group}: "
+                    f"{row['Name']}"
+                )
+
+            intervals.append((start, end, index))
+
+        intervals.sort(key=lambda item: (item[0], item[1]))
+
+        component_root = None
+        component_end = None
+
+        for start, end, index in intervals:
+            # A shared endpoint counts as connected
+            if component_root is None or start > component_end:
+                component_root = index
+                component_end = end
+                continue
+
+            union(component_root, index)
+            component_end = max(component_end, end)
+
+    combined["_Component"] = [
+        find(index) for index in range(len(combined))
+    ]
+
+    components = combined.groupby("_Component", sort=False)
+
+    logger.info(
+        "Processing %d connected changelog groups",
+        len(components),
+    )
+
+    for _, component_df in components:
+        group = component_df["Group"].iloc[0]
+        files = component_df.sort_values(
+            "MaxTS_pd",
+            ascending=False,
+        )["Name"].tolist()
+
+        # A single file needs no consolidation
+        if len(files) == 1:
+            logger.info("Keep %s", files[0])
+
+            if dryrun:
+                print(f"Dry run: would keep file {files[0]}")
+
+            continue
+
+        # Consolidate and validate source changelogs
+        new_changelog = condense_changelogs(files)
+
+        if new_changelog.empty:
+            logger.warning(
+                "Skipping empty changelog merge for group %s",
+                group,
+            )
+            continue
+
+        intervals = [_parse_changelog_ts(file) for file in files]
+
+        min_ts = min(start for start, _ in intervals)
+        max_ts = max(end for _, end in intervals)
+
+        new_filename = make_filename(
+            report=group,
+            timestamp=max_ts,
+            previous_timestamp=min_ts,
+        )
+
+        new_filepath = dirs.DATA / new_filename
+        source_paths = {Path(file).resolve() for file in files}
+
+        if (
+            new_filepath.exists()
+            and new_filepath.resolve() not in source_paths
+        ):
+            raise FileExistsError(
+                f"Consolidated output already exists and is not a source "
+                f"file: {new_filepath}"
+            )
+
+        if dryrun:
+            print(
+                f"Dry run: would consolidate {len(files)} files into "
+                f"{new_filename} ({len(new_changelog):,} rows)"
+            )
+            continue
+
+        temp_path = None
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                prefix=f".{group}_changelog_",
+                suffix=".bz2",
+                dir=dirs.DATA,
+                delete=False,
+            ) as temp_file:
+                temp_path = Path(temp_file.name)
+
+            new_changelog.to_csv(
+                temp_path,
+                index=False,
+                compression="bz2",
+            )
+
+            # Verify the written file before replacing any sources
+            verified = pd.read_csv(
+                temp_path,
+                compression="bz2",
+                dtype=object,
+                keep_default_na=False,
+                na_values="",
+            )
+
+            pd.testing.assert_frame_equal(
+                verified,
+                new_changelog,
+                check_dtype=False,
+                check_exact=True,
+            )
+
+            timestamp_pattern = re.compile(r"^\d{8}T\d{4}Z$")
+
+            valid_versions = verified["Version"].map(
+                lambda value: (
+                    bool(timestamp_pattern.fullmatch(str(value)))
+                    and filename_ts_fmt(min_ts)
+                    <= str(value)
+                    <= filename_ts_fmt(max_ts)
+                ) if pd.notna(value) else False
+            )
+
+            if not valid_versions.all():
+                raise ValueError(
+                    f"Invalid Version values in consolidated "
+                    f"changelog {new_filename}"
+                )
+
+            temp_path.replace(new_filepath)
+            temp_path = None
+
+        finally:
+            if temp_path is not None and temp_path.exists():
+                temp_path.unlink()
+
+        # Delete sources only after successful output verification
+        for file in files:
+            if Path(file).resolve() != new_filepath.resolve():
+                os.remove(file)
+                logger.info("Delete %s", file)
+
+        logger.info("Keep consolidated changelog %s", new_filepath)
+
+def _process_group(group_df: pd.DataFrame, is_changelog: bool, dryrun: bool) -> None:
+    """Apply the 12-month retention policy and delegate file processing."""
+    group = group_df["Group"].iloc[0]
+    label = "changelog" if is_changelog else "data"
+
+    cutoff = arrow.utcnow().shift(months=-12)
+
+    expired = group_df[
+        group_df["MaxTS_pd"].apply(
+            lambda value: arrow.get(value) < cutoff
+        )
+    ]
+
+    deleted_count = 0
+
+    for file in expired["Name"]:
+        logger.info("Delete old file %s", file)
+        deleted_count += 1
+
+        if dryrun:
+            print(f"Dry run: would delete old file {file}")
+        else:
+            os.remove(file)
+
+    active_df = group_df[
+        ~group_df["Name"].isin(expired["Name"])
+    ].copy()
+
+    if not active_df.empty:
+        if is_changelog:
+            _process_changelogs(active_df, dryrun)
+        else:
+            _process_data(active_df, dryrun)
+
+    logger.info(
+        "Retention summary for %s (%s): %d expired files",
+        group,
+        label,
+        deleted_count,
+    )
 
 
 def _extract_group(path: Path | str) -> str | None:
