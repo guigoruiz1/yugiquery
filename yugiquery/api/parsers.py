@@ -675,7 +675,7 @@ def process_content(content: Dict, rarities: Dict[str, str]) -> Tuple[pd.DataFra
     success = 0
     error = 0
 
-    raw = content["revisions"][0]["*"]
+    raw = content["revisions"][0]["slots"]["main"]["*"]
     parsed = wtp.parse(raw)
     page_name = content["title"]
 

@@ -47,7 +47,7 @@ else:
 URLS: SimpleNamespace = SimpleNamespace(
     base="https://yugipedia.com/api.php",
     media="https://ms.yugipedia.com/",
-    revisions_action="?action=query&format=json&prop=revisions&rvprop=content&titles=",
+    revisions_action="?action=query&format=json&prop=revisions&rvprop=content&rvslots=main&titles=",
     ask_action="?action=ask&format=json&query=",
     askargs_action="?action=askargs&format=json&conditions=",
     categorymembers_action="?action=query&format=json&list=categorymembers&cmdir=desc&cmsort=timestamp&cmtitle=Category:",
